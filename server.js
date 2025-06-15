@@ -278,6 +278,8 @@ app.post('/api/board/:id/delete', async (req, res) => {
 });
 
 // 서버 실행
-app.listen(3001, () => {
-  console.log('서버 실행 http://localhost:3001');
+const PORT = process.env.PORT || 3001;
+
+app.listen(PORT, () => {
+  console.log(`서버 실행 http://localhost:${PORT}`);
 });
