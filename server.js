@@ -5,10 +5,11 @@ const cors = require('cors');
 const multer = require('multer');
 const fs = require('fs').promises;
 const upload = multer({ dest: 'uploads/' });
-
+const path = require('path');
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 app.use(express.static('public'));
 
 const db = mysql.createPool({
@@ -275,6 +276,10 @@ app.post('/api/board/:id/delete', async (req, res) => {
   } catch (e) {
     res.status(500).json({ message: '글 삭제 오류', error: e.message });
   }
+});
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 // 서버 실행
