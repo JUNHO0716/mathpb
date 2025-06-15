@@ -9,7 +9,7 @@ const upload = multer({ dest: 'uploads/' });
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.static('public'));
 
 const db = mysql.createPool({
   host: 'localhost',      // 여기에 본인 MySQL host (보통 localhost)
