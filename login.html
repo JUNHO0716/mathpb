@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>로그인창 | 수학문제은행</title>
+  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:400,700&display=swap" rel="stylesheet">
+  <style>
+    /* ==============================================
+       1. 기본 초기화 & Body 설정 (원본 그대로)
+       ============================================== */
+    html, body { height: 100%; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: #f6faf6; /* 메인페이지 배경(연한 그린)와 통일 */
+      font-family: 'Noto Sans KR', Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ==============================================
+       2. 로그인 래퍼 (.login-wrapper) — 원본 그대로
+       ============================================== */
+    .login-wrapper {
+      width: 900px;
+      min-height: 500px;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 6px 36px rgba(50,80,200,0.10);
+      display: flex;
+      overflow: hidden;
+      margin-bottom: 15px;
+    }
+
+    /* ==============================================
+       3. 왼쪽 패널 (.left-panel) — 색상만 메인 그린으로 변경
+       ============================================== */
+    .left-panel {
+      flex: 1.1;
+      /* 원본: background: linear-gradient(135deg, #4a6cf7 60%, #6f90fe 100%); */
+      background: linear-gradient(135deg, #27a267 60%, #19763c 100%);
+      color: #fff;
+      padding: 0 38px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      min-width: 340px;
+      justify-content: flex-start;
+      position: relative;
+    }
+    .left-textbox { margin-top: 10px; margin-bottom: 0; }
+    .left-panel h1 {
+      font-size: 2rem;
+      margin-bottom: 14px;
+      line-height: 1.36;
+      font-weight: 700;
+    }
+    .left-panel .sub {
+      font-size: 1rem;
+      opacity: 0.88;
+      letter-spacing: 0.02em;
+      font-weight: 400;
+    }
+
+    /* ==============================================
+       4. 오른쪽 패널 (.right-panel) — 배경색만 메인페이지와 통일
+       ============================================== */
+    .right-panel {
+      flex: 1;
+      background: #fff; /* 원본과 동일 (메인페이지 카드 내부 흰색) */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 32px 32px 0 32px;
+      position: relative;
+    }
+    .logo-area {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 16px;
+      margin-top: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .logo-area img { height: 70px; margin-bottom: 18px; }
+
+    /* ==============================================
+       5. 로그인 폼 (인풋, 버튼, 체크박스 등)
+       ============================================== */
+    .login-form-wrap { display: flex; flex-direction: column; align-items: center; margin-top: 40px; width: 100%; }
+    .login-form {
+      width: 100%;
+      max-width: 320px;
+      margin: 0 auto;
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+    .login-form input[type="text"],
+    .login-form input[type="password"] {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 13px 14px;
+      border: 1px solid #e0e6ee;
+      border-radius: 7px;
+      font-size: 1rem;
+      background: #f9fbfe;
+      transition: border 0.2s;
+    }
+    .login-form input:focus {
+      outline: none;
+      /* 원본: border: 1.5px solid #4a6cf7; */
+      border: 1.5px solid #27a267;
+      background: #fff;
+    }
+
+    /* 체크박스 색상만 메인그린 계열로 변경 */
+    .checkbox-area { display: flex; align-items: center; margin-bottom: 18px; font-size: 0.97em; }
+    .checkbox-area input[type="checkbox"] {
+      margin-right: 7px;
+      /* 원본: accent-color: #4a6cf7; */
+      accent-color: #27a267;
+      width: 17px;
+      height: 17px;
+    }
+
+    /* ==============================================
+       6. 로그인 버튼 색상만 메인 그린으로 변경
+       ============================================== */
+    .login-form button {
+      width: 100%;
+      /* 원본: background: #4a6cf7; */
+      background: #27a267;
+      color: #fff;
+      font-size: 1.13rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 7px;
+      padding: 13px;
+      margin-top: 5px;
+      transition: background 0.17s;
+      cursor: pointer;
+    }
+    .login-form button:hover {
+      /* 원본: background: #254baf; */
+      background: #19763c;
+    }
+
+    /* ==============================================
+       7. 링크 영역 (회원가입/비번찾기) — 텍스트 색상만 조정
+       ============================================== */
+    .links-area {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 14px 0 2px 0;
+      color: #8d98a7;
+      font-size: 0.99em;
+    }
+    .links-area span {
+      margin: 0 10px;
+      color: #d4dbe2;
+      font-size: 1.1em;
+      font-weight: 300;
+    }
+    .links-area a {
+      /* 원본: color: #6f90fe; */
+      color: #27a267;
+      text-decoration: none;
+      transition: color 0.2s;
+      font-weight: 500;
+    }
+    .links-area a:hover {
+      /* 원본: color: #254baf; */
+      color: #19763c;
+      text-decoration: underline;
+    }
+
+    /* ==============================================
+       8. 로그인 결과 메시지 — 원본 그대로
+       ============================================== */
+    .login-result {
+      text-align: center;
+      font-size: 1.08em;
+      margin-top: 13px;
+      color: #2e3754;
+      background: #f7f9fd;
+      border-radius: 7px;
+      padding: 9px 7px;
+      min-height: 28px;
+      word-break: break-all;
+    }
+
+    /* ==============================================
+       9. 하단 Info 바 — 메인페이지와 동일하게 조정
+       ============================================== */
+    .info-bar {
+      width: 900px;
+      margin: 0 auto;
+      text-align: center;
+      font-size: 0.85em;
+      color: #9da4b4;
+      background: #f6faf6; /* 메인페이지 배경과 동일 */
+      padding: 12px 0 2px 0;
+      letter-spacing: 0.01em;
+    }
+
+    /* ==============================================
+       10. 반응형 처리 — 원본 그대로
+       ============================================== */
+    @media (max-width: 800px) {
+      html, body {
+        height: auto;
+        min-height: 100vh;
+        display: block;
+      }
+      .login-wrapper {
+        flex-direction: column;
+        margin: 40px 8px 8px 8px;
+        width: 98vw;
+      }
+      .left-panel, .right-panel {
+        min-width: 0;
+      }
+      .left-panel {
+        padding: 26px 19px 0 19px;
+        align-items: center;
+      }
+      .right-panel {
+        padding: 22px 12px 8px 12px;
+      }
+      .login-form-wrap {
+        margin-top: 32px;
+      }
+      .info-bar {
+        width: 98vw;
+        font-size: 0.78em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="login-wrapper">
+    <div class="left-panel">
+      <div class="left-textbox">
+        <h1>지금 로그인하고<br>차원이 다른 기출문제를<br>경험하세요.</h1>
+        <div class="sub">Mobile Performance<br>Management Solution</div>
+      </div>
+    </div>
+    <div class="right-panel">
+      <div class="logo-area">
+        <img src="logo.png" alt="M CLASS" />
+      </div>
+      <div class="login-form-wrap">
+        <form class="login-form" id="loginForm">
+          <input type="text" id="login_email" placeholder="아이디를 입력하세요." required autocomplete="username">
+          <input type="password" id="login_password" placeholder="비밀번호를 입력하세요." required autocomplete="current-password">
+          <div class="checkbox-area">
+            <input type="checkbox" id="save_id">
+            <label for="save_id">아이디 저장</label>
+          </div>
+          <button type="submit">로그인</button>
+        </form>
+        <div class="links-area">
+          <a href="signup.html">회원가입</a>
+          <span>|</span>
+          <a href="resetpw.html">비밀번호 찾기</a>
+        </div>
+        <div class="login-result" id="loginResult"></div>
+      </div>
+    </div>
+  </div>
+  <div class="info-bar">
+    솔루션 문의는 전문 컨설턴트가 도와드립니다.<br>
+    support@imqa.io / Tel : 02-541-0080
+  </div>
+  <script>
+    // 아이디 저장 기능 (로컬스토리지 사용)
+    window.onload = function() {
+      const saved = localStorage.getItem('saved_id');
+      if(saved) {
+        document.getElementById('login_email').value = saved;
+        document.getElementById('save_id').checked = true;
+      }
+    };
+    document.getElementById('save_id').addEventListener('change', function() {
+      const email = document.getElementById('login_email').value;
+      if(this.checked && email) {
+        localStorage.setItem('saved_id', email);
+      } else {
+        localStorage.removeItem('saved_id');
+      }
+    });
+    document.getElementById('login_email').addEventListener('input', function() {
+      if(document.getElementById('save_id').checked) {
+        localStorage.setItem('saved_id', this.value);
+      }
+    });
+
+    // 실제 서버 연동 로그인 (Node.js + MySQL)
+    document.getElementById('loginForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('login_email').value.trim();
+      const password = document.getElementById('login_password').value;
+
+      try {
+        const res = await fetch('http://localhost:3001/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          // [1] 개인 DB 세팅: 이메일 localStorage에 저장!
+          localStorage.setItem('userEmail', email);
+          // [2] 메인화면으로 이동!
+          window.location.href = 'http://localhost:8000/main_home.html';
+        } else {
+          document.getElementById('loginResult').innerText = data.msg || "로그인 실패: 아이디 또는 비밀번호를 확인하세요.";
+        }
+      } catch (err) {
+        document.getElementById('loginResult').innerText = "서버 연결 오류";
+      }
+    };
+  </script>
+</body>
+</html>

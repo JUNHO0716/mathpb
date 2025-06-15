@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>비밀번호 찾기 | 수학문제은행</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 구글 폰트 (메인과 동일) -->
+  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:400,700,900&display=swap" rel="stylesheet">
+  <style>
+    /* ==============================================
+       1. 기본 초기화 & Body 설정 (메인페이지와 통일)
+       ============================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+      background: #f6faf6; /* 메인 페이지 배경색 */
+      font-family: 'Noto Sans KR', Arial, sans-serif;
+      color: #1c4135;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* ==============================================
+       2. 컨테이너 박스 (.pwreset-box)
+       ============================================== */
+    .pwreset-box {
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 4px 24px rgba(80, 120, 60, 0.10);
+      padding: 36px 34px 28px 34px;
+      width: 400px; /* 기존 340px에서 400px로 변경 */
+    }
+    /* 제목 */
+    .pwreset-box h2 {
+      text-align: center;
+      margin-bottom: 18px;
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: #26784b; /* 메인 그린 계열 */
+    }
+
+    /* ==============================================
+       3. 입력 필드 스타일
+       ============================================== */
+    .pwreset-box input[type="text"],
+    .pwreset-box input[type="password"] {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 12px;
+      border-radius: 7px;
+      border: 1px solid #ddd;
+      font-size: 0.95rem;
+      background: #f9fbfe;
+      transition: border 0.2s;
+    }
+    .pwreset-box input:focus {
+      outline: none;
+      border: 1.5px solid #27a267; /* 메인 그린 포커스 */
+      background: #ffffff;
+    }
+
+    /* ==============================================
+       4. 버튼 스타일
+       ============================================== */
+    .pwreset-box button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 7px;
+      background: #27a267; /* 메인 그린 버튼 */
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .pwreset-box button:hover {
+      background: #19763c; /* 버튼 호버 */
+    }
+
+    /* ==============================================
+       5. 결과 메시지 스타일
+       ============================================== */
+    .pwreset-box .result {
+      text-align: center;
+      color: #2a3577;
+      margin-top: 8px;
+      min-height: 20px;
+      font-size: 0.95rem;
+    }
+
+    /* ==============================================
+       6. 링크 스타일
+       ============================================== */
+    .pwreset-link {
+      display: block;
+      text-align: center;
+      margin-top: 14px;
+      color: #27a267; /* 메인 그린 */
+      text-decoration: none;
+      font-size: 0.97em;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .pwreset-link:hover {
+      color: #19763c;
+      text-decoration: underline;
+    }
+
+    /* ==============================================
+       7. 반응형 처리 (작은 화면)
+       ============================================== */
+    @media (max-width: 450px) {
+      .pwreset-box {
+        width: 90vw; /* 작은 화면에서 90% 너비 사용 */
+        padding: 28px 24px 20px 24px;
+      }
+      .pwreset-box h2 {
+        font-size: 1.3rem;
+        margin-bottom: 14px;
+      }
+      .pwreset-box input[type="text"],
+      .pwreset-box input[type="password"] {
+        padding: 10px;
+        font-size: 0.9rem;
+      }
+      .pwreset-box button {
+        padding: 10px;
+        font-size: 0.95rem;
+      }
+      .pwreset-link {
+        font-size: 0.9em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="pwreset-box">
+    <h2>비밀번호 찾기</h2>
+    <input type="text" id="email" placeholder="이메일 주소" autocomplete="off">
+    <input type="text" id="name" placeholder="이름" autocomplete="off">
+    <input type="text" id="phone" placeholder="휴대폰 번호('-' 없이 11자리)" autocomplete="off">
+    <input type="password" id="newpw" placeholder="새 비밀번호" autocomplete="new-password">
+    <input type="password" id="newpw2" placeholder="새 비밀번호 재입력" autocomplete="new-password">
+    <button onclick="resetPw()">비밀번호 변경</button>
+    <div class="result" id="result"></div>
+    <a href="login.html" class="pwreset-link">로그인 화면으로</a>
+  </div>
+
+  <script>
+    async function resetPw() {
+      const email = document.getElementById('email').value.trim();
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const pw = document.getElementById('newpw').value;
+      const pw2 = document.getElementById('newpw2').value;
+      const resultDiv = document.getElementById('result');
+
+      // 1) 빈 항목 체크
+      if (!email || !name || !phone || !pw || !pw2) {
+        resultDiv.style.color = "#a02323"; // 오류는 빨강
+        resultDiv.innerText = "모든 항목을 입력하세요!";
+        return;
+      }
+      // 2) 비밀번호 일치 여부
+      if (pw !== pw2) {
+        resultDiv.style.color = "#a02323";
+        resultDiv.innerText = "비밀번호가 일치하지 않습니다!";
+        return;
+      }
+
+      try {
+        const res = await fetch('http://localhost:3001/resetpw', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, name, phone, password: pw })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          resultDiv.style.color = "#26784b";  // 성공 메시지는 초록색
+          resultDiv.innerText = "비밀번호가 변경되었습니다! 로그인 화면으로 이동합니다.";
+          setTimeout(() => location.href = "login.html", 1500);
+        } else {
+          resultDiv.style.color = "#a02323";
+          resultDiv.innerText = data.msg || "변경 실패!";
+        }
+      } catch (err) {
+        resultDiv.style.color = "#a02323";
+        resultDiv.innerText = "서버 연결 오류입니다.";
+      }
+    }
+  </script>
+</body>
+</html>

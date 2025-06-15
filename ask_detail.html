@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>문의 상세</title>
+  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:700,400&display=swap" rel="stylesheet">
+  <style>
+    body { background:#fff; font-family:'Noto Sans KR', Arial,sans-serif; margin:0;}
+    .gnb { height:64px; border-bottom:1.5px solid #eee; display:flex; align-items:center; padding:0 44px;}
+    .gnb .logo { color:#7125b7; font-weight:900; font-size:2.1rem; letter-spacing:-2px;}
+    .gnb .right { margin-left:auto; display:flex; align-items:center; gap:12px; }
+    .gnb .right button { background:#7125b7; color:#fff; border-radius:18px; border:0; font-weight:700; font-size:1rem; padding:8px 20px; cursor:pointer;}
+    .container { width:900px; margin:56px auto 0;}
+    .sub-title { font-size:1.23rem; font-weight:700; margin-bottom:16px; color:#222;}
+    .board-table { width:100%; border-collapse:collapse; margin-bottom:20px;}
+    .board-table th, .board-table td { border-bottom:1px solid #ebebeb; text-align:left; padding:14px 14px; font-size:1.08rem;}
+    .board-table th { color:#555; width:110px; background:#fafafd;}
+    .board-table td { color:#1a1a1a; }
+    .board-table td.right { text-align:right; color:#666; }
+    .detail-content { font-size:1.14rem; color:#242424; padding:36px 18px 18px 18px; min-height:220px; background:#f8f8fb; border-radius:11px;}
+    .detail-file-list { margin:18px 0 4px 0;}
+    .detail-file-list a { display:block; color:#7125b7; font-weight:700; text-decoration:none; margin-bottom:6px;}
+    .detail-file-list a:hover { text-decoration:underline; }
+    .btn-group { display:flex; gap:12px; margin-top:18px;}
+    .btn { border:0; border-radius:8px; padding:9px 34px; font-weight:700; font-size:1rem; cursor:pointer; }
+    .btn-gray { background:#f2f2f4; color:#7125b7;}
+    .btn-primary { background:#7125b7; color:#fff;}
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+  <!-- GNB -->
+  <nav class="gnb">
+    <div class="logo">SEDN</div>
+    <div class="right">
+      <button>로그인</button>
+      <button style="background:#4a1e84;">기술지원 바로가기</button>
+    </div>
+  </nav>
+  <div class="container">
+    <!-- 도입안내/문의하기/시험지업로드 분류 -->
+    <div class="sub-title" id="boardTypeLabel">문의하기</div>
+    <!-- 제목/작성자 표 -->
+    <table class="board-table">
+      <tr>
+        <th>제목</th>
+        <td id="detailTitle"></td>
+        <th>작성자</th>
+        <td class="right" id="detailUser"></td>
+      </tr>
+    </table>
+    <!-- 본문 내용 -->
+    <div class="detail-content" id="detailContent"></div>
+    <!-- 첨부파일 -->
+    <div class="detail-file-list" id="fileLinks"></div>
+    <!-- 수정/삭제 버튼 (본인+관리자만 노출) -->
+    <div class="btn-group" id="ownerBtns" style="display:none;">
+      <button class="btn btn-primary" onclick="editPost()">수정</button>
+      <button class="btn btn-gray" onclick="deletePost()">삭제</button>
+    </div>
+    <button class="btn btn-gray" onclick="history.back()">목록으로</button>
+  </div>
+  <script>
+    // (1) 상세글 데이터 불러오기
+    const urlParams = new URLSearchParams(location.search);
+    const postId = urlParams.get('id');
+    let postData = null;
+
+    fetch('http://localhost:3001/api/board/' + postId)
+      .then(res => res.json())
+      .then(data => {
+        postData = data;
+        document.getElementById('boardTypeLabel').textContent = data.boardType === "upload" ? "시험지 업로드" : "문의하기";
+        document.getElementById('detailTitle').textContent = data.title || '';
+        document.getElementById('detailUser').textContent = data.writer || '익명';
+        document.getElementById('detailContent').textContent = data.content || '';
+        // 첨부파일
+        if(data.files){
+          const files = JSON.parse(data.files);
+          document.getElementById('fileLinks').innerHTML = files.map(file =>
+            `<a href="/uploads/${file.filename}" target="_blank">[첨부] ${file.originalname}</a>`
+          ).join('');
+        }
+        // 수정/삭제는 본인 or 관리자
+        if(localStorage.getItem('isAdmin')==='1' || localStorage.getItem('myPostId')===String(postId)){
+          document.getElementById('ownerBtns').style.display = '';
+        }
+      });
+
+    function editPost() { alert('수정기능 연동!'); }
+    function deletePost() {
+      if(confirm('정말 삭제할까요?')){
+        fetch('http://localhost:3001/api/board/' + postId, { method:'DELETE' })
+        .then(res=>res.json())
+        .then(data=>{
+          alert('삭제되었습니다!'); location.href = 'ask.html';
+        });
+      }
+    }
+  </script>
+</body>
+</html>

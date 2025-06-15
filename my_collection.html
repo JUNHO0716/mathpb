@@ -1,0 +1,32 @@
+<!-- public/my_collection.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>내 문제지</title>
+  <link rel="stylesheet" href="css/common.css">
+</head>
+<body>
+  <!-- 공통 네비게이션 -->
+  <nav id="nav"></nav>
+
+  <div class="container">
+    <!-- 1) 폴더 사이드바 -->
+    <aside id="folder-sidebar">
+      <h2>내 폴더</h2>
+      <button id="createRootFolderBtn">+ 새 폴더</button>
+      <ul id="folder-tree-root"></ul>
+    </aside>
+
+    <!-- 2) 메인 콘텐츠: 해당 폴더 안에 있는 시험지 카드 -->
+    <main id="sheet-area">
+      <h2 id="current-folder-name">폴더를 선택하세요</h2>
+      <div id="sheet-list"></div>
+      <button id="createSheetBtn">+ 시험지 만들기</button>
+      <button id="mergeHwpBtn">HWP 병합</button>
+    </main>
+  </div>
+
+  <script type="module" src="js/my_collection.js"></script>
+</body>
+</html>

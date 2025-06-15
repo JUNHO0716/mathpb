@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>문의/시험지업로드 게시판</title>
+  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:700,400&display=swap" rel="stylesheet">
+  <style>
+    .clickable-row { cursor: pointer; }
+    .clickable-row:hover { background: #f5ecfa; }
+    .clickable-row .board-title { transition: color .2s; }
+    .clickable-row:hover .board-title { color: #a86cf2; }
+    body { background:#fff; font-family:'Noto Sans KR',Arial,sans-serif; margin:0;}
+    /* GNB(상단) - 로고 + 로그인/기술지원 */
+    .gnb { height:64px; border-bottom:1.5px solid #eee; display:flex; align-items:center; padding:0 44px;}
+    .gnb .logo { color:#7125b7; font-weight:900; font-size:2.1rem; letter-spacing:-2px;}
+    .gnb .right { margin-left:auto; display:flex; align-items:center; gap:12px; }
+    .gnb .right button { background:#7125b7; color:#fff; border-radius:18px; border:0; font-weight:700; font-size:1rem; padding:8px 20px; cursor:pointer;}
+    .container { width: 900px; margin: 56px auto 0; }
+    .page-title { font-size:2rem; font-weight:900; margin-bottom:28px;}
+    /* 탭 */
+    .sub-tab-bar { display:flex; gap:36px; border-bottom:2.5px solid #ececec; margin-bottom:18px;}
+    .sub-tab-bar button {
+      color:#222; background:none; border:none; font-size:1.19rem; font-weight:700; padding:0 0 14px 0; margin:0 0 -2.5px 0; border-bottom:2.5px solid transparent; cursor:pointer; transition:.2s;
+    }
+    .sub-tab-bar button.active {
+      color:#7125b7;
+      border-color:#7125b7;
+    }
+    /* 게시판 테이블 */
+    .board-table { width:100%; border-collapse:collapse; margin-top: 18px;}
+    .board-table th, .board-table td { border-bottom:1px solid #ebebeb; text-align:left; padding:14px 8px; font-size:1.04rem;}
+    .board-table th { color:#444; background:#f9f9fb; font-weight:700;}
+    .board-table td { color:#222;}
+    .board-table tr:hover td { background:#f8f6ff; }
+    .board-table td.center { text-align:center; color:#999; }
+    /* 버튼 */
+    .btn-primary { background:#7125b7; color:#fff; border:0; border-radius:7px; font-weight:700; font-size:1.11rem; padding:12px 42px; cursor:pointer; margin-top:36px; float:right;}
+    .btn-primary:active { filter:brightness(0.9);}
+    /* 파일 아이콘 보라색 */
+    .file-purple { color:#7125b7;}
+    @media (max-width:950px) {.container{width:98vw;padding:0 2vw;}}
+    /* 비밀번호 모달 */
+    #pwModal { display:none; position:fixed; left:0; top:0; width:100vw; height:100vh; background:#0006; z-index:2000; align-items:center; justify-content:center;}
+    #pwModal .pw-inner { background:#fff; border-radius:12px; padding:38px 44px; min-width:340px; }
+  </style>
+</head>
+<body>
+  <!-- 상단 GNB(로고 + 로그인/기술지원) -->
+  <nav class="gnb">
+    <div class="logo">SEDN</div>
+    <div class="right">
+      <button>로그인</button>
+      <button style="background:#4a1e84;">기술지원 바로가기</button>
+    </div>
+  </nav>
+  <div class="container">
+    <div class="page-title" id="pageTitle">문의하기</div>
+    <!-- 하위 탭 -->
+    <div class="sub-tab-bar">
+      <button id="tabAsk" class="active" onclick="showTab('ask')">문의하기</button>
+      <button id="tabUpload" onclick="showTab('upload')">시험지업로드</button>
+    </div>
+    <!-- 문의하기 게시판 -->
+    <div id="askBoard">
+      <table class="board-table">
+        <thead>
+          <tr>
+            <th style="width:60%;">제목</th>
+            <th style="width:13%;">날짜</th>
+            <th style="width:10%;">파일</th>
+            <th style="width:10%;">조회수</th>
+          </tr>
+        </thead>
+        <tbody id="askTbody"></tbody>
+      </table>
+      <button class="btn-primary" onclick="location.href='ask2.html'">문의하기</button>
+    </div>
+    <!-- 시험지업로드 게시판 -->
+    <div id="uploadBoard" style="display:none;">
+      <table class="board-table">
+        <thead>
+          <tr>
+            <th style="width:60%;">제목</th>
+            <th style="width:13%;">날짜</th>
+            <th style="width:10%;">파일</th>
+            <th style="width:10%;">조회수</th>
+          </tr>
+        </thead>
+        <tbody id="uploadTbody"></tbody>
+      </table>
+      <button class="btn-primary" onclick="location.href='ask2.html'">시험지업로드</button>
+    </div>
+  </div>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+  <!-- 비밀번호 입력 모달 (body 맨 아래) -->
+  <div id="pwModal">
+    <div class="pw-inner">
+      <div style="font-weight:700; font-size:1.17rem; margin-bottom:18px;">비밀번호 입력</div>
+      <form id="pwForm">
+        <input type="password" id="pwInput" maxlength="4" style="font-size:1.1rem; padding:8px 10px;" placeholder="비밀번호" required>
+        <button type="submit" style="margin-left:8px; padding:7px 20px;">확인</button>
+      </form>
+      <div id="pwMsg" style="color:#c34; margin-top:9px;"></div>
+    </div>
+  </div>
+
+  <script>
+    // 탭 전환
+    function showTab(tab) {
+      document.getElementById('tabAsk').classList.toggle('active', tab==='ask');
+      document.getElementById('tabUpload').classList.toggle('active', tab==='upload');
+      document.getElementById('askBoard').style.display = (tab==='ask')?'block':'none';
+      document.getElementById('uploadBoard').style.display = (tab==='upload')?'block':'none';
+      document.getElementById('pageTitle').innerText = (tab==='ask')?'문의하기':'시험지업로드';
+    }
+
+    // DB에서 실제 글 목록을 불러와서 테이블에 뿌리는 함수!
+    function loadBoard(type, tbodyId) {
+      fetch('http://localhost:3001/api/board?type=' + type)
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.getElementById(tbodyId);
+          tbody.innerHTML = '';
+          data.forEach(row => {
+            tbody.innerHTML += `
+              <tr class="clickable-row" data-id="${row.id}" data-password="${row.password || ''}">
+                <td>
+                  ${row.password ? '<i class="fa-solid fa-lock" style="color:#aaa;margin-right:6px;"></i> (비공개) ' : ''}
+                  <span class="board-title">${row.title}</span>
+                </td>
+                <td>${row.created_at ? row.created_at.slice(0,10) : ''}</td>
+                <td class="center">${row.files ? '<i class="fa-regular fa-paperclip file-purple"></i>' : '-'}</td>
+                <td class="center">-</td>
+              </tr>
+            `;
+          });
+        });
+    }
+
+    // 페이지가 열릴 때 자동으로 목록 두 개 다 불러오기!
+    window.onload = function() {
+      loadBoard('ask', 'askTbody');
+      loadBoard('upload', 'uploadTbody');
+    };
+
+    // tr 클릭 시 무조건 비밀번호 모달 먼저 띄움!
+    document.addEventListener("click", function(e){
+      const row = e.target.closest(".clickable-row");
+      if(row) {
+        // 상세페이지로 절대 먼저 들어가지 않는다!
+        const password = row.dataset.password;
+        const id = row.dataset.id;
+        showPwModal(id, password);
+      }
+    });
+
+    // 모달 작동 JS
+    let targetId = null;
+    let realPw = null;
+
+    function showPwModal(id, pw) {
+      targetId = id;
+      realPw = pw;
+      document.getElementById('pwInput').value = '';
+      document.getElementById('pwMsg').textContent = '';
+      document.getElementById('pwModal').style.display = 'flex';
+      setTimeout(()=>document.getElementById('pwInput').focus(), 30);
+    }
+
+    document.getElementById('pwForm').onsubmit = function(e){
+      e.preventDefault();
+      // 공개글(비밀번호 없는 글)일 경우 바로 입장
+      if(!realPw || document.getElementById('pwInput').value === realPw){
+        document.getElementById('pwModal').style.display = 'none';
+        location.href = 'ask_detail.html?id=' + targetId;
+      } else {
+        document.getElementById('pwMsg').textContent = '비밀번호가 일치하지 않습니다.';
+      }
+    };
+    // 모달 배경 클릭시 닫기
+    document.getElementById('pwModal').onclick = function(e){
+      if(e.target === this) this.style.display = 'none';
+    }
+  </script>
+</body>
+</html>

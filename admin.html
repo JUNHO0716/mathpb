@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>자료 업로드(관리자)</title>
+  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:700,400&display=swap" rel="stylesheet">
+  <style>
+    body { background:#f6faf6; font-family:'Noto Sans KR',Arial,sans-serif;}
+    .upload-box { max-width:430px; margin:60px auto 0; background:#fff; border-radius:14px; box-shadow:0 6px 32px #22b66111; padding:32px 26px;}
+    .upload-box h2 { margin-bottom:24px; text-align:center;}
+    .upload-box input, .upload-box select { width:100%; margin-bottom:15px; padding:10px; border:1.5px solid #a7eac2; border-radius:8px; font-size:1rem;}
+    .upload-box input[type="file"] { border:none; margin-bottom:25px;}
+    .upload-box button { width:100%; background:#28b663; color:#fff; border:none; border-radius:8px; padding:12px; font-size:1.1rem; font-weight:bold; cursor:pointer;}
+    .upload-box button:active { background:#219e56; }
+    .upload-box .msg { text-align:center; margin-top:10px; font-size:1rem;}
+  </style>
+</head>
+<body>
+  <div class="upload-box">
+    <h2>기출자료 업로드</h2>
+    <form id="upload-form">
+      <select name="level" required>
+        <option value="">관 선택</option>
+        <option value="중등">중등</option>
+        <option value="고등">고등</option>
+      </select>
+      <select name="region" required>
+        <option value="">지역 선택</option>
+        <option>서울</option>
+        <option>경기</option>
+        <option>인천</option>
+        <option>부산</option>
+        <option>대구</option>
+        <option>광주</option>
+        <option>대전</option>
+        <option>기타</option>
+      </select>
+      <input name="district" placeholder="구/군 (예: 강남구, 부평구 등)" required />
+      <input name="school" placeholder="학교명" required />
+      <select name="grade" required>
+        <option value="">학년</option>
+        <option>중1</option>
+        <option>중2</option>
+        <option>중3</option>
+        <option>고1</option>
+        <option>고2</option>
+        <option>고3</option>
+      </select>
+      <input name="year" placeholder="연도 (예: 2024)" type="number" required />
+      <select name="semester" required>
+        <option value="">학기</option>
+        <option>1학기중간</option>
+        <option>1학기기말</option>
+        <option>2학기중간</option>
+        <option>2학기기말</option>
+      </select>
+      <input name="title" placeholder="자료제목 (예: 1학기 중간고사 수학)" required />
+      <input name="files" type="file" multiple required />
+      <button type="submit">자료 업로드</button>
+    </form>
+    <div class="msg" id="msg"></div>
+  </div>
+  <script>
+    document.getElementById('upload-form').onsubmit = async function(e){
+      e.preventDefault();
+      const form = e.target;
+      const data = new FormData(form);
+
+      // **반드시 서버 포트번호 포함!**
+      const res = await fetch('http://localhost:3001/api/upload', {
+        method: 'POST',
+        body: data
+      });
+      const msg = document.getElementById('msg');
+      if(res.ok){
+        msg.textContent = '업로드 완료!';
+        form.reset();
+      }else{
+        const result = await res.json();
+        msg.textContent = result.message || '업로드 실패';
+      }
+    }
+  </script>
+</body>
+</html>

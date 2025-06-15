@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>문제은행</title>
+  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:400,700&display=swap" rel="stylesheet">
+  <style>
+    html, body { height: 100%; margin:0; padding:0; }
+    body {
+      background: #f5f7fa;
+      font-family: 'Noto Sans KR', Arial, sans-serif;
+      min-height: 100vh;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* ------- 상단 네비(main_home 스타일, 색상 변경) -------- */
+    .top-nav {
+      width: 100vw; min-width:1100px;
+      height: 56px;
+      background: #fff;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      box-sizing: border-box;
+      padding: 0 32px 0 13px;
+      position: fixed; left: 0; top: 0; z-index: 100;
+      border-bottom: 2px solid #238058;
+    }
+    .logo-box { display:flex; align-items:center; gap:8px; }
+    .logo-img { width:27px; height:27px; display:block;}
+    .logo-text { color: #238058; font-size: 1.45rem; font-weight: 700; letter-spacing:0.02em;}
+    .menu-area { display:flex; align-items:center; gap:16px;}
+    .nav-link {
+      font-size: 1.08rem;
+      font-weight: 500;
+      letter-spacing: -0.3px;
+      color: #222;
+      text-decoration: none;      /* 밑줄 없애기 */
+      transition: color 0.13s;
+    }
+    .nav-link:hover {
+      color: #34bb66;
+      text-decoration: none;      /* 호버 시에도 밑줄 없도록 */
+    }
+    .nav-cash { display:flex; align-items:center; gap:2px;}
+    .cash-icon { width:20px; height:20px; margin-right:2px; vertical-align:middle;}
+
+    /* 메뉴 버튼 (더보기, 프로필)에 볼록 떠오르는 효과 추가 */
+    .menu-btn {
+      background: transparent;
+      border: none;
+      margin: 0 3px;
+      padding: 0;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .menu-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .menu-icon { width:24px; height:24px; }
+    .user-btns { display:none; }
+    .nav-underline { width:100vw; height:2px; background:#238058; margin:0; padding:0; }
+
+    /* ▼ 드롭다운/메뉴 공통 (색상은 그대로 흰색/회색 유지) */
+    .dropdown-menu {
+       display: none;
+       position: fixed;
+       top: 62px;
+       right: 36px;
+       background: #fff;
+       border-radius: 13px;
+       box-shadow: 0 6px 30px 2px rgba(80,90,120,0.17);
+       min-width: 218px;
+       z-index: 1000;
+       padding: 10px 0;
+       animation: menuPop 0.20s cubic-bezier(0.8,0.2,0.4,1);
+    }
+    .dropdown-menu ul { margin:0; padding:0; list-style:none;}
+    .dropdown-menu li { padding: 0; }
+    .dropdown-menu a {
+      display:flex; align-items:center; gap:7px;
+      color:#1a284b; text-decoration:none; padding: 12px 22px; font-size:1.08rem;
+      border-radius:7px; transition:background 0.11s;
+    }
+    .dropdown-menu a:hover { background:#f1f6ff; }
+    .menu-icon-menu img { width:21px; height:21px; vertical-align:middle;}
+    @keyframes menuShow { from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:none;} }
+    .menu-dropdown { right:110px; }
+    .profile-dropdown { right:22px; }
+
+    /* ------- 필터 영역 이하(이전과 동일, 색상만 수정) ------- */
+    .filter-fixed {
+      position: fixed;
+      left: 0; top: 56px; bottom: 0;
+      width: 262px;
+      background: #fff;
+      border-right: 1.5px solid #e3e7f0;
+      z-index: 10;
+      display: flex; flex-direction: column; align-items: flex-start;
+      padding: 30px 15px 12px 26px;
+      height: calc(100vh - 56px);
+    }
+    .filter-title {
+      font-size: 22px; font-weight: bold;
+      color: #27a26a; margin-bottom: 16px; margin-left: 7px; margin-top: 2px;
+    }
+    .filter-label {
+      font-size: 16px; font-weight: 500; color: #445;
+      margin: 11px 0 6px 6px; display: block;
+    }
+    .filter-select, .filter-select:not(:disabled) {
+      width: 100%; max-width: 260px;
+      height: 37px;
+      font-size: 15px;
+      border: 1.5px solid #a0d3b1;
+      border-radius: 8px;
+      background: #f0f6f2;
+      margin-bottom: 9px;
+      padding: 3px 10px;
+      color: #244f80;
+      font-family: inherit;
+      outline: none; box-sizing: border-box;
+    }
+
+    /* ◆ 검색 버튼 수정 */
+    #filter-btn {
+      width: 100%; max-width: 260px; min-width: 170px;
+      background-color: #27a26a; /* 단색으로 변경 */
+      border: none; color: #fff; border-radius: 10px;
+      font-size: 17px; font-weight: bold;
+      height: 46px; margin-top: 21px; cursor: pointer;
+      box-shadow: 0 2px 12px rgba(35,128,88,0.28);
+      transition: background-color 0.17s, transform 0.15s, box-shadow 0.15s;
+      margin-left: 0;
+    }
+    #filter-btn:hover {
+      background-color: #1f6e50; /* hover 시에도 단색 → 단색 */
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 광고배너/타이틀/문제카드 스타일 등 이하 생략 (기존 동일, 색상만 수정) ... */
+    .banner-area {
+      width: calc(100vw - 370px);
+      max-width: 1900px;
+      margin-left: 330px;
+      margin-right: auto;
+      margin-top:70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 140px;
+      background: #f9f6fd;
+      border-radius: 17px;
+      box-shadow: 0 5px 16px #c7dcfa26;
+      position: relative;
+      z-index: 2;
+    }
+    .banner-img {
+      max-height: 94px; max-width: 95%;
+      border-radius: 11px;
+      box-shadow: 0 3px 12px #d7d4e724;
+      object-fit: cover;
+      margin: 0 auto;
+    }
+    .titlebar-area {
+      position: absolute;
+      left: 320px;
+      top: 230px;
+      font-size: 22px; color: #27a26a; font-weight: bold; letter-spacing: -1px;
+      height: 35px; line-height: 37px;
+      border-bottom: 2px solid rgba(35,128,88,0.21);
+      display: flex; align-items: center;
+      background: none;
+      z-index: 2;
+      min-width: 400px;
+      margin-left: 10px;
+    }
+    .problem-wrap {
+      position: absolute;
+      left: 262px; right: 0; top: 255px;
+      bottom: 0;
+      padding: 55px 60px 22px 60px;
+      overflow-y: auto;
+      min-height: 100vh;
+      height: calc(100vh - 255px);
+    }
+    .problem-list {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 45px 36px;
+    }
+    .problem-card {
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 4px 20px rgba(60,80,140,0.09);
+      width: 310px; min-height: 340px; padding: 18px 16px 18px 16px;
+      display: flex; flex-direction: column; align-items: center;
+      margin-bottom: 18px;
+      border: 2px solid transparent;
+      transition: box-shadow .18s, border .18s;
+      position: relative;
+      justify-content: flex-start;
+    }
+    .problem-card.selected, .problem-card:hover {
+      border: 2.3px solid #27a26a;
+      box-shadow: 0 7px 22px rgba(39,162,106,0.13);
+    }
+    .prob-row-top {
+      display: flex; align-items: center; justify-content: flex-start;
+      width: 100%;
+      margin-bottom: 5px;
+      margin-left: 0;
+      gap: 4px;
+    }
+    .prob-cb {
+      margin-right: 8px;
+      margin-top: 1px;
+      margin-left: 2px;
+      transform: scale(1.16);
+    }
+    .problem-meta {
+      color: #375ab1; /* 그대로 유지 가능하거나 필요 시 변경 */
+      font-size: 11px;
+      font-weight: 500;
+      margin-top: 1px; margin-bottom: 0px;
+      text-align: left; word-break: keep-all;
+      flex: 1;
+      letter-spacing: -0.5px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      min-width: 0;
+    }
+    .problem-img {
+      display: block;
+      margin: 0 auto 0 auto;
+      max-width: 92%; max-height: 370px;
+      object-fit: contain;
+      border-radius: 7px;
+      box-shadow: 0 2px 8px #e2e9f5;
+    }
+    button#add-selected-btn {
+      background: #27a26a; color: #fff; font-size: 18px; font-weight: bold;
+      border-radius: 12px; border: none;
+      box-shadow: 0 4px 15px rgba(39,162,106,0.28); padding: 11px 29px;
+      position: fixed; right: 50px; bottom: 32px;
+      cursor: pointer; transition: background 0.2s, transform 0.15s, box-shadow 0.15s; z-index: 12;
+    }
+    button#add-selected-btn:hover {
+      background: #1f6e50;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ★ 선택 개수 표시 스타일 추가 (색상 변경) */
+    #selected-count {
+      position: fixed;
+      right: 210px;
+      bottom: 38px;
+      font-size: 1.07rem;
+      font-weight: 500;
+      color: #27a26a;
+      background: rgba(255,255,255,0.93);
+      padding: 8px 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(39,162,106,0.26);
+      z-index: 13;
+      pointer-events: none;
+      min-width: 92px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <!-- ✅ 상단 네비게이션 (메인홈 구조/스타일/동작 그대로, 색상만 변경) -->
+  <header class="top-nav">
+    <div class="logo-box">
+      <img src="logo_mc.png" class="logo-img" alt="로고" />
+      <span class="logo-text">M.CLASS</span>
+    </div>
+    <nav class="menu-area">
+      <a href="http://localhost:8000/main_home.html" class="nav-link">메인홈</a>
+      <a href="my_collection.html" class="nav-link">내 책장</a>
+      <a href="payment.html" class="nav-link nav-cash">
+        <img src="cash_icon.png" class="cash-icon" alt="캐시" />
+        결제하기
+      </a>
+      <!-- 더보기(햄버거) 메뉴 -->
+      <button class="menu-btn" id="moreMenuBtn" title="더보기" type="button">
+        <img src="menu_icon.png" class="menu-icon" alt="더보기">
+      </button>
+      <!-- 프로필(사람) 메뉴 -->
+      <button class="menu-btn" id="profileMenuBtn" title="프로필" type="button">
+        <img src="profile_icon.png" class="menu-icon" alt="프로필">
+      </button>
+    </nav>
+  </header>
+  <div class="nav-underline"></div>
+
+  <!-- ▼ 더보기 메뉴 (모달) -->
+  <div id="moreMenu" class="dropdown-menu menu-dropdown">
+    <ul>
+      <li><a href="http://localhost:8000/main_home.html"><span class="menu-icon-menu"><img src="icon_bank.png" alt=""></span>메인홈</a></li>
+      <li><a href="my_collection.html"><span class="menu-icon-menu"><img src="icon_book.png" alt=""></span>내 책장</a></li>
+      <li><a href="payment.html"><span class="menu-icon-menu"><img src="cash_icon.png" alt=""></span>결제하기</a></li>
+      <li><a href="dashboard.html"><span class="menu-icon-menu"><img src="icon_notice.png" alt=""></span>공지사항</a></li>
+      <li><a href="contact.html"><span class="menu-icon-menu"><img src="icon_contact.png" alt=""></span>문의하기</a></li>
+    </ul>
+  </div>
+
+  <!-- ▼ 프로필 메뉴 (모달) -->
+  <div id="profileMenu" class="dropdown-menu profile-dropdown">
+    <ul>
+      <li><a href="profile.html"><span class="menu-icon-menu"><img src="icon_profilemenu.png" alt=""></span>프로필가기</a></li>
+      <li>
+        <a href="http://localhost:8000/login.html" id="logoutBtn">
+          <span class="menu-icon-menu"><img src="icon_logout.png" alt=""></span>로그아웃
+        </a>
+      </li>
+    </ul>
+  </div>
+  
+  <!-- 이 아래는 기존 문제은행 코드 그대로! -->
+  <!-- 왼쪽 고정 필터 -->
+  <div class="filter-fixed">
+    <div class="filter-title">문제 필터</div>
+    <label class="filter-label">년도</label>
+    <select id="year-filter" class="filter-select"></select>
+    <label class="filter-label">학기</label>
+    <select id="chapter-filter" class="filter-select"></select>
+    <label class="filter-label">단원</label>
+    <select id="subtype-filter" class="filter-select"></select>
+    <label class="filter-label">소단원</label>
+    <select id="subsubtype-filter" class="filter-select" disabled></select>
+    <label class="filter-label">유형</label>
+    <select id="type-filter" class="filter-select" disabled></select>
+    <label class="filter-label">난이도</label>
+    <select id="difficulty-filter" class="filter-select"></select>
+    <label class="filter-label">문제 형식</label>
+    <select id="format-filter" class="filter-select">
+      <option value="">전체</option>
+      <option value="객관식">객관식</option>
+      <option value="서술형">서술형</option>
+      <option value="단답형">단답형</option>
+    </select>
+    <button id="filter-btn">검색</button>
+  </div>
+
+  <!-- 광고배너(문제영역 중앙, 여백/높이 조정) -->
+  <div class="banner-area">
+    <img src="ad_banner.png" class="banner-img" alt="광고배너">
+  </div>
+  <!-- 폴더이름 - 시험지이름 (필터와, 광고배너와 충분히 띄움) -->
+  <div class="titlebar-area" id="titlebar">
+    <span id="foldername">본폴더</span>-<span id="testname">새 시험지</span>
+  </div>
+
+  <!-- 문제 리스트 카드 영역 (스크롤 이 영역만) -->
+  <div class="problem-wrap">
+    <div class="problem-list" id="problem-list"></div>
+  </div>
+
+  <!-- ★ 선택 개수 표시 (문제 추가 버튼 왼쪽에 고정) -->
+  <div id="selected-count">0문제 선택됨</div>
+  <button id="add-selected-btn">문제 추가</button>
+
+  <!-- 기존 문제은행 스크립트(수정X) -->
+  <script>
+    document.getElementById('foldername').textContent = localStorage.getItem('currentFolder') || '본폴더';
+    document.getElementById('testname').textContent = localStorage.getItem('currentTest') || '새 시험지';
+
+    let problemsData = [];
+    let checkedIds = [];
+
+    fetch('problems.json')
+      .then(r=>r.json())
+      .then(data=>{
+        problemsData = data;
+        renderFilters();
+        renderProblems(data.filter(passFilter));
+        updateSelectedCount(); // ★ 초기 표시
+      });
+
+    function renderFilters() {
+      fillSelect('year-filter', 'year');
+      fillSelect('chapter-filter', 'chapter');
+      fillSelect('subtype-filter', 'subtype');
+      fillSelect('difficulty-filter', 'difficulty');
+
+      document.getElementById('subtype-filter').onchange = function() {
+        const sub = this.value;
+        const subsubtypes = Array.from(new Set(problemsData.filter(x=>x.subtype===sub).map(x=>x.subsubtype))).filter(Boolean);
+        fillSelectDirect('subsubtype-filter', subsubtypes);
+        document.getElementById('subsubtype-filter').disabled = !sub;
+        document.getElementById('subsubtype-filter').onchange();
+      };
+      document.getElementById('subsubtype-filter').onchange = function() {
+        const sub = document.getElementById('subtype-filter').value;
+        const subsub = this.value;
+        const types = Array.from(new Set(problemsData.filter(x=>x.subtype===sub && x.subsubtype===subsub).map(x=>x.type))).filter(Boolean);
+        fillSelectDirect('type-filter', types);
+        document.getElementById('type-filter').disabled = !subsub;
+      };
+      document.getElementById('subsubtype-filter').disabled = true;
+      document.getElementById('type-filter').disabled = true;
+    }
+    function fillSelect(id, col) {
+      const select = document.getElementById(id);
+      const values = Array.from(new Set(problemsData.map(x=>x[col]))).filter(Boolean);
+      select.innerHTML = '<option value="">전체</option>' + values.map(v=>`<option>${v}</option>`).join('');
+    }
+    function fillSelectDirect(id, arr) {
+      const select = document.getElementById(id);
+      select.innerHTML = '<option value="">전체</option>' + arr.map(v=>`<option>${v}</option>`).join('');
+    }
+
+    function renderProblems(list) {
+      const container = document.getElementById('problem-list');
+      container.innerHTML = '';
+      list.forEach((p,i)=>{
+        const card = document.createElement('div');
+        card.className = 'problem-card';
+        card.innerHTML = `
+          <div class="prob-row-top">
+            <input type="checkbox" data-id="${i}" class="prob-cb" ${checkedIds.includes(i)?'checked':''}>
+            <div class="problem-meta">
+              ${p.subject} | ${p.chapter} | ${p.subtype}${p.subsubtype ? ' > '+p.subsubtype : ''}${p.type ? ' > '+p.type : ''} | ${p.difficulty} | ${p.school}
+            </div>
+          </div>
+          <img src="${p.image}" class="problem-img">
+        `;
+        card.querySelector('.prob-cb').onchange = e=>{
+          toggleCheck(i,e.target.checked);
+        };
+        card.onclick = e => {
+          if(e.target.classList.contains('prob-cb')) return;
+          card.querySelector('.prob-cb').checked = !card.querySelector('.prob-cb').checked;
+          toggleCheck(i,card.querySelector('.prob-cb').checked);
+        };
+        if(checkedIds.includes(i)) card.classList.add('selected');
+        container.appendChild(card);
+      });
+      updateSelectedCount(); // ★ 리스트 렌더 후에도 갱신
+    }
+
+    function toggleCheck(idx,checked) {
+      if(checked && !checkedIds.includes(idx)) checkedIds.push(idx);
+      if(!checked) checkedIds = checkedIds.filter(i=>i!==idx);
+      renderProblems(problemsData.filter(passFilter));
+      updateSelectedCount(); // ★ 체크 토글시 개수 갱신
+    }
+
+    function passFilter(p) {
+      const format = document.getElementById('format-filter').value;
+      if(format && p.type!==format) return false;
+      const filters = {
+        "year": "year-filter",
+        "chapter": "chapter-filter",
+        "subtype": "subtype-filter",
+        "subsubtype": "subsubtype-filter",
+        "type": "type-filter",
+        "difficulty": "difficulty-filter"
+      };
+      return Object.entries(filters).every(([col, selid]) => {
+        const sel = document.getElementById(selid);
+        return !sel.value || (p[col]+'' === sel.value+'');
+      });
+    }
+    document.getElementById('filter-btn').onclick = function() {
+      renderProblems(problemsData.filter(passFilter));
+      updateSelectedCount(); // ★ 필터 검색시도 개수 갱신
+    };
+
+    document.getElementById('add-selected-btn').onclick = function() {
+      const selected = checkedIds.map(i=>problemsData[i]);
+      localStorage.setItem('selectedProblems', JSON.stringify(selected));
+      window.location.href = "test_detail.html";
+    };
+
+    // ★ 선택 개수 갱신 함수
+    function updateSelectedCount() {
+      document.getElementById('selected-count').textContent =
+        checkedIds.length + '문제 선택됨';
+    }
+  </script>
+
+  <!-- ▼▼▼ 네비 동작용 JS (메인홈과 동일하게 동작) ▼▼▼ -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // 2. 더보기/프로필 메뉴 닫기 (바깥 클릭 시)
+      document.body.addEventListener('click', function() {
+        document.getElementById('moreMenu').style.display = 'none';
+        document.getElementById('profileMenu').style.display = 'none';
+      });
+
+      // 3. 더보기 버튼 클릭: 메뉴 열기
+      document.getElementById('moreMenuBtn').onclick = function(e) {
+        e.stopPropagation();
+        document.getElementById('moreMenu').style.display = 'block';
+        document.getElementById('profileMenu').style.display = 'none';
+      };
+
+      // 4. 프로필 버튼 클릭: 메뉴 열기
+      document.getElementById('profileMenuBtn').onclick = function(e) {
+        e.stopPropagation();
+        document.getElementById('profileMenu').style.display = 'block';
+        document.getElementById('moreMenu').style.display = 'none';
+      };
+
+      // 5. 메뉴 내에서 클릭 시 메뉴가 닫히지 않도록(버블링 차단)
+      document.getElementById('moreMenu').onclick = function(e) { e.stopPropagation(); };
+      document.getElementById('profileMenu').onclick = function(e) { e.stopPropagation(); };
+
+      // 6. 로그아웃 버튼 연결
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.onclick = function(e) {
+          e.preventDefault();
+          localStorage.removeItem('userEmail');
+          window.location.href = 'http://localhost:8000/login.html';
+        };
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>M.CLASS 중등관 기출자료 다운로드</title>
+  <meta name="viewport" content="width=1200">
+  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:900,700,400&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Noto Sans KR', Arial, sans-serif;
+      background: #fff;
+      margin: 0;
+      color: #212529;
+    }
+    /* ------- 상단 네비(main_home 스타일, 색상 변경) -------- */
+    .top-nav {
+      width: 100vw; min-width:1100px;
+      height: 56px;
+      background: #fff;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      box-sizing: border-box;
+      padding: 0 32px 0 13px;
+      position: fixed; left: 0; top: 0; z-index: 100;
+      border-bottom: 2px solid #238058;
+    }
+    .logo-box { display:flex; align-items:center; gap:8px; }
+    .logo-img { width:27px; height:27px; display:block;}
+    .logo-text { color: #238058; font-size: 1.45rem; font-weight: 700; letter-spacing:0.02em;}
+    .menu-area { display:flex; align-items:center; gap:16px;}
+    .nav-link {
+      font-size: 1.08rem;
+      font-weight: 500;
+      letter-spacing: -0.3px;
+      color: #222;
+      text-decoration: none;      /* 밑줄 없애기 */
+      transition: color 0.13s;
+    }
+    .nav-link:hover {
+      color: #34bb66;
+      text-decoration: none;      /* 호버 시에도 밑줄 없도록 */
+    }
+    .nav-cash { display:flex; align-items:center; gap:2px;}
+    .cash-icon { width:20px; height:20px; margin-right:2px; vertical-align:middle;}
+
+    /* 메뉴 버튼 (더보기, 프로필)에 볼록 떠오르는 효과 추가 */
+    .menu-btn {
+      background: transparent;
+      border: none;
+      margin: 0 3px;
+      padding: 0;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .menu-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .menu-icon { width:24px; height:24px; }
+    .user-btns { display:none; }
+    .nav-underline { width:100vw; height:2px; background:#238058; margin:0; padding:0; }
+
+    /* ▼ 드롭다운/메뉴 공통 (색상은 그대로 흰색/회색 유지) */
+    .dropdown-menu {
+       display: none;
+       position: fixed;
+       top: 62px;
+       right: 36px;
+       background: #fff;
+       border-radius: 13px;
+       box-shadow: 0 6px 30px 2px rgba(80,90,120,0.17);
+       min-width: 218px;
+       z-index: 1000;
+       padding: 10px 0;
+       animation: menuPop 0.20s cubic-bezier(0.8,0.2,0.4,1);
+    }
+    .dropdown-menu ul { margin:0; padding:0; list-style:none;}
+    .dropdown-menu li { padding: 0; }
+    .dropdown-menu a {
+      display:flex; align-items:center; gap:7px;
+      color:#1a284b; text-decoration:none; padding: 12px 22px; font-size:1.08rem;
+      border-radius:7px; transition:background 0.11s;
+    }
+    .dropdown-menu a:hover { background:#f1f6ff; }
+    .menu-icon-menu img { width:21px; height:21px; vertical-align:middle;}
+    @keyframes menuShow { from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:none;} }
+    .menu-dropdown { right:110px; }
+    .profile-dropdown { right:22px; }
+
+    .main-layout {
+      display: flex; flex-direction: row; justify-content: flex-start; align-items: flex-start;
+      max-width: 1380px;
+      margin: 0 auto;
+      min-height: 700px;
+      padding-top: 105px;
+      gap: 48px;
+    }
+    /* 중등/고등 탭 */
+    .level-tab-row {
+      display: flex; flex-direction: row; align-items: center; gap: 28px;
+      margin-bottom: 38px; margin-left: -15px;
+    }
+    .level-tab-link {
+      font-size: 2.9rem;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      padding: 0 8px;
+      cursor: pointer;
+      text-decoration: none;
+      color: #bfc3c2;
+      border-bottom: 4px solid transparent;
+      transition: color 0.17s, border-bottom 0.17s;
+    }
+    .level-tab-link.active {
+      color: #18855d;
+      border-bottom: 4px solid #18855d;
+      pointer-events: none;
+    }
+    .level-tab-link:not(.active):hover {
+      color: #17b26a;
+      border-bottom: 4px solid #17b26a;
+    }
+    .filter-row {
+      display: flex; flex-direction: row; align-items: center; gap: 14px;
+      margin-bottom: 24px; margin-left: 5px;
+    }
+    .filter-select, .filter-input {
+      border: 1.5px solid #e6f1e5;
+      background: #f7fbf7;
+      border-radius: 9px;
+      padding: 12px 16px;
+      font-size: 1.13rem;
+      color: #4c634e;
+      outline: none;
+      min-width: 110px;
+      font-weight: 500;
+      transition: border 0.15s;
+    }
+    .filter-select:focus, .filter-input:focus {
+      border: 1.5px solid #39c077;
+      background: #fff;
+    }
+    .filter-btn {
+      background: #18b164;
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      padding: 0 40px;
+      font-weight: 900;
+      font-size: 1.14rem;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: background 0.13s;
+      margin-left: 8px;
+      min-width: 90px;
+      height: 50px;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .filter-btn:hover { background: #12874b; }
+    .data-table {
+      width: 100%;
+      margin-top: 12px;
+      background: #f8fbfa;
+      border-radius: 13px;
+      box-shadow: 0 2px 8px #e3f8e955;
+      margin-left: 5px;
+      border-collapse: collapse;
+    }
+    .data-table th, .data-table td {
+      padding: 9px 9px;
+      font-size: 1.06rem;
+      font-weight: 500;
+      text-align: center;
+      vertical-align: middle;
+      height: 42px;
+    }
+    .data-table th {
+      background: #f6faf6;
+      color: #18b164;
+      font-weight: 800;
+      border-radius: 7px;
+      letter-spacing: -0.03em;
+      border-bottom: 1.5px solid #e3f4e6;
+    }
+    .data-table tr { border-bottom: 1.3px solid #eef3f0; }
+    .data-table tr:last-child { border-bottom: none; }
+    .data-table tbody tr:hover { background: #f0fdf6; }
+    .download-btn {
+      background: #12ba66;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 22px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, text-decoration 0.13s;
+      font-size: 1rem;
+      letter-spacing: 0.01em;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .download-btn:hover { 
+      background: #158f4d; 
+      text-decoration: underline;    
+    }
+    .ads-bar {
+      display: flex; flex-direction: column; gap: 28px; margin-top: 0;
+      align-items: flex-end; min-width: 272px;
+    }
+    .ad1-box {
+      width: 300px; height: 200px;
+      border-radius: 14px;
+      background: #f6fafd;
+      border: 2.5px solid #f2f3f4;
+      box-shadow: 0 2px 10px #e0e0e0aa;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.16rem; font-weight: 600; color: #b5b5b5;
+      overflow: hidden;
+    }
+    /* --- 공지사항 미리보기 --- */
+    .notice-preview-box {
+      width: 300px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 18px #e0efe966;
+      padding: 0 0 14px 0;
+      margin-bottom: 26px;
+      overflow: hidden;
+    }
+    .notice-preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px 0 18px;
+      height: 50px;
+      background: linear-gradient(90deg, #08b779 93%, #00c393 100%);
+      border-radius: 16px 16px 0 0;
+    }
+    .notice-preview-header .title {
+      color: #fff;
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+    }
+    .notice-preview-arrowbtns {
+      display: flex; gap: 1px;
+    }
+    .notice-preview-arrow {
+      border: none;
+      background: #fff;
+      color: #222;
+      font-size: 0.93rem;
+      border-radius: 4px;
+      width: 20px; height: 20px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.13s, color 0.13s;
+      box-shadow: 0 2px 8px #1ba07212;
+      font-weight: bold;
+      margin-left: 1px;
+      outline: none;
+      padding: 0;
+    }
+    .notice-preview-arrow:active {
+      background: #eee;
+      color: #1fa266;
+    }
+    .notice-preview-list {
+      display: flex; flex-direction: column; gap: 0;
+      padding: 9px 18px 0 18px;
+    }
+    .notice-preview-item {
+      display: flex; align-items: center;
+      height: 32px; font-size: 0.97rem; border-radius: 5px;
+      margin-bottom: 1px; background: none;
+      cursor: pointer; transition: background 0.13s;
+      overflow: hidden;
+    }
+    .notice-preview-item:hover { background: #f5faf8; }
+    .notice-preview-number {
+      min-width: 18px; height: 18px; margin-right: 7px;
+      background: #e3e6ec;
+      color: #fff;
+      font-weight: 700; font-size: 0.8rem;
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Noto Sans KR', Arial, sans-serif;
+    }
+    .notice-preview-title {
+      flex: 1; color: #444; font-size: 0.97rem; font-weight: 400;
+      white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
+    }
+    .ad2-box {
+      width: 300px; height: 500px;
+      border-radius: 14px;
+      background: #f6fafd;
+      border: 2.5px solid #f2f3f4;
+      box-shadow: 0 2px 10px #e0e0e0aa;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.16rem; font-weight: 600; color: #b5b5b5;
+      overflow: hidden;
+    }
+    .ad-box img { width: 100%; height: 100%; object-fit: cover; }
+    @media (max-width: 1200px) {
+      .main-layout { flex-direction: column; gap: 16px; padding-top: 90px;}
+      .ads-bar { flex-direction: row; gap:10px; align-items: stretch; min-width:0;}
+      .ad-box { min-width:0; width:100%; }
+    }
+    #grade.filter-select { min-width: 90px; width: 150px; }
+    #year.filter-input { min-width: 60px; width: 100px; }
+    #semester.filter-select { min-width: 150px; width: 150px; }
+    #school.filter-input { min-width: 90px; width: 110px; }
+    #district.filter-input { min-width: 75px; width: 90px; }
+  </style>
+</head>
+<body>
+  <!-- ✅ 상단 네비게이션 (메인홈 구조/스타일/동작 그대로, 색상만 변경) -->
+  <header class="top-nav">
+    <div class="logo-box">
+      <img src="logo_mc.png" class="logo-img" alt="로고" />
+      <span class="logo-text">M.CLASS</span>
+    </div>
+    <nav class="menu-area">
+      <a href="http://localhost:8000/main_home.html" class="nav-link">메인홈</a>
+      <a href="my_collection.html" class="nav-link">내 책장</a>
+      <a href="payment.html" class="nav-link nav-cash">
+        <img src="cash_icon.png" class="cash-icon" alt="캐시" />
+        결제하기
+      </a>
+      <!-- 더보기(햄버거) 메뉴 -->
+      <button class="menu-btn" id="moreMenuBtn" title="더보기" type="button">
+        <img src="menu_icon.png" class="menu-icon" alt="더보기">
+      </button>
+      <!-- 프로필(사람) 메뉴 -->
+      <button class="menu-btn" id="profileMenuBtn" title="프로필" type="button">
+        <img src="profile_icon.png" class="menu-icon" alt="프로필">
+      </button>
+    </nav>
+  </header>
+  <div class="nav-underline"></div>
+
+  <!-- ▼ 더보기 메뉴 (모달) -->
+  <div id="moreMenu" class="dropdown-menu menu-dropdown">
+    <ul>
+      <li><a href="http://localhost:8000/main_home.html"><span class="menu-icon-menu"><img src="icon_bank.png" alt=""></span>메인홈</a></li>
+      <li><a href="my_collection.html"><span class="menu-icon-menu"><img src="icon_book.png" alt=""></span>내 책장</a></li>
+      <li><a href="payment.html"><span class="menu-icon-menu"><img src="cash_icon.png" alt=""></span>결제하기</a></li>
+      <li><a href="dashboard.html"><span class="menu-icon-menu"><img src="icon_notice.png" alt=""></span>공지사항</a></li>
+      <li><a href="contact.html"><span class="menu-icon-menu"><img src="icon_contact.png" alt=""></span>문의하기</a></li>
+    </ul>
+  </div>
+
+  <!-- ▼ 프로필 메뉴 (모달) -->
+  <div id="profileMenu" class="dropdown-menu profile-dropdown">
+    <ul>
+      <li><a href="profile.html"><span class="menu-icon-menu"><img src="icon_profilemenu.png" alt=""></span>프로필가기</a></li>
+      <li>
+        <a href="http://localhost:8000/login.html" id="logoutBtn">
+          <span class="menu-icon-menu"><img src="icon_logout.png" alt=""></span>로그아웃
+        </a>
+      </li>
+    </ul>
+  </div>
+  </header>
+  <div class="main-layout">
+    <div style="flex:1;min-width:750px;">
+      <!-- 중등/고등관 탭 -->
+      <div class="level-tab-row">
+        <a href="middle.html" class="level-tab-link active">중등</a>
+        <a href="high.html" class="level-tab-link">고등</a>
+      </div>
+      <!-- 검색/필터 -->
+      <div class="filter-row">
+        <select class="filter-select" id="region"><option value="">지역</option><option>서울</option><option>경기</option></select>
+        <input class="filter-input" id="district" placeholder="구/군" />
+        <input class="filter-input" id="school" placeholder="학교명" />
+        <select class="filter-select" id="grade">
+          <option value="">학년</option>
+          <option>중1</option><option>중2</option><option>중3</option>
+        </select>
+        <input class="filter-input" id="year" placeholder="연도" type="number"/>
+        <select class="filter-select" id="semester">
+          <option value="">학기</option>
+          <option>1학기중간</option>
+          <option>1학기기말</option>
+          <option>2학기중간</option>
+          <option>2학기기말</option>
+        </select>
+        <button class="filter-btn" onclick="searchFiles()">검색</button>
+      </div>
+      <!-- 표 -->
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>지역</th>
+            <th>구/군</th>
+            <th>학교</th>
+            <th>학년</th>
+            <th>연도</th>
+            <th>학기</th>
+            <th>자료명</th>
+            <th>다운로드</th>
+          </tr>
+        </thead>
+        <tbody id="file-list">
+          <!-- JS로 표 데이터 채움 -->
+        </tbody>
+      </table>
+    </div>
+    <!-- 광고/공지 박스 -->
+    <div class="ads-bar">
+      <div style="height:80px"></div>
+      <div class="ad1-box"><img src="your_ad1.png" alt="광고1"/></div>
+      <!-- --- 공지사항 미리보기 박스 --- -->
+      <div class="notice-preview-box" id="noticePreviewBox"></div>
+      <div class="ad2-box"><img src="your_ad3.png" alt="광고2"/></div>
+    </div>
+  </div>
+  <script>
+    let fileData = [];
+      async function fetchFiles() {
+        const level = "중등";
+        const region = document.getElementById('region').value;
+        const district = document.getElementById('district').value.trim();
+        const school = document.getElementById('school').value.trim();
+        const grade = document.getElementById('grade').value;
+        const year = document.getElementById('year').value.trim();
+        const semester = document.getElementById('semester').value;
+        const params = new URLSearchParams();
+        params.append('level', level);
+        if(region) params.append('region', region);
+        if(district) params.append('district', district);
+        if(school) params.append('school', school);
+        if(grade) params.append('grade', grade);
+        if(year) params.append('year', year);
+        if(semester) params.append('semester', semester);
+
+        const res = await fetch('http://localhost:3001/api/files?' + params.toString());
+        fileData = await res.json();
+        renderTable(fileData);
+      }
+      function renderTable(list){
+        const tbody = document.getElementById('file-list');
+        if(!list.length){
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#bbb;">자료가 없습니다</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = list.map(row=>`
+          <tr>
+            <td>${row.region}</td>
+            <td>${row.district}</td>
+            <td>${row.school}</td>
+            <td>${row.grade}</td>
+            <td>${row.year}</td>
+            <td>${row.semester}</td>
+            <td>${row.title}</td>
+            <td><a href="/uploads/${row.filename}" class="download-btn" download>다운로드</a></td>
+          </tr>
+        `).join('');
+      }
+      function searchFiles(){
+        fetchFiles();
+      }
+    // --------- 공지사항 미리보기 JS ---------
+    // API 서버에서 최신 10개 fetch
+    async function fetchNotices() {
+      renderNoticePreview([], true); // << 이게 핵심!
+      try {
+        const res = await fetch('http://localhost:3001/api/notices');
+        let list = await res.json();
+        list = list.slice(0, 10);
+        list = list.map((n, i) => ({ title: n.title || '(제목없음)' }));
+        renderNoticePreview(list, false); // << 이게 핵심!
+      } catch (e) {
+        renderNoticePreview([
+          {title: "공지사항을 불러올 수 없습니다."}
+        ], false);
+      }
+    }
+    let noticePage = 0; // 0: 1~5, 1: 6~10
+    function renderNoticePreview(list, loading) {
+      const box = document.getElementById('noticePreviewBox');
+      if(!box) return;
+      box.innerHTML = `
+        <div class="notice-preview-header">
+          <span class="title">공지사항</span>
+          <div class="notice-preview-arrowbtns">
+            <button class="notice-preview-arrow" id="prevNoticeBtn">&lt;</button>
+            <button class="notice-preview-arrow" id="nextNoticeBtn">&gt;</button>
+          </div>
+        </div>
+        <div class="notice-preview-list"></div>
+      `;
+      const listDiv = box.querySelector('.notice-preview-list');
+      if (loading) {
+        listDiv.innerHTML = `<div style="color:#b5b5b5; padding:14px 0; text-align:center;">불러오는 중...</div>`;
+        return;
+      }
+      const start = noticePage * 5, end = start + 5;
+      const view = list.slice(start, end);
+      listDiv.innerHTML = view.map((item, i) =>
+        `<div class="notice-preview-item">
+          <span class="notice-preview-number">${start + i + 1}</span>
+          <span class="notice-preview-title">${item.title}</span>
+        </div>`
+      ).join('');
+      box.querySelector('#prevNoticeBtn').onclick = () => {
+        if(noticePage > 0) { noticePage--; renderNoticePreview(list); }
+      };
+      box.querySelector('#nextNoticeBtn').onclick = () => {
+        if((noticePage+1)*5 < list.length) { noticePage++; renderNoticePreview(list);}
+      };
+    }
+        function startNoticeAutoSlide() {
+      if (noticeSlideTimer) clearInterval(noticeSlideTimer);
+      noticeSlideTimer = setInterval(() => {
+        if (!window.noticeList) return;
+        // 페이지 넘어가거나 반복
+        if((noticePage+1)*5 < window.noticeList.length) noticePage++;
+        else noticePage = 0;
+        renderNoticePreview(window.noticeList, false);
+      }, 5000); // 5초마다
+    }
+    function restartNoticeAutoSlide() {
+      startNoticeAutoSlide();
+    }
+    window.onload = ()=>{ fetchFiles(); fetchNotices(); };
+        document.addEventListener('DOMContentLoaded', function() {
+      // 2. 더보기/프로필 메뉴 닫기 (바깥 클릭 시)
+      document.body.addEventListener('click', function() {
+        document.getElementById('moreMenu').style.display = 'none';
+        document.getElementById('profileMenu').style.display = 'none';
+      });
+
+      // 3. 더보기 버튼 클릭: 메뉴 열기
+      document.getElementById('moreMenuBtn').onclick = function(e) {
+        e.stopPropagation();
+        document.getElementById('moreMenu').style.display = 'block';
+        document.getElementById('profileMenu').style.display = 'none';
+      };
+
+      // 4. 프로필 버튼 클릭: 메뉴 열기
+      document.getElementById('profileMenuBtn').onclick = function(e) {
+        e.stopPropagation();
+        document.getElementById('profileMenu').style.display = 'block';
+        document.getElementById('moreMenu').style.display = 'none';
+      };
+
+      // 5. 메뉴 내에서 클릭 시 메뉴가 닫히지 않도록(버블링 차단)
+      document.getElementById('moreMenu').onclick = function(e) { e.stopPropagation(); };
+      document.getElementById('profileMenu').onclick = function(e) { e.stopPropagation(); };
+
+      // 6. 로그아웃 버튼 연결
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.onclick = function(e) {
+          e.preventDefault();
+          localStorage.removeItem('userEmail');
+          window.location.href = 'http://localhost:8000/login.html';
+        };
+      }
+    });
+  </script>
+</body>
+</html>
