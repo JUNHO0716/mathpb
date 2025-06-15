@@ -306,7 +306,7 @@
       const password = document.getElementById('login_password').value;
 
       try {
-        const res = await fetch('http://localhost:3001/login', {
+        const res = await fetch('/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password })
@@ -316,7 +316,7 @@
           // [1] 개인 DB 세팅: 이메일 localStorage에 저장!
           localStorage.setItem('userEmail', email);
           // [2] 메인화면으로 이동!
-          window.location.href = 'http://localhost:8000/main_home.html';
+          window.location.href = '/main_home.html';
         } else {
           document.getElementById('loginResult').innerText = data.msg || "로그인 실패: 아이디 또는 비밀번호를 확인하세요.";
         }
