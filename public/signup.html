@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>회원가입 | 수학문제은행</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Google Font : Noto Sans KR -->
+  <link
+    href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:400,700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    /* ==============================================
+       1. 기본 초기화 & Body 설정 (메인페이지와 동일)
+       ============================================== */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      min-height: 100vh;
+      background: #f6faf6; /* 메인페이지 배경색과 통일 */
+      font-family: 'Noto Sans KR', Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #1c4135;
+    }
+
+    /* ==============================================
+       2. 회원가입 카드 (.signup-card) — 원본 그대로
+       ============================================== */
+    .signup-card {
+      width: 700px;
+      min-height: 520px;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 6px 36px rgba(50,80,200,0.10);
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ==============================================
+       3. 상단 헤더 (.signup-header) — 그린 계열로 변경
+       ============================================== */
+    .signup-header {
+      /* 원본: linear-gradient(135deg, #4a6cf7 70%, #6f90fe 100%); */
+      background: linear-gradient(135deg, #27a267 70%, #19763c 100%);
+      padding: 30px 32px 17px 32px;
+      color: #fff;
+      text-align: left;
+      position: relative; /* 닫기 버튼 배치를 위해 상대위치 지정 */
+    }
+    .signup-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+      line-height: 1.3;
+      letter-spacing: -1px;
+    }
+    .signup-header .sub {
+      font-size: 1.08rem;
+      line-height: 1.38;
+      margin-bottom: 0;
+      font-weight: 400;
+      opacity: 0.95;
+    }
+    /* 닫기(X) 버튼 */
+    .close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: none;
+      color: #ffffff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+    .close-btn:hover {
+      color: #e0f0e7; /* 살짝 밝게 */
+    }
+
+    /* ==============================================
+       4. 회원가입 폼 랩 (.signup-form-wrap) — 원본 그대로,
+       배경색만 부모로부터 흰색으로 상속됨
+       ============================================== */
+    .signup-form-wrap {
+      flex: 1;
+      padding: 34px 38px 20px 38px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      background: #fff;
+    }
+
+    /* ==============================================
+       5. 폼 내부 요소 (라벨, 입력, 버튼 등)
+       ============================================== */
+    .signup-form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .signup-label {
+      font-size: 1.01rem;
+      font-weight: 600;
+      margin-bottom: 3px;
+      color: #222;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .signup-label .star {
+      color: #ff4747;
+      font-size: 1.05em;
+    }
+    .signup-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .signup-form input[type="text"],
+    .signup-form input[type="password"],
+    .signup-form input[type="email"],
+    .signup-form select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #e0e6ee;
+      border-radius: 7px;
+      font-size: 1rem;
+      background: #f9fbfe;
+      transition: border 0.2s;
+      margin-bottom: 0;
+      box-sizing: border-box;
+    }
+    /* 포커스 시 테두리만 메인 그린 계열로 변경 */
+    .signup-form input[type="text"]:focus,
+    .signup-form input[type="password"]:focus,
+    .signup-form input[type="email"]:focus,
+    .signup-form select:focus {
+      outline: none;
+      /* 원본: border: 1.5px solid #4a6cf7; */
+      border: 1.5px solid #27a267;
+      background: #fff;
+    }
+    /* 중복 확인 버튼 색상 변경 */
+    .btn-check {
+      /* 원본: background: #4a6cf7; */
+      background: #27a267;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      padding: 0 18px;
+      height: 40px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-left: 8px;
+      transition: background 0.14s;
+      white-space: nowrap;
+      line-height: 1.2;
+    }
+    .btn-check:hover {
+      /* 원본: background: #254baf; */
+      background: #19763c;
+    }
+    .signup-form .address-row {
+      flex-direction: column;
+      gap: 0;
+    }
+    .signup-form .address-row input {
+      margin-bottom: 6px;
+    }
+    .email-row, .birth-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .email-row select,
+    .email-row input {
+      min-width: 60px;
+    }
+    .birth-row select {
+      width: 33%;
+    }
+
+    /* 가입 완료 버튼 색상 변경 */
+    .signup-btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 28px;
+      /* 가입취소 버튼이 제거되어 .signup-btn-row 내부에는 한 개 버튼만 존재합니다. */
+    }
+    .signup-btn {
+      flex: 1;
+      padding: 13px 0;
+      font-size: 1.08rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.14s;
+      color: #fff;
+    }
+    .signup-btn.submit {
+      /* 원본: background: #2aa7ff; */
+      background: #27a267;
+    }
+    .signup-btn.submit:hover {
+      /* 원본: background: #1b84d6; */
+      background: #19763c;
+    }
+
+    /* 결과 메시지 영역 — 원본 그대로 */
+    .signup-result {
+      text-align: center;
+      font-size: 1.08em;
+      margin-top: 13px;
+      color: #2e3754;
+      background: #f7f9fd;
+      border-radius: 7px;
+      padding: 9px 7px;
+      min-height: 28px;
+      word-break: break-all;
+    }
+
+    /* ==============================================
+       6. 모달(팝업) 스타일 — 원본 그대로,
+       버튼 색만 변경
+       ============================================== */
+    .modal-bg {
+      position: fixed;
+      z-index: 1000;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(60,70,110,0.15);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(30,60,200,0.13);
+      padding: 38px 34px 24px 34px;
+      min-width: 270px;
+      max-width: 85vw;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .modal-title {
+      font-size: 1.18rem;
+      font-weight: bold;
+      margin-bottom: 12px;
+      color: #3051c8;
+    }
+    .modal-msg {
+      font-size: 1.05rem;
+      margin-bottom: 24px;
+      color: #222;
+    }
+    .modal-btn {
+      /* 원본: background: #4a6cf7; */
+      background: #27a267;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      padding: 10px 32px;
+      cursor: pointer;
+      transition: background 0.17s;
+    }
+    .modal-btn:hover {
+      /* 원본: background: #254baf; */
+      background: #19763c;
+    }
+
+    /* ==============================================
+       7. 반응형 처리 — 원본 그대로
+       ============================================== */
+    @media (max-width: 650px) {
+      .signup-card {
+        width: 100vw;
+        min-width: 0;
+        border-radius: 0;
+        box-shadow: none;
+        margin-bottom: 0;
+      }
+      .signup-header, .signup-form-wrap {
+        padding-left: 5vw;
+        padding-right: 5vw;
+      }
+      /* close-btn 위치 보정 */
+      .close-btn {
+        top: 12px;
+        right: 12px;
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="signup-card">
+    <!-- 1) 상단 헤더 -->
+    <div class="signup-header">
+      <h1>회원가입</h1>
+      <div class="sub">회원이 되어 다양한 혜택을 경험해 보세요!</div>
+      <!-- 상단 우측 닫기(X) 버튼 -->
+      <button class="close-btn" onclick="closeSignup()">✕</button>
+    </div>
+
+    <!-- 2) 회원가입 폼 랩 -->
+    <div class="signup-form-wrap">
+      <form class="signup-form" id="signupForm" autocomplete="off">
+        <!-- 아이디 -->
+        <div class="signup-label">아이디 <span class="star">*</span></div>
+        <div class="signup-row">
+          <input type="text" id="signup_id" placeholder="아이디 입력(6~20자)" maxlength="20" required autocomplete="off">
+          <button type="button" class="btn-check" onclick="checkId()">중복 확인</button>
+        </div>
+
+        <!-- 비밀번호 -->
+        <div class="signup-label">비밀번호 <span class="star">*</span></div>
+        <input type="password" id="signup_pw" placeholder="비밀번호 입력 (문자, 숫자, 특수문자 포함 8~20자)" required maxlength="20" autocomplete="new-password">
+
+        <!-- 비밀번호 확인 -->
+        <div class="signup-label">비밀번호 확인 <span class="star">*</span></div>
+        <input type="password" id="signup_pw2" placeholder="비밀번호 재입력" required maxlength="20" autocomplete="new-password">
+
+        <!-- 이름 -->
+        <div class="signup-label">이름 <span class="star">*</span></div>
+        <input type="text" id="signup_name" placeholder="이름을 입력해주세요" required autocomplete="off">
+
+        <!-- 주소 -->
+        <div class="signup-label">주소 <span class="star">*</span></div>
+        <div class="signup-row address-row">
+          <input type="text" id="signup_addr1" placeholder="주소를 입력해주세요" required autocomplete="off">
+          <input type="text" id="signup_addr2" placeholder="상세주소" autocomplete="off">
+        </div>
+
+        <!-- 전화번호 -->
+        <div class="signup-label">전화번호 <span class="star">*</span></div>
+        <input type="text" id="signup_phone" placeholder="휴대폰 번호 입력('-' 제외 11자리 입력)" maxlength="11" required autocomplete="off">
+
+        <!-- 이메일 -->
+        <div class="signup-label">이메일 주소 <span class="star">*</span></div>
+        <div class="signup-row email-row">
+          <input type="text" id="signup_email_id" style="flex:1;" placeholder="이메일 주소" required autocomplete="off">
+          <span>@</span>
+          <input type="text" id="signup_email_domain" style="flex:1;" placeholder="도메인" required autocomplete="off">
+          <select id="signup_email_select" style="flex:1;" onchange="setEmailDomain(this)">
+            <option value="">선택</option>
+            <option value="naver.com">naver.com</option>
+            <option value="gmail.com">gmail.com</option>
+            <option value="daum.net">daum.net</option>
+            <option value="nate.com">nate.com</option>
+            <option value="직접입력">직접입력</option>
+          </select>
+        </div>
+
+        <!-- 생년월일 -->
+        <div class="signup-label">생년월일</div>
+        <div class="signup-row birth-row">
+          <select id="birth_year">
+            <option value="">년도</option>
+          </select>
+          <select id="birth_month">
+            <option value="">월</option>
+          </select>
+          <select id="birth_day">
+            <option value="">일</option>
+          </select>
+        </div>
+
+        <!-- 가입 완료 버튼 (하나만) -->
+        <div class="signup-btn-row">
+          <button type="submit" class="signup-btn submit">가입완료</button>
+        </div>
+
+        <!-- 결과 메시지 -->
+        <div class="signup-result" id="signupResult"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 팝업(모달) -->
+  <div class="modal-bg" id="modalBg">
+    <div class="modal">
+      <div class="modal-title" id="modalTitle"></div>
+      <div class="modal-msg" id="modalMsg"></div>
+      <button class="modal-btn" id="modalOkBtn">확인</button>
+    </div>
+  </div>
+
+  <script>
+    // 상단 닫기(X) 버튼 클릭 → 이전 페이지(로그인)로 이동
+    function closeSignup() {
+      location.href = "login.html"; // 실제 로그인 파일 경로로 수정하세요.
+    }
+
+    // 연도/월/일 select 자동 채우기
+    window.onload = function() {
+      const y = document.getElementById('birth_year');
+      const thisYear = new Date().getFullYear();
+      for (let i = thisYear; i >= 1940; i--) {
+        const op = document.createElement('option');
+        op.value = i;
+        op.text = i;
+        y.appendChild(op);
+      }
+      const m = document.getElementById('birth_month');
+      for (let i = 1; i <= 12; i++) {
+        const op = document.createElement('option');
+        op.value = i;
+        op.text = i;
+        m.appendChild(op);
+      }
+      const d = document.getElementById('birth_day');
+      for (let i = 1; i <= 31; i++) {
+        const op = document.createElement('option');
+        op.value = i;
+        op.text = i;
+        d.appendChild(op);
+      }
+    };
+
+    // 이메일 도메인 선택 시 자동 입력
+    function setEmailDomain(sel) {
+      const domainInput = document.getElementById('signup_email_domain');
+      if (sel.value && sel.value !== "직접입력") {
+        domainInput.value = sel.value;
+        domainInput.readOnly = true;
+      } else {
+        domainInput.value = "";
+        domainInput.readOnly = false;
+      }
+    }
+
+    // 아이디 중복확인 (샘플)
+    function checkId() {
+      const id = document.getElementById('signup_id').value.trim();
+      if (!id) {
+        return showModal("중복확인", "아이디를 입력하세요!");
+      }
+      showModal("중복확인", `아이디 "${id}"은 사용 가능합니다. (샘플)`);
+    }
+
+    // 팝업(모달) 표시 함수
+    function showModal(title, msg, onOk) {
+      document.getElementById('modalTitle').innerText = title || '';
+      document.getElementById('modalMsg').innerText = msg || '';
+      document.getElementById('modalBg').style.display = 'flex';
+      const btn = document.getElementById('modalOkBtn');
+      btn.onclick = function() {
+        document.getElementById('modalBg').style.display = 'none';
+        if (typeof onOk === "function") onOk();
+      };
+    }
+
+    // 실제 회원가입 서버 연동
+    document.getElementById('signupForm').onsubmit = async function(e) {
+      e.preventDefault();
+      // 이메일(아이디 + 도메인 조합)
+      const email =
+        document.getElementById('signup_email_id').value.trim() +
+        '@' +
+        document.getElementById('signup_email_domain').value.trim();
+      const password = document.getElementById('signup_pw').value;
+      const password2 = document.getElementById('signup_pw2').value;
+
+      if (password !== password2) {
+        showModal("비밀번호 오류", "비밀번호가 일치하지 않습니다.");
+        return;
+      }
+
+      try {
+        const res = await fetch('/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          // 회원가입 성공
+          showModal("회원가입 성공", "회원가입이 완료되었습니다.", function() {
+            location.href = "login.html"; // 실사용 시 로그인 페이지 경로로 수정
+          });
+        } else {
+          // 회원가입 실패(중복 등)
+          showModal("회원가입 실패", data.msg || "중복된 이메일입니다.");
+        }
+      } catch (err) {
+        showModal("서버 오류", "서버 연결에 실패했습니다.");
+      }
+    };
+  </script>
+</body>
+</html>
