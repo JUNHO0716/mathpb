@@ -1,3 +1,5 @@
+require('dotenv').config(); // 이 줄을 맨 위에 추가!
+
 const express = require('express');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
@@ -6,32 +8,55 @@ const multer = require('multer');
 const fs = require('fs').promises;
 const upload = multer({ dest: 'uploads/' });
 const path = require('path');
+const session = require('express-session');
 
 const app = express();
 app.use(cors());
+app.use(session({
+  secret: 'mathpb-secret-key',     // 나중에 .env로 숨겨도 됨
+  resave: false,
+  saveUninitialized: true,
+  cookie: { maxAge: 1000 * 60 * 60 * 2 }  // 2시간 유지
+}));
 app.use(express.json());
 app.use(express.static('public'));
 
 const db = mysql.createPool({
-  host: 'localhost',      // 여기에 본인 MySQL host (보통 localhost)
-  user: 'root',           // 본인 MySQL 아이디
-  password: '',           // 본인 MySQL 비밀번호 (없으면 빈칸)
-  database: 'userdb',     // 위에서 만든 DB 이름
-  port: 3306,             // 보통 3306
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT,
+});
+
+// 서버 상태 확인용 라우트 (MySQL 연결 확인)
+app.get('/ping-db', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT NOW() AS now');
+    res.send(`✅ DB 연결 성공! 현재 시간: ${rows[0].now}`);
+  } catch (e) {
+    console.error('❌ DB 연결 실패:', e);
+    res.status(500).send('DB 연결 실패');
+  }
 });
 
 // 회원가입 (POST /register)
 app.post('/register', async (req, res) => {
-  const { email, password, name, phone } = req.body;
-  if (!email || !password || !name || !phone) return res.status(400).json({ msg: "필수 입력값" });
+  const { id, email, password, name, phone } = req.body;
+
+   console.log('회원가입 요청 데이터:', req.body);
+
+  if (!id || !email || !password || !name || !phone) return res.status(400).json({ msg: "필수 입력값" });
+
   try {
     const hash = await bcrypt.hash(password, 10);
     await db.query(
-      'INSERT INTO users (email, password, name, phone) VALUES (?, ?, ?, ?)',
-      [email, hash, name, phone]
+      'INSERT INTO users (id, email, password, name, phone) VALUES (?, ?, ?, ?, ?)',
+      [id, email, hash, name, phone]
     );
     res.json({ msg: "회원가입 성공" });
   } catch (e) {
+    console.error('회원가입 에러:', e);  // 에러 로그
     if (e.code === 'ER_DUP_ENTRY') {
       res.status(409).json({ msg: "이미 존재하는 이메일" });
     } else {
@@ -40,16 +65,26 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// 로그인 (POST /login)
+// 로그인 API - 세션 저장 포함
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {
     const [rows] = await db.query('SELECT * FROM users WHERE email=?', [email]);
     if (!rows.length) return res.status(401).json({ msg: "이메일 또는 비밀번호 오류" });
+
     const user = rows[0];
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ msg: "이메일 또는 비밀번호 오류" });
-    res.json({ msg: "로그인 성공" });
+
+    // ✅ 로그인 성공: 세션에 사용자 정보 저장
+    req.session.user = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role || 'user'  // 관리자 여부 포함
+    };
+
+    res.json({ msg: "로그인 성공", user: req.session.user });
   } catch (e) {
     res.status(500).json({ msg: "서버 오류", error: e.message });
   }
@@ -280,6 +315,23 @@ app.post('/api/board/:id/delete', async (req, res) => {
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// 로그인 상태 확인 API
+app.get('/check-auth', (req, res) => {
+  if (req.session.user) {
+    res.json({ isLoggedIn: true, user: req.session.user });
+  } else {
+    res.json({ isLoggedIn: false });
+  }
+});
+
+// 로그아웃 API
+app.get('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.clearCookie('connect.sid');
+    res.json({ msg: '로그아웃 되었습니다' });
+  });
 });
 
 // 서버 실행
