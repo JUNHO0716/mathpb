@@ -490,7 +490,16 @@
         const res = await fetch('/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({
+            id: document.getElementById('signup_id').value.trim(),
+            email:
+              document.getElementById('signup_email_id').value.trim() +
+              '@' +
+              document.getElementById('signup_email_domain').value.trim(),
+            password: document.getElementById('signup_pw').value,
+            name: document.getElementById('signup_name').value.trim(),
+            phone: document.getElementById('signup_phone').value.trim()
+          })
         });
         const data = await res.json();
 
