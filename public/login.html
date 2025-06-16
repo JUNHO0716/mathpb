@@ -24,6 +24,7 @@
        ============================================== */
     .login-wrapper {
       width: 900px;
+      height: 670px;
       min-height: 500px;
       background: #fff;
       border-radius: 18px;
@@ -76,21 +77,22 @@
       padding: 32px 32px 0 32px;
       position: relative;
     }
+    
     .logo-area {
       width: 100%;
       text-align: center;
       margin-bottom: 16px;
-      margin-top: 24px;
+      margin-top: -5px;
       display: flex;
       justify-content: center;
       align-items: center;
     }
-    .logo-area img { height: 70px; margin-bottom: 18px; }
+    .logo-area img { height: 130px; margin-bottom: -20px; }
 
     /* ==============================================
        5. 로그인 폼 (인풋, 버튼, 체크박스 등)
        ============================================== */
-    .login-form-wrap { display: flex; flex-direction: column; align-items: center; margin-top: 40px; width: 100%; }
+    .login-form-wrap { display: flex; flex-direction: column; align-items: center; margin-top: 40px; width: 100%; margin-bottom: 30px; }
     .login-form {
       width: 100%;
       max-width: 320px;
@@ -103,10 +105,11 @@
       width: 100%;
       margin-bottom: 12px;
       padding: 13px 14px;
-      border: 1px solid #e0e6ee;
+      border: 1.5px solid #e0e6ee;
       border-radius: 7px;
       font-size: 1rem;
       background: #f9fbfe;
+      box-sizing: border-box; /* ✅ 이것 꼭 추가해 */
       transition: border 0.2s;
     }
     .login-form input:focus {
@@ -239,6 +242,75 @@
         font-size: 0.78em;
       }
     }
+    .social-divider-box {
+      margin: 28px 0 14px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .divider-line {
+      flex: 1;
+      height: 1px;
+      background: #ccc;
+      max-width: 140px;
+    }
+
+    .divider-text {
+      color: #999;
+      font-size: 0.95em;
+      font-weight: 500;
+    }
+
+    .social-login-box {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      margin-top: 10px;  /* ✅ 버튼 간 간격 */
+    }
+
+    .social-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      border: 1.5px solid #ddd;
+      text-decoration: none;
+      color: #5e5e5e;
+      background: #fff;
+      transition: box-shadow 0.15s;
+      width: 85%;          /* ✅ 너비 전체 확장 */
+      max-width: 340px;     /* ✅ 버튼이 너무 길어지지 않도록 제한 (원하시면 더 키움) */
+      justify-content: center; /* ✅ 아이콘 + 글씨 가운데 정렬 */
+    }
+    .social-btn:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+    .social-btn img {
+      height: 22px;
+      width: 22px;
+    }
+    .gray-links a {
+      color: #999 !important;
+      font-weight: 400;
+      font-size: 0.95em;
+    }
+    /* 네이버 버튼 전용 */
+    .social-btn.naver-btn {
+      border: 1.5px solid #03c75a;
+      color: #5e5e5e;
+      font-size: 0.95rem;
+    }
+
+    .social-btn.naver-btn:hover {
+      background: #f0fff4;
+    }
+
   </style>
 </head>
 <body>
@@ -246,7 +318,7 @@
     <div class="left-panel">
       <div class="left-textbox">
         <h1>지금 로그인하고<br>차원이 다른 기출문제를<br>경험하세요.</h1>
-        <div class="sub">Mobile Performance<br>Management Solution</div>
+        <div class="sub">기출문제 편집/해설<br>유형별 기출문제</div>
       </div>
     </div>
     <div class="right-panel">
@@ -263,18 +335,37 @@
           </div>
           <button type="submit">로그인</button>
         </form>
-        <div class="links-area">
-          <a href="signup.html">회원가입</a>
-          <span>|</span>
-          <a href="resetpw.html">비밀번호 찾기</a>
+          <div class="links-area gray-links">
+            <a href="signup.html">회원가입</a>
+            <span>|</span>
+            <a href="resetpw.html">비밀번호 찾기</a>
+          </div>
+        <div class="social-divider-box">
+          <div class="divider-line"></div>
+          <div class="divider-text">또는</div>
+          <div class="divider-line"></div>
         </div>
-        <div class="login-result" id="loginResult"></div>
+
+        <!-- 구글 로그인 버튼 -->
+        <div class="social-login-box">
+          <a href="/auth/google" class="social-btn">
+          <img src="https://developers.google.com/identity/images/g-logo.png" alt="G" class="google-icon">
+          <span>구글 계정으로 로그인</span>
+        </a>
+      </div>
+        <!-- 네이버 로그인 버튼 -->
+        <div class="social-login-box">
+          <a href="/auth/naver" class="social-btn naver-btn">
+            <img src="naver_icon.png" alt="네이버" style="height: 22px; width: 22px;">
+            <span>네이버 계정으로 로그인</span>
+          </a>
+        </div>
       </div>
     </div>
   </div>
   <div class="info-bar">
-    솔루션 문의는 전문 컨설턴트가 도와드립니다.<br>
-    support@imqa.io / Tel : 02-541-0080
+    기출문제 문의는 전문 컨설턴트가 도와드립니다.<br>
+    gh_6399@naver.com / Tel : 010-8310-6399
   </div>
   <script>
     // 아이디 저장 기능 (로컬스토리지 사용)

@@ -9,6 +9,9 @@ const fs = require('fs').promises;
 const upload = multer({ dest: 'uploads/' });
 const path = require('path');
 const session = require('express-session');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+require('dotenv').config();
 
 const app = express();
 app.use(cors());
@@ -20,7 +23,52 @@ app.use(session({
 }));
 app.use(express.json());
 app.use(express.static('public'));
+// [1] passport 초기화 및 세션 연결
+app.use(passport.initialize());
+app.use(passport.session());
 
+// [2] GoogleStrategy 설정
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: process.env.GOOGLE_CALLBACK_URL
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    const email = profile.emails[0].value;
+    const name = profile.displayName;
+
+    // DB에 이미 있는 유저인지 확인
+    const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+
+    let user;
+    if (rows.length) {
+      user = rows[0];
+    } else {
+      // 없으면 새로 회원가입 처리
+      await db.query(
+        'INSERT INTO users (id, email, name, password, phone) VALUES (?, ?, ?, NULL, "")',
+        [profile.id, email, name]
+      );
+      const [newUser] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+      user = newUser[0];
+    }
+
+    return done(null, {
+      id: user.id,
+      email: user.email,
+      name: user.name
+    });
+  } catch (err) {
+    return done(err);
+  }
+}));
+
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+passport.deserializeUser((obj, done) => {
+  done(null, obj);
+});
 const db = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -333,6 +381,19 @@ app.get('/logout', (req, res) => {
     res.json({ msg: '로그아웃 되었습니다' });
   });
 });
+// Google 로그인 시작
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+// 로그인 후 콜백 처리
+app.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login.html' }),
+  (req, res) => {
+    req.session.user = req.user;  // 세션 저장
+    res.redirect('/main_home.html'); // 로그인 성공 후 메인으로 이동
+  }
+);
 
 // 서버 실행
 const PORT = process.env.PORT || 3001;

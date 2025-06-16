@@ -20,19 +20,22 @@
     }
     body {
       min-height: 100vh;
-      background: #f6faf6; /* 메인페이지 배경색과 통일 */
+      background: #f6faf6;
       font-family: 'Noto Sans KR', Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
       color: #1c4135;
+
+      /* 수정된 부분 */
+      display: block;           /* ✅ flex 제거 */
+      overflow-y: auto;         /* ✅ 세로 스크롤 가능 */
+      padding: 40px 0;          /* ✅ 상하 여백 조금 추가 (선택) */
     }
 
     /* ==============================================
        2. 회원가입 카드 (.signup-card) — 원본 그대로
        ============================================== */
     .signup-card {
+      margin: 0 auto;
+      margin-top: 40px; /* 원하는 만큼 위쪽 띄우기 */
       width: 700px;
       min-height: 520px;
       background: #fff;
@@ -389,9 +392,6 @@
         <div class="signup-btn-row">
           <button type="submit" class="signup-btn submit">가입완료</button>
         </div>
-
-        <!-- 결과 메시지 -->
-        <div class="signup-result" id="signupResult"></div>
       </form>
     </div>
   </div>
@@ -449,14 +449,30 @@
       }
     }
 
-    // 아이디 중복확인 (샘플)
-    function checkId() {
-      const id = document.getElementById('signup_id').value.trim();
-      if (!id) {
-        return showModal("중복확인", "아이디를 입력하세요!");
+    // 중복 확인 버튼 기능 수정 (기존 checkId 함수 수정)
+      async function checkId() {
+        const id = document.getElementById('signup_id').value.trim();
+        if (!id) {
+          return showModal("중복확인", "아이디를 입력하세요!");
+        }
+
+        try {
+          const res = await fetch('/check-id', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+          });
+          const data = await res.json();
+
+          if (res.ok) {
+            showModal("사용 가능", data.msg);
+          } else {
+            showModal("사용 불가", data.msg);
+          }
+        } catch (err) {
+          showModal("오류", "서버 오류 발생");
+        }
       }
-      showModal("중복확인", `아이디 "${id}"은 사용 가능합니다. (샘플)`);
-    }
 
     // 팝업(모달) 표시 함수
     function showModal(title, msg, onOk) {
@@ -481,8 +497,16 @@
       const password = document.getElementById('signup_pw').value;
       const password2 = document.getElementById('signup_pw2').value;
 
+      // 비밀번호 일치 확인
       if (password !== password2) {
         showModal("비밀번호 오류", "비밀번호가 일치하지 않습니다.");
+        return;
+      }
+
+      // ✅ 비밀번호 복잡도 검사
+      const pwRule = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\-_=+{}[\]:;"'<>,.?/]).{8,}$/;
+      if (!pwRule.test(password)) {
+        showModal("비밀번호 조건 오류", "비밀번호는 대문자, 숫자, 특수문자를 포함해 8자 이상이어야 합니다.");
         return;
       }
 
