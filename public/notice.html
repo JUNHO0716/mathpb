@@ -234,11 +234,19 @@
   function toDateStr(iso) {
   // 예: 2025-06-09T15:00:00.000Z → 2025.06.09
   return typeof iso === "string" ? iso.slice(0,10).replace(/-/g, '.') : '';
-}
+  } 
 
-  // 관리자 여부 (로그인 붙이면 수정!)
-  const IS_ADMIN = true;
-  if(IS_ADMIN) document.getElementById('fab-add').style.display = 'flex';
+    // ─── 로그인 상태 & 관리자 여부 확인 ───
+    let IS_ADMIN = false;
+    async function checkAuth() {
+      try {
+        const r = await fetch('/check-auth', { credentials: 'include' });
+        const d = await r.json();
+        IS_ADMIN = d.isLoggedIn && d.user.role === 'admin';
+        if (IS_ADMIN) document.getElementById('fab-add').style.display = 'flex';
+      } catch (_) {}
+    }
+    checkAuth();
 
   // 1. 플로팅 버튼 클릭 → 등록 모달 띄움
   document.getElementById('fab-add').onclick = function() {
@@ -272,7 +280,11 @@
     formData.append('content', content);
     if(image) formData.append('image', image);
     try {
-      const res = await fetch('http://localhost:3001/api/notices', { method: 'POST', body: formData });
+      const res = await fetch('/api/notices', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'   // ←★ 추가
+    });
       const data = await res.json();
       if(data.msg === "공지 등록 성공") {
         document.getElementById('notice-modal-bg').style.display = 'none';
@@ -289,7 +301,8 @@
   const perPage = 7;
 
   function loadNotices() {
-    fetch('http://localhost:3001/api/notices')
+      page = 1;
+    fetch('/api/notices')
       .then(res => res.json())
       .then(list => {
         noticeListData = list;
@@ -302,6 +315,7 @@
     const total = noticeListData.length;
     const totalPages = Math.ceil(total / perPage);
     const box = document.querySelector('.pagination');
+     if (totalPages === 0) { box.innerHTML = ''; return; }
     box.innerHTML = '';
     for (let i = 1; i <= totalPages; i++) {
       const span = document.createElement('span');
@@ -326,11 +340,19 @@ function renderNoticeList() {
   view.forEach(item => {
     const div = document.createElement('div');
     div.className = 'notice-item';
-div.innerHTML = `
-  <div class="notice-text">${item.title}</div>
-  <div class="notice-date">${toDateStr(item.date)}</div>
-  <div class="notice-arrow">&gt;</div>
-`;
+  const titleDiv = document.createElement('div');
+    titleDiv.className = 'notice-text';
+    titleDiv.textContent = item.title;          // ←★ HTML 해석 X
+
+    const dateDiv = document.createElement('div');
+    dateDiv.className = 'notice-date';
+    dateDiv.textContent = toDateStr(item.date);
+
+    const arrowDiv = document.createElement('div');
+    arrowDiv.className = 'notice-arrow';
+    arrowDiv.textContent = '>';
+
+    div.append(titleDiv, dateDiv, arrowDiv);    // 내부 요소 삽입
     div.onclick = () => toggleDetail(div, item.id); // 중요: 펼치기 함수 연결!
     box.appendChild(div);
   });
@@ -342,7 +364,7 @@ async function toggleDetail(div, id) {
     openedDetail.classList.remove('active');
     if (openedDetail === div) { openedDetail = null; return; }
   }
-  const res = await fetch(`http://localhost:3001/api/notices/${id}`);
+  const res = await fetch(`/api/notices/${id}`);
   const data = await res.json();
   const detailDiv = document.createElement('div');
   detailDiv.className = 'notice-detail-row';
@@ -359,12 +381,27 @@ async function toggleDetail(div, id) {
       float:right; margin-left:15px;
       background:#e54e4e; color:#fff; border:none; border-radius:5px;
       font-size:0.98rem; padding:7px 18px; cursor:pointer;">삭제</button>`;
-  }
-  detailDiv.innerHTML = `
-    ${deleteBtnHTML}
-    <div style="font-size:1.07rem;margin-bottom:15px;white-space:pre-line;">${data.content}</div>
-    ${data.imageUrl ? `<img src="${data.imageUrl}" style="max-width:360px;border-radius:9px;margin-top:10px;">` : ''}
-  `;
+    }
+    detailDiv.innerHTML = deleteBtnHTML;   // 관리자 삭제 버튼만 먼저 삽입
+
+      // ① 내용
+      const contentDiv = document.createElement('div');
+      contentDiv.style = 'font-size:1.07rem;margin-bottom:15px;white-space:pre-line;';
+      // 줄바꿈만 유지하고 나머지 문자는 Escape
+      contentDiv.innerHTML = data.content
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br>');
+      detailDiv.appendChild(contentDiv);
+
+      // ② 이미지
+      if (data.imageUrl) {
+        const img = document.createElement('img');
+        img.src   = data.imageUrl;
+        img.style = 'max-width:360px;border-radius:9px;margin-top:10px;';
+        detailDiv.appendChild(img);
+      }
   div.after(detailDiv);
   div.classList.add('active');
   openedDetail = div;
@@ -374,9 +411,10 @@ async function toggleDetail(div, id) {
       e.stopPropagation();
       if (!confirm('정말 삭제하시겠습니까?')) return;
       try {
-        const res = await fetch(`http://localhost:3001/api/notices/${id}`, {
-          method: 'DELETE',
-        });
+      const res = await fetch(`/api/notices/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'   // ←★ 추가
+      });
         const result = await res.json();
         if (result.msg === "삭제 성공") {
           alert('삭제되었습니다.');

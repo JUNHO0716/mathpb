@@ -11,7 +11,16 @@ const path = require('path');
 const session = require('express-session');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-require('dotenv').config();
+
+// ─── [추가] 로그인·관리자 체크 미들웨어 ───
+function isLoggedIn(req, res, next) {
+  if (req.session.user) return next();
+  return res.status(401).json({ msg: '로그인 필요' });
+}
+function isAdmin(req, res, next) {
+  if (req.session.user?.role === 'admin') return next();
+  return res.status(403).json({ msg: '관리자 전용' });
+}
 
 const app = express();
 app.use(cors());
@@ -56,7 +65,8 @@ passport.use(new GoogleStrategy({
     return done(null, {
       id: user.id,
       email: user.email,
-      name: user.name
+      name: user.name,
+      role: user.role
     });
   } catch (err) {
     return done(err);
@@ -161,24 +171,30 @@ app.post('/resetpw', async (req, res) => {
 // 업로드된 이미지 파일 접근
 app.use('/uploads', express.static('uploads'));
 
-// 공지 등록 (제목/내용/이미지)
-app.post('/api/notices', upload.single('image'), async (req, res) => {
-  const { title, content } = req.body;
-  const imageUrl = req.file ? '/uploads/' + req.file.filename : null;
-  const today = new Date().toISOString().slice(0,10);
-  // 컬럼 순서 반드시 맞춰야 제대로 들어감!
-await db.query(
-  'INSERT INTO notices (title, date, content, imageUrl) VALUES (?, ?, ?, ?)',
-  [title, today, content, imageUrl]
-);
-  res.json({ msg: "공지 등록 성공" });
+// 공지 등록 (POST /api/notices) ─ 관리자만
+app.post('/api/notices',
+  isLoggedIn, isAdmin,
+  upload.single('image'),
+  async (req, res) => {
+    const { title, content } = req.body;
+    if (!title || !content)
+      return res.status(400).json({ msg: '필수 입력값' });
+
+    const imageUrl = req.file ? '/uploads/' + req.file.filename : null;
+    const today    = new Date().toISOString().slice(0, 10);
+
+    await db.query(
+      'INSERT INTO notices (title, date, content, imageUrl) VALUES (?,?,?,?)',
+      [title, today, content, imageUrl]
+    );
+    res.json({ msg: '공지 등록 성공' });
 });
 
 // 공지사항 목록 (제목, 날짜만)
 app.get('/api/notices', async (req, res) => {
   try {
     const [rows] = await db.query(
-      'SELECT id, title, date FROM notices ORDER BY date DESC, id DESC LIMIT 10'
+      'SELECT id, title, date FROM notices ORDER BY date DESC, id DESC'
     );
     res.json(rows);
   } catch (e) {
@@ -197,19 +213,15 @@ app.get('/api/notices/:id', async (req, res) => {
   }
 });
 
-// 공지 삭제
-app.delete('/api/notices/:id', async (req, res) => {
-  try {
-    const [result] = await db.query('DELETE FROM notices WHERE id=?', [req.params.id]);
-    if (result.affectedRows > 0) {
-      res.json({ msg: "삭제 성공" });
-    } else {
-      res.status(404).json({ msg: "공지 없음" });
-    }
-  } catch (e) {
-    res.status(500).json({ msg: "공지 삭제 오류", error: e.message });
-  }
+// 공지 삭제 (DELETE /api/notices/:id) ─ 관리자만
+app.delete('/api/notices/:id',
+  isLoggedIn, isAdmin,
+  async (req, res) => {
+    const [r] = await db.query('DELETE FROM notices WHERE id=?', [req.params.id]);
+    if (r.affectedRows) return res.json({ msg: '삭제 성공' });
+    res.status(404).json({ msg: '공지 없음' });
 });
+
 // 파일 업로드 (관리자용)
 app.post('/api/upload', upload.array('files'), async (req, res) => {
   try {
@@ -262,8 +274,8 @@ app.delete('/api/files/:id', async (req, res) => {
 
     // 실제 파일도 uploads 폴더에서 삭제
     if (filename) {
-      const path = __dirname + '/uploads/' + filename;
-      try { await fs.unlink(path); } catch (e) {}
+    const filePath = __dirname + '/uploads/' + filename;
+    try { await fs.unlink(filePath); } catch (e) {}
     }
 
     res.json({ message: "삭제 성공" });
