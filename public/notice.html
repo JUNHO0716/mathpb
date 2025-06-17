@@ -84,7 +84,7 @@
       background: #238058; color: #fff; font-size: 2.5rem;
       box-shadow: 0 8px 24px #23805844;
       border: none; cursor: pointer; z-index: 999;
-      display: flex; align-items: center; justify-content: center;
+      align-items: center; justify-content: center;
       transition: background 0.13s, box-shadow 0.13s;
     }
     #fab-add:hover { background: #20b26a; box-shadow: 0 8px 32px #23805833; }
@@ -196,8 +196,8 @@
   <header class="top-nav">
     <div class="logo-box">
       <a href="main_home.html" style="display:flex; align-items:center; gap:8px; text-decoration:none;">
-        <img src="logo_mc.png" class="logo-img" alt="로고" />
-        <span class="logo-text">M.CLASS</span>
+        <img src="logo_main.png" class="logo-img" alt="로고" />
+        <span class="logo-text">수학지니</span>
       </a>
     </div>
   </header>
@@ -238,14 +238,29 @@
 
     // ─── 로그인 상태 & 관리자 여부 확인 ───
     let IS_ADMIN = false;
+
     async function checkAuth() {
       try {
         const r = await fetch('/check-auth', { credentials: 'include' });
         const d = await r.json();
-        IS_ADMIN = d.isLoggedIn && d.user.role === 'admin';
-        if (IS_ADMIN) document.getElementById('fab-add').style.display = 'flex';
-      } catch (_) {}
+
+        IS_ADMIN = d.isLoggedIn && d.user && d.user.role === 'admin';
+
+        if (IS_ADMIN) {
+          // 관리자일 때만 표시
+          document.getElementById('fab-add').style.display = 'flex';
+        } else {
+          // 비관리자·비로그인: 숨김
+          document.getElementById('fab-add').style.display = 'none';
+        }
+
+      } catch (e) {
+        console.error('checkAuth error:', e);
+        // 에러가 나도 안전하게 숨겨 두기
+        document.getElementById('fab-add').style.display = 'none';
+      }
     }
+
     checkAuth();
 
   // 1. 플로팅 버튼 클릭 → 등록 모달 띄움
@@ -331,32 +346,55 @@
   }
 
   loadNotices();
-function renderNoticeList() {
-  const start = (page-1) * perPage;
-  const end = start + perPage;
-  const view = noticeListData.slice(start, end);
-  const box = document.getElementById('notice-list'); // id로 지정한 div 사용!
-  box.innerHTML = '';
-  view.forEach(item => {
-    const div = document.createElement('div');
-    div.className = 'notice-item';
-  const titleDiv = document.createElement('div');
-    titleDiv.className = 'notice-text';
-    titleDiv.textContent = item.title;          // ←★ HTML 해석 X
+    function renderNoticeList() {
+      /* 공지 목록을 그릴 컨테이너 */
+      const box = document.getElementById('notice-list');
+      box.innerHTML = '';
 
-    const dateDiv = document.createElement('div');
-    dateDiv.className = 'notice-date';
-    dateDiv.textContent = toDateStr(item.date);
+      /* ── A. 공지가 0건일 때 안내 문구 후 종료 ─────────────── */
+      if (noticeListData.length === 0) {
+        box.innerHTML =
+          '<div style="padding:40px;text-align:center;color:#777;">등록된 공지사항이 없습니다.</div>';
+        document.querySelector('.pagination').innerHTML = '';
+        return;
+      }
 
-    const arrowDiv = document.createElement('div');
-    arrowDiv.className = 'notice-arrow';
-    arrowDiv.textContent = '>';
+      /* ── B. 현재 페이지에 보여줄 데이터 잘라내기 ──────────── */
+      const start = (page - 1) * perPage;
+      const end   = start + perPage;
+      const view  = noticeListData.slice(start, end);
 
-    div.append(titleDiv, dateDiv, arrowDiv);    // 내부 요소 삽입
-    div.onclick = () => toggleDetail(div, item.id); // 중요: 펼치기 함수 연결!
-    box.appendChild(div);
-  });
-}
+      /* ── C. 목록 행 생성 ─────────────────────────────────── */
+      view.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'notice-item';
+
+        /* 1) 키보드 접근성: Tab 포커스 + Enter 열기 */
+        div.tabIndex = 0;
+        div.addEventListener('keydown', e => {
+          if (e.key === 'Enter') toggleDetail(div, item.id);
+        });
+
+        /* 2) 마우스 클릭 열기 */
+        div.onclick = () => toggleDetail(div, item.id);
+
+        /* 3) 내부 요소들(제목·날짜·화살표) */
+        const titleDiv = document.createElement('div');
+        titleDiv.className  = 'notice-text';
+        titleDiv.textContent = item.title;
+
+        const dateDiv = document.createElement('div');
+        dateDiv.className  = 'notice-date';
+        dateDiv.textContent = toDateStr(item.date);
+
+        const arrowDiv = document.createElement('div');
+        arrowDiv.className = 'notice-arrow';
+        arrowDiv.textContent = '>';
+
+        div.append(titleDiv, dateDiv, arrowDiv);
+        box.appendChild(div);
+      });
+    }
 let openedDetail = null;
 async function toggleDetail(div, id) {
   if (openedDetail) {
