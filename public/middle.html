@@ -438,7 +438,7 @@
         if(year) params.append('year', year);
         if(semester) params.append('semester', semester);
 
-        const res = await fetch('http://localhost:3001/api/files?' + params.toString());
+        const res = await fetch('/api/files?' + params.toString());
         fileData = await res.json();
         renderTable(fileData);
       }
@@ -469,7 +469,7 @@
     async function fetchNotices() {
       renderNoticePreview([], true); // << 이게 핵심!
       try {
-        const res = await fetch('http://localhost:3001/api/notices');
+        const res = await fetch('/api/notices');
         let list = await res.json();
         list = list.slice(0, 10);
         list = list.map((n, i) => ({ title: n.title || '(제목없음)' }));
