@@ -568,12 +568,11 @@
     <!-- 1) 네비게이션 바 -->
     <nav class="nav">
       <div class="nav-logo">
-        <img src="logo.png" alt="수학문제은행 로고" />
-        <span class="logo-text">수학문제은행</span>
+        <img src="logo_main.png" alt="수학문제은행 로고" />
+        <span class="logo-text">수학지니</span>
       </div>
-      <div class="nav-links">
-        <a href="contact.html" class="nav-link">문의하기</a>
-        <a href="login.html" class="nav-link">로그인</a>
+      <div class="nav-links" id="navLinks">
+        <!-- 여기는 JavaScript로 채워질 예정 -->
       </div>
     </nav>
 
@@ -809,11 +808,6 @@ document.addEventListener('click', (e) => {
     noticeListEl.style.display = 'none';
   }
 });
-document.addEventListener('DOMContentLoaded', () => {
-  fetchNotices();
-  adjustDropdownWidth();
-  setInterval(slideNotice, 10000);
-});
     // ──────────────────────────────────────────────────────────────
     // 2) ‘내 문제지’ 테이블: 데이터 저장 & 정렬 기능
     // ──────────────────────────────────────────────────────────────
@@ -963,9 +957,44 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 초기 렌더
+    function checkLoginStatus() {
+      const userEmail = localStorage.getItem('userEmail'); // 로그인 여부 판단
+      const navLinks = document.getElementById('navLinks');
+
+      if (userEmail) {
+        // 로그인 상태면: 문의하기 + 로그아웃
+        navLinks.innerHTML = `
+          <a href="contact.html" class="nav-link">문의하기</a>
+          <a href="#" class="nav-link" id="logoutBtn">로그아웃</a>
+        `;
+
+        // 로그아웃 버튼 이벤트 연결
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+          localStorage.removeItem('userEmail'); // 로그인 정보 제거
+          alert('로그아웃 되었습니다.');
+          window.location.href = 'login.html'; // 로그인 페이지로 이동
+        });
+
+      } else {
+        // 로그인 안 된 상태면: 문의하기 + 로그인
+        navLinks.innerHTML = `
+          <a href="contact.html" class="nav-link">문의하기</a>
+          <a href="login.html" class="nav-link">로그인</a>
+        `;
+      }
+    }
+
+    // 페이지 로드 시 실행
     document.addEventListener('DOMContentLoaded', () => {
-      renderTable();
-    });
+    fetchNotices();              // 공지 불러오기
+   adjustDropdownWidth();
+   setInterval(slideNotice, 10000);
+
+    renderTable();               // 표 렌더링
+    checkLoginStatus();          // 로그인 상태 확인
+    }); 
+
+
   </script>
 </body>
 </html>
