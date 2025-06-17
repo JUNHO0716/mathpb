@@ -743,7 +743,7 @@ const toggleBtn       = document.getElementById('notice-toggle');
 // 공지사항 DB에서 불러오기 함수
 async function fetchNotices() {
   try {
-    const res = await fetch('http://localhost:3001/api/notices');
+    const res = await fetch('/api/notices');
     const list = await res.json();
     notices = list.slice(0, 5).map(item => ({
       text: `${formatDate(item.date)}: ${item.title}`,
@@ -957,30 +957,32 @@ document.addEventListener('click', (e) => {
     });
 
     // 초기 렌더
-    function checkLoginStatus() {
-      const userEmail = localStorage.getItem('userEmail'); // 로그인 여부 판단
+    async function checkLoginStatus() {
       const navLinks = document.getElementById('navLinks');
 
-      if (userEmail) {
-        // 로그인 상태면: 문의하기 + 로그아웃
-        navLinks.innerHTML = `
-          <a href="contact.html" class="nav-link">문의하기</a>
-          <a href="#" class="nav-link" id="logoutBtn">로그아웃</a>
-        `;
+      try {
+        const res = await fetch('/check-auth', { credentials: 'include' });
+        const result = await res.json();
 
-        // 로그아웃 버튼 이벤트 연결
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-          localStorage.removeItem('userEmail'); // 로그인 정보 제거
-          alert('로그아웃 되었습니다.');
-          window.location.href = 'login.html'; // 로그인 페이지로 이동
-        });
-
-      } else {
-        // 로그인 안 된 상태면: 문의하기 + 로그인
-        navLinks.innerHTML = `
-          <a href="contact.html" class="nav-link">문의하기</a>
-          <a href="login.html" class="nav-link">로그인</a>
-        `;
+        if (result.isLoggedIn) {
+          // 로그인 상태면: 문의하기 + 로그아웃
+          navLinks.innerHTML = `
+            <a href="contact.html" class="nav-link">문의하기</a>
+            <a href="#" class="nav-link" id="logoutBtn">로그아웃</a>
+          `;
+          document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await fetch('/logout', { credentials: 'include' });
+            window.location.href = 'login.html';
+          });
+        } else {
+          // 비로그인 상태면: 문의하기 + 로그인
+          navLinks.innerHTML = `
+            <a href="contact.html" class="nav-link">문의하기</a>
+            <a href="login.html" class="nav-link">로그인</a>
+          `;
+        }
+      } catch (e) {
+        console.error('로그인 상태 확인 오류:', e);
       }
     }
 
