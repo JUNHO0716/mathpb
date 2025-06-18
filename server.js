@@ -31,7 +31,6 @@ app.use(session({
   cookie: { maxAge: 1000 * 60 * 60 * 2 }  // 2시간 유지
 }));
 app.use(express.json());
-app.use(express.static('public'));
 
 // ──────────────────────────────────────────────
 // 아이디 중복 확인  POST /check-id
@@ -435,6 +434,8 @@ app.get('/auth/google/callback',
     res.redirect('/main_home.html'); // 로그인 성공 후 메인으로 이동
   }
 );
+
+app.use(express.static('public'));
 
 // 서버 실행
 const PORT = process.env.PORT || 3001;
