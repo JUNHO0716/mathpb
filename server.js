@@ -32,6 +32,35 @@ app.use(session({
 }));
 app.use(express.json());
 app.use(express.static('public'));
+
+// ──────────────────────────────────────────────
+// 아이디 중복 확인  POST /check-id
+// Body: { id : "사용자가 입력한 아이디" }
+// ──────────────────────────────────────────────
+app.post('/check-id', async (req, res) => {
+  try {
+    const { id } = req.body;
+
+    // 1) 값이 비었으면 400
+    if (!id) return res.status(400).json({ msg: '아이디를 입력하세요.' });
+
+    // 2) DB 조회   ★컬럼명(userId)과 테이블(users) 확인!
+    const [rows] = await db.query(
+      'SELECT id FROM users WHERE id = ?',
+      [id]
+    );
+
+    // 3) 있으면 409, 없으면 200
+    if (rows.length) {
+      return res.status(409).json({ msg: '이미 사용 중인 아이디입니다.' });
+    }
+    return res.json({ msg: '사용 가능한 아이디입니다.' });
+  } catch (err) {
+    console.error('check-id error:', err);
+    return res.status(500).json({ msg: '서버 오류' });
+  }
+});
+
 // [1] passport 초기화 및 세션 연결
 app.use(passport.initialize());
 app.use(passport.session());
