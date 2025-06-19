@@ -3,7 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <title>수학문제은행</title>
+  <meta name="theme-color" content="#f6faf6" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+   <!-- ▼ 새로 추가 : 폰트·이미지 선로딩 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- 실제 주소는 브라우저 개발자도구 → Network → Font 탭에서 복사 -->
+  <link rel="preload" as="font"
+        href="https://fonts.gstatic.com/s/notosanskr/v32/********.woff2"
+        type="font/woff2" crossorigin>
+
+  <link rel="preload" as="image" href="배경.png">
+
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -17,6 +29,7 @@
     /* ==============================================
        1. 기본 초기화 & Body 설정
        ============================================== */
+    html { background:#f6faf6; }
     * {
       margin: 0;
       padding: 0;
@@ -91,6 +104,7 @@
       font-size: 1.08rem;
       font-weight: 500;
       letter-spacing: -0.3px;
+      min-height:24px;
       color: #222;
       transition: color 0.13s;
     }
@@ -101,17 +115,20 @@
     /* ==============================================
        4. 히어로 일러스트
        ============================================== */
-    .hero-image-wrapper {
-      position: relative;
-      width: 100%;
-      background: #fff;
-      text-align: center;
+    .hero-image-wrapper{
+      position:relative;
+      width:100%;
+      background:#fff;
+      text-align:center;
+
+      /* 16:9 공간 확보 → 레이아웃 점프 방지 */
+      padding-bottom:56.25%;
+      overflow:hidden;
     }
-    .hero-image-wrapper img {
-      display: block;
-      width: 100%;
-      height: auto;
-      object-fit: cover;
+    .hero-image-wrapper img{
+      position:absolute; left:0; top:0;
+      width:100%; height:100%;
+      object-fit:cover;
     }
     .hero-text {
       position: absolute;
@@ -120,6 +137,7 @@
       width: 55%;
       text-align: left;
       color: #1c4135;
+      z-index: 2;
     }
     .hero-text h1 {
       font-size: 2.8rem;
@@ -981,10 +999,16 @@ document.addEventListener('click', (e) => {
             <a href="login.html" class="nav-link">로그인</a>
           `;
         }
-      } catch (e) {
-        console.error('로그인 상태 확인 오류:', e);
+        } catch (e) {
+          console.error('로그인 상태 확인 오류:', e);
+
+          /* ▼ 새로 추가 : fetch 실패(파일 열기 등)일 때 기본 메뉴 노출 */
+          navLinks.innerHTML = `
+            <a href="contact.html" class="nav-link">문의하기</a>
+            <a href="login.html"  class="nav-link">로그인</a>
+          `;
+        }
       }
-    }
 
     // 페이지 로드 시 실행
     document.addEventListener('DOMContentLoaded', () => {
