@@ -24,7 +24,6 @@
        ============================================== */
     .login-wrapper {
       width: 900px;
-      height: 670px;
       min-height: 500px;
       background: #fff;
       border-radius: 18px;
@@ -184,17 +183,14 @@
     /* ==============================================
        8. 로그인 결과 메시지 — 원본 그대로
        ============================================== */
-    .login-result {
-      text-align: center;
-      font-size: 1.08em;
-      margin-top: 13px;
-      color: #2e3754;
-      background: #f7f9fd;
-      border-radius: 7px;
-      padding: 9px 7px;
-      min-height: 28px;
-      word-break: break-all;
+    .login-result{
+      display:none;
+      margin:12px auto 0;     /* 중앙 */
+      text-align:center;
+      font-size:0.9rem;
     }
+
+    .login-result.error   { color:#d9534f; font-weight:300; }   /* 빨간 글씨 */
 
     /* ==============================================
        9. 하단 Info 바 — 메인페이지와 동일하게 조정
@@ -267,8 +263,9 @@
     .social-login-box {
       display: flex;
       justify-content: center;
+      flex-direction:column;
       width: 100%;
-      margin-top: 10px;  /* ✅ 버튼 간 간격 */
+      gap:12px;
     }
 
     .social-btn {
@@ -291,6 +288,13 @@
     .social-btn:hover {
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
     }
+    .social-btn.kakao-btn{
+  border:1.5px solid #fee500;
+  background:#fff;
+  color:#3c1e1e;        /* 카카오 로고 본색 */
+  font-size:0.95rem;
+}
+    .social-btn.kakao-btn:hover{ box-shadow:0 4px 16px rgba(0,0,0,.08); }
     .social-btn img {
       height: 22px;
       width: 22px;
@@ -334,6 +338,7 @@
             <label for="save_id">아이디 저장</label>
           </div>
           <button type="submit">로그인</button>
+          <div id="loginResult" class="login-result" style="display:none;"></div>
         </form>
           <div class="links-area gray-links">
             <a href="signup.html">회원가입</a>
@@ -346,27 +351,30 @@
           <div class="divider-line"></div>
         </div>
 
-        <!-- 구글 로그인 버튼 -->
         <div class="social-login-box">
           <a href="/auth/google" class="social-btn">
-          <img src="https://developers.google.com/identity/images/g-logo.png" alt="G" class="google-icon">
-          <span>구글 계정으로 로그인</span>
-        </a>
-      </div>
-        <!-- 네이버 로그인 버튼 -->
-        <div class="social-login-box">
-          <a href="/auth/naver" class="social-btn naver-btn">
-            <img src="naver_icon.png" alt="네이버" style="height: 22px; width: 22px;">
-            <span>네이버 계정으로 로그인</span>
+            <img src="https://developers.google.com/identity/images/g-logo.png" alt="G">
+            구글 계정으로 로그인
           </a>
+
+          <a href="/auth/naver" class="social-btn naver-btn">
+            <img src="naver_icon.png" alt="N">
+            네이버 계정으로 로그인
+          </a>
+
+          <a href="/auth/kakao" class="social-btn kakao-btn">
+            <img src="kakao_icon.png" alt="K">
+            카카오 계정으로 로그인
+          </a>
+        </div><!-- 🔚 social-login-box -->
         </div>
-      </div>
+      </div><!-- 🔚 right-panel -->
+    </div><!-- 🔚 login-wrapper -->
+
+    <div class="info-bar">
+      기출문제 문의는 전문 컨설턴트가 도와드립니다.<br>
+      gh_6399@naver.com / Tel : 010-8310-6399
     </div>
-  </div>
-  <div class="info-bar">
-    기출문제 문의는 전문 컨설턴트가 도와드립니다.<br>
-    gh_6399@naver.com / Tel : 010-8310-6399
-  </div>
   <script>
     // 아이디 저장 기능 (로컬스토리지 사용)
     window.onload = function() {
@@ -395,6 +403,7 @@
       e.preventDefault();
       const email = document.getElementById('login_email').value.trim();
       const password = document.getElementById('login_password').value;
+      const box      = document.getElementById('loginResult');
 
       try {
         const res = await fetch('/login', {
@@ -408,13 +417,19 @@
           localStorage.setItem('userEmail', email);
           // [2] 메인화면으로 이동!
           window.location.href = '/main_home.html';
-        } else {
-          document.getElementById('loginResult').innerText = data.msg || "로그인 실패: 아이디 또는 비밀번호를 확인하세요.";
+          } else {
+            // 실패: 빨간 글씨 표시
+            box.className   = 'login-result error';
+            box.textContent = data.msg || '아이디 또는 비밀번호가 올바르지 않습니다.';
+            box.style.display = 'block';
+          }
+        } catch (err) {
+          // 네트워크/서버 자체 오류
+          box.className   = 'login-result error';
+          box.textContent = '서버 연결 오류';
+          box.style.display = 'block';
         }
-      } catch (err) {
-        document.getElementById('loginResult').innerText = "서버 연결 오류";
-      }
-    };
+      };
   </script>
 </body>
 </html>

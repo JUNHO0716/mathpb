@@ -324,7 +324,7 @@
       <span class="logo-text">수학지니</span>
     </div>
     <nav class="menu-area">
-      <a href="http://localhost:8000/main_home.html" class="nav-link">메인홈</a>
+      <a href="main_home.html" class="nav-link">메인홈</a>
       <a href="my_collection.html" class="nav-link">내 책장</a>
       <a href="payment.html" class="nav-link nav-cash">
         <img src="cash_icon.png" class="cash-icon" alt="캐시" />
@@ -345,7 +345,7 @@
   <!-- ▼ 더보기 메뉴 (모달) -->
   <div id="moreMenu" class="dropdown-menu menu-dropdown">
     <ul>
-      <li><a href="http://localhost:8000/main_home.html"><span class="menu-icon-menu"><img src="icon_bank.png" alt=""></span>메인홈</a></li>
+      <li><a href="main_home.html"><span class="menu-icon-menu"><img src="icon_bank.png" alt=""></span>메인홈</a></li>
       <li><a href="my_collection.html"><span class="menu-icon-menu"><img src="icon_book.png" alt=""></span>내 책장</a></li>
       <li><a href="payment.html"><span class="menu-icon-menu"><img src="cash_icon.png" alt=""></span>결제하기</a></li>
       <li><a href="dashboard.html"><span class="menu-icon-menu"><img src="icon_notice.png" alt=""></span>공지사항</a></li>
@@ -358,7 +358,7 @@
     <ul>
       <li><a href="profile.html"><span class="menu-icon-menu"><img src="icon_profilemenu.png" alt=""></span>프로필가기</a></li>
       <li>
-        <a href="http://localhost:8000/login.html" id="logoutBtn">
+        <a href="login.html" id="logoutBtn">
           <span class="menu-icon-menu"><img src="icon_logout.png" alt=""></span>로그아웃
         </a>
       </li>
@@ -559,7 +559,7 @@
         logoutBtn.onclick = function(e) {
           e.preventDefault();
           localStorage.removeItem('userEmail');
-          window.location.href = 'http://localhost:8000/login.html';
+          window.location.href = 'login.html';
         };
       }
     });
