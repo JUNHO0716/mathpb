@@ -304,6 +304,10 @@
       display: block;
       text-decoration: none;
     }
+    .profile-icon{
+      width:24px; height:24px;      /* nav 글자 높이랑 비슷하게 */
+      vertical-align:middle;        /* 글자와 수직 중앙 맞춤 */
+    }
     .notice-list li a:hover {
       text-decoration: underline;
       background: #fff8c4;
@@ -616,14 +620,7 @@
         <span class="logo-text">수학지니</span>
       </div>
       <div class="nav-links" id="navLinks" style="display: flex; align-items: center; gap: 28px;">
-        <a href="contact.html" class="nav-link">문의하기</a>
-        <a href="login.html" class="nav-link" id="loginLink">로그인</a>
-        <!-- 프로필 버튼만 아이콘 (볼록 효과) -->
-        <button class="menu-btn" id="profileBtn" title="프로필" type="button">
-          <img src="profile_icon.png" class="menu-icon" alt="프로필" style="width:28px;height:28px;">
-        </button>
-        <span id="userId" class="user-id" style="display:none;"></span>
-      </div>
+       </div>
     </nav>
 
     <!-- 2) 히어로 이미지 + 오버레이 텍스트 -->
@@ -1009,54 +1006,41 @@ document.addEventListener('click', (e) => {
  // 로그인 상태 확인 + 메뉴 구성 + 아이디 표시
 async function checkLoginStatus () {
   const navLinks = document.getElementById('navLinks');
-
-  try {
-    const res    = await fetch('/check-auth', { credentials: 'include' });
+  try{
+    const res    = await fetch('/check-auth', {credentials:'include'});
     const result = await res.json();
 
-    /* 1) 네비게이션 메뉴 그리기 ― 로그인/비로그인 */
-    if (result.isLoggedIn){
-      navLinks.innerHTML = `
-        <a href="contact.html" class="nav-link">문의하기</a>
-        <a href="#"           class="nav-link" id="logoutBtn">로그아웃</a>
+    /* ── ① 공통 HTML 템플릿 ───────────────────────── */
+    const common = emailPresent => `
+      <a href="contact.html" class="nav-link">문의하기</a>
+      ${ emailPresent
+        ? `<a href="#"           class="nav-link" id="logoutBtn">로그아웃</a>`
+        : `<a href="login.html"  class="nav-link" id="loginLink">로그인</a>` }
+      <a href="profile.html" class="nav-link nav-profile" id="profileLink">
+        <img src="profile_icon.png" class="profile-icon" alt="">
+        <span id="userId" class="user-id"></span>
+      </a>`;   // ← 프로필+아이디 한 세트
 
-        <!-- 프로필 + 아이디 = 하나의 a -->
-        <a href="profile.html" class="nav-link nav-profile" id="profileLink">
-          <img src="profile_icon.png" class="profile-icon" alt="">
-          <span id="userId" class="user-id"></span>
-        </a>`;
-      document.getElementById('logoutBtn').onclick = async () => {
-        await fetch('/logout', { credentials: 'include' });
+    navLinks.innerHTML = common(result.isLoggedIn);
+
+    /* ── ② 로그아웃 클릭 ─────────────────────────── */
+    if(result.isLoggedIn){
+      document.getElementById('logoutBtn').onclick = async () =>{
+        await fetch('/logout', {credentials:'include'});
         localStorage.removeItem('userEmail');
-        location.href = 'login.html';
+        location.href='login.html';
       };
-      }else{
-        navLinks.innerHTML = `
-          <a href="contact.html" class="nav-link">문의하기</a>
-          <a href="login.html"  class="nav-link" id="loginLink">로그인</a>
+    }
 
-          <!-- 로그인 안 해도 동일한 a태그(아이디 span만 비어 있음) -->
-          <a href="profile.html" class="nav-link nav-profile" id="profileLink">
-            <img src="profile_icon.png" class="profile-icon" alt="">
-            <span id="userId" class="user-id"></span>
-          </a>`;
-      }
-
-    /* 2) 아이디(@ 앞부분) 표시 */
+    /* ── ③ 아이디 (@앞) 세팅 ─────────────────────── */
     const userIdSpan = document.getElementById('userId');
     let email = result.email || localStorage.getItem('userEmail') || '';
     if(email){
       userIdSpan.textContent = email.split('@')[0];
       userIdSpan.style.display = 'inline';
     }
-
-    /* 3) 프로필 버튼 이벤트 (항상) */
-    const profileBtn = document.getElementById('profileBtn');
-    if (profileBtn) profileBtn.onclick = () => location.href = 'profile.html';
-
-  } catch (err) {
-    console.error('로그인 상태 확인 오류:', err);
-    /* 필요하다면 예외 시 메뉴를 기본(비로그인) 상태로 설정 */
+  }catch(e){
+    console.error('login check fail',e);
   }
 }
 
