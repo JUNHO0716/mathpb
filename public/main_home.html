@@ -113,6 +113,23 @@
       color: #34bb66;
     }
 
+    .nav-profile{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+
+    /* 아이디 글씨에도 nav-link Hover 색 적용 */
+    .nav-profile:hover .user-id{
+      color:#34bb66;          /* nav-link:hover 와 같은 색 */
+    }
+
+    /* 아이콘도 살짝 색감 변화를 주고 싶다면 */
+    .nav-profile:hover .profile-icon{
+      filter:brightness(0.85);
+      transition:filter .15s;
+    }
+
     /* ==============================================
        4. 히어로 일러스트
        ============================================== */
@@ -998,37 +1015,38 @@ async function checkLoginStatus () {
     const result = await res.json();
 
     /* 1) 네비게이션 메뉴 그리기 ― 로그인/비로그인 */
-    if (result.isLoggedIn) {
+    if (result.isLoggedIn){
       navLinks.innerHTML = `
         <a href="contact.html" class="nav-link">문의하기</a>
         <a href="#"           class="nav-link" id="logoutBtn">로그아웃</a>
-        <button class="menu-btn" id="profileBtn" title="프로필" type="button">
-          <img src="profile_icon.png" class="menu-icon" alt="프로필" style="width:28px;height:28px;">
-        </button>
-        <span id="userId" class="user-id" style="display:none;"></span>
-      `;
+
+        <!-- 프로필 + 아이디 = 하나의 a -->
+        <a href="profile.html" class="nav-link nav-profile" id="profileLink">
+          <img src="profile_icon.png" class="profile-icon" alt="">
+          <span id="userId" class="user-id"></span>
+        </a>`;
       document.getElementById('logoutBtn').onclick = async () => {
         await fetch('/logout', { credentials: 'include' });
         localStorage.removeItem('userEmail');
         location.href = 'login.html';
       };
-    } else {
-      navLinks.innerHTML = `
-        <a href="contact.html" class="nav-link">문의하기</a>
-        <a href="login.html"  class="nav-link" id="loginLink">로그인</a>
-        <button class="menu-btn" id="profileBtn" title="프로필" type="button">
-          <img src="profile_icon.png" class="menu-icon" alt="프로필" style="width:28px;height:28px;">
-        </button>
-        <span id="userId" class="user-id" style="display:none;"></span>
-      `;
-    }
+      }else{
+        navLinks.innerHTML = `
+          <a href="contact.html" class="nav-link">문의하기</a>
+          <a href="login.html"  class="nav-link" id="loginLink">로그인</a>
+
+          <!-- 로그인 안 해도 동일한 a태그(아이디 span만 비어 있음) -->
+          <a href="profile.html" class="nav-link nav-profile" id="profileLink">
+            <img src="profile_icon.png" class="profile-icon" alt="">
+            <span id="userId" class="user-id"></span>
+          </a>`;
+      }
 
     /* 2) 아이디(@ 앞부분) 표시 */
     const userIdSpan = document.getElementById('userId');
     let email = result.email || localStorage.getItem('userEmail') || '';
-    if (email) {
-      const displayId = email.includes('@') ? email.split('@')[0] : email;
-      userIdSpan.textContent = displayId;
+    if(email){
+      userIdSpan.textContent = email.split('@')[0];
       userIdSpan.style.display = 'inline';
     }
 
