@@ -11,9 +11,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
   <!-- 실제 주소는 브라우저 개발자도구 → Network → Font 탭에서 복사 -->
-  <link rel="preload" as="font"
-        href="https://fonts.gstatic.com/s/notosanskr/v32/********.woff2"
-        type="font/woff2" crossorigin>
+    <link rel="preload" as="font"
+          href="https://fonts.gstatic.com/s/notosanskr/v32/NotoSansKR-Bold.woff2"
+          type="font/woff2" crossorigin>
 
   <link rel="preload" as="image" href="배경.png">
 
@@ -579,6 +579,14 @@
         min-width: 100%;
       }
     }
+    .user-id{
+      margin-left: 6px;
+      font-size: 1.05rem;   /* 필요하면 1.2rem 등으로 조정 */
+      font-weight: 700;
+      color: #212529;
+      user-select: none;
+    }
+
   </style>
 </head>
 <body>
@@ -597,6 +605,7 @@
         <button class="menu-btn" id="profileBtn" title="프로필" type="button">
           <img src="profile_icon.png" class="menu-icon" alt="프로필" style="width:28px;height:28px;">
         </button>
+        <span id="userId" class="user-id" style="display:none;"></span>
       </div>
     </nav>
 
@@ -980,64 +989,58 @@ document.addEventListener('click', (e) => {
       });
     });
 
-    // 초기 렌더
-    async function checkLoginStatus() {
-      const navLinks = document.getElementById('navLinks');
+ // 로그인 상태 확인 + 메뉴 구성 + 아이디 표시
+async function checkLoginStatus () {
+  const navLinks = document.getElementById('navLinks');
 
-      try {
-        const res = await fetch('/check-auth', { credentials: 'include' });
-        const result = await res.json();
+  try {
+    const res    = await fetch('/check-auth', { credentials: 'include' });
+    const result = await res.json();
 
-        if (result.isLoggedIn) {
-          // 로그인 상태면: 문의하기 + 로그아웃 + 프로필
-          navLinks.innerHTML = `
-            <a href="contact.html" class="nav-link">문의하기</a>
-            <a href="#" class="nav-link" id="logoutBtn">로그아웃</a>
-            <button class="menu-btn" id="profileBtn" title="프로필" type="button">
-              <img src="profile_icon.png" class="menu-icon" alt="프로필" style="width:28px;height:28px;">
-            </button>
-          `;
-          document.getElementById('logoutBtn').addEventListener('click', async () => {
-            await fetch('/logout', { credentials: 'include' });
-            window.location.href = 'login.html';
-          });
-        } else {
-          // 비로그인 상태면: 문의하기 + 로그인 + 프로필
-          navLinks.innerHTML = `
-            <a href="contact.html" class="nav-link">문의하기</a>
-            <a href="login.html" class="nav-link" id="loginLink">로그인</a>
-            <button class="menu-btn" id="profileBtn" title="프로필" type="button">
-              <img src="profile_icon.png" class="menu-icon" alt="프로필" style="width:28px;height:28px;">
-            </button>
-          `;
-        }
-
-        // 💡 프로필 버튼 항상 이벤트 등록!
-        const profileBtn = document.getElementById('profileBtn');
-        if (profileBtn) {
-          profileBtn.addEventListener('click', function() {
-            window.location.href = 'profile.html';
-          });
-        }
-
-      } catch (e) {
-        console.error('로그인 상태 확인 오류:', e);
-        navLinks.innerHTML = `
-          <a href="contact.html" class="nav-link">문의하기</a>
-          <a href="login.html"  class="nav-link">로그인</a>
-          <button class="menu-btn" id="profileBtn" title="프로필" type="button">
-            <img src="profile_icon.png" class="menu-icon" alt="프로필" style="width:28px;height:28px;">
-          </button>
-        `;
-        // 💡 예외 상황에서도 프로필 버튼 이벤트 등록
-        const profileBtn = document.getElementById('profileBtn');
-        if (profileBtn) {
-          profileBtn.addEventListener('click', function() {
-            window.location.href = 'profile.html';
-          });
-        }
-      }
+    /* 1) 네비게이션 메뉴 그리기 ― 로그인/비로그인 */
+    if (result.isLoggedIn) {
+      navLinks.innerHTML = `
+        <a href="contact.html" class="nav-link">문의하기</a>
+        <a href="#"           class="nav-link" id="logoutBtn">로그아웃</a>
+        <button class="menu-btn" id="profileBtn" title="프로필" type="button">
+          <img src="profile_icon.png" class="menu-icon" alt="프로필" style="width:28px;height:28px;">
+        </button>
+        <span id="userId" class="user-id" style="display:none;"></span>
+      `;
+      document.getElementById('logoutBtn').onclick = async () => {
+        await fetch('/logout', { credentials: 'include' });
+        localStorage.removeItem('userEmail');
+        location.href = 'login.html';
+      };
+    } else {
+      navLinks.innerHTML = `
+        <a href="contact.html" class="nav-link">문의하기</a>
+        <a href="login.html"  class="nav-link" id="loginLink">로그인</a>
+        <button class="menu-btn" id="profileBtn" title="프로필" type="button">
+          <img src="profile_icon.png" class="menu-icon" alt="프로필" style="width:28px;height:28px;">
+        </button>
+        <span id="userId" class="user-id" style="display:none;"></span>
+      `;
     }
+
+    /* 2) 아이디(@ 앞부분) 표시 */
+    const userIdSpan = document.getElementById('userId');
+    let email = result.email || localStorage.getItem('userEmail') || '';
+    if (email) {
+      const displayId = email.includes('@') ? email.split('@')[0] : email;
+      userIdSpan.textContent = displayId;
+      userIdSpan.style.display = 'inline';
+    }
+
+    /* 3) 프로필 버튼 이벤트 (항상) */
+    const profileBtn = document.getElementById('profileBtn');
+    if (profileBtn) profileBtn.onclick = () => location.href = 'profile.html';
+
+  } catch (err) {
+    console.error('로그인 상태 확인 오류:', err);
+    /* 필요하다면 예외 시 메뉴를 기본(비로그인) 상태로 설정 */
+  }
+}
 
     // 페이지 로드 시 실행
     document.addEventListener('DOMContentLoaded', () => {
@@ -1048,15 +1051,6 @@ document.addEventListener('click', (e) => {
     renderTable();               // 표 렌더링
     checkLoginStatus();          // 로그인 상태 확인
     }); 
-    document.addEventListener('DOMContentLoaded', function() {
-      const profileBtn = document.getElementById('profileBtn');
-      if (profileBtn) {
-        profileBtn.addEventListener('click', function() {
-          window.location.href = 'profile.html';
-        });
-      }
-    });
-
   </script>
 </body>
 </html>
