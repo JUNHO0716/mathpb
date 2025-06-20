@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>수학문제은행</title>
+  <link rel="icon" type="image/png" href="/favicon.png" />
   <meta name="theme-color" content="#f6faf6" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
    <!-- ▼ 새로 추가 : 폰트·이미지 선로딩 -->
@@ -589,8 +590,13 @@
         <img src="logo_main.png" alt="수학문제은행 로고" />
         <span class="logo-text">수학지니</span>
       </div>
-      <div class="nav-links" id="navLinks">
-        <!-- 여기는 JavaScript로 채워질 예정 -->
+      <div class="nav-links" id="navLinks" style="display: flex; align-items: center; gap: 28px;">
+        <a href="contact.html" class="nav-link">문의하기</a>
+        <a href="login.html" class="nav-link" id="loginLink">로그인</a>
+        <!-- 프로필 버튼만 아이콘 (볼록 효과) -->
+        <button class="menu-btn" id="profileBtn" title="프로필" type="button">
+          <img src="profile_icon.png" class="menu-icon" alt="프로필" style="width:28px;height:28px;">
+        </button>
       </div>
     </nav>
 
@@ -983,32 +989,55 @@ document.addEventListener('click', (e) => {
         const result = await res.json();
 
         if (result.isLoggedIn) {
-          // 로그인 상태면: 문의하기 + 로그아웃
+          // 로그인 상태면: 문의하기 + 로그아웃 + 프로필
           navLinks.innerHTML = `
             <a href="contact.html" class="nav-link">문의하기</a>
             <a href="#" class="nav-link" id="logoutBtn">로그아웃</a>
+            <button class="menu-btn" id="profileBtn" title="프로필" type="button">
+              <img src="profile_icon.png" class="menu-icon" alt="프로필" style="width:28px;height:28px;">
+            </button>
           `;
           document.getElementById('logoutBtn').addEventListener('click', async () => {
             await fetch('/logout', { credentials: 'include' });
             window.location.href = 'login.html';
           });
         } else {
-          // 비로그인 상태면: 문의하기 + 로그인
+          // 비로그인 상태면: 문의하기 + 로그인 + 프로필
           navLinks.innerHTML = `
             <a href="contact.html" class="nav-link">문의하기</a>
-            <a href="login.html" class="nav-link">로그인</a>
+            <a href="login.html" class="nav-link" id="loginLink">로그인</a>
+            <button class="menu-btn" id="profileBtn" title="프로필" type="button">
+              <img src="profile_icon.png" class="menu-icon" alt="프로필" style="width:28px;height:28px;">
+            </button>
           `;
         }
-        } catch (e) {
-          console.error('로그인 상태 확인 오류:', e);
 
-          /* ▼ 새로 추가 : fetch 실패(파일 열기 등)일 때 기본 메뉴 노출 */
-          navLinks.innerHTML = `
-            <a href="contact.html" class="nav-link">문의하기</a>
-            <a href="login.html"  class="nav-link">로그인</a>
-          `;
+        // 💡 프로필 버튼 항상 이벤트 등록!
+        const profileBtn = document.getElementById('profileBtn');
+        if (profileBtn) {
+          profileBtn.addEventListener('click', function() {
+            window.location.href = 'profile.html';
+          });
+        }
+
+      } catch (e) {
+        console.error('로그인 상태 확인 오류:', e);
+        navLinks.innerHTML = `
+          <a href="contact.html" class="nav-link">문의하기</a>
+          <a href="login.html"  class="nav-link">로그인</a>
+          <button class="menu-btn" id="profileBtn" title="프로필" type="button">
+            <img src="profile_icon.png" class="menu-icon" alt="프로필" style="width:28px;height:28px;">
+          </button>
+        `;
+        // 💡 예외 상황에서도 프로필 버튼 이벤트 등록
+        const profileBtn = document.getElementById('profileBtn');
+        if (profileBtn) {
+          profileBtn.addEventListener('click', function() {
+            window.location.href = 'profile.html';
+          });
         }
       }
+    }
 
     // 페이지 로드 시 실행
     document.addEventListener('DOMContentLoaded', () => {
@@ -1019,7 +1048,14 @@ document.addEventListener('click', (e) => {
     renderTable();               // 표 렌더링
     checkLoginStatus();          // 로그인 상태 확인
     }); 
-
+    document.addEventListener('DOMContentLoaded', function() {
+      const profileBtn = document.getElementById('profileBtn');
+      if (profileBtn) {
+        profileBtn.addEventListener('click', function() {
+          window.location.href = 'profile.html';
+        });
+      }
+    });
 
   </script>
 </body>
