@@ -1,5 +1,7 @@
 require('dotenv').config(); // 이 줄을 맨 위에 추가!
 
+const path = require('path');
+
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
 const fsSync = require('fs');   // fs.promises 말고 동기 fs
 if (!fsSync.existsSync(UPLOAD_DIR)) fsSync.mkdirSync(UPLOAD_DIR);
@@ -9,7 +11,6 @@ const bcrypt = require('bcrypt');
 const cors = require('cors');
 const multer  = require('multer');
 const fs = require('fs').promises;
-const path = require('path');
 const session = require('express-session');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
