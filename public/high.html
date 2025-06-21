@@ -356,6 +356,39 @@
       white-space: nowrap;           /* 줄바꿈 방지 */
       display: inline-block;         /* 박스 형태로 */
     }
+    .user-id{
+      margin-left:6px;
+      font-size:1.05rem;
+      font-weight:700;
+      color:#212529;
+      user-select:none;
+    }
+    .nav-profile{
+      display:inline-flex;        /* 아이콘·글자 같은 줄, 세로 정렬 */
+      align-items:center;         /* 높이 맞춤 */
+      gap:6px;
+      background:transparent;
+      border:none;
+      padding:0;
+      cursor:pointer;
+    }
+    .nav-profile .user-id{
+      font-size:1.08rem;          /* .nav-link 와 동일 */
+      font-weight:500;
+      letter-spacing:-0.3px;
+      color:#222;
+      transition:color .13s;
+    }
+    .nav-profile:hover{
+      transform:none;             /* menu-btn 공통 효과 무력화 */
+      box-shadow:none;
+    }
+    .nav-profile:hover .user-id{
+      color:#34bb66;              /* .nav-link:hover 와 동일 */
+    }
+    .nav-profile:hover .menu-icon{
+      filter:brightness(.85);     /* 살짝 어두워지는 정도만 */
+    }
 
   </style>
 </head>
@@ -386,8 +419,9 @@
         <img src="menu_icon.png" class="menu-icon" alt="더보기">
       </button>
       <!-- 프로필(사람) 메뉴 -->
-      <button class="menu-btn" id="profileMenuBtn" title="프로필" type="button">
-        <img src="profile_icon.png" class="menu-icon" alt="프로필">
+      <button class="menu-btn nav-profile" id="profileMenuBtn" title="프로필" type="button">
+        <img src="profile_icon.png" class="menu-icon" alt="">
+        <span id="userId" class="user-id"></span>
       </button>
     </nav>
   </header>
@@ -396,10 +430,9 @@
   <!-- ▼ 더보기 메뉴 (모달) -->
   <div id="moreMenu" class="dropdown-menu menu-dropdown">
     <ul>
-      <li><a href="main_home.html"><span class="menu-icon-menu"><img src="icon_bank.png" alt=""></span>메인홈</a></li>
+      <li><a href="problems.html"><span class="menu-icon-menu"><img src="problems.png" alt=""></span>문제은행</a></li>
       <li><a href="my_collection.html"><span class="menu-icon-menu"><img src="icon_book.png" alt=""></span>내 책장</a></li>
-      <li><a href="payment.html"><span class="menu-icon-menu"><img src="cash_icon.png" alt=""></span>결제하기</a></li>
-      <li><a href="dashboard.html"><span class="menu-icon-menu"><img src="icon_notice.png" alt=""></span>공지사항</a></li>
+      <li><a href="notice.html"><span class="menu-icon-menu"><img src="icon_notice.png" alt=""></span>공지사항</a></li>
       <li><a href="contact.html"><span class="menu-icon-menu"><img src="icon_contact.png" alt=""></span>문의하기</a></li>
     </ul>
   </div>
@@ -614,7 +647,39 @@
           window.location.href = 'login.html';
         };
       }
+      checkLoginStatus();
     });
+    
+    /* ───────── 로그인 상태 확인 & 프로필 옆 아이디 표시 ───────── */
+    async function checkLoginStatus () {
+      const span = document.getElementById('userId');
+      if (!span) return;
+
+      try {
+        const res              = await fetch('/check-auth', {credentials:'include'});
+        const { isLoggedIn, user={} } = await res.json();
+
+        if (isLoggedIn) {
+          const displayId = user.email ? user.email.split('@')[0] : (user.name || '');
+          if (displayId) {
+            span.textContent   = displayId;
+            span.style.display = 'inline';
+          }
+          /* 로그아웃 엔드포인트도 서버에 요청 */
+          const logoutBtn = document.getElementById('logoutBtn');
+          if (logoutBtn) {
+            logoutBtn.onclick = async e => {
+              e.preventDefault();
+              await fetch('/logout', {credentials:'include'});
+              location.href = 'login.html';
+            };
+          }
+        }
+      } catch (err) {
+        console.error('login check fail', err);
+      }
+    }
+
   </script>
 </body>
 </html>
