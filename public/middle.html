@@ -363,6 +363,32 @@
       color:#212529;
       user-select:none;
     }
+    .nav-profile{
+      display:inline-flex;        /* 아이콘·글자 같은 줄, 세로 정렬 */
+      align-items:center;         /* 높이 맞춤 */
+      gap:6px;
+      background:transparent;
+      border:none;
+      padding:0;
+      cursor:pointer;
+    }
+    .nav-profile .user-id{
+      font-size:1.08rem;          /* .nav-link 와 동일 */
+      font-weight:500;
+      letter-spacing:-0.3px;
+      color:#222;
+      transition:color .13s;
+    }
+    .nav-profile:hover{
+      transform:none;             /* menu-btn 공통 효과 무력화 */
+      box-shadow:none;
+    }
+    .nav-profile:hover .user-id{
+      color:#34bb66;              /* .nav-link:hover 와 동일 */
+    }
+    .nav-profile:hover .menu-icon{
+      filter:brightness(.85);     /* 살짝 어두워지는 정도만 */
+    }
 
   </style>
 </head>
