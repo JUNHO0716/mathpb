@@ -623,7 +623,7 @@
     <!-- 1) 네비게이션 바 -->
     <nav class="nav">
       <div class="nav-logo">
-        <img src="logo_main.png" alt="수학문제은행 로고" />
+        <img src="logo_main.png" alt="수학문제은행 로고" width="33" height="33" />
         <span class="logo-text">수학지니</span>
       </div>
 
@@ -637,7 +637,7 @@
         <h1>혁신적인 수학 문제은행<br />오신 걸 환영합니다!</h1>
         <p>수학교육의 디지털 전환, 문제집 제작이<br />모든 과정을 한 번에!</p>
       </div>
-      <img src="배경.png" alt="여성 일러스트" />
+      <img src="배경.png" alt="여성 일러스트" width="1920" height="1080" />
     </div>
 
     <!-- 3) 초록색 버튼 4개 -->
@@ -712,7 +712,7 @@
       <!-- 카드 2: 문제지 만들기 튜토리얼 → tutorial.html -->
       <a href="tutorial.html" class="svc-card">
         <div class="svc-title">
-          <img src="문제지튜토리얼.png" alt="문제지 튜토리얼 아이콘" class="svc-icon" />
+          <img src="문제지튜토리얼.png" alt="문제지 튜토리얼 아이콘" class="svc-icon" width="100" height="100">
           <strong>문제지 만들기 튜토리얼</strong>
         </div>
         <div class="svc-desc">
@@ -724,7 +724,7 @@
       <!-- 카드 3: 이용후기 → reviews.html -->
       <a href="reviews.html" class="svc-card">
         <div class="svc-title">
-          <img src="이용후기.png" alt="이용후기 아이콘" class="svc-icon" />
+          <img src="이용후기.png" alt="이용후기 아이콘" class="svc-icon" width="100" height="100">
           <strong>이용후기</strong>
         </div>
         <div class="svc-desc">
@@ -1014,47 +1014,57 @@ document.addEventListener('click', (e) => {
       });
     });
 
- // 로그인 상태 확인 + 메뉴 구성 + 아이디 표시
-async function checkLoginStatus () {
-  const navLinks = document.getElementById('navLinks');
-  try{
-    const res    = await fetch('/check-auth', {credentials:'include'});
-    const result = await res.json();
+    // 로그인 상태 확인 + 메뉴 구성 + 아이디 표시
+    async function checkLoginStatus () {
+      const navLinks = document.getElementById('navLinks');
 
-    /* ── ① 공통 HTML 템플릿 ───────────────────────── */
-    const common = emailPresent => `
-      <a href="contact.html" class="nav-link">문의하기</a>
-      ${ emailPresent
-        ? `<a href="#"           class="nav-link" id="logoutBtn">로그아웃</a>`
-        : `<a href="login.html"  class="nav-link" id="loginLink">로그인</a>` }
-      <a href="profile.html" class="nav-link nav-profile" id="profileLink">
-        <img src="profile_icon.png" class="profile-icon" alt="">
-        <span id="userId" class="user-id"></span>
-      </a>`;   // ← 프로필+아이디 한 세트
+      try {
+        const res = await fetch('/check-auth?ts=' + Date.now(), {
+           credentials: 'include',        // 쿠키 포함
+           cache:        'no-store'       // 브라우저 캐시 무시
+         });
+        const result = await res.json();
 
-    navLinks.innerHTML = common(result.isLoggedIn);
+        /* ───── ① 공통 메뉴 HTML 생성 ───── */
+        const makeMenu = loggedIn => `
+          <a href="contact.html" class="nav-link">문의하기</a>
+          ${ loggedIn
+            ? `<a href="#" class="nav-link" id="logoutBtn">로그아웃</a>`
+            : `<a href="login.html" class="nav-link" id="loginLink">로그인</a>` }
+          <a href="profile.html" class="nav-link nav-profile">
+            <img src="profile_icon.png" class="profile-icon" alt="" width="24" height="24">
+            <span id="userId" class="user-id"></span>
+          </a>`;
 
-    /* ── ② 로그아웃 클릭 ─────────────────────────── */
-    if(result.isLoggedIn){
-      document.getElementById('logoutBtn').onclick = async () =>{
-        await fetch('/logout', {credentials:'include'});
-        localStorage.removeItem('userEmail');
-        location.href='login.html';
-      };
+        navLinks.innerHTML = makeMenu(result.isLoggedIn);
+
+        /* ───── ② 로그아웃 버튼 ───── */
+        if (result.isLoggedIn) {
+          document.getElementById('logoutBtn').onclick = async () => {
+            await fetch('/logout', { credentials: 'include' });
+            location.href = 'login.html';
+          };
+        }
+
+        /* ───── ③ 아이디( @앞 ) 표시 ───── */
+        const userIdSpan = document.getElementById('userId');
+        const email      = result.user?.email || '';     // ← 실제 필드
+        const name       = result.user?.name  || '';
+
+        // 이메일이 있으면 @ 앞, 없으면 name 전체
+        const displayId  = email ? email.split('@')[0] : name;
+
+        if (displayId) {
+          userIdSpan.textContent = displayId;
+          userIdSpan.style.display = 'inline';
+        } else {
+          userIdSpan.style.display = 'none';
+        }
+
+      } catch (err) {
+        console.error('login check fail', err);
+      }
     }
-
-    /* ── ③ 아이디 (@앞) 세팅 ─────────────────────── */
-    const userIdSpan = document.getElementById('userId');
-    let email = result.email || localStorage.getItem('userEmail') || '';
-    if(email){
-      userIdSpan.textContent = email.split('@')[0];
-      userIdSpan.style.display = 'inline';
-    }
-  }catch(e){
-    console.error('login check fail',e);
-  }
-}
-
     // 페이지 로드 시 실행
     document.addEventListener('DOMContentLoaded', () => {
     fetchNotices();              // 공지 불러오기
