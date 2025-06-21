@@ -5,32 +5,47 @@
   <title>자료 관리(관리자)</title>
   <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:700,400&display=swap" rel="stylesheet">
   <style>
-    body { background:#f6faf6;font-family:'Noto Sans KR',Arial,sans-serif; }
-    .admin-table-box{max-width:1000px;margin:60px auto 0;background:#fff;border-radius:14px;box-shadow:0 6px 32px #22b66111;padding:32px 26px;}
+    body { background:#f6faf6; font-family:'Noto Sans KR',Arial,sans-serif;}
+    .admin-table-box{max-width:1050px;margin:60px auto 0;background:#fff;border-radius:14px;box-shadow:0 6px 32px #22b66111;padding:32px 26px;}
     h2{margin-bottom:20px;text-align:center;}
+    .search-bar{display:flex;gap:7px;margin-bottom:10px;justify-content:flex-end;}
     table{width:100%;border-collapse:collapse;}
     th,td{padding:10px;border-bottom:1px solid #eee;text-align:center;font-size:1rem;}
     th{background:#e8fbe9;color:#1fa266;}
     tr:last-child td{border-bottom:none;}
     .delete-btn,.edit-btn{
       background:#f45a6a;color:#fff;border:none;border-radius:5px;
-      padding:6px 14px;cursor:pointer;font-size:.98rem;margin:0 2px;
-      transition:background .13s;
-    }
-    .delete-btn:hover{background:#c8303d;}
+      padding:6px 14px;cursor:pointer;font-size:.98rem;margin:0 2px;transition:background .13s;}
+    .delete-btn:disabled,.edit-btn:disabled{opacity:0.55;cursor:not-allowed;}
+    .delete-btn:hover:not(:disabled){background:#c8303d;}
     .edit-btn{background:#3fa0ed;}
-    .edit-btn:hover{background:#217ac4;}
+    .edit-btn:hover:not(:disabled){background:#217ac4;}
+    .preview-btn{background:#32bb8d;color:#fff;border:none;border-radius:5px;padding:4px 10px;cursor:pointer;margin-left:4px;}
+    .preview-btn:hover{background:#258768;}
     .msg{text-align:center;margin-top:10px;font-size:1rem;}
-    /* ── 수정 모달 ── */
     #edit-bg{display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;background:#0008;
              z-index:1000;align-items:center;justify-content:center;}
-    #edit-bg .modal-box{background:#fff;padding:26px 24px;border-radius:12px;width:340px;box-shadow:0 10px 40px #0003;}
-    #edit-bg input{width:100%;margin-bottom:10px;padding:8px;border:1.5px solid #a7eac2;border-radius:8px;font-size:.95rem;}
+    #edit-bg .modal-box{background:#fff;padding:26px 24px;border-radius:12px;width:350px;box-shadow:0 10px 40px #0003;}
+    #edit-bg select,#edit-bg input{width:100%;margin-bottom:10px;padding:8px;border:1.5px solid #a7eac2;border-radius:8px;font-size:.95rem;}
+    /* 미리보기 팝업 */
+    .preview-bg{position:fixed;left:0;top:0;width:100vw;height:100vh;background:#0007;z-index:1500;display:none;align-items:center;justify-content:center;}
+    .preview-content{background:#fff;border-radius:10px;padding:18px;max-width:80vw;max-height:80vh;overflow:auto;}
+    .preview-content iframe,.preview-content img{max-width:74vw;max-height:70vh;}
   </style>
 </head>
 <body>
   <div class="admin-table-box">
     <h2>자료 관리 (관리자)</h2>
+    <!-- 검색/필터 -->
+    <div class="search-bar">
+      <select id="search-level"><option value="">관 전체</option><option>중등</option><option>고등</option></select>
+      <select id="search-region"><option value="">지역 전체</option><option>서울</option><option>경기</option><option>인천</option><option>부산</option><option>대구</option><option>광주</option><option>대전</option><option>기타</option></select>
+      <input id="search-school" placeholder="학교명" style="width:80px;" />
+      <input id="search-title"  placeholder="자료명" style="width:80px;" />
+      <input id="search-year"   placeholder="연도"   style="width:60px;" type="number"/>
+      <button onclick="doSearch()">검색</button>
+      <button onclick="resetSearch()" style="margin-left:2px;">초기화</button>
+    </div>
     <div class="msg" id="msg"></div>
     <table>
       <thead>
@@ -42,45 +57,79 @@
       <tbody id="file-list"><!-- JS로 채움 --></tbody>
     </table>
   </div>
-
-  <!-- ───────────────── 수정 모달 ───────────────── -->
+  <!-- 수정 모달 -->
   <div id="edit-bg">
     <div class="modal-box">
       <h3 style="margin-top:0">자료 정보 수정</h3>
       <form id="edit-form" enctype="multipart/form-data">
-        <input name="level"     placeholder="관(중등/고등)" required />
-        <input name="region"    placeholder="지역"          required />
+        <select name="level" required>
+          <option value="">관 선택</option>
+          <option value="중등">중등</option>
+          <option value="고등">고등</option>
+        </select>
+        <select name="region" required>
+          <option value="">지역 선택</option>
+          <option>서울</option>
+          <option>경기</option>
+          <option>인천</option>
+          <option>부산</option>
+          <option>대구</option>
+          <option>광주</option>
+          <option>대전</option>
+          <option>기타</option>
+        </select>
         <input name="district"  placeholder="구/군"         required />
         <input name="school"    placeholder="학교"          required />
-        <input name="grade"     placeholder="학년"          required />
+        <select name="grade" required>
+          <option value="">학년</option>
+          <option>중1</option>
+          <option>중2</option>
+          <option>중3</option>
+          <option>고1</option>
+          <option>고2</option>
+          <option>고3</option>
+        </select>
         <input name="year"      type="number" placeholder="연도" required />
-        <input name="semester"  placeholder="학기"          required />
+        <select name="semester" required>
+          <option value="">학기</option>
+          <option>1학기중간</option>
+          <option>1학기기말</option>
+          <option>2학기중간</option>
+          <option>2학기기말</option>
+        </select>
         <input name="title"     placeholder="제목"          required />
         <div style="font-size:.9rem;margin:4px 0 2px;">파일 교체(선택)</div>
         <input name="file" type="file" />
         <div style="text-align:right;margin-top:12px;">
           <button type="button" onclick="closeEdit()" style="margin-right:6px;">취소</button>
-          <button type="submit" style="background:#28b663;color:#fff;border:none;padding:6px 14px;border-radius:6px;">저장</button>
+          <button type="submit" id="edit-save-btn" style="background:#28b663;color:#fff;border:none;padding:6px 14px;border-radius:6px;">저장</button>
         </div>
       </form>
     </div>
   </div>
-  <!-- ───────────────── 모달 끝 ───────────────── -->
-
+  <!-- 미리보기 팝업 -->
+  <div class="preview-bg" id="preview-bg">
+    <div class="preview-content" id="preview-content">
+      <button onclick="closePreview()" style="float:right;font-size:1.1rem;background:none;border:none;color:#f45a6a;">✕</button>
+      <div id="preview-body"></div>
+    </div>
+  </div>
   <script>
-    /* ───────── 전역 변수 ───────── */
     let fileListOrigin = [];
     let editTargetId   = null;
 
-    /* ───────── 자료 목록 불러오기 ───────── */
+    // ----------- 자료 목록 불러오기 -----------
     async function fetchFiles(){
-      const res  = await fetch('http://localhost:3001/api/files');
+      const res  = await fetch('/api/files',{credentials:'include'}); // 권한 체크용 credentials
+      if(res.status===401){
+        alert('로그인 필요!'); location.href='/login.html'; return;
+      }
       const list = await res.json();
       fileListOrigin = list;
       renderTable(list);
     }
 
-    /* ───────── 표 렌더 ───────── */
+    // ----------- 표 렌더 -----------
     function renderTable(list){
       const tbody = document.getElementById('file-list');
       if(!list.length){
@@ -98,7 +147,10 @@
           <td>${r.year}</td>
           <td>${r.semester}</td>
           <td>${r.title}</td>
-          <td><a href="/uploads/${r.filename}" target="_blank">파일보기</a></td>
+          <td>
+            <a href="/uploads/${r.filename}" target="_blank">파일보기</a>
+            <button class="preview-btn" onclick="previewFile('${r.filename}')">미리보기</button>
+          </td>
           <td>
             <button class="edit-btn"   onclick="editFile(${r.id})">수정</button>
             <button class="delete-btn" onclick="deleteFile(${r.id},this)">삭제</button>
@@ -107,12 +159,38 @@
       `).join('');
     }
 
-    /* ───────── 삭제 ───────── */
+    // ----------- 검색/필터 -----------
+    function doSearch(){
+      let level = document.getElementById('search-level').value;
+      let region= document.getElementById('search-region').value;
+      let school= document.getElementById('search-school').value.trim();
+      let title = document.getElementById('search-title').value.trim();
+      let year  = document.getElementById('search-year').value.trim();
+      let filtered = fileListOrigin.filter(r=>
+        (!level || r.level===level) &&
+        (!region|| r.region===region) &&
+        (!school|| (r.school && r.school.includes(school))) &&
+        (!title || (r.title  && r.title.includes(title))) &&
+        (!year  || String(r.year).includes(year))
+      );
+      renderTable(filtered);
+    }
+    function resetSearch(){
+      document.getElementById('search-level').value = '';
+      document.getElementById('search-region').value = '';
+      document.getElementById('search-school').value = '';
+      document.getElementById('search-title').value = '';
+      document.getElementById('search-year').value = '';
+      renderTable(fileListOrigin);
+    }
+
+    // ----------- 삭제 (중복 방지) -----------
     async function deleteFile(id,btn){
       if(!confirm('정말 삭제하시겠습니까?')) return;
       btn.disabled = true;
       try{
-        const res = await fetch('http://localhost:3001/api/files/'+id,{method:'DELETE'});
+        const res = await fetch('/api/files/'+id,{method:'DELETE',credentials:'include'});
+        if(res.status===401){ alert('로그인 필요!'); location.href='/login.html'; return; }
         const r   = await res.json();
         document.getElementById('msg').textContent = r.message || r.msg;
         fetchFiles();
@@ -122,7 +200,7 @@
       btn.disabled = false;
     }
 
-    /* ───────── 수정 모달 열기 ───────── */
+    // ----------- 수정 모달 열기 -----------
     function editFile(id){
       editTargetId = id;
       const row    = fileListOrigin.find(r=>r.id===id);
@@ -135,7 +213,7 @@
       form.year.value     = row.year;
       form.semester.value = row.semester;
       form.title.value    = row.title;
-      form.file.value     = '';            // 파일 input 비우기
+      form.file.value     = '';
       document.getElementById('edit-bg').style.display='flex';
     }
     function closeEdit(){
@@ -143,14 +221,18 @@
       document.getElementById('edit-form').reset();
     }
 
-    /* ───────── 수정 폼 전송 ───────── */
+    // ----------- 수정 (중복 방지, 파일 교체 가능) -----------
     document.getElementById('edit-form').onsubmit = async function(e){
       e.preventDefault();
+      const btn = document.getElementById('edit-save-btn');
+      btn.disabled = true;
       const fd  = new FormData(e.target);
-      const res = await fetch('http://localhost:3001/api/files/'+editTargetId,{
+      const res = await fetch('/api/files/'+editTargetId,{
         method:'PUT',
-        body:fd
+        body:fd,
+        credentials:'include'
       });
+      if(res.status===401){ alert('로그인 필요!'); location.href='/login.html'; return; }
       if(res.ok){
         closeEdit();
         fetchFiles();
@@ -159,7 +241,26 @@
         const r = await res.json();
         document.getElementById('msg').textContent = r.message || '수정 실패';
       }
+      btn.disabled = false;
     };
+
+    // ----------- 미리보기 -----------
+    function previewFile(filename){
+      let ext = filename.split('.').pop().toLowerCase();
+      let body = document.getElementById('preview-body');
+      if(['pdf'].includes(ext)){
+        body.innerHTML = `<iframe src="/uploads/${filename}" width="700" height="500"></iframe>`;
+      }else if(['jpg','jpeg','png','gif','bmp'].includes(ext)){
+        body.innerHTML = `<img src="/uploads/${filename}" style="max-width:100%;max-height:70vh;">`;
+      }else{
+        body.innerHTML = `<div style="color:#888;text-align:center;padding:80px 0;">미리보기 불가<br>다운로드로 확인하세요.</div>`;
+      }
+      document.getElementById('preview-bg').style.display = 'flex';
+    }
+    function closePreview(){
+      document.getElementById('preview-bg').style.display='none';
+      document.getElementById('preview-body').innerHTML='';
+    }
 
     window.onload = fetchFiles;
   </script>

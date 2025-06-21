@@ -1,5 +1,8 @@
 require('dotenv').config(); // 이 줄을 맨 위에 추가!
 
+const UPLOAD_DIR = path.join(__dirname, 'uploads');
+const fsSync = require('fs');   // fs.promises 말고 동기 fs
+if (!fsSync.existsSync(UPLOAD_DIR)) fsSync.mkdirSync(UPLOAD_DIR);
 const express = require('express');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
@@ -19,7 +22,16 @@ const storage = multer.diskStorage({
     cb(null, `${basename}-${stamp}${ext}`);
   }
 });
-const upload = multer({ storage });
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB 제한 (필요시)
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.pdf', '.jpg', '.jpeg', '.png', '.hwp', '.doc', '.xls', '.xlsx'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowed.includes(ext)) cb(null, true);
+    else cb(new Error('허용되지 않는 파일형식'));
+  }
+});
 
 // ─── [추가] 로그인·관리자 체크 미들웨어 ───
 function isLoggedIn(req, res, next) {
@@ -32,9 +44,12 @@ function isAdmin(req, res, next) {
 }
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['https://mathpb.com'],  // 실제 도메인 주소만!
+  credentials: true
+}));
 app.use(session({
-  secret: 'mathpb-secret-key',     // 나중에 .env로 숨겨도 됨
+  secret: process.env.SESSION_SECRET,     // 나중에 .env로 숨겨도 됨
   resave: false,
   saveUninitialized: true,
   cookie: { maxAge: 1000 * 60 * 60 * 2 }  // 2시간 유지
@@ -260,7 +275,7 @@ app.delete('/api/notices/:id',
 });
 
 // 파일 업로드 (관리자용)
-app.post('/api/upload', upload.array('files'), async (req, res) => {
+app.post('/api/upload', isLoggedIn, isAdmin, upload.array('files'), async (req, res) => {
   try {
     const { region, district, school, grade, year, semester, title, level } = req.body;
     const files = req.files;
