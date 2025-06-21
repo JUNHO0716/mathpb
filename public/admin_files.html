@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>자료 관리(관리자)</title>
+  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:700,400&display=swap" rel="stylesheet">
+  <style>
+    body { background:#f6faf6;font-family:'Noto Sans KR',Arial,sans-serif; }
+    .admin-table-box{max-width:1000px;margin:60px auto 0;background:#fff;border-radius:14px;box-shadow:0 6px 32px #22b66111;padding:32px 26px;}
+    h2{margin-bottom:20px;text-align:center;}
+    table{width:100%;border-collapse:collapse;}
+    th,td{padding:10px;border-bottom:1px solid #eee;text-align:center;font-size:1rem;}
+    th{background:#e8fbe9;color:#1fa266;}
+    tr:last-child td{border-bottom:none;}
+    .delete-btn,.edit-btn{
+      background:#f45a6a;color:#fff;border:none;border-radius:5px;
+      padding:6px 14px;cursor:pointer;font-size:.98rem;margin:0 2px;
+      transition:background .13s;
+    }
+    .delete-btn:hover{background:#c8303d;}
+    .edit-btn{background:#3fa0ed;}
+    .edit-btn:hover{background:#217ac4;}
+    .msg{text-align:center;margin-top:10px;font-size:1rem;}
+    /* ── 수정 모달 ── */
+    #edit-bg{display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;background:#0008;
+             z-index:1000;align-items:center;justify-content:center;}
+    #edit-bg .modal-box{background:#fff;padding:26px 24px;border-radius:12px;width:340px;box-shadow:0 10px 40px #0003;}
+    #edit-bg input{width:100%;margin-bottom:10px;padding:8px;border:1.5px solid #a7eac2;border-radius:8px;font-size:.95rem;}
+  </style>
+</head>
+<body>
+  <div class="admin-table-box">
+    <h2>자료 관리 (관리자)</h2>
+    <div class="msg" id="msg"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>관</th><th>지역</th><th>구/군</th><th>학교</th>
+          <th>학년</th><th>연도</th><th>학기</th><th>제목</th><th>파일</th><th>관리</th>
+        </tr>
+      </thead>
+      <tbody id="file-list"><!-- JS로 채움 --></tbody>
+    </table>
+  </div>
+
+  <!-- ───────────────── 수정 모달 ───────────────── -->
+  <div id="edit-bg">
+    <div class="modal-box">
+      <h3 style="margin-top:0">자료 정보 수정</h3>
+      <form id="edit-form" enctype="multipart/form-data">
+        <input name="level"     placeholder="관(중등/고등)" required />
+        <input name="region"    placeholder="지역"          required />
+        <input name="district"  placeholder="구/군"         required />
+        <input name="school"    placeholder="학교"          required />
+        <input name="grade"     placeholder="학년"          required />
+        <input name="year"      type="number" placeholder="연도" required />
+        <input name="semester"  placeholder="학기"          required />
+        <input name="title"     placeholder="제목"          required />
+        <div style="font-size:.9rem;margin:4px 0 2px;">파일 교체(선택)</div>
+        <input name="file" type="file" />
+        <div style="text-align:right;margin-top:12px;">
+          <button type="button" onclick="closeEdit()" style="margin-right:6px;">취소</button>
+          <button type="submit" style="background:#28b663;color:#fff;border:none;padding:6px 14px;border-radius:6px;">저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <!-- ───────────────── 모달 끝 ───────────────── -->
+
+  <script>
+    /* ───────── 전역 변수 ───────── */
+    let fileListOrigin = [];
+    let editTargetId   = null;
+
+    /* ───────── 자료 목록 불러오기 ───────── */
+    async function fetchFiles(){
+      const res  = await fetch('http://localhost:3001/api/files');
+      const list = await res.json();
+      fileListOrigin = list;
+      renderTable(list);
+    }
+
+    /* ───────── 표 렌더 ───────── */
+    function renderTable(list){
+      const tbody = document.getElementById('file-list');
+      if(!list.length){
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:#bbb;">자료가 없습니다</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = list.map(r=>`
+        <tr>
+          <td>${r.id}</td>
+          <td>${r.level||'-'}</td>
+          <td>${r.region}</td>
+          <td>${r.district}</td>
+          <td>${r.school}</td>
+          <td>${r.grade}</td>
+          <td>${r.year}</td>
+          <td>${r.semester}</td>
+          <td>${r.title}</td>
+          <td><a href="/uploads/${r.filename}" target="_blank">파일보기</a></td>
+          <td>
+            <button class="edit-btn"   onclick="editFile(${r.id})">수정</button>
+            <button class="delete-btn" onclick="deleteFile(${r.id},this)">삭제</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    /* ───────── 삭제 ───────── */
+    async function deleteFile(id,btn){
+      if(!confirm('정말 삭제하시겠습니까?')) return;
+      btn.disabled = true;
+      try{
+        const res = await fetch('http://localhost:3001/api/files/'+id,{method:'DELETE'});
+        const r   = await res.json();
+        document.getElementById('msg').textContent = r.message || r.msg;
+        fetchFiles();
+      }catch(e){
+        document.getElementById('msg').textContent = '삭제 오류';
+      }
+      btn.disabled = false;
+    }
+
+    /* ───────── 수정 모달 열기 ───────── */
+    function editFile(id){
+      editTargetId = id;
+      const row    = fileListOrigin.find(r=>r.id===id);
+      const form   = document.getElementById('edit-form');
+      form.level.value    = row.level;
+      form.region.value   = row.region;
+      form.district.value = row.district;
+      form.school.value   = row.school;
+      form.grade.value    = row.grade;
+      form.year.value     = row.year;
+      form.semester.value = row.semester;
+      form.title.value    = row.title;
+      form.file.value     = '';            // 파일 input 비우기
+      document.getElementById('edit-bg').style.display='flex';
+    }
+    function closeEdit(){
+      document.getElementById('edit-bg').style.display='none';
+      document.getElementById('edit-form').reset();
+    }
+
+    /* ───────── 수정 폼 전송 ───────── */
+    document.getElementById('edit-form').onsubmit = async function(e){
+      e.preventDefault();
+      const fd  = new FormData(e.target);
+      const res = await fetch('http://localhost:3001/api/files/'+editTargetId,{
+        method:'PUT',
+        body:fd
+      });
+      if(res.ok){
+        closeEdit();
+        fetchFiles();
+        document.getElementById('msg').textContent = '수정 완료';
+      }else{
+        const r = await res.json();
+        document.getElementById('msg').textContent = r.message || '수정 실패';
+      }
+    };
+
+    window.onload = fetchFiles;
+  </script>
+</body>
+</html>

@@ -4,13 +4,22 @@ const express = require('express');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
-const multer = require('multer');
+const multer  = require('multer');
 const fs = require('fs').promises;
-const upload = multer({ dest: 'uploads/' });
 const path = require('path');
 const session = require('express-session');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads/'),
+  filename: (req, file, cb) => {
+    const ext      = path.extname(file.originalname);         // .pdf …
+    const basename = path.basename(file.originalname, ext);   // 원본이름
+    const stamp    = Date.now() + '-' + Math.round(Math.random()*1e4);
+    cb(null, `${basename}-${stamp}${ext}`);
+  }
+});
+const upload = multer({ storage });
 
 // ─── [추가] 로그인·관리자 체크 미들웨어 ───
 function isLoggedIn(req, res, next) {
@@ -307,27 +316,40 @@ app.delete('/api/files/:id', async (req, res) => {
     }
 
     res.json({ message: "삭제 성공" });
-  } catch (e) {
-    res.status(500).json({ message: "삭제 오류", error: e.message });
-  }
-});
-// 자료 정보 수정
-app.put('/api/files/:id', async (req, res) => {
-  try {
-    const { region, district, school, grade, year, semester, title } = req.body;
-    const [result] = await db.query(
-      `UPDATE files SET region=?, district=?, school=?, grade=?, year=?, semester=?, title=? WHERE id=?`,
-      [region, district, school, grade, year, semester, title, req.params.id]
-    );
-    if (result.affectedRows > 0) {
-      res.json({ message: '수정 성공' });
-    } else {
-      res.status(404).json({ message: '자료 없음' });
-    }
-  } catch (e) {
-    res.status(500).json({ message: '수정 오류', error: e.message });
-  }
-});
+      } catch (e) {
+        res.status(500).json({ message: "삭제 오류", error: e.message });
+      }
+    });
+    // 자료 정보 수정
+    app.put('/api/files/:id', upload.single('file'), async (req, res) => {
+      try {
+        const { region, district, school, grade, year, semester, title, level } = req.body;
+
+        // 1) 기존 파일명 조회
+        const [[row]] = await db.query('SELECT filename FROM files WHERE id=?', [req.params.id]);
+        if (!row) return res.status(404).json({ message: '자료 없음' });
+
+        // 2) 파일 교체가 있을 때는 기존 파일 삭제 후 DB에 새 파일명 반영
+        let newFileName = row.filename;              // 기본값 = 기존 파일 유지
+        if (req.file) {
+          // 기존 파일 실제 삭제 (실패-무시)
+          try { await fs.unlink(__dirname + '/uploads/' + row.filename); } catch(e){}
+          newFileName = req.file.filename;
+        }
+
+        // 3) DB 업데이트
+        await db.query(
+          `UPDATE files
+            SET region=? , district=? , school=? , grade=? ,
+                year=?   , semester=? , title=?  , level=? , filename=?
+          WHERE id=?`,
+          [region, district, school, grade, year, semester, title, level, newFileName, req.params.id]
+        );
+        res.json({ message: '수정 완료' });
+      } catch (e) {
+        res.status(500).json({ message: '수정 오류', error: e.message });
+      }
+    });
 // 문의/업로드 글 등록 (POST /api/board)
 app.post('/api/board', upload.array('fileInput', 10), async (req, res) => {
   try {

@@ -414,6 +414,12 @@
         <img src="cash_icon.png"  class="nav-icon" alt="캐시">
         결제하기
       </a>
+      <a href="admin_upload.html" class="nav-link admin-link" style="display:none;">
+        <img src="icon_upload.png" class="nav-icon" alt=""> 자료 업로드
+      </a>
+      <a href="admin_files.html"  class="nav-link admin-link" style="display:none;">
+        <img src="icon_manage.png" class="nav-icon" alt=""> 자료 관리
+      </a>
       <!-- 더보기(햄버거) 메뉴 -->
       <button class="menu-btn" id="moreMenuBtn" title="더보기" type="button">
         <img src="menu_icon.png" class="menu-icon" alt="더보기">
@@ -448,7 +454,6 @@
       </li>
     </ul>
   </div>
-  </header>
   <div class="main-layout">
     <div style="flex:1;min-width:750px;">
       <!-- 중등/고등관 탭 -->
@@ -664,6 +669,10 @@
           if (displayId) {
             span.textContent   = displayId;
             span.style.display = 'inline';
+          }
+          if (user.role === 'admin') {
+            document.querySelectorAll('.admin-link')
+            .forEach(el => el.style.display = 'flex');
           }
           /* 로그아웃 엔드포인트도 서버에 요청 */
           const logoutBtn = document.getElementById('logoutBtn');
