@@ -356,6 +356,13 @@
       white-space: nowrap;           /* 줄바꿈 방지 */
       display: inline-block;         /* 박스 형태로 */
     }
+    .user-id{
+      margin-left:6px;
+      font-size:1.05rem;
+      font-weight:700;
+      color:#212529;
+      user-select:none;
+    }
 
   </style>
 </head>
@@ -615,7 +622,39 @@
           window.location.href = 'login.html';
         };
       }
+      checkLoginStatus();
     });
+    
+    /* ───────── 로그인 상태 확인 & 프로필 옆 아이디 표시 ───────── */
+    async function checkLoginStatus () {
+      const span = document.getElementById('userId');
+      if (!span) return;
+
+      try {
+        const res              = await fetch('/check-auth', {credentials:'include'});
+        const { isLoggedIn, user={} } = await res.json();
+
+        if (isLoggedIn) {
+          const displayId = user.email ? user.email.split('@')[0] : (user.name || '');
+          if (displayId) {
+            span.textContent   = displayId;
+            span.style.display = 'inline';
+          }
+          /* 로그아웃 엔드포인트도 서버에 요청 */
+          const logoutBtn = document.getElementById('logoutBtn');
+          if (logoutBtn) {
+            logoutBtn.onclick = async e => {
+              e.preventDefault();
+              await fetch('/logout', {credentials:'include'});
+              location.href = 'login.html';
+            };
+          }
+        }
+      } catch (err) {
+        console.error('login check fail', err);
+      }
+    }
+
   </script>
 </body>
 </html>
