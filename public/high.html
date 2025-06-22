@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>M.CLASS 고등관 기출자료 다운로드</title>
+  <title>수학지니 고등관 기출자료 다운로드</title>
   <link rel="icon" type="image/png" href="/favicon.png" />
   <meta name="viewport" content="width=1200">
   <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:900,700,400&display=swap" rel="stylesheet">
@@ -446,6 +446,18 @@
 
     .center-logo{ width:36px; height:36px; }
 
+    .download-img-btn img {
+      vertical-align: middle;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px #0001;
+      transition: transform 0.13s, box-shadow 0.13s;
+    }
+    .download-img-btn:hover img {
+      transform: translateY(-2px) scale(1.08);
+      box-shadow: 0 4px 16px #22ccaa44;
+    }
+
+
   </style>
 </head>
 <body>
@@ -597,29 +609,29 @@
         fileData = await res.json();
         renderTable(fileData);
       }
-        function renderTable(list){
-          const tbody = document.getElementById('file-list');
-          if(!list.length){
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#bbb;">자료가 없습니다</td></tr>`;
-            return;
-          }
-          tbody.innerHTML = list.map(row=>`
-            <tr>
-              <td>${row.region}</td>
-              <td>${row.district}</td>
-              <td>${row.school}</td>
-              <td>${row.grade}</td>
-              <td>${row.year}</td>
-              <td>${row.semester}</td>
-              <td>${row.title}</td>
-              <td>
-                ${row.hwp_filename ? `<a href="/download/${row.id}?type=hwp" class="download-btn">한글</a>` : ''}
-                ${row.pdf_filename ? `<a href="/download/${row.id}?type=pdf" class="download-btn">PDF</a>` : ''}
-                ${!row.hwp_filename && !row.pdf_filename ? '-' : ''}
-              </td>
-            </tr>
-          `).join('');
+      function renderTable(list){
+        const tbody = document.getElementById('file-list');
+        if(!list.length){
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#bbb;">자료가 없습니다</td></tr>`;
+          return;
         }
+        tbody.innerHTML = list.map(row=>`
+          <tr>
+            <td>${row.region}</td>
+            <td>${row.district}</td>
+            <td>${row.school}</td>
+            <td>${row.grade}</td>
+            <td>${row.year}</td>
+            <td>${row.semester}</td>
+            <td>${row.title}</td>
+            <td>
+              ${row.hwp_filename ? `<a href="/download/${row.id}?type=hwp" class="download-img-btn" title="HWP 다운로드"><img src="hwp_btn.png" alt="HWP" style="height:32px;margin-right:4px;"></a>` : ''}
+              ${row.pdf_filename ? `<a href="/download/${row.id}?type=pdf" class="download-img-btn" title="PDF 다운로드"><img src="pdf_btn.png" alt="PDF" style="height:32px;"></a>` : ''}
+              ${!row.hwp_filename && !row.pdf_filename ? '-' : ''}
+            </td>
+          </tr>
+        `).join('');
+      }
       function searchFiles(){
         fetchFiles();
       }
