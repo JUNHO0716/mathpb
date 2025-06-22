@@ -501,6 +501,29 @@ app.get('/auth/google/callback',
 
 app.use(express.static('public'));
 
+// 파일 삭제 (관리자만)
+app.delete('/api/files/:id', isLoggedIn, isAdmin, async (req, res) => {
+  try {
+    // 파일명 조회 (첨부파일 실제 삭제)
+    const [[row]] = await db.query('SELECT hwp_filename, pdf_filename FROM files WHERE id=?', [req.params.id]);
+    if (!row) return res.status(404).json({ message: '자료 없음' });
+
+    // 실제 파일 삭제 (존재하면)
+    if (row.hwp_filename) {
+      try { await fs.unlink(path.join(__dirname, 'uploads', row.hwp_filename)); } catch (e) {}
+    }
+    if (row.pdf_filename) {
+      try { await fs.unlink(path.join(__dirname, 'uploads', row.pdf_filename)); } catch (e) {}
+    }
+
+    // DB에서 삭제
+    await db.query('DELETE FROM files WHERE id=?', [req.params.id]);
+    res.json({ message: '삭제 성공' });
+  } catch (e) {
+    res.status(500).json({ message: '삭제 오류', error: e.message });
+  }
+});
+
 // 서버 실행
 const PORT = process.env.PORT || 3001;
 
