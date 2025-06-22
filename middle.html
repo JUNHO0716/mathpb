@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>M.CLASS 고등관 기출자료 다운로드</title>
+  <title>M.CLASS 중등관 기출자료 다운로드</title>
   <link rel="icon" type="image/png" href="/favicon.png" />
   <meta name="viewport" content="width=1200">
   <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:900,700,400&display=swap" rel="stylesheet">
@@ -228,7 +228,6 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 1.16rem; font-weight: 600; color: #b5b5b5;
       overflow: hidden;
-      padding: 0;
     }
     /* --- 공지사항 미리보기 --- */
     .notice-preview-box {
@@ -239,7 +238,6 @@
       padding: 0 0 14px 0;
       margin-bottom: 26px;
       overflow: hidden;
-      border: 1.5px solid #f2f3f4; /* 👈 추가 (아주 옅은 회색 테두리) */
     }
     .notice-preview-header {
       display: flex;
@@ -305,7 +303,7 @@
       white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
     }
     .ad2-box {
-      width: 300px; height: 900px;
+      width: 300px; height: 500px;
       border-radius: 14px;
       background: #f6fafd;
       border: 2.5px solid #f2f3f4;
@@ -313,9 +311,8 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 1.16rem; font-weight: 600; color: #b5b5b5;
       overflow: hidden;
-      padding: 0;
     }
-    .ad-box img { width: 100%; height: 100%; object-fit: cover; display: block;}
+    .ad-box img { width: 100%; height: 100%; object-fit: cover; }
     @media (max-width: 1200px) {
       .main-layout { flex-direction: column; gap: 16px; padding-top: 64px;}
       .ads-bar { flex-direction: row; gap:10px; align-items: stretch; min-width:0;}
@@ -446,6 +443,108 @@
 
     .center-logo{ width:36px; height:36px; }
 
+    /* ── 필터/정렬 버튼 (pill) ── */
+    .filter-bar .filter-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;      /* ▶ 더 작게 (기존보다 padding 수치 줄이기) */
+      font-size: 0.90rem;    /* ▶ 더 작게 */
+      font-weight: 500;
+      color: #1890ff;
+      background: #fff;
+      width: 20px;
+      border: 1px solid #1890ff;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+      height: 35px;          /* ▶ 버튼 전체 높이도 제한 */
+    }
+
+    .filter-bar .filter-btn .icon {
+      width: 13px;           /* ▶ 아이콘도 더 작게 */
+      height: 13px;
+    }
+
+    /* ── 검색창 ── */
+    .search-wrap {
+      position: relative;
+      margin-left: 8px;     /* 정렬버튼과 검색창 간격 (필요시 조절) */
+      width: 600px;         /* 검색창 길이 (원하는 대로) */
+      display: inline-block;
+      align-items: center;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 5px 32px 5px 10px; /* 오른쪽 padding 확보(돋보기 들어갈 자리) */
+      font-size: 0.8rem;
+      border: 1px solid #d9d9d9;
+      border-radius: 4px;
+      box-sizing: border-box;
+      height: 37px;               /* 버튼 높이와 맞추기 */
+    }
+
+    .search-icon {
+      position: absolute;
+      top: 50%; right: 10px;
+      transform: translateY(-50%);
+      width: 13px; height: 13px;
+      background: url('search_icon.png') center/cover no-repeat;
+      opacity: 0.66;
+      pointer-events: none;
+    }
+
+    /* ── 드롭다운 행 ── */
+    .filter-dropdowns {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin:8px 0 24px;
+    }
+
+    /* ── 드롭다운 토글 ── */
+    .dropdown-toggle {
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      padding:4px 10px;
+      font-size:0.85rem;
+      color:#333;
+      background:#fff;
+      border:1px solid #d9d9d9;
+      border-radius:4px;
+      cursor:pointer;
+    }
+    .dropdown-toggle .arrow { font-size:0.75rem; }
+
+    /* ── 드롭다운 메뉴 ── */
+    .dropdown-menu {
+      display:none;
+      position:absolute;
+      top:calc(100% + 4px);
+      left:0;
+      min-width:120px;
+      background:#fff;
+      border:1px solid #d9d9d9;
+      border-radius:4px;
+      box-shadow:0 4px 8px rgba(0,0,0,0.1);
+      list-style:none;
+      padding:4px 0;
+      z-index:100;
+    }
+    .dropdown.open .dropdown-menu {
+      display:block;
+    }
+    .dropdown-menu li {
+      padding:6px 12px;
+      font-size:0.85rem;
+      cursor:pointer;
+    }
+    .dropdown-menu li:hover {
+      background:#f5f5f5;
+    }
+
   </style>
 </head>
 <body>
@@ -516,36 +615,40 @@
       <div class="level-switch-row">
         <!-- 토글 -->
         <div class="level-switch">
-          <a href="middle.html" class="switch-btn">중등</a>
-          <a href="high.html"   class="switch-btn active">고등</a>
+          <a href="middle.html" class="switch-btn active">중등</a>
+          <a href="high.html"   class="switch-btn">고등</a>
         </div>
 
         <!-- 가운데 문구(아이콘 + 텍스트) -->
       <div class="level-center-text">
-        <span class="title-type">고등관</span>
+        <span class="title-type">중등관</span>
         <span class="title-main">학교기출</span>
       </div>
       </div>
-      <!-- 검색/필터 -->
-      <div class="filter-row">
-        <span class="filter-label">정보&nbsp;입력</span>
-        <select class="filter-select" id="region"><option value="">지역</option><option>서울</option><option>경기</option></select>
-        <input class="filter-input" id="district" placeholder="구/군" />
-        <input class="filter-input" id="school" placeholder="학교명" />
-        <select class="filter-select" id="grade">
-          <option value="">학년</option>
-          <option>중1</option><option>중2</option><option>중3</option>
-        </select>
-        <input class="filter-input" id="year" placeholder="연도" type="number"/>
-        <select class="filter-select" id="semester">
-          <option value="">학기</option>
-          <option>1학기중간</option>
-          <option>1학기기말</option>
-          <option>2학기중간</option>
-          <option>2학기기말</option>
-        </select>
-        <button class="filter-btn" onclick="searchFiles()">검색</button>
+  <!-- ── 필터 바 (CandyDate 스타일) ── -->
+    <div class="filter-bar">
+      <button class="filter-btn">필터 <img src="filter_icon.png" class="icon"></button>
+      <button class="filter-btn">정렬 <img src="sort_icon.png" class="icon"></button>
+      <div class="search-wrap">
+        <input type="text" class="search-input" placeholder="자료명을 검색해보세요" />
+        <span class="search-icon"></span>
       </div>
+    </div>
+    
+     <!-- ── 필터 옵션 드롭다운들 (지역 → 구/군 → 학교명 → 학년 → 연도 → 학기) ── -->
+     <div class="filter-dropdowns">
+       <div class="dropdown">
+         <button class="dropdown-toggle">지역 <span class="arrow">▾</span></button>
+         <ul class="dropdown-menu">
+           <li>서울</li><li>경기</li><!-- … -->
+         </ul>
+       </div>
+       <div class="dropdown">
+         <button class="dropdown-toggle">구/군 <span class="arrow">▾</span></button>
+         <ul class="dropdown-menu"><li>강남구</li><!-- … --></ul>
+       </div>
+      <!-- 나머지도 같은 형식으로 순서대로 추가 -->
+     </div>
       <!-- 표 -->
       <table class="data-table">
         <thead>
@@ -568,16 +671,16 @@
     <!-- 광고/공지 박스 -->
     <div class="ads-bar">
       <div style="height:0px"></div>
-      <div class="ad1-box ad-box"><img src="ad1.png" alt="광고1"/></div>
+      <div class="ad1-box"><img src="ad1.png" alt="광고1"/></div>
       <!-- --- 공지사항 미리보기 박스 --- -->
       <div class="notice-preview-box" id="noticePreviewBox"></div>
-      <div class="ad2-box ad-box"><img src="ad2.png" alt="광고2"/></div>
+      <div class="ad2-box"><img src="ad2.png" alt="광고2"/></div>
     </div>
   </div>
   <script>
     let fileData = [];
       async function fetchFiles() {
-        const level = "고등";
+        const level = "중등";
         const region = document.getElementById('region').value;
         const district = document.getElementById('district').value.trim();
         const school = document.getElementById('school').value.trim();
@@ -597,29 +700,25 @@
         fileData = await res.json();
         renderTable(fileData);
       }
-        function renderTable(list){
-          const tbody = document.getElementById('file-list');
-          if(!list.length){
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#bbb;">자료가 없습니다</td></tr>`;
-            return;
-          }
-          tbody.innerHTML = list.map(row=>`
-            <tr>
-              <td>${row.region}</td>
-              <td>${row.district}</td>
-              <td>${row.school}</td>
-              <td>${row.grade}</td>
-              <td>${row.year}</td>
-              <td>${row.semester}</td>
-              <td>${row.title}</td>
-              <td>
-                ${row.hwp_filename ? `<a href="/download/${row.id}?type=hwp" class="download-btn">한글</a>` : ''}
-                ${row.pdf_filename ? `<a href="/download/${row.id}?type=pdf" class="download-btn">PDF</a>` : ''}
-                ${!row.hwp_filename && !row.pdf_filename ? '-' : ''}
-              </td>
-            </tr>
-          `).join('');
+      function renderTable(list){
+        const tbody = document.getElementById('file-list');
+        if(!list.length){
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#bbb;">자료가 없습니다</td></tr>`;
+          return;
         }
+        tbody.innerHTML = list.map(row=>`
+          <tr>
+            <td>${row.region}</td>
+            <td>${row.district}</td>
+            <td>${row.school}</td>
+            <td>${row.grade}</td>
+            <td>${row.year}</td>
+            <td>${row.semester}</td>
+            <td>${row.title}</td>
+            <td><a href="/download/${row.id}" class="download-btn">다운로드</a></td>
+          </tr>
+        `).join('');
+      }
       function searchFiles(){
         fetchFiles();
       }
@@ -758,15 +857,15 @@
       }
     }
 
-      document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.download-btn').forEach(btn => {
-          btn.addEventListener('click', function(e) {
-            if (!confirm('다운로드 하시겠습니까?')) {
-              e.preventDefault();  // "취소" 누르면 다운로드 취소
-            }
-          });
-        });
+    document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.download-btn').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        if (!confirm('다운로드 하시겠습니까?')) {
+          e.preventDefault();  // "취소" 누르면 다운로드 취소
+        }
       });
+    });
+  });
 
   </script>
 </body>

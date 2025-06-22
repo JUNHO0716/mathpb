@@ -16,6 +16,7 @@
     .upload-box button { width:100%; background:#28b663; color:#fff; border:none; border-radius:8px; padding:12px; font-size:1.1rem; font-weight:bold; cursor:pointer;}
     .upload-box button:active { background:#219e56; }
     .upload-box .msg { text-align:center; margin-top:10px; font-size:1rem;}
+    .file-desc { font-size:0.95rem; color:#333; margin:0 0 10px 0;}
   </style>
 </head>
 <body>
@@ -42,7 +43,6 @@
       <input name="school" placeholder="학교명" required />
       <select name="grade" id="grade" required>
         <option value="">학년</option>
-        <!-- JS로 동적 생성 -->
       </select>
       <input name="year" placeholder="연도 (예: 2024)" type="number" required />
       <select name="semester" required>
@@ -53,7 +53,14 @@
         <option>2학기기말</option>
       </select>
       <input name="title" placeholder="자료제목 (예: 1학기 중간고사 수학)" required />
+
+      <div class="file-desc">
+        ※ <b>한글파일(.hwp/.hwpx), PDF(.pdf) 각각 1개씩 업로드 가능</b> <br>
+        (둘 중 하나만 업로드해도 됩니다. <br>
+        여러 파일 동시 선택 시 자동 분류)
+      </div>
       <input name="files" type="file" multiple required />
+
       <button type="submit">자료 업로드</button>
     </form>
     <div class="msg" id="msg"></div>
@@ -72,16 +79,12 @@
       gradeSelect.innerHTML = opts.join('');
     }
     levelSelect.addEventListener('change', e => setGradeOptions(e.target.value));
-
-    // 처음 로드시 기본 옵션
     setGradeOptions('');
 
     document.getElementById('upload-form').onsubmit = async function(e){
       e.preventDefault();
       const form = e.target;
       const data = new FormData(form);
-
-      // 운영서버: 절대경로로 fetch
       const res = await fetch('/api/upload', {
         method: 'POST',
         body: data

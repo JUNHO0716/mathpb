@@ -6,6 +6,7 @@
   <link rel="icon" type="image/png" href="/favicon.png" />
   <meta name="viewport" content="width=1200">
   <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:900,700,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Noto Sans KR', Arial, sans-serif;
@@ -23,7 +24,7 @@
       box-sizing: border-box;
       padding: 0 32px 0 13px;
       position: fixed; left: 0; top: 0; z-index: 100;
-      border-bottom: 2px solid #238058;
+      border-bottom: 2px solid rgba(35,128,88,0.20); 
     }
     .logo-box { display:flex; align-items:center; gap:8px; }
     .logo-img { width:27px; height:27px; display:block;}
@@ -227,6 +228,7 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 1.16rem; font-weight: 600; color: #b5b5b5;
       overflow: hidden;
+      padding: 0;
     }
     /* --- 공지사항 미리보기 --- */
     .notice-preview-box {
@@ -237,6 +239,7 @@
       padding: 0 0 14px 0;
       margin-bottom: 26px;
       overflow: hidden;
+      border: 1.5px solid #f2f3f4; /* 👈 추가 (아주 옅은 회색 테두리) */
     }
     .notice-preview-header {
       display: flex;
@@ -302,7 +305,7 @@
       white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
     }
     .ad2-box {
-      width: 300px; height: 500px;
+      width: 300px; height: 900px;
       border-radius: 14px;
       background: #f6fafd;
       border: 2.5px solid #f2f3f4;
@@ -310,8 +313,9 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 1.16rem; font-weight: 600; color: #b5b5b5;
       overflow: hidden;
+      padding: 0;
     }
-    .ad-box img { width: 100%; height: 100%; object-fit: cover; }
+    .ad-box img { width: 100%; height: 100%; object-fit: cover; display: block;}
     @media (max-width: 1200px) {
       .main-layout { flex-direction: column; gap: 16px; padding-top: 64px;}
       .ads-bar { flex-direction: row; gap:10px; align-items: stretch; min-width:0;}
@@ -390,6 +394,58 @@
       filter:brightness(.85);     /* 살짝 어두워지는 정도만 */
     }
 
+    /* ===== 중등·고등 토글 + 가운데 문구 ===== */
+    .level-switch-row{
+      position:relative;            /* 가운데 정렬 기준 */
+      display:flex; align-items:center;
+      margin:0 0 22px 0;            /* 기존 간격 맞춤 */
+    }
+    /* ── 토글(Pill) ────────────────────── */
+    .level-switch{
+      display:inline-flex; gap:2px;
+      background:#ECEFF4;           /* 회색 배경 */
+      border-radius:40px; padding:4px;
+    }
+    .switch-btn{
+      padding: 6px 22px;            /* 사진과 비슷한 크기 */
+      border-radius: 26px;
+      font-size: 0.88rem; font-weight:700;
+      color:#485067; text-decoration:none;
+      transition:all .18s;
+    }
+    .switch-btn:hover   { background:#DFE3E9; }
+    .switch-btn.active  { background:#18855d; color:#fff; pointer-events:none; }
+
+    /* ── 가운데 문구 ───────────────────── */
+    .level-center-text{
+      position:absolute;
+      left:55%;
+      top:-20px;               /* ★ 위로 6 px 끌어올림 (필요하면 숫자만 조정) */
+      transform:translateX(-50%);
+      font-size:2.6rem;
+      font-weight:900;
+      color:#000;
+      display:flex; align-items:center; gap:8px;
+    }
+    .title-type{
+      color:#18855d;                 /* 스샷과 비슷한 파란색 */
+      font-size:2.4rem;
+      font-weight:700;               /* Nanum Pen Script는 weight=400 하나뿐이라 700도 OK */
+      font-family:'Nanum Pen Script', 'Noto Sans KR', sans-serif;
+    }
+
+    .title-main{
+      /* ① 손글씨체 적용 */
+      font-family: 'Nanum Pen Script', 'Noto Sans KR', sans-serif;
+      /* ② 색상·크기·굵기 (원하는 값으로 조정) */
+      color: #000;
+      font-size: 2.9rem;
+      font-weight: 600;  /* 필요하면 400~900 사이에서 조절 */
+      margin-left: 6px;
+    }
+
+    .center-logo{ width:36px; height:36px; }
+
   </style>
 </head>
 <body>
@@ -457,9 +513,18 @@
   <div class="main-layout">
     <div style="flex:1;min-width:750px;">
       <!-- 중등/고등관 탭 -->
-      <div class="level-tab-row">
-        <a href="middle.html" class="level-tab-link active">중등</a>
-        <a href="high.html" class="level-tab-link">고등</a>
+      <div class="level-switch-row">
+        <!-- 토글 -->
+        <div class="level-switch">
+          <a href="middle.html" class="switch-btn active">중등</a>
+          <a href="high.html"   class="switch-btn">고등</a>
+        </div>
+
+        <!-- 가운데 문구(아이콘 + 텍스트) -->
+      <div class="level-center-text">
+        <span class="title-type">중등관</span>
+        <span class="title-main">학교기출</span>
+      </div>
       </div>
       <!-- 검색/필터 -->
       <div class="filter-row">
@@ -503,10 +568,10 @@
     <!-- 광고/공지 박스 -->
     <div class="ads-bar">
       <div style="height:0px"></div>
-      <div class="ad1-box"><img src="your_ad1.png" alt="광고1"/></div>
+      <div class="ad1-box ad-box"><img src="ad1.png" alt="광고1"/></div>
       <!-- --- 공지사항 미리보기 박스 --- -->
       <div class="notice-preview-box" id="noticePreviewBox"></div>
-      <div class="ad2-box"><img src="your_ad3.png" alt="광고2"/></div>
+      <div class="ad2-box ad-box"><img src="ad2.png" alt="광고2"/></div>
     </div>
   </div>
   <script>
@@ -532,25 +597,29 @@
         fileData = await res.json();
         renderTable(fileData);
       }
-      function renderTable(list){
-        const tbody = document.getElementById('file-list');
-        if(!list.length){
-          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#bbb;">자료가 없습니다</td></tr>`;
-          return;
+        function renderTable(list){
+          const tbody = document.getElementById('file-list');
+          if(!list.length){
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#bbb;">자료가 없습니다</td></tr>`;
+            return;
+          }
+          tbody.innerHTML = list.map(row=>`
+            <tr>
+              <td>${row.region}</td>
+              <td>${row.district}</td>
+              <td>${row.school}</td>
+              <td>${row.grade}</td>
+              <td>${row.year}</td>
+              <td>${row.semester}</td>
+              <td>${row.title}</td>
+              <td>
+                ${row.hwp_filename ? `<a href="/download/${row.id}?type=hwp" class="download-btn">한글</a>` : ''}
+                ${row.pdf_filename ? `<a href="/download/${row.id}?type=pdf" class="download-btn">PDF</a>` : ''}
+                ${!row.hwp_filename && !row.pdf_filename ? '-' : ''}
+              </td>
+            </tr>
+          `).join('');
         }
-        tbody.innerHTML = list.map(row=>`
-          <tr>
-            <td>${row.region}</td>
-            <td>${row.district}</td>
-            <td>${row.school}</td>
-            <td>${row.grade}</td>
-            <td>${row.year}</td>
-            <td>${row.semester}</td>
-            <td>${row.title}</td>
-            <td><a href="/uploads/${row.filename}" class="download-btn" download>다운로드</a></td>
-          </tr>
-        `).join('');
-      }
       function searchFiles(){
         fetchFiles();
       }
@@ -688,6 +757,16 @@
         console.error('login check fail', err);
       }
     }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.download-btn').forEach(btn => {
+          btn.addEventListener('click', function(e) {
+            if (!confirm('다운로드 하시겠습니까?')) {
+              e.preventDefault();  // "취소" 누르면 다운로드 취소
+            }
+          });
+        });
+      });
 
   </script>
 </body>

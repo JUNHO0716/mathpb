@@ -27,7 +27,7 @@ const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB 제한 (필요시)
   fileFilter: (req, file, cb) => {
-    const allowed = ['.pdf', '.jpg', '.jpeg', '.png', '.hwp', '.doc', '.xls', '.xlsx'];
+    const allowed = ['.pdf', '.jpg', '.jpeg', '.png', '.hwp', '.doc', '.xls', '.xlsx', '.html', '.hwpx'];
     const ext = path.extname(file.originalname).toLowerCase();
     if (allowed.includes(ext)) cb(null, true);
     else cb(new Error('허용되지 않는 파일형식'));
@@ -275,91 +275,117 @@ app.delete('/api/notices/:id',
     res.status(404).json({ msg: '공지 없음' });
 });
 
-// 파일 업로드 (관리자용)
-app.post('/api/upload', isLoggedIn, isAdmin, upload.array('files'), async (req, res) => {
-  try {
-    const { region, district, school, grade, year, semester, title, level } = req.body;
-    const files = req.files;
-    if(!files || files.length === 0) return res.status(400).json({ message: '파일이 없습니다.' });
-
-    for(let f of files) {
-      await db.query(
-        `INSERT INTO files (region, district, school, grade, year, semester, title, filename, level)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [region, district, school, grade, year, semester, title, f.filename, level]
-      );
-    }
-    res.json({ message: '업로드 성공' });
-  } catch (e) {
-    res.status(500).json({ message: '서버 오류', error: e.message });
-  }
-});
-
-// 파일 목록(필터/검색)
-app.get('/api/files', async (req, res) => {
-  try {
-    const { region, district, school, grade, year, semester, level } = req.query;
-    let sql = "SELECT * FROM files WHERE 1=1";
-    let params = [];
-    if(region)   { sql += " AND region=?";   params.push(region); }
-    if(district) { sql += " AND district=?"; params.push(district); }
-    if(school)   { sql += " AND school=?";   params.push(school); }
-    if(grade)    { sql += " AND grade=?";    params.push(grade); }
-    if(year)     { sql += " AND year=?";     params.push(year); }
-    if(semester) { sql += " AND semester=?"; params.push(semester); }
-    if(level)    { sql += " AND level=?"; params.push(level); }
-    sql += " ORDER BY uploaded_at DESC";
-    const [rows] = await db.query(sql, params);
-    res.json(rows);
-  } catch (e) {
-    res.status(500).json({ message: 'DB 오류', error: e.message });
-  }
-});
-// 파일 삭제 API (DB에서 삭제 + 실제 파일도 삭제)
-app.delete('/api/files/:id', async (req, res) => {
-  try {
-    const [rows] = await db.query('SELECT filename FROM files WHERE id=?', [req.params.id]);
-    if (!rows.length) return res.status(404).json({ message: "자료 없음" });
-    const filename = rows[0].filename;
-
-    // DB에서 자료 삭제
-    await db.query('DELETE FROM files WHERE id=?', [req.params.id]);
-
-    // 실제 파일도 uploads 폴더에서 삭제
-    if (filename) {
-    const filePath = __dirname + '/uploads/' + filename;
-    try { await fs.unlink(filePath); } catch (e) {}
-    }
-
-    res.json({ message: "삭제 성공" });
-      } catch (e) {
-        res.status(500).json({ message: "삭제 오류", error: e.message });
-      }
-    });
-    // 자료 정보 수정
-    app.put('/api/files/:id', upload.single('file'), async (req, res) => {
+    // 업로드 API (관리자용)
+    app.post('/api/upload', isLoggedIn, isAdmin, upload.array('files'), async (req, res) => {
       try {
         const { region, district, school, grade, year, semester, title, level } = req.body;
+        const files = req.files;
+        if(!files || files.length === 0) return res.status(400).json({ message: '파일이 없습니다.' });
 
-        // 1) 기존 파일명 조회
-        const [[row]] = await db.query('SELECT filename FROM files WHERE id=?', [req.params.id]);
-        if (!row) return res.status(404).json({ message: '자료 없음' });
-
-        // 2) 파일 교체가 있을 때는 기존 파일 삭제 후 DB에 새 파일명 반영
-        let newFileName = row.filename;              // 기본값 = 기존 파일 유지
-        if (req.file) {
-          // 기존 파일 실제 삭제 (실패-무시)
-          try { await fs.unlink(__dirname + '/uploads/' + row.filename); } catch(e){}
-          newFileName = req.file.filename;
+        // 확장자별로 구분
+        let hwpFile = null, pdfFile = null;
+        for (let f of files) {
+          const ext = path.extname(f.originalname).toLowerCase();
+          if (['.hwp', '.hwpx'].includes(ext)) hwpFile = f.filename;
+          if (ext === '.pdf') pdfFile = f.filename;
         }
 
-        // 3) DB 업데이트
         await db.query(
-          `UPDATE files
-            SET region=? , district=? , school=? , grade=? ,
-                year=?   , semester=? , title=?  , level=? , filename=?
+          `INSERT INTO files 
+            (region, district, school, grade, year, semester, title, hwp_filename, pdf_filename, level)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [region, district, school, grade, year, semester, title, hwpFile, pdfFile, level]
+        );
+        res.json({ message: '업로드 성공' });
+      } catch (e) {
+        res.status(500).json({ message: '서버 오류', error: e.message });
+      }
+    });
+
+    // 파일 목록(필터/검색)
+    app.get('/api/files', async (req, res) => {
+      try {
+        const { region, district, school, grade, year, semester, level } = req.query;
+        let sql = "SELECT * FROM files WHERE 1=1";
+        let params = [];
+        if(region)   { sql += " AND region=?";   params.push(region); }
+        if(district) { sql += " AND district=?"; params.push(district); }
+        if(school)   { sql += " AND school=?";   params.push(school); }
+        if(grade)    { sql += " AND grade=?";    params.push(grade); }
+        if(year)     { sql += " AND year=?";     params.push(year); }
+        if(semester) { sql += " AND semester=?"; params.push(semester); }
+        if(level)    { sql += " AND level=?";    params.push(level); }
+        sql += " ORDER BY uploaded_at DESC";
+        const [rows] = await db.query(sql, params);
+        res.json(rows);
+      } catch (e) {
+        res.status(500).json({ message: 'DB 오류', error: e.message });
+      }
+    });
+
+    // 파일 다운로드
+    // /download/:id?hwp OR ?pdf
+    app.get('/download/:id', async (req, res) => {
+      try {
+        const [rows] = await db.query('SELECT hwp_filename, pdf_filename, title FROM files WHERE id=?', [req.params.id]);
+        if (!rows.length) return res.status(404).send('파일 없음');
+        const { hwp_filename, pdf_filename, title } = rows[0];
+
+        // 어떤 타입인지 쿼리 파라미터로 지정 (예: /download/123?type=pdf)
+        const type = req.query.type;
+        let filename = null, ext = null;
+        if (type === 'pdf') {
+          filename = pdf_filename;
+          ext = '.pdf';
+        } else {
+          // 기본값: hwp
+          filename = hwp_filename;
+          ext = '.hwp'; // hwpx도 hwp로 표시
+          if (filename && filename.endsWith('.hwpx')) ext = '.hwpx';
+        }
+        if (!filename) return res.status(404).send('해당 형식 파일 없음');
+        const filePath = path.join(__dirname, 'uploads', filename);
+
+        // 한글 파일명 처리
+        const downloadName = encodeURIComponent(title + ext);
+        res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${downloadName}`);
+        res.sendFile(filePath);
+      } catch (e) {
+        res.status(500).send('다운로드 오류');
+      }
+    });
+
+    // 파일 정보 수정 (관리자)
+    app.put('/api/files/:id', upload.array('files'), async (req, res) => {
+      try {
+        const { region, district, school, grade, year, semester, title, level } = req.body;
+        const files = req.files || [];
+
+        // 기존 파일명 조회
+        const [[row]] = await db.query('SELECT hwp_filename, pdf_filename FROM files WHERE id=?', [req.params.id]);
+        if (!row) return res.status(404).json({ message: '자료 없음' });
+
+        let newHwp = row.hwp_filename, newPdf = row.pdf_filename;
+
+        for (let f of files) {
+          const ext = path.extname(f.originalname).toLowerCase();
+          if (['.hwp', '.hwpx'].includes(ext)) {
+            // 기존 파일 실제 삭제
+            if (newHwp) { try { await fs.unlink(__dirname + '/uploads/' + newHwp); } catch (e) {} }
+            newHwp = f.filename;
+          }
+          if (ext === '.pdf') {
+            if (newPdf) { try { await fs.unlink(__dirname + '/uploads/' + newPdf); } catch (e) {} }
+            newPdf = f.filename;
+          }
+        }
+
+        await db.query(
+          `UPDATE files SET
+            region=?, district=?, school=?, grade=?, year=?, semester=?, title=?, level=?,
+            hwp_filename=?, pdf_filename=?
           WHERE id=?`,
-          [region, district, school, grade, year, semester, title, level, newFileName, req.params.id]
+          [region, district, school, grade, year, semester, title, level, newHwp, newPdf, req.params.id]
         );
         res.json({ message: '수정 완료' });
       } catch (e) {
