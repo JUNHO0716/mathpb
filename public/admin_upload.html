@@ -17,6 +17,46 @@
     .upload-box button:active { background:#219e56; }
     .upload-box .msg { text-align:center; margin-top:10px; font-size:1rem;}
     .file-desc { font-size:0.95rem; color:#333; margin:0 0 10px 0;}
+
+.file-list-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 7px; padding: 2px 0;
+  font-size: 1.01rem;
+}
+
+.file-icon { width: 22px; height: 22px; margin-right:6px; }
+.file-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #333; }
+.file-size-x {
+  display: flex;
+  align-items: center;
+  gap: 3px;           /* 용량~X 사이 */
+  min-width: 68px;    /* 좁아지면 용량이 줄바꿈 안나도록 */
+}
+.file-size {
+  color: #b6b6b6;
+  font-size: 0.97rem;
+  white-space: nowrap; /* 줄바꿈 방지 */
+}
+.file-xbtn {
+  color: #000000;
+  background: none;    /* ✅ 배경 없앰 */
+  border: none;
+  font-size: 1.00rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 3px;
+  margin-left: 7px;
+  opacity: 0.72;
+  border-radius: 3px;
+  transition: color 0.16s, opacity 0.15s;
+  /* ✅ background 제거 (hover도!) */
+}
+.file-xbtn:hover {
+  color: #ff3535;
+  opacity: 1;
+  background: none;    /* ✅ hover에도 배경 없음 */
+}
+
   </style>
 </head>
 <body>
@@ -59,7 +99,8 @@
         (둘 중 하나만 업로드해도 됩니다. <br>
         여러 파일 동시 선택 시 자동 분류)
       </div>
-      <input name="files" type="file" multiple required />
+      <input name="files" id="files-input" type="file" multiple required />
+      <div id="file-list-box"></div>
 
       <button type="submit">자료 업로드</button>
     </form>
@@ -99,6 +140,52 @@
         msg.textContent = result.message || '업로드 실패';
       }
     }
+  const input = document.getElementById('files-input');
+  const fileListBox = document.getElementById('file-list-box');
+  let fileArr = [];
+
+  input.addEventListener('change', function(e) {
+    fileArr = Array.from(input.files);
+    renderFileList();
+  });
+
+  function renderFileList() {
+    if (!fileArr.length) {
+      fileListBox.innerHTML = '';
+      return;
+    }
+    fileListBox.innerHTML = fileArr.map((f, i) => `
+      <div class="file-list-row">
+        ${getFileIcon(f.name)}
+        <span class="file-name">${f.name}</span>
+        <span class="file-size-x">
+          <span class="file-size">${(f.size/1024).toFixed(1)}KB</span>
+          <button type="button" class="file-xbtn" onclick="removeFile(${i})">✕</button>
+        </span>
+      </div>
+    `).join('');
+  }
+
+  // 파일 확장자별 아이콘 반환
+  function getFileIcon(name) {
+    const ext = name.split('.').pop().toLowerCase();
+    if (ext === 'hwp' || ext === 'hwpx')
+      return `<img src="hwp_btn.png" class="file-icon" alt="HWP">`;
+    if (ext === 'pdf')
+      return `<img src="pdf_btn.png" class="file-icon" alt="PDF">`;
+    if (['jpg','jpeg','png','gif','bmp'].includes(ext))
+      return `<img src="img_icon.png" class="file-icon" alt="IMG">`;
+    return `<img src="file_icon.png" class="file-icon" alt="FILE">`;
+  }
+
+  // 삭제 기능
+  window.removeFile = function(idx) {
+    fileArr.splice(idx, 1);
+    const dt = new DataTransfer();
+    fileArr.forEach(f => dt.items.add(f));
+    input.files = dt.files;
+    renderFileList();
+  };
   </script>
 </body>
 </html>
