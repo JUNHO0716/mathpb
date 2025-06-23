@@ -46,9 +46,19 @@ function isAdmin(req, res, next) {
 
 const app = express();
 app.use(cors({
-  origin: ['https://mathpb.com'],  // 실제 도메인 주소만!
-  credentials: true
+  origin: [
+    'https://mathpb.com',      // 실제 서비스 도메인
+    'http://mathpb.com',       // http도 대비
+    'http://localhost:3000',   // 개발용
+    'http://localhost:5173'    // 개발용(vite)
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// 프리플라이트(OPTIONS) 요청까지 허용
+app.options('*', cors());
 app.use(session({
   secret: process.env.SESSION_SECRET,     // 나중에 .env로 숨겨도 됨
   resave: false,
