@@ -15,10 +15,14 @@
     .gnb .logo { color:#7125b7; font-weight:900; font-size:2.1rem; letter-spacing:-2px;}
     .gnb .right { margin-left:auto; display:flex; align-items:center; gap:12px; }
     .gnb .right button { background:#7125b7; color:#fff; border-radius:18px; border:0; font-weight:700; font-size:1rem; padding:8px 20px; cursor:pointer;}
-    .container { width: 900px; margin: 56px auto 0; }
-    .page-title { font-size:2rem; font-weight:900; margin-bottom:28px;}
+    .container {
+      max-width: 1300px;      /* → 이 수치를 키우면 가로로 더 넓어짐 */
+      margin: 64px auto 0;    /* → 위 여백(64px), 좌우는 항상 가운데(auto) */
+      padding: 0px 20px;     /* → 안쪽여백(상하40px, 좌우40px) */
+    }
+    .page-title { font-size:2.5rem; font-weight:900; margin-bottom:28px;}W
     /* 탭 */
-    .sub-tab-bar { display:flex; gap:36px; border-bottom:2.5px solid #ececec; margin-bottom:18px;}
+    .sub-tab-bar { display:flex; gap:60px; border-bottom:2.5px solid #ececec; margin-bottom:18px;}
     .sub-tab-bar button {
       color:#222; background:none; border:none; font-size:1.19rem; font-weight:700; padding:0 0 14px 0; margin:0 0 -2.5px 0; border-bottom:2.5px solid transparent; cursor:pointer; transition:.2s;
     }
@@ -26,6 +30,10 @@
       color:#7125b7;
       border-color:#7125b7;
     }
+    .sub-tab-bar > button:not(:last-child) {
+      margin-right: 20px !important;
+    }
+
     /* 게시판 테이블 */
     .board-table { width:100%; border-collapse:collapse; margin-top: 18px;}
     .board-table th, .board-table td { border-bottom:1px solid #ebebeb; text-align:left; padding:14px 8px; font-size:1.04rem;}
@@ -47,7 +55,7 @@
 <body>
   <!-- 상단 GNB(로고 + 로그인/기술지원) -->
   <nav class="gnb">
-    <div class="logo">SEDN</div>
+    <div class="logo">수학지니</div>
     <div class="right">
       <button>로그인</button>
       <button style="background:#4a1e84;">기술지원 바로가기</button>
@@ -58,6 +66,7 @@
     <!-- 하위 탭 -->
     <div class="sub-tab-bar">
       <button id="tabAsk" class="active" onclick="showTab('ask')">문의하기</button>
+      <button id="tabEdit" onclick="showTab('edit')">수정요청</button>
       <button id="tabUpload" onclick="showTab('upload')">시험지업로드</button>
     </div>
     <!-- 문의하기 게시판 -->
@@ -106,21 +115,36 @@
   </div>
 
   <script>
-    // 탭 전환
-    function showTab(tab) {
-      document.getElementById('tabAsk').classList.toggle('active', tab==='ask');
-      document.getElementById('tabUpload').classList.toggle('active', tab==='upload');
-      document.getElementById('askBoard').style.display = (tab==='ask')?'block':'none';
-      document.getElementById('uploadBoard').style.display = (tab==='upload')?'block':'none';
-      document.getElementById('pageTitle').innerText = (tab==='ask')?'문의하기':'시험지업로드';
-    }
+    
+      // 🔵 Render 서버 주소(본인걸로 바꿔줘!)
+      const RENDER_URL = "https://mathpb-server.onrender.com";
+
+      // 현재 탭
+      let currentType = "ask";
+      let typeToName = {
+        ask: "문의하기",
+        edit: "수정요청",
+        upload: "시험지업로드"
+      };
+
+      // 탭 전환
+      function showTab(tab) {
+        currentType = tab;
+        document.getElementById('tabAsk').classList.toggle('active', tab==='ask');
+        document.getElementById('tabEdit').classList.toggle('active', tab==='edit');
+        document.getElementById('tabUpload').classList.toggle('active', tab==='upload');
+        document.getElementById('pageTitle').innerText = typeToName[tab] || "게시판";
+        document.getElementById('writeBtn').innerText = typeToName[tab];
+        loadBoard(tab);
+      }
+
 
     // DB에서 실제 글 목록을 불러와서 테이블에 뿌리는 함수!
-    function loadBoard(type, tbodyId) {
-      fetch('http://localhost:3001/api/board?type=' + type)
+    function loadBoard(type) {
+      fetch(`${RENDER_URL}/api/board?type=${type}`)
         .then(res => res.json())
         .then(data => {
-          const tbody = document.getElementById(tbodyId);
+          const tbody = document.getElementById('boardTbody');
           tbody.innerHTML = '';
           data.forEach(row => {
             tbody.innerHTML += `
@@ -140,25 +164,27 @@
 
     // 페이지가 열릴 때 자동으로 목록 두 개 다 불러오기!
     window.onload = function() {
-      loadBoard('ask', 'askTbody');
-      loadBoard('upload', 'uploadTbody');
+      showTab('ask');
     };
 
-    // tr 클릭 시 무조건 비밀번호 모달 먼저 띄움!
+    // 글쓰기 버튼
+    document.getElementById('writeBtn').onclick = function() {
+      location.href = `ask2.html?type=${currentType}`;
+    };
+
+    // 게시글 tr 클릭시 비번 모달
     document.addEventListener("click", function(e){
       const row = e.target.closest(".clickable-row");
       if(row) {
-        // 상세페이지로 절대 먼저 들어가지 않는다!
         const password = row.dataset.password;
         const id = row.dataset.id;
         showPwModal(id, password);
       }
     });
 
-    // 모달 작동 JS
+    // 모달
     let targetId = null;
     let realPw = null;
-
     function showPwModal(id, pw) {
       targetId = id;
       realPw = pw;
@@ -167,10 +193,8 @@
       document.getElementById('pwModal').style.display = 'flex';
       setTimeout(()=>document.getElementById('pwInput').focus(), 30);
     }
-
     document.getElementById('pwForm').onsubmit = function(e){
       e.preventDefault();
-      // 공개글(비밀번호 없는 글)일 경우 바로 입장
       if(!realPw || document.getElementById('pwInput').value === realPw){
         document.getElementById('pwModal').style.display = 'none';
         location.href = 'ask_detail.html?id=' + targetId;
@@ -178,7 +202,6 @@
         document.getElementById('pwMsg').textContent = '비밀번호가 일치하지 않습니다.';
       }
     };
-    // 모달 배경 클릭시 닫기
     document.getElementById('pwModal').onclick = function(e){
       if(e.target === this) this.style.display = 'none';
     }
