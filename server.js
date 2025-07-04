@@ -534,6 +534,82 @@ app.delete('/api/files/:id', isLoggedIn, isAdmin, async (req, res) => {
   }
 });
 
+app.post('/api/board_secure', upload.array('fileInput', 10), async (req, res) => {
+  try {
+    const { boardType, title, password, content } = req.body;
+    const files = req.files && req.files.length > 0
+      ? req.files.map(f => f.filename).join(',')
+      : '';
+
+    const hash = await bcrypt.hash(password, 10);
+
+    await db.query(
+      'INSERT INTO board_secure (boardType, title, password, content, files) VALUES (?, ?, ?, ?, ?)',
+      [boardType, title, hash, content, files]
+    );
+
+    res.json({ message: '보안글 등록 성공' });
+  } catch (e) {
+    res.status(500).json({ message: '보안글 등록 오류', error: e.message });
+  }
+});
+
+app.get('/api/board_secure', async (req, res) => {
+  try {
+    const type = req.query.type; // 예: 'notice' 등
+    const [rows] = await db.query(
+      'SELECT id, title, created_at FROM board_secure WHERE boardType=? ORDER BY id DESC',
+      [type]
+    );
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ message: '보안 게시글 목록 오류', error: e.message });
+  }
+});
+
+app.post('/api/board_secure/:id/checkpw', async (req, res) => {
+  try {
+    const { password } = req.body;
+    const [[row]] = await db.query('SELECT * FROM board_secure WHERE id=?', [req.params.id]);
+    if (!row) return res.status(404).json({ message: '글 없음' });
+
+    // 관리자
+    if (req.session.user?.role === 'admin') {
+      return res.json({ success: true, data: row });
+    }
+
+    const isMatch = await bcrypt.compare(password, row.password);
+    if (!isMatch) return res.status(403).json({ message: '비밀번호 불일치' });
+
+    res.json({ success: true, data: row });
+  } catch (e) {
+    res.status(500).json({ message: '비밀번호 확인 오류', error: e.message });
+  }
+});
+
+app.post('/api/board_secure/:id/delete', async (req, res) => {
+  try {
+    const { password } = req.body;
+    const [[row]] = await db.query('SELECT * FROM board_secure WHERE id=?', [req.params.id]);
+    if (!row) return res.status(404).json({ message: '글 없음' });
+
+    // 관리자
+    if (req.session.user?.role === 'admin') {
+      await db.query('DELETE FROM board_secure WHERE id=?', [req.params.id]);
+      return res.json({ message: '관리자가 삭제 완료' });
+    }
+
+    const isMatch = await bcrypt.compare(password, row.password);
+    if (!isMatch) return res.status(403).json({ message: '비밀번호 불일치' });
+
+    await db.query('DELETE FROM board_secure WHERE id=?', [req.params.id]);
+    res.json({ message: '삭제 성공' });
+  } catch (e) {
+    res.status(500).json({ message: '보안 글 삭제 오류', error: e.message });
+  }
+});
+
+
 // 서버 실행
 const PORT = process.env.PORT || 3001;
 

@@ -1,0 +1,19 @@
+<div id="content"></div>
+<input type="password" id="pw" placeholder="비밀번호">
+<button onclick="checkPw()">확인</button>
+
+<script>
+async function checkPw(){
+  let pw = document.getElementById('pw').value;
+  let res = await fetch('/api/checkpw?id=글번호', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ password: pw })
+  });
+  let data = await res.json();
+  if(data.success){
+    document.getElementById('content').innerHTML = data.html;
+  } else {
+    alert("비밀번호가 틀렸습니다.");
+  }
+}
+</script>

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>회원 정보</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+  <!-- Swiper 광고배너용 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
+  <style>
+
+body {
+  margin: 0; background: #fff;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+ /* ────── 2) 광고 배너 (전면 이미지 + 연보라 백업색) ────── */
+  @media(max-width:1180px){
+    .promo-banner.img-only{padding-top:38%;}
+  }
+
+   /* swiper-slide 전체를 배너 높이(260px)에 맞춤 */
+    .adSwiper,
+    .adSwiper .swiper-wrapper,
+    .adSwiper .swiper-slide{
+      width:100%;
+      height:100%;
+    }
+
+    /* 이미지는 영역을 꽉 채우고 비율 유지(잘릴 수 있음) */
+    .adSwiper .swiper-slide img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+
+  .promo-banner{
+    margin:40px 40px;
+    height:280px;
+    border-radius:22px;
+    overflow:hidden;
+  }
+
+  /* ▣ 모달 */
+  .modal{position:fixed;inset:0;display:none;align-items:center;
+        justify-content:center;background:rgba(0,0,0,.55);z-index:100;}
+  .modal-content{max-width:580px;width:90%;background:#fff;border-radius:12px;
+                padding:32px 28px;text-align:center;position:relative;}
+  .modal-content img{max-width:100%;height:auto;border-radius:10px;}
+  .modal-content p{margin-top:18px;font-size:1.05rem;line-height:1.6;}
+  .modal-close{position:absolute;right:18px;top:14px;font-size:1.8rem;
+              border:none;background:none;color:#555;cursor:pointer;}
+  .modal-close:hover{color:#000;}
+
+  .page-header::after{
+  content:'';
+  position:absolute;
+  left:50%;                          /* 가운데 기준 */
+  bottom:0;                          /* 헤더 맨 아래 */
+  transform:translateX(-50%);        /* 정확한 중앙 정렬 */
+
+  width:97%;                         /* ← 길이(=양쪽 여백) 조절 포인트 */
+  height:1px;                        /* 선 굵기 */
+  background:var(--border-light);    /* 선 색상 */
+  }
+    /* ─── 카드 가로 스크롤 행 ─── */
+    .h-scroll        {position:relative;margin:32px 40px;}
+    .h-scroll .inner {display:flex;gap:16px;overflow-x:auto;
+                      padding:12px 0;scroll-behavior:smooth;}
+    .h-scroll .inner::-webkit-scrollbar{display:none;}
+
+    .card-item{
+      flex:0 0 210px;                 /* 카드 폭 */
+      height:120px;
+      border-radius:14px;
+      background:#f7f8f9;
+      box-shadow:0 2px 6px rgba(0,0,0,.04);
+      display:flex;justify-content:center;align-items:center;
+      font-weight:700;color:#333;
+    }
+    .my-desc{ display:none; }
+    .modal-content iframe{
+      width:100%;
+      height:70vh;           /* 원하는 높이 비율 */
+      border:0;
+      border-radius:12px;
+    }
+.dashboard-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin: 28px 40px 80px;
+}
+.user-row {
+  width: 340px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.profile-card {
+  width: 280px;
+  min-height: 520px;  /* 내 문제지 카드와 높이 동일하게! */
+  background: #fff;
+  border: 1px solid #e9e9e9;
+  border-radius: 22px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.04);
+  padding: 0 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* 수직/수평 완전 중앙 */
+}
+.profile-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.avatar-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  gap: 10px;
+}
+#profileAvatar {
+  width: 96px;         /* 권장: 80~120px (추천값은 96px) */
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #eaeaea;
+  margin-bottom: 8px;
+  border: 2px solid #eee;
+  transition: filter .2s;
+}
+#profileAvatar:hover { filter: brightness(0.95); }
+
+.change-photo-btn {
+  background: #f7f8fa;
+  border: 1px solid #ccc;
+  border-radius: 9999px;
+  padding: 4px 18px;
+  font-size: 0.95rem;
+  color: #333;
+  cursor: pointer;
+  margin-top: 2px;
+  transition: background .15s, color .15s;
+}
+.change-photo-btn:hover {
+  background: #f0e9ff;
+  color: #6c4fc8;
+}
+
+.profile-card img {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.profile-card .info {
+  text-align: center;
+  margin-top: 18px;
+}
+.profile-card .info h3 {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #111;
+}
+.profile-card .info .role {
+  margin-top: 3px;
+  font-size: .98rem;
+  color: #5f5f5f;
+}
+.mysheet-board {
+  flex: 1 1 420px;
+  background: #fff;
+  border: 1px solid #e9e9e9;
+  border-radius: 22px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.04);
+  padding: 28px;
+  min-height: 420px;
+}
+.mysheet-board h2 {
+  font-size: 1.25rem;
+  font-weight: 900;
+  margin-bottom: 22px;
+}
+
+.grade-label {
+  font-weight: 900;
+  padding: 3px 16px;
+  border-radius: 10px;
+  font-size: 1.08rem;
+}
+.grade-gold   { color: #c09619; background: #fff7c3; }
+.grade-silver { color: #6a7a8b; background: #f0f4f7; }
+.grade-bronze { color: #be7625; background: #ffe7ce; }
+
+  </style>
+</head>
+<body>
+
+<!-- ▣ 광고 슬라이더 ▣ -->
+<section class="promo-banner">
+  <div class="swiper adSwiper">          <!-- ① Swiper 컨테이너 -->
+    <div class="swiper-wrapper">         <!-- ② 래퍼 -->
+<!-- ③ 슬라이드: 필요만큼 복사해서 추가 -->
+      <div class="swiper-slide" data-url="promo1.html">
+        <img src="ad1.png" alt="배너 1">
+      </div>
+
+      <div class="swiper-slide" data-url="promo2.html">
+        <img src="ad2.png" alt="배너 2">
+      </div>
+
+      <div class="swiper-slide" data-url="promo3.html">
+        <img src="ad3.png" alt="배너 3">
+      </div>
+
+      <div class="swiper-slide" data-url="promo4.html">
+        <img src="ad4.png" alt="배너 4">
+      </div>
+      </div>
+   <div class="swiper-pagination"></div> <!-- 페이지네이션은 wrapper 밖 -->
+ </div>                                   <!-- </div> adSwiper -->
+</section>   
+
+<div class="dashboard-body" style="display:flex;flex-wrap:wrap;gap:20px;margin:28px 40px 80px;">
+  <!-- (왼쪽) 프로필 카드 -->
+  <div class="user-row" style="width:340px;flex-shrink:0;display:flex;flex-direction:column;gap:20px;">
+    <!-- 1) 프로필 카드 -->
+    <div class="profile-card">
+      <div class="profile-center">
+        <label class="avatar-label" for="profileImageInput">
+          <img id="profileAvatar" src="icon_my_b.png" alt="avatar">
+          <input type="file" id="profileImageInput" accept="image/*" style="display:none;">
+          <button type="button" class="change-photo-btn">프로필 사진 변경</button>
+        </label>
+        <div class="info">
+          <h3 id="profileName">UserName</h3>
+          <div class="role" id="profileEmail">user@example.com</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- (오른쪽) 내 문제지 카드 -->
+  <div class="mysheet-board" style="flex:1 1 420px; background:#fff;border:1px solid #e9e9e9;border-radius:22px;box-shadow:0 4px 12px rgba(0,0,0,.04);padding:28px;min-height:420px;">
+    <h2 style="font-size:1.25rem;font-weight:900;margin-bottom:22px;">회원 정보</h2>
+    <div class="member-info">
+  <div><b>ID(이메일)</b> : <span id="mem-email">-</span></div>
+  <div><b>이름</b> : <span id="mem-name">-</span></div>
+  <div><b>휴대폰 번호</b> : <span id="mem-phone">-</span></div>
+  <div style="margin-top:8px;">
+    <b>현금영수증 발급 번호</b> : 
+    <input id="mem-biz-input" type="text" placeholder="사업자/휴대폰번호" style="width:160px;padding:3px 7px;border:1px solid #ddd;border-radius:7px;font-size:1rem;">
+    <button id="mem-biz-save" style="padding:3px 12px;margin-left:4px;font-size:0.97rem;border-radius:7px;background:#218155;color:#fff;border:none;cursor:pointer;">저장</button>
+    <span id="mem-biz-view" style="margin-left:8px;color:#218155;font-weight:700;display:none;"></span>
+  </div>
+  <div style="margin-top:14px;">
+    <b>등급</b> : <span id="mem-grade" class="grade-label">-</span>
+  </div>
+</div>
+    <!-- 원하는 내용 추가 -->
+  </div>
+</div>
+
+<!-- Swiper JS (광고배너용) -->
+<script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
+<script>
+/* ── Swiper 광고배너 ───────────────────────── */
+const adSwiper = new Swiper('.adSwiper', {
+  loop: true,
+  grabCursor: true,
+  autoplay: { delay: 5000 },
+  pagination: {
+    el: '.adSwiper .swiper-pagination',
+    clickable: true,
+    },
+});
+
+/* 5초마다 자동 슬라이드 */
+setInterval(()=>{
+  if(!noticeData.length) return;
+  noticePage = (noticePage+1) % Math.ceil(noticeData.length/NOTICE_PER_PAGE);
+  renderNotices();
+},5000);
+
+async function setProfileInfo() {
+  try {
+    const res = await fetch('/check-auth?ts=' + Date.now(), {
+      credentials: 'include',
+      cache: 'no-store'
+    });
+    const d = await res.json();
+    if(!d.isLoggedIn) return;
+
+    const u = d.user || {};
+    const displayId = u.email ? u.email.split('@')[0] : (u.name || 'User');
+    document.getElementById('profileName').textContent = displayId;
+    document.getElementById('profileEmail').textContent = u.email || '-';
+    if(u.avatarUrl){
+      document.getElementById('profileAvatar').src = u.avatarUrl;
+    }
+  } catch(e) {}
+}
+setProfileInfo();
+
+document.getElementById('profileImageInput').addEventListener('change', async function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  // 미리보기
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    document.getElementById('profileAvatar').src = evt.target.result;
+  };
+  reader.readAsDataURL(file);
+
+  // 서버 업로드
+  const formData = new FormData();
+  formData.append('avatar', file);
+
+  try {
+    const res = await fetch('/api/upload-profile-photo', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include'
+    });
+    const result = await res.json();
+    if(result.success && result.avatarUrl){
+      document.getElementById('profileAvatar').src = result.avatarUrl;
+    } else {
+      alert('프로필 사진 업로드에 실패했습니다.');
+    }
+  } catch (err) {
+    alert('업로드 에러: ' + err);
+  }
+});
+
+async function setProfileInfo() {
+  try {
+    const res = await fetch('/check-auth?ts=' + Date.now(), {
+      credentials: 'include', cache: 'no-store'
+    });
+    const d = await res.json();
+    if(!d.isLoggedIn) return;
+
+    const u = d.user || {};
+    // 프로필카드
+    document.getElementById('profileName').textContent = u.email ? u.email.split('@')[0] : (u.name || '-');
+    document.getElementById('profileEmail').textContent = u.email || '-';
+    if(u.avatarUrl){
+      document.getElementById('profileAvatar').src = u.avatarUrl;
+    }
+
+    // 정보 카드
+    document.getElementById('mem-email').textContent = u.email || '-';
+    document.getElementById('mem-name').textContent = u.name || '-';
+    document.getElementById('mem-phone').textContent = u.phone || '-';
+    if(u.bizNum){ showBizNum(u.bizNum); }
+
+    // 등급
+    const gradeSpan = document.getElementById('mem-grade');
+    let label = '-', cls = '';
+    switch((u.grade||'').toLowerCase()){
+      case 'gold':   label = '골드';   cls = 'grade-gold';   break;
+      case 'silver': label = '실버';   cls = 'grade-silver'; break;
+      case 'bronze': label = '브론즈'; cls = 'grade-bronze'; break;
+    }
+    gradeSpan.textContent = label;
+    gradeSpan.className = 'grade-label ' + cls;
+
+  } catch(e){}
+}
+setProfileInfo();
+
+document.getElementById('mem-biz-save').onclick = async function() {
+  const value = document.getElementById('mem-biz-input').value.trim();
+  if(!value) return alert('번호를 입력하세요');
+  try {
+    const res = await fetch('/api/update-biznum', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      credentials: 'include',
+      body: JSON.stringify({ bizNum: value })
+    });
+    const d = await res.json();
+    if(d.success){
+      showBizNum(value);
+      alert('저장되었습니다!');
+    } else {
+      alert('저장 실패!');
+    }
+  } catch(e){
+    alert('오류 발생');
+  }
+};
+function showBizNum(bizNum) {
+  document.getElementById('mem-biz-input').style.display = 'none';
+  document.getElementById('mem-biz-save').style.display = 'none';
+  const v = document.getElementById('mem-biz-view');
+  v.textContent = bizNum;
+  v.style.display = 'inline';
+}
+
+document.querySelector('.change-photo-btn').onclick = function() {
+  document.getElementById('profileImageInput').click();
+};
+
+
+</script>
+</body>
+</html>

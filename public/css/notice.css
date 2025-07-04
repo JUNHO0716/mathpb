@@ -1,0 +1,91 @@
+  .notice-title{display:none;}
+
+    .notice-date{width:120px;text-align:right;color:#868686;font-size:.95em;margin-left:10px;}
+    .notice-arrow{width:24px;text-align:right;color:#b5b5b5;font-size:1.5em;margin-left:16px;}
+
+    .notice-item.active {color:#1fa266;font-weight:900;}
+    .notice-item.active{background:#e8fbe9;}
+    .notice-detail-row{border-bottom:2px solid #a8f7bc;}
+
+    @keyframes fadeIn{from{opacity:0;transform:translateY(-5px);}to{opacity:1;transform:translateY(0);}}
+
+    .pagination{display:flex;justify-content:center;align-items:center;gap:10px;padding:20px 0 28px;color:#bbb;font-size:1rem;user-select:none;}
+    .pagination span{cursor:pointer;padding:2px 7px;transition:background .12s;}
+    .pagination span:hover:not(.active){background:#f5f7fa;}
+    .pagination .active{color:#111;font-weight:700;border-bottom:2px solid #a8f7bc;padding:2px 7px;border-radius:5px 5px 0 0;}
+
+    /* 플로팅(+) 버튼 */
+    #fab-add{display:none;position:fixed;right:54px;bottom:44px;width:58px;height:58px;border-radius:50%;background:#238058;color:#fff;font-size:2.4rem;box-shadow:0 8px 24px #23805844;border:none;cursor:pointer;z-index:999;transition:background .13s,box-shadow .13s;display:flex;align-items:center;justify-content:center;}
+    #fab-add:hover{background:#20b26a;box-shadow:0 8px 32px #23805833;}
+
+    /* 공지 등록 모달 */
+    #notice-modal-bg{display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,.18);z-index:2000;justify-content:center;align-items:center;}
+    #notice-modal-bg.show{display:flex;}
+    #notice-modal-box{background:#fff;border-radius:18px;box-shadow:0 6px 24px #23805822;padding:36px 28px 28px;min-width:340px;width:600px;max-width:95vw;display:flex;flex-direction:column;gap:18px;position:relative;animation:modalpop .18s;}
+    @keyframes modalpop{from{opacity:0;transform:scale(.96);}to{opacity:1;transform:scale(1);}}
+    #notice-modal-close{position:absolute;right:32px;top:24px;font-size:2.1rem;color:#b9b9b9;background:none;border:none;cursor:pointer;font-weight:700;transition:color .13s;}
+    #notice-modal-close:hover{color:#238058;}
+    #notice-modal-box label{font-size:1.02rem;font-weight:700;color:#199150;margin:7px 0 4px;display:block;}
+    #notice-modal-box input[type="text"],
+    #notice-modal-box textarea{font-size:1rem;border:1.2px solid #c5e1d6;border-radius:7px;padding:12px;background:#f6faf7;width:100%;box-sizing:border-box;}
+    #notice-modal-box textarea{min-height:120px;max-height:240px;resize:vertical;line-height:1.5;}
+    #notice-modal-box input[type="file"]{font-size:.95rem;margin-top:7px;}
+    #notice-modal-box button[type="submit"]{margin-top:18px;background:#238058;color:#fff;border:none;border-radius:7px;font-size:1.09rem;padding:13px 0;cursor:pointer;font-weight:700;letter-spacing:.09em;transition:background .13s;}
+    #notice-modal-box button[type="submit"]:hover{background:#20b26a;}
+
+    /* ---------- 공지 컨테이너 ---------- */
+    .notice-container{
+      width:calc(100% - 40px);
+      max-width:1500px;
+      /* margin:140px auto 0;   기존 → 너무 멀다 */
+      margin:20px auto 0;        /* ← 원하는 만큼 숫자만 줄이면 OK */
+      background:#fff;
+      border-radius:12px;
+      box-shadow:0 4px 24px #0001;
+      padding:32px 0 24px;
+    }
+
+    /* ---------- 공지 표 ---------- */
+    .notice-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+    .notice-table thead{background:#fafafa;position:sticky;top:0;z-index:1;}
+    .notice-table th,.notice-table td{padding:14px 22px;font-size:.95rem;border-bottom:1px solid #eee;}
+    .notice-table th{color:#666;text-align:left;font-weight:600;}
+    .notice-table td.cat {width:80px;color:#555;}
+    .notice-table td.date{width:110px;text-align:right;color:#888;}
+    .notice-table td.title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;color:#222;}
+    .notice-table tr:hover td{background:#f9f9f9;}
+
+    /* NEW 뱃지 */
+    .badge-new{
+      display:inline-block;margin-right:8px;padding:3px 6px 2px;
+      font-size:.75rem;font-weight:700;color:#fff;background:#e31b23;border-radius:3px;
+    }
+
+    /* ★ 제목 배너  (네이비 톤, 가로 100%) */
+    .page-banner{
+      width:100%;
+      background:#ffffff;           /* 원하는 색상 */
+      color:#111;
+      padding:70px 0;               /* 위·아래 높이 */
+      border-bottom:1px solid #000000;
+    }
+    
+    .page-banner .inner{
+      max-width:1400px;             /* 헤더와 같은 좌우 여백 */
+      margin:0 auto;
+      padding:0 40px;
+    }
+    .page-banner h2{
+      font-size:2.4rem;
+      font-weight:900;
+      margin:0 0 14px 0;
+    }
+    .page-banner p{
+      font-size:1.05rem;
+      line-height:1.5;
+      opacity:.85;
+      margin:0;
+    }
+
+    .notice-table th,
+    .notice-table td{ text-align:center !important; }

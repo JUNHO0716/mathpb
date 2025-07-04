@@ -15,50 +15,79 @@
        1. 기본 초기화 & Body 설정 (메인페이지와 동일)
        ============================================== */
     html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      min-height: 100vh;
-      background: #f6faf6;
-      font-family: 'Noto Sans KR', Arial, sans-serif;
-      color: #1c4135;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Noto Sans KR', Arial, sans-serif;
+    background: #ededed;
+    box-sizing: border-box;
+  }
 
-      /* 수정된 부분 */
-      display: block;           /* ✅ flex 제거 */
-      overflow-y: auto;         /* ✅ 세로 스크롤 가능 */
-      padding: 40px 0;          /* ✅ 상하 여백 조금 추가 (선택) */
-    }
+  /* 1. 바깥 wrapper: flex 중앙정렬 */
+  .signup-center-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100vw;
+    background: #f0f0f0;
+    box-sizing: border-box;
+  }
 
-    /* ==============================================
-       2. 회원가입 카드 (.signup-card) — 원본 그대로
-       ============================================== */
+  /* 2. 이중배경: 카드보다 약간 크고, 안에 카드 중앙정렬 */
+  .signup-card-bg {
+    width: 750px;            /* 카드보다 약간 크게! */
+    min-height: 700px;
+    background: rgba(80,110,160,0.07);
+    border-radius: 28px;
+    box-shadow: 0 12px 38px rgba(60,80,160,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: none;        /* 흔들림 방지 */
+    box-sizing: border-box;
+    padding: 0;              /* 필요하면 여백 추가 */
+  }
+
+  /* 3. 카드: 중앙정렬, 크기 고정 */
+  .signup-card {
+    width: 700px;
+    min-height: 520px;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 6px 36px rgba(50,80,200,0.10);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin: 0;
+    box-sizing: border-box;
+    transition: none;        /* 흔들림 방지 */
+  }
+
+  /* 반응형: 모바일은 꽉차게 */
+  @media (max-width: 800px) {
+    .signup-card-bg {
+      width: 98vw;
+      min-width: 0;
+      border-radius: 0;
+    }
     .signup-card {
-      margin: 0 auto;
-      margin-top: 40px; /* 원하는 만큼 위쪽 띄우기 */
-      width: 700px;
-      min-height: 520px;
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 6px 36px rgba(50,80,200,0.10);
-      margin-bottom: 16px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      position: relative;
+      width: 96vw;
+      min-width: 0;
+      border-radius: 0;
     }
-
+  }
     /* ==============================================
        3. 상단 헤더 (.signup-header) — 그린 계열로 변경
        ============================================== */
     .signup-header {
       /* 원본: linear-gradient(135deg, #4a6cf7 70%, #6f90fe 100%); */
-      background: linear-gradient(135deg, #27a267 70%, #19763c 100%);
+      background: #fff;
       padding: 30px 32px 17px 32px;
-      color: #fff;
+      color: #111;
       text-align: left;
       position: relative; /* 닫기 버튼 배치를 위해 상대위치 지정 */
+      border-bottom: 1px solid #ddd; /* 얇은 회색 선 */
     }
     .signup-header h1 {
       font-size: 2rem;
@@ -81,13 +110,13 @@
       right: 16px;
       background: none;
       border: none;
-      color: #ffffff;
+      color: #111;
       font-size: 1.2rem;
       cursor: pointer;
       transition: color 0.15s;
     }
     .close-btn:hover {
-      color: #e0f0e7; /* 살짝 밝게 */
+      color: #ce1313; /* 살짝 밝게 */
     }
 
     /* ==============================================
@@ -141,6 +170,7 @@
       border-radius: 7px;
       font-size: 1rem;
       background: #f9fbfe;
+      height: 46px; /* 고정 */
       transition: border 0.2s;
       margin-bottom: 0;
       box-sizing: border-box;
@@ -152,13 +182,13 @@
     .signup-form select:focus {
       outline: none;
       /* 원본: border: 1.5px solid #4a6cf7; */
-      border: 1.5px solid #27a267;
+      border: 1.5px solid #000; /* 두께 유지 */
       background: #fff;
     }
     /* 중복 확인 버튼 색상 변경 */
     .btn-check {
       /* 원본: background: #4a6cf7; */
-      background: #27a267;
+      background: #111;
       color: #fff;
       border: none;
       border-radius: 6px;
@@ -174,12 +204,12 @@
     }
     .btn-check:hover {
       /* 원본: background: #254baf; */
-      background: #19763c;
+      background: #5b5b5b;
     }
     .signup-form .address-row {
-      flex-direction: column;
-      gap: 0;
-    }
+        flex-direction: row; /* 한 줄로 배치 */
+        gap: 8px;            /* 칸 사이 여백 */
+      }
     .signup-form .address-row input {
       margin-bottom: 6px;
     }
@@ -216,11 +246,11 @@
     }
     .signup-btn.submit {
       /* 원본: background: #2aa7ff; */
-      background: #27a267;
+      background: #111;
     }
     .signup-btn.submit:hover {
       /* 원본: background: #1b84d6; */
-      background: #19763c;
+      background: #5b5b5b;
     }
 
     /* 결과 메시지 영역 — 원본 그대로 */
@@ -268,7 +298,7 @@
       font-size: 1.18rem;
       font-weight: bold;
       margin-bottom: 12px;
-      color: #3051c8;
+      color: #FDC512;
     }
     .modal-msg {
       font-size: 1.05rem;
@@ -277,7 +307,7 @@
     }
     .modal-btn {
       /* 원본: background: #4a6cf7; */
-      background: #27a267;
+      background: #111;
       color: #fff;
       border: none;
       border-radius: 7px;
@@ -289,7 +319,7 @@
     }
     .modal-btn:hover {
       /* 원본: background: #254baf; */
-      background: #19763c;
+      background: #111;
     }
 
     /* ==============================================
@@ -315,9 +345,12 @@
       }
     }
   </style>
+  <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>
 <body>
-  <div class="signup-card">
+  <div class="signup-center-wrap">
+    <div class="signup-card-bg">
+      <div class="signup-card">
     <!-- 1) 상단 헤더 -->
     <div class="signup-header">
       <h1>회원가입</h1>
@@ -351,13 +384,16 @@
         <!-- 주소 -->
         <div class="signup-label">주소 <span class="star">*</span></div>
         <div class="signup-row address-row">
-          <input type="text" id="signup_addr1" placeholder="주소를 입력해주세요" required autocomplete="off">
+          <input type="text" id="signup_addr1" placeholder="주소를 입력해주세요" readonly required autocomplete="off">
+          <button type="button" class="btn-check" onclick="execDaumPostcode()">주소 찾기</button>
+        </div>
+        <div class="signup-row">
           <input type="text" id="signup_addr2" placeholder="상세주소" autocomplete="off">
         </div>
 
         <!-- 전화번호 -->
         <div class="signup-label">전화번호 <span class="star">*</span></div>
-        <input type="text" id="signup_phone" placeholder="휴대폰 번호 입력('-' 제외 11자리 입력)" maxlength="11" required autocomplete="off">
+        <input type="text" id="signup_phone" placeholder="휴대폰 번호 입력" required autocomplete="off">
 
         <!-- 이메일 -->
         <div class="signup-label">이메일 주소 <span class="star">*</span></div>
@@ -371,6 +407,7 @@
             <option value="gmail.com">gmail.com</option>
             <option value="daum.net">daum.net</option>
             <option value="nate.com">nate.com</option>
+            <option value="hanmail.com">hanmail.com</option>
             <option value="직접입력">직접입력</option>
           </select>
         </div>
@@ -541,6 +578,31 @@
         showModal("서버 오류", "서버 연결에 실패했습니다.");
       }
     };
+
+    document.getElementById('signup_phone').addEventListener('input', function (e) {
+      let value = e.target.value.replace(/[^0-9]/g, '').slice(0, 11);  // 숫자 11자 제한
+      let result = '';
+
+      if (value.length < 4) {
+        result = value;
+      } else if (value.length < 8) {
+        result = value.slice(0,3) + '-' + value.slice(3);
+      } else {
+        result = value.slice(0,3) + '-' + value.slice(3,7) + '-' + value.slice(7,11);
+      }
+      e.target.value = result;
+    });
+
+    function execDaumPostcode() {
+    new daum.Postcode({
+      oncomplete: function(data) {
+        // 도로명 주소 또는 지번 주소
+        let addr = data.roadAddress ? data.roadAddress : data.jibunAddress;
+        document.getElementById("signup_addr1").value = addr;
+        document.getElementById("signup_addr2").focus();
+      }
+    }).open();
+  }
   </script>
 </body>
 </html>

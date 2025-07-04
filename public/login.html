@@ -1,335 +1,318 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap" rel="stylesheet">
   <meta charset="UTF-8">
   <title>로그인창 | 수학문제은행</title>
   <link rel="icon" type="image/png" href="/favicon.png" />
   <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:400,700&display=swap" rel="stylesheet">
   <style>
-    /* ==============================================
-       1. 기본 초기화 & Body 설정 (원본 그대로)
-       ============================================== */
-    html, body { height: 100%; margin: 0; padding: 0; }
     body {
+      margin: 0; padding: 0;
       min-height: 100vh;
-      background: #f6faf6; /* 메인페이지 배경(연한 그린)와 통일 */
+      background: #f5f5f5;
       font-family: 'Noto Sans KR', Arial, sans-serif;
+      display: flex; 
+      align-items: stretch; 
+      justify-content: flex-end;
+      height: 100vh;
+    }
+    .main-container {
+      width: 1320px; max-width: 97vw;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    /* ==============================================
-       2. 로그인 래퍼 (.login-wrapper) — 원본 그대로
-       ============================================== */
-    .login-wrapper {
-      width: 900px;
-      min-height: 500px;
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 6px 36px rgba(50,80,200,0.10);
-      display: flex;
-      overflow: hidden;
-      margin-bottom: 15px;
-    }
-
-    /* ==============================================
-       3. 왼쪽 패널 (.left-panel) — 색상만 메인 그린으로 변경
-       ============================================== */
-    .left-panel {
-      flex: 1.1;
-      /* 원본: background: linear-gradient(135deg, #4a6cf7 60%, #6f90fe 100%); */
-      background: linear-gradient(135deg, #27a267 60%, #19763c 100%);
-      color: #fff;
-      padding: 0 38px;
-      display: flex;
-      flex-direction: column;
+      justify-content: flex-start;
+      padding: 80px;
       align-items: flex-start;
-      min-width: 340px;
-      justify-content: flex-start;
+      box-sizing: border-box;
+    }
+    /* 왼쪽 배경 (지도 느낌 SVG or PNG로 대체) */
+    .left-bg {
+      flex: 1.4;
       position: relative;
-    }
-    .left-textbox { margin-top: 10px; margin-bottom: 0; }
-    .left-panel h1 {
-      font-size: 2rem;
-      margin-bottom: 14px;
-      line-height: 1.36;
-      font-weight: 700;
-    }
-    .left-panel .sub {
-      font-size: 1rem;
-      opacity: 0.88;
-      letter-spacing: 0.02em;
-      font-weight: 400;
-    }
-
-    /* ==============================================
-       4. 오른쪽 패널 (.right-panel) — 배경색만 메인페이지와 통일
-       ============================================== */
-    .right-panel {
-      flex: 1;
-      background: #fff; /* 원본과 동일 (메인페이지 카드 내부 흰색) */
+      border-radius: 0 0 0 0;
+      background: #111;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 32px 32px 0 32px;
-      position: relative;
+      justify-content: flex-start; /* 위쪽으로 */
+      height: 100%; 
     }
-    
-    .logo-area {
+    /* 오른쪽 카드 (오버랩) */
+    .login-card {
+      flex: 1.1;
+      min-width: 0;
+      background: #fff;
+      border-radius: 15px 15px 15px 15px;
+      box-shadow: 0 7px 24px 0 rgba(30,40,90,0.2), 0 1px 3px rgba(30,30,30,0.04);
+      position: absolute;
+      right: 800px;  /* 약간 오버랩 */
+      top: 50%; transform: translateY(-50%);
+      width: 500px; max-width: 94vw;
+      height: 750px;
+      min-height: 630px;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      z-index: 4;
+      padding: 0 0 0 0;
+    }
+    /* 로그인 패널에 로고+회사명 */
+    .login-logo-wrap {
       width: 100%;
-      text-align: center;
-      margin-bottom: 16px;
-      margin-top: -5px;
       display: flex;
+      flex-direction: column;   /* 세로로! */
+      align-items: center;      /* 가운데! */
       justify-content: center;
-      align-items: center;
+      gap: 8px;                 /* 로고와 글씨 사이 간격 */
+      padding: 40px 0 14px 0;   /* 위, 아래 간격 조절 */
+      box-sizing: border-box;
     }
-    .logo-area img { height: 130px; margin-bottom: -20px; }
+    .login-logo-wrap img {
+      width: 54px; height: 54px;
+      border-radius: 13px;
+      object-fit: contain;
+    }
+    .login-logo-wrap span {
+      margin-top: 3px;
+      font-size: 1.32rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: #23232b;
+      text-align: center;
+    }
 
-    /* ==============================================
-       5. 로그인 폼 (인풋, 버튼, 체크박스 등)
-       ============================================== */
-    .login-form-wrap { display: flex; flex-direction: column; align-items: center; margin-top: 40px; width: 100%; margin-bottom: 30px; }
-    .login-form {
+    /* 입력폼 영역 */
+    .login-form-wrap {
       width: 100%;
-      max-width: 320px;
-      margin: 0 auto;
-      margin-top: 0;
-      margin-bottom: 0;
+      padding: 44px 34px 12px 34px;
+      display: flex; flex-direction: column; align-items: center;
+      margin: 0; background: none;
+    }
+    .login-form {
+      width: 100%; max-width: 370px;
+      margin: 0 auto; margin-bottom: 4px; margin-top: 0;
+      background: none;
     }
     .login-form input[type="text"],
     .login-form input[type="password"] {
       width: 100%;
-      margin-bottom: 12px;
-      padding: 13px 14px;
-      border: 1.5px solid #e0e6ee;
-      border-radius: 7px;
+      margin-bottom: 24px;
+      padding: 11px 0;
+      border: none;
+      border-bottom: 1.4px solid #d7d7d7;
+      border-radius: 0;
       font-size: 1rem;
-      background: #f9fbfe;
-      box-sizing: border-box; /* ✅ 이것 꼭 추가해 */
-      transition: border 0.2s;
+      background: transparent;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+      outline: none;
     }
     .login-form input:focus {
-      outline: none;
-      /* 원본: border: 1.5px solid #4a6cf7; */
-      border: 1.5px solid #27a267;
-      background: #fff;
+      border-bottom: 1.8px solid #111;
+      background: transparent;
     }
-
-    /* 체크박스 색상만 메인그린 계열로 변경 */
-    .checkbox-area { display: flex; align-items: center; margin-bottom: 18px; font-size: 0.97em; }
+    .checkbox-area { display: flex; align-items: center; margin-bottom: 14px; font-size: 0.98em; }
     .checkbox-area input[type="checkbox"] {
-      margin-right: 7px;
-      /* 원본: accent-color: #4a6cf7; */
-      accent-color: #27a267;
-      width: 17px;
-      height: 17px;
+      margin-right: 7px; accent-color: #222; width: 16px; height: 16px;
     }
-
-    /* ==============================================
-       6. 로그인 버튼 색상만 메인 그린으로 변경
-       ============================================== */
     .login-form button {
       width: 100%;
-      /* 원본: background: #4a6cf7; */
-      background: #27a267;
+      background: #23232b;
       color: #fff;
-      font-size: 1.13rem;
-      font-weight: 700;
-      border: none;
-      border-radius: 7px;
-      padding: 13px;
-      margin-top: 5px;
+      font-size: 1.13rem; font-weight: 700;
+      border: none; border-radius: 8px;
+      padding: 13px; margin-top: 3px;
+      box-shadow: 0 2px 10px 0 rgba(40,30,80,0.08);
       transition: background 0.17s;
       cursor: pointer;
+      letter-spacing: 0.03em;
     }
     .login-form button:hover {
-      /* 원본: background: #254baf; */
-      background: #19763c;
+      background: #4f5365;
     }
+    .login-result { display:none; margin:10px auto 0; text-align:center; font-size:0.92rem;}
+    .login-result.error { color:#d9534f; font-weight:300; }
 
-    /* ==============================================
-       7. 링크 영역 (회원가입/비번찾기) — 텍스트 색상만 조정
-       ============================================== */
     .links-area {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 14px 0 2px 0;
-      color: #8d98a7;
-      font-size: 0.99em;
+      display: flex; justify-content: center; align-items: center;
+      margin: 12px 0 2px 0; color: #8d98a7; font-size: 0.99em;
     }
     .links-area span {
-      margin: 0 10px;
-      color: #d4dbe2;
-      font-size: 1.1em;
-      font-weight: 300;
+      margin: 0 10px; color: #d4dbe2; font-size: 1.1em; font-weight: 300;
     }
     .links-area a {
-      /* 원본: color: #6f90fe; */
-      color: #27a267;
-      text-decoration: none;
-      transition: color 0.2s;
-      font-weight: 500;
+      color: #222; text-decoration: none; transition: color 0.2s; font-weight: 500;
     }
-    .links-area a:hover {
-      /* 원본: color: #254baf; */
-      color: #19763c;
-      text-decoration: underline;
-    }
-
-    /* ==============================================
-       8. 로그인 결과 메시지 — 원본 그대로
-       ============================================== */
-    .login-result{
-      display:none;
-      margin:12px auto 0;     /* 중앙 */
-      text-align:center;
-      font-size:0.9rem;
-    }
-
-    .login-result.error   { color:#d9534f; font-weight:300; }   /* 빨간 글씨 */
-
-    /* ==============================================
-       9. 하단 Info 바 — 메인페이지와 동일하게 조정
-       ============================================== */
-    .info-bar {
-      width: 900px;
-      margin: 0 auto;
-      text-align: center;
-      font-size: 0.85em;
-      color: #9da4b4;
-      background: #f6faf6; /* 메인페이지 배경과 동일 */
-      padding: 12px 0 2px 0;
-      letter-spacing: 0.01em;
-    }
-
-    /* ==============================================
-       10. 반응형 처리 — 원본 그대로
-       ============================================== */
-    @media (max-width: 800px) {
-      html, body {
-        height: auto;
-        min-height: 100vh;
-        display: block;
-      }
-      .login-wrapper {
-        flex-direction: column;
-        margin: 40px 8px 8px 8px;
-        width: 98vw;
-      }
-      .left-panel, .right-panel {
-        min-width: 0;
-      }
-      .left-panel {
-        padding: 26px 19px 0 19px;
-        align-items: center;
-      }
-      .right-panel {
-        padding: 22px 12px 8px 12px;
-      }
-      .login-form-wrap {
-        margin-top: 32px;
-      }
-      .info-bar {
-        width: 98vw;
-        font-size: 0.78em;
-      }
-    }
+    .links-area a:hover { color: #444; text-decoration: underline; }
+    /* 소셜 로그인 */
     .social-divider-box {
-      margin: 28px 0 14px 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      width: 100%;
+      margin: 22px 0 13px 0;
+      display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%;
     }
-
-    .divider-line {
-      flex: 1;
-      height: 1px;
-      background: #ccc;
-      max-width: 140px;
-    }
-
-    .divider-text {
-      color: #999;
-      font-size: 0.95em;
-      font-weight: 500;
-    }
-
+    .divider-line { flex: 1; height: 1px; background: #ccc; max-width: 160px;}
+    .divider-text { color: #999; font-size: 0.95em; font-weight: 500;}
     .social-login-box {
-      display: flex;
-      justify-content: center;
-      flex-direction:column;
-      width: 100%;
-      gap:12px;
+      display: flex; gap: 20px; justify-content: center; width: 100%; max-width: 320px; margin-bottom: 8px;
     }
-
     .social-btn {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 18px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 1rem;
-      border: 1.5px solid #ddd;
-      text-decoration: none;
-      color: #5e5e5e;
-      background: #fff;
-      transition: box-shadow 0.15s;
-      width: 85%;          /* ✅ 너비 전체 확장 */
-      max-width: 340px;     /* ✅ 버튼이 너무 길어지지 않도록 제한 (원하시면 더 키움) */
-      justify-content: center; /* ✅ 아이콘 + 글씨 가운데 정렬 */
+      border-radius: 50%; width: 54px; height: 54px;
+      display: flex; align-items: center; justify-content: center;
+      border: none; background: #f2f2f2; margin: 0 5px;
+      box-shadow: 0 1px 6px rgba(40,60,100,0.07);
+      transition: box-shadow 0.12s, border 0.16s;
+      padding: 0;
     }
-    .social-btn:hover {
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    }
-    .social-btn.kakao-btn{
-  border:1.5px solid #fee500;
-  background:#fff;
-  color:#3c1e1e;        /* 카카오 로고 본색 */
-  font-size:0.95rem;
-}
-    .social-btn.kakao-btn:hover{ box-shadow:0 4px 16px rgba(0,0,0,.08); }
-    .social-btn img {
-      height: 22px;
-      width: 22px;
-    }
-    .gray-links a {
-      color: #999 !important;
-      font-weight: 400;
-      font-size: 0.95em;
-    }
-    /* 네이버 버튼 전용 */
-    .social-btn.naver-btn {
-      border: 1.5px solid #03c75a;
-      color: #5e5e5e;
-      font-size: 0.95rem;
-    }
+      .social-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(243, 247, 241, 1);
+      }
+    
+    .social-btn img { width: 48px; height: 48px; }
+    .social-btn.naver-btn { background: #13c300; }
+    .social-btn.kakao-btn { background: #fee500; }
+    .social-btn.google-btn { background: #fff; }
+    .social-btn.apple-btn { background: #ffffff; }
 
-    .social-btn.naver-btn:hover {
-      background: #f0fff4;
+.corner-box {
+  position: static;
+  width: 100%;
+  height: 130px;
+  background: #111;
+  border-radius: 15px 15px 0 60px;
+  z-index: 10;
+
+  display: flex;
+  align-items: center; /* 수직 중앙 */
+  justify-content: center; /* 수평 중앙 */
+}
+.corner-img {
+  width: 80px;
+  height: auto;
+  object-fit: contain;
+}
+
+.left-deco {
+  position: fixed;
+  top: 30px;
+  left: 30px;
+  display: flex;
+  flex-direction: row; /* 가로로 배치 */
+  align-items: center;
+  gap: 12px;
+  z-index: 1000;
+}
+
+.logo-img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+.logo-text {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #ffd400;
+  letter-spacing: 0.5px;
+}
+
+.yellow-box {
+  position: fixed;
+  top: 25%;
+  right: 360px; /* 왼쪽에 딱 붙게 */
+  transform: translateY(-50%);
+  width: 65px;
+  height: 65px;
+  background: #ffd400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
+.sns-links {
+  position: fixed; /* 기존 absolute → fixed */
+  right: 50px;
+  display: flex;
+  gap: 80px;
+  bottom: 60px;
+  z-index: 20;
+}
+
+.sns-links a img {
+  width: 38px;
+  height: px;
+  object-fit: contain;
+  transition: transform 0.2s;
+}
+
+.sns-links a img:hover {
+  transform: scale(1.15);
+}
+
+.left-text {
+  color: #fff;
+  padding: 210px 60px; /* 위 padding 제거, 좌우 유지 */
+  z-index: 5;
+}
+.left-text h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 2.2rem;
+  line-height: 1.3;
+  margin: 0 0 20px 0;
+}
+.left-text p {
+  font-size: 1.1rem;
+  color: #ddd;
+  margin: 0;
+}
+
+    
+    @media (max-width: 970px) {
+      .main-container { width: 99vw; min-width: 0; height: auto; flex-direction: column;}
+      .left-bg { border-radius: 22px 22px 0 0; min-height: 220px;}
+      .login-card { position: static; right: 0; top: 0; transform: none; margin: -44px auto 0 auto; box-shadow: 0 4px 22px 0 rgba(30,40,90,0.12);}
+    }
+    @media (max-width: 630px) {
+      .main-container, .login-card, .left-bg { border-radius: 14px !important; }
+      .left-content { padding: 28px 16px 26px 16px;}
+      .login-form-wrap { padding: 26px 9px 10px 9px;}
+      .login-card { width: 98vw;}
     }
 
   </style>
 </head>
 <body>
-  <div class="login-wrapper">
-    <div class="left-panel">
-      <div class="left-textbox">
-        <h1>지금 로그인하고<br>차원이 다른 기출문제를<br>경험하세요.</h1>
-        <div class="sub">기출문제 편집/해설<br>유형별 기출문제</div>
+    <div class="left-deco">
+      <img src="logo_m.png" class="logo-img" alt="로고">
+      <div class="logo-text">M.class</div>
+    </div>
+      <div class="yellow-box">
       </div>
     </div>
-    <div class="right-panel">
-      <div class="logo-area">
-        <img src="logo.png" alt="M CLASS" />
+      <div class="main-container">
+    </div>
+    <!-- 왼쪽 지도 배경 영역 -->
+    <div class="left-bg">
+        <div class="left-text">
+        <h2>Welcome to<br>수학 문제은행</h2>
+        <p>여기에 짧은 설명이나 캐치프레이즈를 넣으세요.</p>
       </div>
+        <div class="sns-links">
+    <a href="https://yourblog.com" target="_blank"><img src="blog_icon.png" alt="블로그"></a>
+    <a href="https://instagram.com/youraccount" target="_blank"><img src="insta_icon.png" alt="인스타그램"></a>
+    <a href="https://pf.kakao.com/_xxxxxx" target="_blank"><img src="kakaoch_icon.png" alt="카카오채널"></a>
+  </div>
+    </div>
+    <!-- 오른쪽 오버랩 카드 (폼/소셜/링크 모두 기존 그대로) -->
+    <div class="login-card">
+      <div class="corner-box">
+        <img src="login.png" alt="코너 이미지" class="corner-img">
+      </div>
+      <div class="login-logo-wrap">
+      <img src="logo_b.png" alt="로고">
+      <span>수학지니</span>
+    </div>
       <div class="login-form-wrap">
         <form class="login-form" id="loginForm">
           <input type="text" id="login_email" placeholder="아이디를 입력하세요." required autocomplete="username">
@@ -341,42 +324,35 @@
           <button type="submit">로그인</button>
           <div id="loginResult" class="login-result" style="display:none;"></div>
         </form>
-          <div class="links-area gray-links">
-            <a href="signup.html">회원가입</a>
-            <span>|</span>
-            <a href="resetpw.html">비밀번호 찾기</a>
-          </div>
+        <div class="links-area gray-links">
+          <a href="signup.html">회원가입</a>
+          <span>|</span>
+          <a href="resetpw.html">비밀번호 찾기</a>
+        </div>
         <div class="social-divider-box">
           <div class="divider-line"></div>
-          <div class="divider-text">또는</div>
+          <div class="divider-text">or with</div>
           <div class="divider-line"></div>
         </div>
-
         <div class="social-login-box">
-          <a href="/auth/google" class="social-btn">
-            <img src="https://developers.google.com/identity/images/g-logo.png" alt="G">
-            구글 계정으로 로그인
+          <a href="/auth/google" class="social-btn google-btn" title="Google 로그인">
+            <img src="google_icon.png" alt="Google">
           </a>
-
-          <a href="/auth/naver" class="social-btn naver-btn">
-            <img src="naver_icon.png" alt="N">
-            네이버 계정으로 로그인
+          <a href="/auth/naver" class="social-btn naver-btn" title="Naver 로그인">
+            <img src="naver_icon.png" alt="Naver">
           </a>
-
-          <a href="/auth/kakao" class="social-btn kakao-btn">
-            <img src="kakao_icon.png" alt="K">
-            카카오 계정으로 로그인
+          <a href="/auth/kakao" class="social-btn kakao-btn" title="Kakao 로그인">
+            <img src="kakao_icon.png" alt="Kakao">
           </a>
-        </div><!-- 🔚 social-login-box -->
+          <a href="/auth/apple" class="social-btn apple-btn" title="Apple 로그인">
+            <img src="apple_icon.png" alt="Apple">
+          </a>
         </div>
-      </div><!-- 🔚 right-panel -->
-    </div><!-- 🔚 login-wrapper -->
-
-    <div class="info-bar">
-      기출문제 문의는 전문 컨설턴트가 도와드립니다.<br>
-      gh_6399@naver.com / Tel : 010-8310-6399
-    </div>
+      </div>
+      </div>
+  </div>
   <script>
+   
     // 아이디 저장 기능 (로컬스토리지 사용)
     window.onload = function() {
       const saved = localStorage.getItem('saved_id');
@@ -398,39 +374,35 @@
         localStorage.setItem('saved_id', this.value);
       }
     });
-
     // 실제 서버 연동 로그인 (Node.js + MySQL)
     document.getElementById('loginForm').onsubmit = async function(e) {
       e.preventDefault();
       const email = document.getElementById('login_email').value.trim();
       const password = document.getElementById('login_password').value;
       const box      = document.getElementById('loginResult');
-
       try {
         const res = await fetch('/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
+          body: JSON.stringify({ id: userId, password })
         });
         const data = await res.json();
         if (res.ok) {
-          // [1] 개인 DB 세팅: 이메일 localStorage에 저장!
           localStorage.setItem('userEmail', email);
-          // [2] 메인화면으로 이동!
           window.location.href = '/main_home.html';
-          } else {
-            // 실패: 빨간 글씨 표시
-            box.className   = 'login-result error';
-            box.textContent = data.msg || '아이디 또는 비밀번호가 올바르지 않습니다.';
-            box.style.display = 'block';
-          }
-        } catch (err) {
-          // 네트워크/서버 자체 오류
+        } else {
           box.className   = 'login-result error';
-          box.textContent = '서버 연결 오류';
+          box.textContent = data.msg || '아이디 또는 비밀번호가 올바르지 않습니다.';
           box.style.display = 'block';
         }
-      };
+      } catch (err) {
+        box.className   = 'login-result error';
+        box.textContent = '서버 연결 오류';
+        box.style.display = 'block';
+      }
+    };
+    
+
   </script>
 </body>
 </html>

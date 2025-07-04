@@ -4,469 +4,448 @@
   <meta charset="UTF-8">
   <title>공지사항</title>
   <link rel="icon" type="image/png" href="/favicon.png" />
-  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:700,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+
   <style>
-.notice-item.active .notice-text {
-  color: #1fa266 !important;   /* 진한 초록 */
-  font-weight: 900;
-}
-.notice-item.active {
-  background: #e8fbe9 !important;
-}
-.notice-detail-row {
-  border-bottom: 2px solid #a8f7bc;
-}
-@keyframes fadeIn { from{opacity:0;transform:translateY(-5px);} to{opacity:1;transform:translateY(0);} }
-    body {
-      background: #f5f7fa;
-      font-family: 'Noto Sans KR', Arial, sans-serif;
-      margin: 0; min-height: 100vh;
-    }
-    .top-nav {
-      width: 100vw; min-width:1100px;
-      height: 56px; background: #fff;
-      display: flex; align-items: center;
-      box-sizing: border-box;
-      padding: 0 32px 0 300px;
-      position: fixed; left: 0; top: 0; z-index: 100;
-      border-bottom: 2px solid #238058;
-    }
-    .logo-box { display:flex; align-items:center; gap:8px; }
-    .logo-img { width:27px; height:27px; display:block;}
-    .logo-text { color: #238058; font-size: 1.45rem; font-weight: 700; letter-spacing:0.02em;}
-    .nav-underline { width:100vw; height:2px; background:#238058; margin:0; padding:0; }
+  :root{
+    --purple-bg:#ffffff;
+    --purple-dk:#ffffff;
+    --btn-bg:#FDC512;
+    --btn-bg-hov:#D9A90F; 
+    --border-light:#e9e9e9;      /* 🆕 아주 옅은 회색 */
+    --text-main:#111;
+    --text-sub:#5f5f5f;
+  }
+  *{box-sizing:border-box;font-family:'Noto Sans KR',sans-serif;margin:0;}
+  body{background:#fff;min-height:100vh;display:flex;flex-direction:column;}
 
-    .notice-container {
-      max-width: 1000px;
-      margin: 90px auto 0 auto;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 24px #1232;
-      padding: 32px 0 0 0;
-    }
-    .notice-title {
-      font-size: 2rem;
-      font-weight: 700;
-      margin: 0 0 32px 36px;
-      color: #232323;
-      letter-spacing: -1px;
-    }
-    .notice-item {
-      display: flex;
-      align-items: center;
-      padding: 0 36px;
-      height: 48px;
-      border-bottom: 1px solid #eee;
-      font-size: 1rem;
-      transition: background 0.12s;
-      cursor: pointer;
-    }
-    .notice-item:hover { background: #f5f7fa; }
-    .notice-text { flex: 1; color: #353535; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
-    .notice-date { width: 120px; text-align: right; color: #868686; font-size: 0.95em; margin-left: 10px; }
-    .notice-arrow { width: 24px; text-align: right; color: #b5b5b5; font-size: 1.5em; margin-left: 16px; }
-    .pagination {
-      display: flex; justify-content: center; align-items: center;
-      gap: 10px; padding: 20px 0 28px 0; font-size: 1rem; color: #bbb; user-select: none;
-    }
-    .pagination .active {
-      color: #111; font-weight: bold;
-      border-bottom: 2px solid #a8f7bc;
-      padding: 2px 7px; border-radius: 5px 5px 0 0;
-    }
-    .pagination span { cursor: pointer; padding: 2px 7px; transition: background 0.12s; }
-    .pagination span:hover:not(.active) { background: #f5f7fa; }
+  /* ────── 1) 헤더 ────── */
+  .page-header{
+    min-width:980px;padding:28px 40px 16px;
+    display:flex;align-items:center;justify-content:space-between;
+    position:relative;
+  }
+  .header-titles h1{font-size:1.55rem;font-weight:900;color:var(--text-main);}
+  .sub-date{margin-top:4px;font-size:.95rem;font-weight:700;color:var(--text-sub);}
 
-    /* 플로팅 버튼 */
-    #fab-add {
-      display: none;
-      position: fixed; bottom: 44px; right: 54px;
-      width: 58px; height: 58px; border-radius: 50%;
-      background: #238058; color: #fff; font-size: 2.5rem;
-      box-shadow: 0 8px 24px #23805844;
-      border: none; cursor: pointer; z-index: 999;
-      align-items: center; justify-content: center;
-      transition: background 0.13s, box-shadow 0.13s;
-    }
-    #fab-add:hover { background: #20b26a; box-shadow: 0 8px 32px #23805833; }
+  .header-actions{display:flex;align-items:center;gap:16px;} /* 버튼 간격 ↑ */
+
+  /* 1-a  버튼들 */
+  .action-btn{
+    padding:8px 22px;border-radius:9999px;
+    background:var(--btn-bg);color:#111;font-weight:700;
+    font-size:.97rem;display:inline-flex;align-items:center;gap:8px;
+    transition:.15s;text-decoration:none;
+  }
+  .action-btn i{font-size:.9rem;}
+  .action-btn:hover{background:var(--btn-bg-hov);}
+  /* 버튼끼리 살짝 띄우기 */
+  .action-btn+ .action-btn{margin-left:0;} 
+
+  /* 1-b  프로필 */
+  .user-wrapper{position:relative;}
+  .user-box{
+    display:flex;align-items:center;gap:14px;cursor:pointer; /* gap ↑ */
+  }
+  .avatar{
+    width:42px;height:42px;border-radius:50%;
+    object-fit:cover;background:#ddd;
+  }
+  .user-name{
+    font-size:1.05rem;font-weight:700;color:var(--text-main);
+    white-space:nowrap;
+  }
+  .user-box i{font-size:.8rem;color:#888;transition:.2s;}
+
+  .dropdown{
+    position:absolute;right:0;top:calc(100% + 6px);
+    min-width:160px;background:#fff;border:1px solid #eee;border-radius:10px;
+    box-shadow:0 4px 14px rgba(0,0,0,.06);padding:8px 0;display:none;z-index:20;
+  }
+  .dropdown a{
+    display:block;padding:10px 18px;font-size:.92rem;color:#333;
+    text-decoration:none;white-space:nowrap;transition:.13s;
+  }
+  .dropdown a:hover{background:#f8f8f8;}
+
+  .page-header::after{
+  content:'';
+  position:absolute;
+  left:50%;                          /* 가운데 기준 */
+  bottom:0;                          /* 헤더 맨 아래 */
+  transform:translateX(-50%);        /* 정확한 중앙 정렬 */
+
+  width:97%;                         /* ← 길이(=양쪽 여백) 조절 포인트 */
+  height:1px;                        /* 선 굵기 */
+  background:var(--border-light);    /* 선 색상 */
+  }
+
+
+    .notice-title{display:none;}
+
+    .notice-date{width:120px;text-align:right;color:#868686;font-size:.95em;margin-left:10px;}
+    .notice-arrow{width:24px;text-align:right;color:#b5b5b5;font-size:1.5em;margin-left:16px;}
+
+    .notice-item.active {color:#4b4b4b;font-weight:900;}
+    .notice-item.active{background:#e8fbe9;}
+    .notice-detail-row{border-bottom:2px solid #4e4e4e;}
+
+    @keyframes fadeIn{from{opacity:0;transform:translateY(-5px);}to{opacity:1;transform:translateY(0);}}
+
+    .pagination{display:flex;justify-content:center;align-items:center;gap:10px;padding:20px 0 28px;color:#bbb;font-size:1rem;user-select:none;}
+    .pagination span{cursor:pointer;padding:2px 7px;transition:background .12s;}
+    .pagination span:hover:not(.active){background:#f5f7fa;}
+    .pagination .active{color:#111;font-weight:700;border-bottom:2px solid #696969;padding:2px 7px;border-radius:5px 5px 0 0;}
+
+    /* 플로팅(+) 버튼 */
+    #fab-add{display:none;position:fixed;left:54px;bottom:44px;width:58px;height:58px;border-radius:50%;background:#484848;color:#fff;font-size:2.4rem;box-shadow:0 8px 24px #05060644;border:none;cursor:pointer;z-index:999;transition:background .13s,box-shadow .13s;display:flex;align-items:center;justify-content:center;}
+    #fab-add:hover{background:#000000;box-shadow:0 8px 32px #72727233;}
 
     /* 공지 등록 모달 */
-    #notice-modal-bg {
-  display: none;
-  position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;
-  background: rgba(0,0,0,0.18); z-index: 2000;
-  /* 완벽한 중앙정렬 */
-  justify-content: center;
-  align-items: center;
-}
-#notice-modal-bg.show { display: flex; }
+    #notice-modal-bg{display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,.18);z-index:2000;justify-content:center;align-items:center;}
+    #notice-modal-bg.show{display:flex;}
+    #notice-modal-box{background:#fff;border-radius:18px;box-shadow:0 6px 24px #23805822;padding:36px 28px 28px;min-width:340px;width:600px;max-width:95vw;display:flex;flex-direction:column;gap:18px;position:relative;animation:modalpop .18s;}
+    @keyframes modalpop{from{opacity:0;transform:scale(.96);}to{opacity:1;transform:scale(1);}}
+    #notice-modal-close{position:absolute;right:32px;top:24px;font-size:2.1rem;color:#b9b9b9;background:none;border:none;cursor:pointer;font-weight:700;transition:color .13s;}
+    #notice-modal-close:hover{color:#238058;}
+    #notice-modal-box label{font-size:1.02rem;font-weight:700;color:#199150;margin:7px 0 4px;display:block;}
+    #notice-modal-box input[type="text"],
+    #notice-modal-box textarea{font-size:1rem;border:1.2px solid #c5e1d6;border-radius:7px;padding:12px;background:#f6faf7;width:100%;box-sizing:border-box;}
+    #notice-modal-box textarea{min-height:120px;max-height:240px;resize:vertical;line-height:1.5;}
+    #notice-modal-box input[type="file"]{font-size:.95rem;margin-top:7px;}
+    #notice-modal-box button[type="submit"]{margin-top:18px;background:#238058;color:#fff;border:none;border-radius:7px;font-size:1.09rem;padding:13px 0;cursor:pointer;font-weight:700;letter-spacing:.09em;transition:background .13s;}
+    #notice-modal-box button[type="submit"]:hover{background:#20b26a;}
 
-#notice-modal-box {
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 6px 24px #23805822;
-  padding: 36px 28px 28px 28px;
-  min-width: 340px;
-  max-width: 95vw;
-  width: 600px;      /* 줄임! */
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  position: relative;
-  margin: 0 auto;
-  animation: modalpop 0.18s;
-}
-@keyframes modalpop {
-  from { opacity: 0; transform: scale(0.96);}
-  to   { opacity: 1; transform: scale(1);}
-}
-#notice-modal-box label {
-  font-size: 1.02rem;
-  font-weight: 700;
-  color: #199150;
-  margin-bottom: 4px;
-  margin-top: 7px;
-  display: block;
-  letter-spacing: -0.01em;
-}
-#notice-modal-box input[type="text"] {
-  font-size: 1rem;
-  border-radius: 7px;
-  border: 1.2px solid #c5e1d6;
-  padding: 12px 12px;
-  margin-bottom: 2px;
-  width: 100%;
-  box-sizing: border-box;
-  background: #f6faf7;
-}
-#notice-modal-box textarea {
-  font-size: 0.8rem;
-  border-radius: 7px;
-  border: 1.2px solid #c5e1d6;
-  padding: 12px 12px;
-  margin-bottom: 2px;
-  width: 100%;
-  min-height: 80px;
-  max-height: 180px;
-  background: #f6faf7;
-  resize: vertical;
-  box-sizing: border-box;
-  line-height: 1.5;
-}
-#notice-modal-box textarea {
-  min-height: 120px;
-  max-height: 240px;
-}
-#notice-modal-box input[type="file"] {
-  font-size: 0.95rem;
-  margin: 7px 0 0 0;
-}
-#notice-modal-close {
-  position: absolute;
-  right: 32px;
-  top: 24px;
-  font-size: 2.1rem;
-  color: #b9b9b9;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-weight: bold;
-  transition: color 0.13s;
-}
-#notice-modal-close:hover { color: #238058; }
-#notice-modal-box button[type="submit"] {
-  margin-top: 18px;
-  background: #238058;
-  color: #fff;
-  border: none;
-  border-radius: 7px;
-  font-size: 1.09rem;
-  padding: 13px 0;
-  cursor: pointer;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  transition: background 0.13s;
-}
-#notice-modal-box button[type="submit"]:hover {
-  background: #20b26a;
-}
-</style>
+    /* ---------- 공지 컨테이너 ---------- */
+    .notice-container{
+      width:calc(100% - 40px);
+      max-width:1500px;
+      /* margin:140px auto 0;   기존 → 너무 멀다 */
+      margin:20px auto 0;        /* ← 원하는 만큼 숫자만 줄이면 OK */
+      background:#fff;
+      border-radius:12px;
+      box-shadow:0 4px 24px #0001;
+      padding:32px 0 24px;
+    }
+
+    /* ---------- 공지 표 ---------- */
+    .notice-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+    .notice-table thead{background:#fafafa;position:sticky;top:0;z-index:1;}
+    .notice-table th,.notice-table td{padding:14px 22px;font-size:.95rem;border-bottom:1px solid #eee;}
+    .notice-table th{color:#666;text-align:left;font-weight:600;}
+    .notice-table td.cat {width:80px;color:#555;}
+    .notice-table td.date{width:110px;text-align:right;color:#888;}
+    .notice-table td.title{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;color:#222;}
+    .notice-table tr:hover td{background:#f9f9f9;}
+
+    /* NEW 뱃지 */
+    .badge-new{
+      display:inline-block;margin-right:8px;padding:3px 6px 2px;
+      font-size:.75rem;font-weight:700;color:#fff;background:#e31b23;border-radius:3px;
+    }
+
+    /* ★ 제목 배너  (네이비 톤, 가로 100%) */
+    .page-banner{
+      width:100%;
+      background:#ffffff;           /* 원하는 색상 */
+      color:#111;
+      padding:70px 0;               /* 위·아래 높이 */
+      border-bottom:1px solid #000000;
+    }
+    
+    .page-banner .inner{
+      max-width:1400px;             /* 헤더와 같은 좌우 여백 */
+      margin:0 auto;
+      padding:0 40px;
+    }
+    .page-banner h2{
+      font-size:2.4rem;
+      font-weight:900;
+      margin:0 0 14px 0;
+    }
+    .page-banner p{
+      font-size:1.05rem;
+      line-height:1.5;
+      opacity:.85;
+      margin:0;
+    }
+
+    .notice-table th,
+    .notice-table td{ text-align:center !important; }
+
+    .highlight {
+      position: relative;
+      display: inline-block;
+    }
+
+    .highlight::before {
+      content: "";
+      position: absolute;
+      top: -4px;      /* 글자 위 위치 */
+      left: 0;
+      width: 30px;    /* 선 길이 */
+      height: 5px;    /* 선 굵기 */
+      background: #f8c900;  /* 노란색 */
+      border-radius: 2px;
+    }
+
+  </style>
 </head>
 <body>
-  <!-- 네비게이션 (로고만) -->
-  <header class="top-nav">
-    <div class="logo-box">
-      <a href="main_home.html" style="display:flex; align-items:center; gap:8px; text-decoration:none;">
-        <img src="logo_main.png" class="logo-img" alt="로고" />
-        <span class="logo-text">수학지니</span>
-      </a>
+
+<!-- ─── 1.5) 제목 배너 ─── -->
+<section class="page-banner">
+  <div class="inner">
+    <h2>공지사항</h2>
+    <p>여러분의 성공적인 내신대비를 카카오의 검증된 IT 서비스
+       경험을 Kakao i Cloud에 담아 나누고자 합니다.</p>
+  </div>
+</section>
+
+  <!-- ───────── 공지사항 리스트 ───────── -->
+  <div class="notice-container">
+    <div class="notice-title">공지사항</div>
+      <div style="overflow-x:auto;">
+        <table class="notice-table">
+      <!-- ★ 추가 : 열 폭 선언 -->
+      <colgroup>
+        <col style="width:140px">        <!-- 유형 -->
+        <col>                           <!-- 제목(가변) -->
+        <col style="width:220px">       <!-- 등록일 -->
+      </colgroup>
+
+      <thead>
+        <tr><th>유형</th><th>제목</th><th>등록일</th></tr>
+      </thead>
+      <tbody id="notice-tbody"></tbody>
+    </table>
+      </div>
+
+      <div class="pagination"></div>
     </div>
-  </header>
-  <div class="nav-underline"></div>
 
-  <!-- 공지사항 리스트 -->
-<div class="notice-container">
-  <div class="notice-title">공지사항</div>
-  <div id="notice-list"></div> <!-- 공지 리스트가 그려질 div, id로 구분 -->
-  <div class="pagination"></div>
-</div>
-
-  <!-- 플로팅(+)버튼 (관리자만 보임) -->
+  <!-- 플로팅(+) 버튼 -->
   <button id="fab-add">+</button>
 
   <!-- 공지 등록 모달 -->
-<div id="notice-modal-bg">
-  <form id="notice-form" enctype="multipart/form-data">
-    <div id="notice-modal-box">
-      <button type="button" id="notice-modal-close">&times;</button>
-      <div style="font-weight:700; font-size:1.28rem; margin-bottom:12px;">공지사항 등록</div>
-      <label for="input-title">제목</label>
-      <input id="input-title" name="title" type="text" placeholder="제목을 입력하세요" maxlength="60" required>
-      <label for="input-content">내용</label>
-      <textarea id="input-content" name="content" placeholder="내용을 입력하세요" rows="8" required></textarea>
-      <label for="input-img">이미지 첨부 (선택)</label>
-      <input id="input-img" name="image" type="file" accept="image/*">
-      <button type="submit" id="modal-submit">등록</button>
-    </div>
-  </form>
-</div>
+  <div id="notice-modal-bg">
+    <form id="notice-form" enctype="multipart/form-data">
+      <div id="notice-modal-box">
+        <button type="button" id="notice-modal-close">&times;</button>
+        <div style="font-weight:700;font-size:1.28rem;margin-bottom:12px;">공지사항 등록</div>
 
-<script>
-  function toDateStr(iso) {
-  // 예: 2025-06-09T15:00:00.000Z → 2025.06.09
-  return typeof iso === "string" ? iso.slice(0,10).replace(/-/g, '.') : '';
-  } 
+        <label for="input-title">제목</label>
+        <input id="input-title" name="title" type="text" placeholder="제목을 입력하세요" maxlength="60" required>
 
-    // ─── 로그인 상태 & 관리자 여부 확인 ───
-    let IS_ADMIN = false;
+        <label for="input-content">내용</label>
+        <textarea id="input-content" name="content" placeholder="내용을 입력하세요" required></textarea>
 
-    async function checkAuth() {
-      try {
-        const r = await fetch('/check-auth', { credentials: 'include' });
-        const d = await r.json();
+        <label for="input-img">이미지 첨부 (선택)</label>
+        <input id="input-img" name="image" type="file" accept="image/*">
 
-        IS_ADMIN = d.isLoggedIn && d.user && d.user.role === 'admin';
+        <button type="submit" id="modal-submit">등록</button>
+      </div>
+    </form>
+  </div>
 
-        if (IS_ADMIN) {
-          // 관리자일 때만 표시
-          document.getElementById('fab-add').style.display = 'flex';
-        } else {
-          // 비관리자·비로그인: 숨김
-          document.getElementById('fab-add').style.display = 'none';
+  <!-- ───────── 스크립트 ───────── -->
+  <script>
+    /* 날짜 표시 */
+    const wk=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const mo=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    function setToday(){
+      const t=new Date();
+    document.getElementById('todayTxt').textContent =
+      `${wk[t.getDay()]}  ${String(t.getDate()).padStart(2,'0')} ${mo[t.getMonth()]} ${t.getFullYear()}`;
+
+    }
+
+    /* 로그인·프로필 바인딩 + 관리자 판별 */
+    let IS_ADMIN=false;
+    async function bindUser(){
+      try{
+        const res=await fetch('/check-auth?ts='+Date.now(),{credentials:'include',cache:'no-store'});
+        const d=await res.json();
+        IS_ADMIN=d.isLoggedIn && d.user && d.user.role==='admin';
+        document.getElementById('fab-add').style.display=IS_ADMIN?'flex':'none';
+
+        if(!d.isLoggedIn) return;
+        const u=d.user||{};
+        const first=(u.name||u.email||'User').split(' ')[0].split('@')[0];
+
+        document.getElementById('userName').textContent=u.name||first;
+        if(u.avatarUrl){
+          document.getElementById('avatar').src=u.avatarUrl;
+          document.getElementById('avatar').alt=u.name||'avatar';
         }
-
-      } catch (e) {
-        console.error('checkAuth error:', e);
-        // 에러가 나도 안전하게 숨겨 두기
-        document.getElementById('fab-add').style.display = 'none';
-      }
+        /* 프로필 드롭다운 로그아웃 */
+        document.getElementById('logoutBtn').onclick=async()=>{
+          await fetch('/logout',{credentials:'include'});location.reload();
+        };
+      }catch(e){console.error(e);}
     }
 
-    checkAuth();
+    /* 프로필 드롭다운 토글 */
+    function initDropdown(){
+      const box=document.getElementById('userBox');
+      const menu=document.getElementById('dropdownMenu');
+      const arrow=document.getElementById('arrowIcon');
 
-  // 1. 플로팅 버튼 클릭 → 등록 모달 띄움
-  document.getElementById('fab-add').onclick = function() {
-    document.getElementById('notice-modal-bg').style.display = 'flex';
-    document.getElementById('input-title').value = '';
-    document.getElementById('input-content').value = '';
-    document.getElementById('input-img').value = '';
-    document.getElementById('input-title').focus();
-  };
-  // 2. 모달 닫기
-  document.getElementById('notice-modal-close').onclick = function() {
-    document.getElementById('notice-modal-bg').style.display = 'none';
-  };
-  // 바깥 클릭 시 모달 닫기
-  document.getElementById('notice-modal-bg').onclick = function(e) {
-    if(e.target === this) this.style.display = 'none';
-  };
-
-  // 3. 공지 등록 폼 submit
-  document.getElementById('notice-form').onsubmit = async function(e) {
-    e.preventDefault();
-    const title = document.getElementById('input-title').value.trim();
-    const content = document.getElementById('input-content').value.trim();
-    const fileInput = document.getElementById('input-img');
-    const image = fileInput.files[0];
-    if(!title || !content) {
-      alert('제목과 내용을 입력하세요'); return;
-    }
-    const formData = new FormData();
-    formData.append('title', title);
-    formData.append('content', content);
-    if(image) formData.append('image', image);
-    try {
-      const res = await fetch('/api/notices', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'   // ←★ 추가
-    });
-      const data = await res.json();
-      if(data.msg === "공지 등록 성공") {
-        document.getElementById('notice-modal-bg').style.display = 'none';
-        loadNotices();
-      } else {
-        alert('등록 실패: ' + data.msg);
-      }
-    } catch(e) { alert('등록 실패!'); }
-  };
-
-  // 4. 공지사항 목록 동적 불러오기(이전과 동일)
-  let noticeListData = [];
-  let page = 1;
-  const perPage = 7;
-
-  function loadNotices() {
-      page = 1;
-    fetch('/api/notices')
-      .then(res => res.json())
-      .then(list => {
-        noticeListData = list;
-        renderNoticeList();
-        renderPagination();
+      box.addEventListener('click',e=>{
+        e.stopPropagation();
+        const open=menu.style.display==='block';
+        menu.style.display=open?'none':'block';
+        arrow.style.transform=open?'rotate(0deg)':'rotate(180deg)';
       });
-  }
-
-  function renderPagination() {
-    const total = noticeListData.length;
-    const totalPages = Math.ceil(total / perPage);
-    const box = document.querySelector('.pagination');
-     if (totalPages === 0) { box.innerHTML = ''; return; }
-    box.innerHTML = '';
-    for (let i = 1; i <= totalPages; i++) {
-      const span = document.createElement('span');
-      span.className = (i === page) ? 'active' : '';
-      span.textContent = i;
-      span.onclick = () => {
-        page = i;
-        renderNoticeList();
-        renderPagination();
-      };
-      box.appendChild(span);
+      document.addEventListener('click',e=>{
+        if(!menu.contains(e.target)){
+          menu.style.display='none';
+          arrow.style.transform='rotate(0deg)';
+        }
+      });
     }
-  }
 
-  loadNotices();
-    function renderNoticeList() {
-      /* 공지 목록을 그릴 컨테이너 */
-      const box = document.getElementById('notice-list');
-      box.innerHTML = '';
+    /* 공지 CRUD */
+    let noticeListData=[];let page=1;const perPage=7;
 
-      /* ── A. 공지가 0건일 때 안내 문구 후 종료 ─────────────── */
-      if (noticeListData.length === 0) {
-        box.innerHTML =
-          '<div style="padding:40px;text-align:center;color:#777;">등록된 공지사항이 없습니다.</div>';
+    function renderPagination(){
+      const totalPages=Math.ceil(noticeListData.length/perPage);
+      const box=document.querySelector('.pagination');box.innerHTML='';
+      if(totalPages===0)return;
+      for(let i=1;i<=totalPages;i++){
+        const span=document.createElement('span');
+        span.textContent=i;span.className=i===page?'active':'';
+        span.onclick=()=>{page=i;renderNoticeList();renderPagination();};
+        box.appendChild(span);
+      }
+    }
+
+    /* ── helpers ─────────────────────────── */
+    function daysBetween(a,b){ return Math.floor((b-a)/864e5); }   // NEW 뱃지용
+
+    /* ── 공지 목록 그리기 (표 버전) ───────── */
+    function renderNoticeList(){
+      const tbody = document.getElementById('notice-tbody');   // ← div 대신 table tbody
+      tbody.innerHTML = '';
+
+      if (noticeListData.length === 0){
+        tbody.innerHTML =
+          '<tr><td colspan="3" style="padding:40px;text-align:center;color:#777;">등록된 공지사항이 없습니다.</td></tr>';
         document.querySelector('.pagination').innerHTML = '';
         return;
       }
 
-      /* ── B. 현재 페이지에 보여줄 데이터 잘라내기 ──────────── */
-      const start = (page - 1) * perPage;
-      const end   = start + perPage;
-      const view  = noticeListData.slice(start, end);
+      const start = (page-1) * perPage;
+      const view  = noticeListData.slice(start, start+perPage);
 
-      /* ── C. 목록 행 생성 ─────────────────────────────────── */
-      view.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'notice-item';
+      view.forEach(item=>{
+        const tr = document.createElement('tr'); tr.tabIndex = 0;
+        tr.onclick   = ()=> toggleDetail(tr, item.id);
+        tr.onkeydown = e => { if (e.key === 'Enter') toggleDetail(tr, item.id); };
 
-        /* 1) 키보드 접근성: Tab 포커스 + Enter 열기 */
-        div.tabIndex = 0;
-        div.addEventListener('keydown', e => {
-          if (e.key === 'Enter') toggleDetail(div, item.id);
-        });
+        /* 1) 유형 */
+        const tdCat   = document.createElement('td');
+        tdCat.className = 'cat';
+        tdCat.textContent = item.category || '공지';
 
-        /* 2) 마우스 클릭 열기 */
-        div.onclick = () => toggleDetail(div, item.id);
+        /* 2) 제목  (+ NEW 뱃지) */
+        const tdTitle = document.createElement('td');
+        tdTitle.className = 'title';
 
-        /* 3) 내부 요소들(제목·날짜·화살표) */
-        const titleDiv = document.createElement('div');
-        titleDiv.className  = 'notice-text';
-        titleDiv.textContent = item.title;
-
-        const dateDiv = document.createElement('div');
-        dateDiv.className  = 'notice-date';
-        dateDiv.textContent = toDateStr(item.date);
-
-        const arrowDiv = document.createElement('div');
-        arrowDiv.className = 'notice-arrow';
-        arrowDiv.textContent = '>';
-
-        div.append(titleDiv, dateDiv, arrowDiv);
-        box.appendChild(div);
-      });
-    }
-let openedDetail = null;
-async function toggleDetail(div, id) {
-  if (openedDetail) {
-    openedDetail.nextSibling?.remove();
-    openedDetail.classList.remove('active');
-    if (openedDetail === div) { openedDetail = null; return; }
-  }
-  const res = await fetch(`/api/notices/${id}`);
-  const data = await res.json();
-  const detailDiv = document.createElement('div');
-  detailDiv.className = 'notice-detail-row';
-  detailDiv.style.cssText = `
-    background:#f6faf6;
-    border-bottom:1.5px solid #d5eddc;
-    padding: 26px 48px 26px 48px;
-    color:#222; font-size:1.06rem;
-    animation:fadeIn 0.2s;
-  `;
-  let deleteBtnHTML = '';
-  if (IS_ADMIN) {
-    deleteBtnHTML = `<button id="notice-delete-btn" style="
-      float:right; margin-left:15px;
-      background:#e54e4e; color:#fff; border:none; border-radius:5px;
-      font-size:0.98rem; padding:7px 18px; cursor:pointer;">삭제</button>`;
-    }
-    detailDiv.innerHTML = deleteBtnHTML;   // 관리자 삭제 버튼만 먼저 삽입
-
-      // ① 내용
-      const contentDiv = document.createElement('div');
-      contentDiv.style = 'font-size:1.07rem;margin-bottom:15px;white-space:pre-line;';
-      // 줄바꿈만 유지하고 나머지 문자는 Escape
-      contentDiv.innerHTML = data.content
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/\n/g, '<br>');
-      detailDiv.appendChild(contentDiv);
-
-      // ② 이미지
-      if (data.imageUrl) {
-        const img = document.createElement('img');
-        img.src   = data.imageUrl;
-        img.style = 'max-width:360px;border-radius:9px;margin-top:10px;';
-        detailDiv.appendChild(img);
-      }
-  div.after(detailDiv);
-  div.classList.add('active');
-  openedDetail = div;
-
-  if (IS_ADMIN) {
-    detailDiv.querySelector('#notice-delete-btn').onclick = async function(e) {
-      e.stopPropagation();
-      if (!confirm('정말 삭제하시겠습니까?')) return;
-      try {
-      const res = await fetch(`/api/notices/${id}`, {
-        method: 'DELETE',
-        credentials: 'include'   // ←★ 추가
-      });
-        const result = await res.json();
-        if (result.msg === "삭제 성공") {
-          alert('삭제되었습니다.');
-          loadNotices();
-        } else {
-          alert('삭제 실패: ' + (result.msg || ''));
+        const written = new Date(item.date);
+        if (daysBetween(written, new Date()) <= 7){      // 7일 이내
+          const badge = document.createElement('span');
+          badge.className = 'badge-new';
+          badge.textContent = 'NEW';
+          tdTitle.appendChild(badge);
         }
-      } catch (err) {
-        alert('삭제 실패(서버 에러)');
+        tdTitle.append(item.title);
+
+        /* 3) 날짜 */
+        const tdDate  = document.createElement('td');
+        tdDate.className = 'date';
+        tdDate.textContent = item.date.slice(0,10).replace(/-/g,'.');
+
+        tr.append(tdCat, tdTitle, tdDate);
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadNotices(){
+      page=1;
+      const res=await fetch('/api/notices');noticeListData=await res.json();
+      renderNoticeList();renderPagination();
+    }
+
+    let openedDetail=null;
+    async function toggleDetail(row,id){
+      if(openedDetail){openedDetail.nextSibling?.remove();openedDetail.classList.remove('active');if(openedDetail===row){openedDetail=null;return;}}
+      const res = await fetch(`/api/notices/${id}`);const data=await res.json();
+
+      const detail=document.createElement('div');
+      detail.className='notice-detail-row';
+      detail.style.cssText='background:#f6faf6;border-bottom:1.5px solid #d5eddc;padding:26px 48px;color:#222;font-size:1.06rem;animation:fadeIn .2s;';
+
+      if(IS_ADMIN){
+        const del=document.createElement('button');
+        del.textContent='삭제';del.style.cssText='float:right;margin-left:15px;background:#e54e4e;color:#fff;border:none;border-radius:5px;font-size:.98rem;padding:7px 18px;cursor:pointer;';
+        del.onclick=async e=>{
+          e.stopPropagation();
+          if(!confirm('정말 삭제하시겠습니까?'))return;
+          const r = await fetch(`/api/notices/${id}`, {method:'DELETE',credentials:'include'});
+          const out=await r.json();
+          if(out.msg==='삭제 성공'){alert('삭제되었습니다.');loadNotices();}else alert('삭제 실패: '+(out.msg||''));
+        };
+        detail.appendChild(del);
       }
+
+      const content=document.createElement('div');
+      content.style='font-size:1.07rem;margin-bottom:15px;white-space:pre-line;';
+      content.innerHTML=data.content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+      detail.appendChild(content);
+
+      if(data.imageUrl){
+        const img=document.createElement('img');
+        img.src=data.imageUrl;img.style='max-width:360px;border-radius:9px;margin-top:10px;';
+        detail.appendChild(img);
+      }
+
+      row.after(detail);row.classList.add('active');openedDetail=row;
+    }
+
+    /* ── 모달 제어 ── */
+    document.getElementById('fab-add').onclick=()=>{
+      document.getElementById('notice-modal-bg').style.display='flex';
+      document.getElementById('input-title').value='';
+      document.getElementById('input-content').value='';
+      document.getElementById('input-img').value='';
+      document.getElementById('input-title').focus();
     };
-  }
-}
-</script>
+    document.getElementById('notice-modal-close').onclick=()=>{document.getElementById('notice-modal-bg').style.display='none';};
+    document.getElementById('notice-modal-bg').onclick=e=>{if(e.target===e.currentTarget)e.currentTarget.style.display='none';};
+
+    document.getElementById('notice-form').onsubmit=async e=>{
+      e.preventDefault();
+      const title=document.getElementById('input-title').value.trim();
+      const content=document.getElementById('input-content').value.trim();
+      const image=document.getElementById('input-img').files[0];
+      if(!title||!content){alert('제목과 내용을 입력하세요');return;}
+
+      const fd=new FormData();fd.append('title',title);fd.append('content',content);if(image)fd.append('image',image);
+      const res=await fetch('/api/notices',{method:'POST',body:fd,credentials:'include'});
+      const data=await res.json();
+      if(data.msg==='공지 등록 성공'){document.getElementById('notice-modal-bg').style.display='none';loadNotices();}
+      else alert('등록 실패: '+data.msg);
+    };
+
+    /* ── 초기화 ── */
+    document.addEventListener('DOMContentLoaded',()=>{
+      setToday();
+      bindUser();
+      initDropdown();
+      loadNotices();
+    });
+  </script>
 </body>
 </html>

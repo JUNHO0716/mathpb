@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>대시보드</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --purple-bg:#ffffff;
+      --purple-dk:#ffffff;
+      --btn-bg:#FDC512;
+      --btn-bg-hov:#D9A90F; 
+      --border-light:#e9e9e9;      /* 🆕 아주 옅은 회색 */
+      --text-main:#111;
+      --text-sub:#5f5f5f;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      background: #f5f6fa;
+    }
+
+    /* ===== Fade-in + Slide from Left ===== */
+    .fade-in-left {
+      opacity: 0;
+      transform: translateX(-30px);
+      animation: fadeInLeft 0.6s ease forwards;
+    }
+
+    @keyframes fadeInLeft {
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* ===== 사이드바 스타일 ===== */
+    .sidebar {
+      width: 250px;
+      background: #0f0f0f;
+      color: white;
+      transition: width 0.3s;
+      display: flex;
+      flex-direction: column;
+      padding-top: 20px;
+      align-items: stretch; 
+      overflow-x: hidden;
+    }
+
+    .menu-list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;   /* 메뉴들은 항상 위에서부터 쌓이게 */
+    width: 100%;               /* 메뉴 아이템 폭 100% */
+  }
+
+    .sidebar.collapsed {
+      width: 80px;
+    }
+
+    .logo {
+      height: 36px;
+      margin-bottom: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      width: 100%;
+    }
+
+    .logo-text {
+      font-size: 20px;
+      font-weight: bold;
+      transition: opacity 0.3s;
+      opacity: 1;
+    }
+
+    .logo-img {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .sidebar.collapsed .logo-text {
+      opacity: 0;
+    }
+
+    .sidebar.collapsed .logo-img {
+      opacity: 1;
+    }
+
+    .menu-item {
+      position: relative;
+      display: flex;
+      align-items: center;
+      padding: 15px 17px;
+      cursor: pointer;
+      transition: background 0.2s;
+      width: 100%;
+      opacity: 0;
+      transform: translateX(-30px);
+      margin-bottom: 12px;
+    }
+
+    .menu-item .active-bg {
+      position: absolute;
+      left: 12px;      /* 흰색 사각형 좌우 여백(조절 가능) */
+      right: 12px;
+      top: 3px;        /* 위/아래 여백 */
+      bottom: 3px;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px #0002;
+      z-index: 0;
+      opacity: 0;     /* 기본 투명 */
+      transition: opacity 0.18s;
+    }
+    .sidebar.collapsed .menu-item.active .active-bg {
+      opacity: 1;
+    }
+    
+    .menu-item.active .active-bg {
+        opacity: 1;
+      }
+
+      .menu-item img.menu-icon {
+      position: relative;
+      z-index: 2;
+    }
+
+    .menu-item.show {
+      animation: fadeInLeft 0.5s ease forwards;
+    }
+
+    .menu-item:hover {
+      background: #1e1e1e;
+    }
+
+    .menu-item i,
+    .menu-item span:not(.active-bg) {
+      position: relative;
+      z-index: 1;
+    }
+    .menu-item span:not(.active-bg) {
+      display: inline-block;          /* 폭 제어하려면 inline-block */
+      max-width: 140px;               /* 충분히 큰 값(텍스트 길이보다 여유 있게) */
+      overflow: hidden;
+      white-space: nowrap;
+      opacity: 1;
+      transition:
+        max-width .25s ease .30s,     /* 폭은 0.30s 뒤에 열리며 0.25s 동안 */
+        opacity   .25s ease .30s;     /* 동일 타이밍으로 페이드-인 */
+    }
+
+    .sidebar.collapsed .menu-item span:not(.active-bg) {
+      max-width: 0;                   /* 폭 0 → 아이콘 공간만 남음 */
+      opacity: 0;                     /* 투명 */
+      transition:
+        max-width .20s ease 0s,       /* 즉시 접히며 0.2s 동안 닫힘 */
+        opacity   .05s ease 0s;       /* 바로 사라짐 */
+    }
+
+    /* 폭이 다 늘어난 뒤에 글씨 나타날 수 있도록 지연 */
+    .sidebar.expanded .menu-item span:not(.active-bg) {
+      position: static;                /* 다시 레이아웃에 참여 */
+      opacity: 1;                      /* 서서히 나타남 */
+      transition: opacity .22s .05s;   /* 0.05s 지연 후 페이드-인 */
+    }
+
+    .sidebar.collapsed .menu-item img.menu-icon {
+      display: inline-block !important;
+    }
+
+    .menu-button {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      position: relative;
+      background: none;
+      border: none;
+      outline: none;
+      margin: 20px auto 20px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .menu-button span {
+      display: block;
+      position: absolute;
+      background-color: #fff;
+      border-radius: 2px;
+      transition: all 0.4s cubic-bezier(.7,.2,.17,1.3);
+    }
+
+    .menu-button span:nth-child(1),
+    .menu-button span:nth-child(2),
+    .menu-button span:nth-child(3) {
+      width: 100%;
+      height: 2px;   /* 두께 절반 */
+      left: 0;
+    }
+
+    .menu-button span:nth-child(1) { top: 2px; }
+    .menu-button span:nth-child(2) { top: 6.5px; }
+    .menu-button span:nth-child(3) { top: 11px; }
+
+    .menu-button.active span {
+      width: 2px;
+      height: 100%;
+      top: 0;
+    }
+
+    .menu-button.active span:nth-child(1) { left: 0px; }
+    .menu-button.active span:nth-child(2) { left: 6.5px; }
+    .menu-button.active span:nth-child(3) { left: 13px; }
+
+    /* ===== 메인 콘텐츠 ===== */
+    .main-content {
+      flex-grow: 1;
+      padding: 40px;
+      opacity: 0;
+      transform: translateX(-30px);
+      animation: fadeInLeft 0.8s ease forwards;
+      animation-delay: 0.3s;
+    }
+
+    .menu-item.active {
+      color: #222;
+      font-weight: 600;
+      background: none;   /* 기존 흰배경 지움 */
+      box-shadow: none;   /* 기존 그림자 지움 */
+      border-radius: 0;
+    }
+
+    .menu-item.active i {
+      color: #4b39ef;
+    }
+
+    .menu-icon {
+      width: 20px;
+      height: 20px;
+      margin-right: 15px;
+      object-fit: contain;
+      margin-left: 11px;
+    }
+
+    /* ===== Help FAB + Dropdown ===== */
+    .help-container{position:fixed;bottom:24px;right:24px;z-index:999}
+    .help-fab{width:46px;height:46px;border-radius:50%;border:none;background:#f8c900;color:#111;font-size:24px;cursor:pointer;box-shadow:0 8px 16px rgba(0,0,0,.2);transition:transform .15s}
+    .help-fab:hover{transform:scale(1.06)}
+    .help-menu{list-style:none;margin:0;padding:0;position:absolute;bottom:72px;right:0;background:#000000;width:280px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.18);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(10px);transition:all .25s}
+    .help-menu.show{opacity:1;pointer-events:auto;transform:translateY(0)}
+    .help-menu li{padding:14px 20px;font-size:14px;cursor:pointer;display:flex;gap:8px;align-items:center;transition:background .15s}
+    .help-menu li:not(:last-child){border-bottom:1px solid #f0f0f0}
+    .help-menu li:hover{background:#f7f7f7}
+    .help-menu .badge{width:24px;height:24px;border-radius:50%;background:#eef0f4;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+
+    /* ① sidebar는 이미 flex-column 이므로 spacer에 flex-grow:1 */
+    .spacer { flex-grow: 1; }
+
+    /* ② 로그아웃 글씨도 접힐 때 숨기려면(선택) */
+    .sidebar.collapsed .menu-item.logout span:not(.active-bg) {
+      display: none;
+    }
+
+    /* ③ 하단과 조금 떨어뜨리고 싶다면 여백 주기(원하는 값) */
+    .menu-item.logout { margin-bottom: 30px; }
+
+    /* iframe 전용 */
+    #contentFrame{flex:1;border:none;width:100%;height:100%;}
+    /* main-content 를 flex 컨테이너로 */
+    .main-content{display:flex;padding:0;}
+
+    /* ────── 1) 헤더 ────── */
+      .page-header{
+        min-width:980px;padding:28px 40px 16px;
+        display:flex;align-items:center;justify-content:space-between;
+        position:relative; background: #fff;
+      }
+      .header-titles h1{font-size:1.55rem;font-weight:900;color:var(--text-main);margin-bottom: 2px;}
+      .sub-date{margin-top:4px;font-size:.95rem;font-weight:700;color:var(--text-sub);}
+
+      .header-actions{display:flex;align-items:center;gap:16px;} /* 버튼 간격 ↑ */
+
+      /* 1-a  버튼들 */
+      .action-btn{
+        padding:8px 22px;border-radius:9999px;
+        background:var(--btn-bg);color:#111;font-weight:700;
+        font-size:.97rem;display:inline-flex;align-items:center;gap:8px;
+        transition:.15s;text-decoration:none;
+      }
+      .action-btn i{font-size:.9rem;}
+      .action-btn:hover{background:var(--btn-bg-hov);}
+      /* 버튼끼리 살짝 띄우기 */
+      .action-btn+ .action-btn{margin-left:0;} 
+
+      /* 1-b  프로필 */
+      .user-wrapper{position:relative;}
+      .user-box{
+        display:flex;align-items:center;gap:14px;cursor:pointer; /* gap ↑ */
+      }
+      .avatar{
+        width:42px;height:42px;border-radius:50%;
+        object-fit:cover;background:#ddd;
+      }
+      .user-name{
+        font-size:1.05rem;font-weight:700;color:var(--text-main);
+        white-space:nowrap;
+      }
+      .user-box i{font-size:.8rem;color:#888;transition:.2s;}
+
+      .dropdown{
+        position:absolute;right:0;top:calc(100% + 6px);
+        min-width:160px;background:#fff;border:1px solid #eee;border-radius:10px;
+        box-shadow:0 4px 14px rgba(0,0,0,.06);padding:8px 0;display:none;z-index:20;
+      }
+      .dropdown a{
+        display:block;padding:10px 18px;font-size:.92rem;color:#333;
+        text-decoration:none;white-space:nowrap;transition:.13s;
+      }
+      .dropdown a:hover{background:#f8f8f8;}
+
+      .page-header::after{
+      content:'';
+      position:absolute;
+      left:50%;                          /* 가운데 기준 */
+      bottom:0;                          /* 헤더 맨 아래 */
+      transform:translateX(-50%);        /* 정확한 중앙 정렬 */
+
+      width:97%;                         /* ← 길이(=양쪽 여백) 조절 포인트 */
+      height:1px;                        /* 선 굵기 */
+      background:var(--border-light);    /* 선 색상 */
+      }
+
+    .highlight {
+      position: relative;
+      display: inline-block;
+    }
+
+    .highlight::before {
+      content: "";
+      position: absolute;
+      top: -4px;      /* 글자 위 위치 */
+      left: 0;
+      width: 30px;    /* 선 길이 */
+      height: 5px;    /* 선 굵기 */
+      background: #f8c900;  /* 노란색 */
+      border-radius: 2px;
+    }
+
+    .main-content {
+      display: flex;
+      flex-direction: column;   /* ← 이 한 줄이 없으면 세로로 쌓이지 않습니다! */
+      flex-grow: 1;
+      padding: 0;
+      overflow: hidden;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="sidebar fade-in-left" id="sidebar">
+    <div class="logo">
+      <span class="logo-text">수학지니</span>
+      <img src="logo.png" alt="로고" class="logo-img">
+    </div>
+    <button class="menu-button" id="toggleBtn" onclick="toggleSidebarAnim()" aria-label="사이드바 열기/닫기">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <div class="menu-list">
+    <div class="menu-item" id="menu1" data-url="home.html">
+      <span class="active-bg"></span>
+      <img class="menu-icon" src="main_home_w.png"
+        data-icon-black="main_home_b.png" data-icon-white="main_home_w.png" alt="" />
+      <span>메인홈</span>
+    </div>
+    <div class="menu-item" id="menu2" data-url="problem_bank.html">
+      <span class="active-bg"></span>
+      <img class="menu-icon" src="icon_book_w.png"
+          data-icon-black="icon_book_b.png" data-icon-white="icon_book_w.png" alt="">
+      <span>문제은행</span>
+    </div>
+    <div class="menu-item" id="menu3" data-url="high.html">
+      <span class="active-bg"></span>
+      <img class="menu-icon" src="icon_school_w.png" 
+        data-icon-black="icon_school_b.png" data-icon-white="icon_school_w.png" alt="" />
+      <span>내신기출 시험지</span>
+    </div>
+    <div class="menu-item" id="menu4" data-url="my_collection.html">
+      <span class="active-bg"></span>
+      <img class="menu-icon" src="icon_bookcase_w.png" 
+        data-icon-black="icon_bookcase_b.png" data-icon-white="icon_bookcase_w.png" alt="" />
+      <span>내 책장</span>
+    </div>
+    <div class="menu-item" id="menu5" data-url="upload.html">
+      <span class="active-bg"></span>
+      <img class="menu-icon" src="icon_upload_w.png" 
+        data-icon-black="icon_upload_b.png" data-icon-white="icon_upload_w.png" alt="" />
+      <span>시험지 요청</span>
+    </div>
+     <div class="menu-item" id="menu6" data-url="notice.html">
+      <span class="active-bg"></span>
+      <img class="menu-icon" src="icon_notification_w.png" 
+        data-icon-black="icon_notification_b.png" data-icon-white="icon_notification_w.png" alt="" />
+      <span>공지사항</span>
+    </div>
+      <div class="menu-item" id="menu7" data-url="profile.html">
+      <span class="active-bg"></span>
+      <img class="menu-icon" src="icon_my_w.png" 
+        data-icon-black="icon_my_b.png" data-icon-white="icon_my_w.png" alt="" />
+      <span>내 계정</span>
+    </div>
+  </div>
+    <div class="spacer"></div>
+    <div class="menu-item" id="menu8">
+      <span class="active-bg"></span>
+      <img class="menu-icon" src="icon_logout_w.png" 
+        data-icon-black="icon_logout_b.png" data-icon-white="icon_logout_w.png" alt="" />
+      <span>로그아웃</span>
+    </div>
+  </div>
+
+<div class="main-content" id="mainContent">
+  <header class="page-header">
+    <div class="header-titles">
+      <h1 id="pageTitle"><span class="highlight">Ma</span>in home</h1>
+      <div class="sub-date" id="todayTxt"></div>
+    </div>
+    <div class="header-actions">
+      <a href="payment.html" class="action-btn"><i class="fa-regular fa-credit-card"></i> 결제하기</a>
+      <a href="review_form.html" class="action-btn"><i class="fa-regular fa-pen-to-square"></i> 후기 남기기</a>
+      <div class="user-wrapper" id="userWrapper">
+        <div class="user-box" id="userBox">
+          <img src="icon_my_b.png" alt="avatar" class="avatar" id="avatar">
+          <span class="user-name" id="userName">Guest</span>
+          <i class="fa-solid fa-chevron-down" id="arrowIcon"></i>
+        </div>
+        <div class="dropdown" id="dropdownMenu">
+          <a href="profile.html">내 프로필</a>
+          <a href="#" id="logoutBtn">로그아웃</a>
+        </div>
+      </div>
+    </div>
+  </header>  <!-- ← ← ← 반드시 닫는다!! -->
+
+  <iframe id="contentFrame" src="home.html"></iframe>
+</div>
+
+  <script>
+    // 날짜 표시
+    const wk=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const mo=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    function setToday(){
+      const t=new Date();
+      document.getElementById('todayTxt').textContent =
+        `${wk[t.getDay()]}  ${String(t.getDate()).padStart(2,'0')} ${mo[t.getMonth()]} ${t.getFullYear()}`;
+    }
+    
+    /* 로그인·프로필 바인딩 + 관리자 판별 */
+    let IS_ADMIN=false;
+    async function bindUser(){
+      try{
+        const res=await fetch('/check-auth?ts='+Date.now(),{credentials:'include',cache:'no-store'});
+        const d=await res.json();
+        IS_ADMIN=d.isLoggedIn && d.user && d.user.role==='admin';
+        document.getElementById('fab-add').style.display=IS_ADMIN?'flex':'none';
+
+        if(!d.isLoggedIn) return;
+        const u=d.user||{};
+        const first=(u.name||u.email||'User').split(' ')[0].split('@')[0];
+
+        document.getElementById('userName').textContent=u.name||first;
+        if(u.avatarUrl){
+          document.getElementById('avatar').src=u.avatarUrl;
+          document.getElementById('avatar').alt=u.name||'avatar';
+        }
+        /* 프로필 드롭다운 로그아웃 */
+        document.getElementById('logoutBtn').onclick=async()=>{
+          await fetch('/logout',{credentials:'include'});location.reload();
+        };
+      }catch(e){console.error(e);}
+    }
+
+     // 프로필 드롭다운
+    function initDropdown(){
+      const box=document.getElementById('userBox');
+      const menu=document.getElementById('dropdownMenu');
+      const arrow=document.getElementById('arrowIcon');
+      box.addEventListener('click',e=>{
+        e.stopPropagation();
+        const open=menu.style.display==='block';
+        menu.style.display=open?'none':'block';
+        arrow.style.transform=open?'rotate(0deg)':'rotate(180deg)';
+      });
+      document.addEventListener('click',e=>{
+        if(!menu.contains(e.target)){
+          menu.style.display='none';
+          arrow.style.transform='rotate(0deg)';
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded',()=>{
+      setToday();
+      initDropdown();
+    });
+
+
+    // 메뉴 등장 애니메이션 순차적 적용
+    window.addEventListener('DOMContentLoaded', () => {
+      const menuIds = ["menu1", "menu2", "menu3", "menu4", "menu5", "menu6", "menu7", "menu8"];
+      menuIds.forEach((id, idx) => {
+        const el = document.getElementById(id);
+        setTimeout(() => {
+          el.classList.add("show");
+        }, 300 + idx * 80);
+      });
+    });
+    function toggleSidebarAnim() {
+      const sb  = document.getElementById('sidebar');
+      const btn = document.getElementById('toggleBtn');
+      sb.classList.toggle('collapsed');
+      btn.classList.toggle('active');
+    }
+    document.querySelectorAll('.menu-item').forEach(item => {
+      item.addEventListener('click', function() {
+        document.querySelectorAll('.menu-item').forEach(i => {
+          i.classList.remove('active');
+          // 아이콘 흰색으로 변경
+          var icon = i.querySelector('.menu-icon');
+          if (icon) icon.src = icon.dataset.iconWhite;
+        });
+        this.classList.add('active');
+        // 아이콘 검정으로 변경
+        var activeIcon = this.querySelector('.menu-icon');
+        if (activeIcon) activeIcon.src = activeIcon.dataset.iconBlack;
+        const url = this.dataset.url;                         // ★ 추가
+       if (url) document.getElementById('contentFrame').src = url;  // ★ 추가
+
+        // **★ 여기에 타이틀 변경 코드 추가 ★**
+        const pageTitle = document.getElementById('pageTitle');
+        const t = menuTitles[this.id];
+        if (pageTitle && t) {
+          pageTitle.innerHTML = `<span class="highlight">${t.highlight}</span>${t.text}`;
+        }
+
+      });
+    });
+
+    // 페이지 로드시 첫번째 메뉴 active + 아이콘 세팅
+    window.addEventListener('DOMContentLoaded', () => {
+      const first = document.getElementById('menu1');
+      first.classList.add('active');
+
+      // 아이콘 흑백 전환
+      const firstIcon = first.querySelector('.menu-icon');   // img 태그를 따로 잡고
+      firstIcon.src = firstIcon.dataset.iconBlack; 
+      document.querySelectorAll('.menu-item:not(#menu1) .menu-icon').forEach(icon => {
+        icon.src = icon.dataset.iconWhite;
+      });
+
+      // iframe 기본 로드
+      document.getElementById('contentFrame').src = first.dataset.url;   // ← 핵심
+    });
+      function toggleSidebarAnim () {
+        const sb  = document.getElementById('sidebar');
+        const btn = document.getElementById('toggleBtn');
+        const willOpen = sb.classList.contains('collapsed'); // 접힌 상태 → 열릴 건지?
+
+        sb.classList.toggle('collapsed');   // 폭 토글
+        btn.classList.toggle('active');
+        sb.classList.remove('expanded');    // 글씨 잠깐 숨김(absolute 상태)
+
+        // 열릴 때만, 폭 0.3 s 애니메이션이 끝난 뒤에 expanded 붙여 글씨 복귀
+        if (willOpen) {
+          setTimeout(() => sb.classList.add('expanded'), 300);
+        }
+      }
+
+      const menuTitles = {
+        menu1: { highlight: "Ma", text: "in home" },
+        menu2: { highlight: "Pr", text: "oblem Bank" },
+        menu3: { highlight: "Te", text: "st paper" },
+        menu4: { highlight: "My", text: " Library" },
+        menu5: { highlight: "Up", text: "load files" },
+        menu6: { highlight: "No", text: "tice" },
+        menu7: { highlight: "My", text: " Account" },
+        menu8: { highlight: "Lo", text: "gout" }
+      };
+      
+      </script>
+
+      <!-- Help FAB + Dropdown 마크업 -->
+      <div class="help-container" id="helpContainer">
+        <ul class="help-menu" id="helpMenu">
+          <li data-url="https://pf.kakao.com/_xyzxyz"><span class="badge">1</span>카카오 문의하기</li>
+          <li><span class="badge">2</span>내 문제지 만들기</li>
+          <li><span class="badge">3</span>문제지 랜덤 출제</li>
+          <li><span class="badge">4</span>학교 시험지로 문제지 만들기</li>
+          <li><span class="badge">5</span>개인 자료 DB화해서 문제지 만들기</li>
+        </ul>
+        <button class="help-fab" id="helpFab" aria-label="도움말">?</button>
+      </div>
+
+      <!-- 새로 여는 <script> 블록 안에 JS 삽입 -->
+      <script>
+        window.addEventListener('DOMContentLoaded', () => {
+          const fab  = document.getElementById('helpFab');
+          const menu = document.getElementById('helpMenu');
+
+          // 버튼 클릭 → 메뉴 토글
+          fab.addEventListener('click', () => {
+            menu.classList.toggle('show');
+          });
+
+          // 화면 아무 곳이나 클릭하면 닫힘
+          document.addEventListener('click', e => {
+            if (!menu.contains(e.target) && !fab.contains(e.target)) {
+              menu.classList.remove('show');
+            }
+          });
+
+          // 메뉴 항목 클릭 시 새 창 열기 + 닫기
+          menu.querySelectorAll('li').forEach(li => {
+            li.addEventListener('click', () => {
+              const url = li.dataset.url;
+              if (url) window.open(url, '_blank');
+              menu.classList.remove('show');
+            });
+          });
+        });
+</script>
+</body>
+</html>

@@ -1,785 +1,413 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <title>수학지니 고등관 기출자료 다운로드</title>
-  <link rel="icon" type="image/png" href="/favicon.png" />
-  <meta name="viewport" content="width=1200">
-  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:900,700,400&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Noto Sans KR', Arial, sans-serif;
-      background: #fff;
-      margin: 0;
-      color: #212529;
-    }
-    /* ------- 상단 네비(main_home 스타일, 색상 변경) -------- */
-    .top-nav {
-      width: 100vw; min-width:1100px;
-      height: 56px;
-      background: #fff;
-      display: flex; align-items: center;
-      justify-content: space-between;
-      box-sizing: border-box;
-      padding: 0 32px 0 13px;
-      position: fixed; left: 0; top: 0; z-index: 100;
-      border-bottom: 2px solid rgba(35,128,88,0.20); 
-    }
-    .logo-box { display:flex; align-items:center; gap:8px; }
-    .logo-img { width:27px; height:27px; display:block;}
-    .logo-text { color: #238058; font-size: 1.45rem; font-weight: 700; letter-spacing:0.02em;}
-    .menu-area { display:flex; align-items:center; gap:16px;}
-    .nav-link {
-      font-size: 1.08rem;
-      font-weight: 500;
-      letter-spacing: -0.3px;
-      color: #222;
-      text-decoration: none;      /* 밑줄 없애기 */
-      transition: color 0.13s;
-    }
-    .nav-link:hover {
-      color: #34bb66;
-      text-decoration: none;      /* 호버 시에도 밑줄 없도록 */
-    }
-    .nav-cash { display:flex; align-items:center; gap:2px;}
-    .cash-icon { width:20px; height:20px; margin-right:2px; vertical-align:middle;}
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1200" />
+<title>고등 기출자료 리스트</title>
 
-    /* 메뉴 버튼 (더보기, 프로필)에 볼록 떠오르는 효과 추가 */
-    .menu-btn {
-      background: transparent;
-      border: none;
-      margin: 0 3px;
-      padding: 0;
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-    .menu-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-    .menu-icon { width:24px; height:24px; }
-    .user-btns { display:none; }
-    .nav-underline { width:100vw; height:2px; background:#238058; margin:0; padding:0; }
+<!-- 아이콘 & 폰트 -->
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:700,400&display=swap" rel="stylesheet" />
 
-    /* ▼ 드롭다운/메뉴 공통 (색상은 그대로 흰색/회색 유지) */
-    .dropdown-menu {
-       display: none;
-       position: fixed;
-       top: 62px;
-       right: 36px;
-       background: #fff;
-       border-radius: 13px;
-       box-shadow: 0 6px 30px 2px rgba(80,90,120,0.17);
-       min-width: 218px;
-       z-index: 1000;
-       padding: 10px 0;
-       animation: menuPop 0.20s cubic-bezier(0.8,0.2,0.4,1);
-    }
-    .dropdown-menu ul { margin:0; padding:0; list-style:none;}
-    .dropdown-menu li { padding: 0; }
-    .dropdown-menu a {
-      display:flex; align-items:center; gap:7px;
-      color:#1a284b; text-decoration:none; padding: 12px 22px; font-size:1.08rem;
-      border-radius:7px; transition:background 0.11s;
-    }
-    .dropdown-menu a:hover { background:#f1f6ff; }
-    .menu-icon-menu img { width:21px; height:21px; vertical-align:middle;}
-    @keyframes menuShow { from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:none;} }
-    .menu-dropdown { right:110px; }
-    .profile-dropdown { right:22px; }
+<style>
+/* ========== 컬러 팔레트 (black / gray / light-gray) ========== */
+:root{
+  --c-main:#111;            /* 거의 검정 */
+  --c-text:#4b4f55;         /* 진회색 */
+  --c-light:#f4f5f7;        /* 옅은 회색 배경 */
+  --c-border:#e3e6ea;       /* 아주 옅은 회색 선 */
+  --c-btn:#FDC512;          /* 버튼 기본 */
+  --c-btn-hov:#D9A90F;         /* 버튼 hover */
+  --c-accent:#202020;       /* (표시용) 초록–상태 */
+}
 
-    .main-layout {
-      /* === 넓이/정렬 === */
-      width: calc(100% - 64px);   /* 좌우 32px 여백만 남기고 화면을 꽉 채움 */
-      max-width: 1600px;          /* 초고해상도에서도 1600px까지만 */
-      margin: 0 auto;             /* 가운데 정렬(헤더와 같은 여백) */
-      padding-top: 105px;         /* 헤더 높이 만큼 위쪽 간격 */
-      padding-left: 0;            /* 좌측 여백 제거 → 좀 더 왼쪽으로 */
-      
-      /* === 레이아웃 방식 : flex → grid 변경 === */
-      display: grid;
-      grid-template-columns: 1fr 320px; /* 주 콘텐츠, 광고/공지 컬럼 */
-      column-gap: 48px;                 /* 두 컬럼 간격 */
-      align-items: start;
-      min-height: 700px;
-    }
-    /* 중등/고등 탭 */
-    .level-tab-row {
-      display: flex; flex-direction: row; align-items: center; gap: 28px;
-      margin-bottom: 22px; margin-left: 0; margin-top: 0px; 
-    }
-    .level-tab-link {
-      font-size: 2.9rem;
-      font-weight: 900;
-      letter-spacing: -0.04em;
-      padding: 0 8px;
-      cursor: pointer;
-      text-decoration: none;
-      color: #bfc3c2;
-      border-bottom: 4px solid transparent;
-      transition: color 0.17s, border-bottom 0.17s;
-    }
-    .level-tab-link.active {
-      color: #18855d;
-      border-bottom: 4px solid #18855d;
-      pointer-events: none;
-    }
-    .level-tab-link:not(.active):hover {
-      color: #17b26a;
-      border-bottom: 4px solid #17b26a;
-    }
-    .filter-row {
-      display: flex; flex-direction: row; align-items: center; gap: 14px; width: 100%; flex-wrap: nowrap;  justify-content: flex-end;
-      margin-bottom: 24px; margin-left: 5px;
-    }
-    .filter-select, .filter-input {
-      border: 1.5px solid #e6f1e5;
-      background: #f7fbf7;
-      border-radius: 9px;
-      padding: 12px 16px;
-      font-size: 1.13rem;
-      color: #4c634e;
-      outline: none;
-      min-width: 110px;
-      font-weight: 500;
-      transition: border 0.15s;
-    }
-    .filter-select:focus, .filter-input:focus {
-      border: 1.5px solid #39c077;
-      background: #fff;
-    }
-    .filter-btn {
-      background: #18b164;
-      color: #fff;
-      border: none;
-      border-radius: 9px;
-      padding: 0 40px;
-      font-weight: 900;
-      font-size: 1.14rem;
-      letter-spacing: 0.04em;
-      cursor: pointer;
-      transition: background 0.13s;
-      margin-left: 0;
-      min-width: 90px;
-      height: 50px;
-      white-space: nowrap;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .filter-btn:hover { background: #12874b; }
-    .data-table {
-      width: 100%;
-      margin-top: 12px;
-      background: #f8fbfa;
-      border-radius: 13px;
-      box-shadow: 0 2px 8px #e3f8e955;
-      margin-left: 5px;
-      border-collapse: collapse;
-    }
-    .data-table th, .data-table td {
-      padding: 9px 9px;
-      font-size: 1.06rem;
-      font-weight: 500;
-      text-align: center;
-      vertical-align: middle;
-      height: 42px;
-    }
-    .data-table th {
-      background: #f6faf6;
-      color: #18b164;
-      font-weight: 800;
-      border-radius: 7px;
-      letter-spacing: -0.03em;
-      border-bottom: 1.5px solid #e3f4e6;
-    }
-    .data-table tr { border-bottom: 1.3px solid #eef3f0; }
-    .data-table tr:last-child { border-bottom: none; }
-    .data-table tbody tr:hover { background: #f0fdf6; }
-    .download-btn {
-      background: #12ba66;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 8px 22px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.15s, text-decoration 0.13s;
-      font-size: 1rem;
-      letter-spacing: 0.01em;
-      text-decoration: none;
-      display: inline-block;
-    }
-    .download-btn:hover { 
-      background: #158f4d; 
-      text-decoration: underline;    
-    }
-    .ads-bar {
-      display: flex; flex-direction: column; gap: 28px; margin-top: 0;
-      align-items: flex-end; min-width: 272px;
-    }
-    .ad1-box {
-      width: 300px; height: 280px;
-      border-radius: 14px;
-      background: #f6fafd;
-      border: 2.5px solid #f2f3f4;
-      box-shadow: 0 2px 10px #e0e0e0aa;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.16rem; font-weight: 600; color: #b5b5b5;
-      overflow: hidden;
-      padding: 0;
-    }
-    /* --- 공지사항 미리보기 --- */
-    .notice-preview-box {
-      width: 300px;
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 4px 18px #e0efe966;
-      padding: 0 0 14px 0;
-      margin-bottom: 26px;
-      overflow: hidden;
-      border: 1.5px solid #f2f3f4; /* 👈 추가 (아주 옅은 회색 테두리) */
-    }
-    .notice-preview-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 18px 0 18px;
-      height: 50px;
-      background: linear-gradient(90deg, #08b779 93%, #00c393 100%);
-      border-radius: 16px 16px 0 0;
-    }
-    .notice-preview-header .title {
-      color: #fff;
-      font-size: 1.15rem;
-      font-weight: 900;
-      letter-spacing: -0.01em;
-    }
-    .notice-preview-arrowbtns {
-      display: flex; gap: 1px;
-    }
-    .notice-preview-arrow {
-      border: none;
-      background: #fff;
-      color: #222;
-      font-size: 0.93rem;
-      border-radius: 4px;
-      width: 20px; height: 20px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.13s, color 0.13s;
-      box-shadow: 0 2px 8px #1ba07212;
-      font-weight: bold;
-      margin-left: 1px;
-      outline: none;
-      padding: 0;
-    }
-    .notice-preview-arrow:active {
-      background: #eee;
-      color: #1fa266;
-    }
-    .notice-preview-list {
-      display: flex; flex-direction: column; gap: 0;
-      padding: 9px 18px 0 18px;
-    }
-    .notice-preview-item {
-      display: flex; align-items: center;
-      height: 32px; font-size: 0.97rem; border-radius: 5px;
-      margin-bottom: 1px; background: none;
-      cursor: pointer; transition: background 0.13s;
-      overflow: hidden;
-    }
-    .notice-preview-item:hover { background: #f5faf8; }
-    .notice-preview-number {
-      min-width: 18px; height: 18px; margin-right: 7px;
-      background: #e3e6ec;
-      color: #fff;
-      font-weight: 700; font-size: 0.8rem;
-      border-radius: 4px;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Noto Sans KR', Arial, sans-serif;
-    }
-    .notice-preview-title {
-      flex: 1; color: #444; font-size: 0.97rem; font-weight: 400;
-      white-space: nowrap; text-overflow: ellipsis; overflow: hidden;
-    }
-    .ad2-box {
-      width: 300px; height: 900px;
-      border-radius: 14px;
-      background: #f6fafd;
-      border: 2.5px solid #f2f3f4;
-      box-shadow: 0 2px 10px #e0e0e0aa;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.16rem; font-weight: 600; color: #b5b5b5;
-      overflow: hidden;
-      padding: 0;
-    }
-    .ad-box img { width: 100%; height: 100%; object-fit: cover; display: block;}
-    @media (max-width: 1200px) {
-      .main-layout { flex-direction: column; gap: 16px; padding-top: 64px;}
-      .ads-bar { flex-direction: row; gap:10px; align-items: stretch; min-width:0;}
-      .ad-box { min-width:0; width:100%; }
-    }
-    #grade.filter-select { min-width: 90px; width: 150px; }
-    #year.filter-input { min-width: 60px; width: 100px; }
-    #semester.filter-select { min-width: 150px; width: 150px; }
-    #school.filter-input { min-width: 90px; width: 110px; }
-    #district.filter-input { min-width: 75px; width: 90px; }
-    /* 모든 네비게이션 아이콘 공통 */
-    .nav-icon {
-      width: 20px;    /* 아이콘 크기 */
-      height: 20px;
-      margin-right: 4px;   /* 아이콘-텍스트 간격 */
-      vertical-align: middle;
-    }
+*{box-sizing:border-box;font-family:'Noto Sans KR',sans-serif;margin:0;}
+body{background:#ffffff;;color:var(--c-text);min-height:100vh;display:flex;flex-direction:column;}
 
-    /* 아이콘이 들어간 링크를 옆으로 살짝 띄움 */
-    .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 4px;       /* 아이콘-텍스트 간격(Backup) */
-    }
+/* ---------- 헤더 ---------- */
+.page-header{
+  padding:28px 40px 16px;display:flex;justify-content:space-between;align-items:center;
+  background:#fff;border-bottom:1px solid var(--c-border);
+}
+.header-titles h1{font-size:1.55rem;font-weight:900;color:var(--c-main);}
+.sub-date{margin-top:4px;font-size:.95rem;font-weight:700;color:var(--c-text);}
+.header-actions{display:flex;gap:16px;}
 
-    /* 링크들 사이 간격 넉넉히 */
-    .menu-area {
-      gap: 24px;      /* 기존 16px → 24px */
-    }
+.action-btn{
+  background:var(--c-btn);color:#111;font-weight:700;font-size:.93rem;
+  padding:8px 22px;border-radius:9999px;display:flex;gap:8px;align-items:center;text-decoration:none;
+  transition:.15s;
+}
+.action-btn:hover{background:var(--c-btn-hov);}
 
-    .filter-label{
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: #212529;
+/* ---------- 프로필 ---------- */
+.user-wrapper{position:relative;}
+.user-box{display:flex;align-items:center;gap:14px;cursor:pointer;}
+.avatar{width:42px;height:42px;border-radius:50%;background:#ddd;object-fit:cover;}
+.user-name{font-weight:700;color:var(--c-main);white-space:nowrap;}
+.dropdown{
+  display:none;position:absolute;right:0;top:calc(100% + 6px);min-width:170px;z-index:30;
+  background:#fff;border:1px solid var(--c-border);border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.06);
+}
+.dropdown a{display:block;padding:10px 18px;font-size:.92rem;color:var(--c-main);text-decoration:none;}
+.dropdown a:hover{background:var(--c-light);}
 
-      /* ▼ 새로 추가한 부분 */
-      border: 1.5px solid #d0d0d0;   /* 얇은 회색 테두리 */
-      border-radius: 6px;            /* 모서리 살짝 둥글게 */
-      padding: 9px 65px;             /* 텍스트 주변 여백 */
+/* ---------- 메인 컨테이너 ---------- */
+.wrapper{
+  width:95%;               /* ➜ ① 폭 넓게 */
+  max-width:none;
+  margin:40px auto 0;
+}
 
-      margin-right: 0px;            /* 오른쪽 간격 유지 */
-      white-space: nowrap;           /* 줄바꿈 방지 */
-      display: inline-block;         /* 박스 형태로 */
-    }
-    .user-id{
-      margin-left:6px;
-      font-size:1.05rem;
-      font-weight:700;
-      color:#212529;
-      user-select:none;
-    }
-    .nav-profile{
-      display:inline-flex;        /* 아이콘·글자 같은 줄, 세로 정렬 */
-      align-items:center;         /* 높이 맞춤 */
-      gap:6px;
-      background:transparent;
-      border:none;
-      padding:0;
-      cursor:pointer;
-    }
-    .nav-profile .user-id{
-      font-size:1.08rem;          /* .nav-link 와 동일 */
-      font-weight:500;
-      letter-spacing:-0.3px;
-      color:#222;
-      transition:color .13s;
-    }
-    .nav-profile:hover{
-      transform:none;             /* menu-btn 공통 효과 무력화 */
-      box-shadow:none;
-    }
-    .nav-profile:hover .user-id{
-      color:#34bb66;              /* .nav-link:hover 와 동일 */
-    }
-    .nav-profile:hover .menu-icon{
-      filter:brightness(.85);     /* 살짝 어두워지는 정도만 */
-    }
+/* ---------- 툴바 & 필터 ---------- */
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;}
+.filter-set{display:flex;gap:10px;flex:1 1 0;}
 
-    /* ===== 중등·고등 토글 + 가운데 문구 ===== */
-    .level-switch-row{
-      position:relative;            /* 가운데 정렬 기준 */
-      display:flex; align-items:center;
-      margin:0 0 22px 0;            /* 기존 간격 맞춤 */
-    }
-    /* ── 토글(Pill) ────────────────────── */
-    .level-switch{
-      display:inline-flex; gap:2px;
-      background:#ECEFF4;           /* 회색 배경 */
-      border-radius:40px; padding:4px;
-    }
-    .switch-btn{
-      padding: 6px 22px;            /* 사진과 비슷한 크기 */
-      border-radius: 26px;
-      font-size: 0.88rem; font-weight:700;
-      color:#485067; text-decoration:none;
-      transition:all .18s;
-    }
-    .switch-btn:hover   { background:#DFE3E9; }
-    .switch-btn.active  { background:#18855d; color:#fff; pointer-events:none; }
+.filter{
+  appearance:none;                /* 기본 화살표 제거   */
+  outline:none !important;        /* Windows 파란/검은 윤곽 제거  */
+  border:1px solid var(--c-border);
+  border-radius:6px;
+  padding:0 36px 0 12px;
+  background:#fff
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' fill='%23343a40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 7l5 6 5-6H5z'/%3E%3C/svg%3E")
+    no-repeat right 12px center/12px 12px;
+}
+.filter:focus{
+  border-color:var(--c-main);     /* 검정으로만 한 번 */
+  box-shadow:none;                /* 더블 테두리 방지 */
+}
+/* 윈도우 · Edge 의 파란 기본 화살표 숨김 */
+.filter::-ms-expand{display:none;}
 
-    /* ── 가운데 문구 ───────────────────── */
-    .level-center-text{
-      position:absolute;
-      left:55%;
-      top:-20px;               /* ★ 위로 6 px 끌어올림 (필요하면 숫자만 조정) */
-      transform:translateX(-50%);
-      font-size:2.6rem;
-      font-weight:900;
-      color:#000;
-      display:flex; align-items:center; gap:8px;
-    }
-    .title-type{
-      color:#18855d;                 /* 스샷과 비슷한 파란색 */
-      font-size:2.4rem;
-      font-weight:700;               /* Nanum Pen Script는 weight=400 하나뿐이라 700도 OK */
-      font-family:'Nanum Pen Script', 'Noto Sans KR', sans-serif;
-    }
+/* (선택) 래퍼를 쓸 경우 width 계산 문제 방지 */
+.select-wrap{position:relative;display:inline-block;}
 
-    .title-main{
-      /* ① 손글씨체 적용 */
-      font-family: 'Nanum Pen Script', 'Noto Sans KR', sans-serif;
-      /* ② 색상·크기·굵기 (원하는 값으로 조정) */
-      color: #000;
-      font-size: 2.9rem;
-      font-weight: 600;  /* 필요하면 400~900 사이에서 조절 */
-      margin-left: 6px;
-    }
+.btn{
+  height:38px;padding:0 20px;border:none;border-radius:6px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;
+  transition:background .15s;font-size:.93rem;
+}
+.btn--search{background:var(--c-accent);color:#fff;}
+.btn--search:hover{background:#0d965f;}
+.btn--primary{background:var(--c-btn);color:#fff;}
+.btn--primary:hover{background:var(--c-btn-hov);}
 
-    .center-logo{ width:36px; height:36px; }
+/* ---------- 테이블 ---------- */
+.table-wrap{background:#fff;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.05);overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+thead{background:var(--c-light);color:var(--c-main);font-weight:700;}
+th,td{padding:10px 8px;font-size:.9rem;text-align:center;}
+tbody tr{border-bottom:1px solid var(--c-border);}
+tbody tr:hover{background:#f7f9fb;}
 
-    .download-img-btn img {
-      vertical-align: middle;
-      border-radius: 4px;
-      box-shadow: 0 2px 8px #0001;
-      transition: transform 0.13s, box-shadow 0.13s;
-    }
-    .download-img-btn:hover img {
-      transform: translateY(-2px) scale(1.08);
-      box-shadow: 0 4px 16px #22ccaa44;
-    }
+/* 상태 점 & 뱃지 */
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;background:var(--c-accent);}
+.badge{padding:2px 10px;border-radius:12px;font-size:.78rem;font-weight:700;color:#fff;}
+.badge--green{background:var(--c-accent);}
+.badge--red{background:#ff5b62;}
+
+/* 작업 버튼 */
+.act-btn{
+  background:#fff;border:1px solid var(--c-accent);color:var(--c-accent);
+  padding:4px 12px;border-radius:4px;font-size:.8rem;font-weight:700;cursor:pointer;transition:.15s;
+}
+.act-btn:hover{background:var(--c-accent);color:#fff;}
+
+/* ---------- 페이지네이션 ---------- */
+.pagination{display:flex;justify-content:center;gap:8px;margin:28px 0;}
+.page{
+  width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--c-border);border-radius:4px;background:#fff;color:var(--c-main);cursor:pointer;transition:.15s;
+}
+.page:hover{background:var(--c-light);}
+.page.active{background:var(--c-accent);border-color:var(--c-accent);color:#fff;pointer-events:none;}
+
+@media (max-width:1024px){
+  .filter-set{flex-wrap:wrap;gap:6px;}
+  .toolbar{gap:10px;}
+}
+
+.page-banner{
+  width:100%;
+  background:#ffffff;
+  color:#111;
+  padding:70px 0;
+  border-bottom:1px solid #000000;
+}
+.page-banner .inner{
+  max-width:1400px;
+  margin:0 auto;
+  padding:0 40px;
+}
+.page-banner h2{
+  font-size:2.4rem;
+  font-weight:900;
+  margin:0 0 14px 0;
+}
+.page-banner p{
+  font-size:1.05rem;
+  line-height:1.5;
+  opacity:.85;
+  margin:0;
+}
+
+.highlight {
+  position: relative;
+  display: inline-block;
+}
+
+.highlight::before {
+  content: "";
+  position: absolute;
+  top: -4px;      /* 글자 위 위치 */
+  left: 0;
+  width: 30px;    /* 선 길이 */
+  height: 5px;    /* 선 굵기 */
+  background: #f8c900;  /* 노란색 */
+  border-radius: 2px;
+}
+
+.bar-sep {
+  color: #f8c900;
+  font-weight: 1000;
+}
+
+.level-toggle-container {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 20px;  /* 더 띄움 */
+  gap: 10px;          /* 스위치와 글자 사이 더 띄움 */
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+/* 토글 스위치 */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 28px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top:0; left:0; right:0; bottom:0;
+  background-color: var(--c-btn); /* 항상 노란색 */
+  transition: .4s;
+  border-radius: 28px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 22px; width: 22px;
+  left: 3px; bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+.with-toggle {
+  display: flex;
+  align-items: flex-end; /* 글 하단에 정렬 */
+  gap: 18px;
+}
+.with-toggle .level-toggle-container {
+  margin: 0;
+  position: relative;
+  top: -7px;
+  bottom: 0; /* 필요시 -2px, -4px로 미세조정 */
+}
 
 
-  </style>
+</style>
 </head>
 <body>
-  <!-- ✅ 상단 네비게이션 (메인홈 구조/스타일/동작 그대로, 색상만 변경) -->
-  <header class="top-nav">
-    <div class="logo-box">
-      <img src="logo_main.png" class="logo-img" alt="로고" />
-      <span class="logo-text">수학지니</span>
+
+<section class="page-banner">
+  <div class="inner">
+    <h2 class="with-toggle">
+  고등관 <span class="bar-sep">|</span> 기출자료
+  <span class="level-toggle-container">
+    <label class="switch">
+      <input type="checkbox" id="levelToggle">
+      <span class="slider"></span>
+    </label>
+    <span id="levelText">고등</span>
+  </span>
+</h2>
+    <p>전국 학교별 기출자료를 한 곳에서 확인하고, 필요한 자료를 쉽게 찾아보세요.</p>
+  </div>
+</section>
+
+<div class="wrapper">
+  <!-- ─── 툴바 ─── -->
+  <div class="toolbar">
+    <div class="filter-set">
+      <select id="region"   class="filter"><option value="">지역</option><option>서울</option><option>경기</option></select>
+      <input  id="district" class="filter" placeholder="구/군">
+      <input  id="school"   class="filter" placeholder="학교명">
+      <select id="grade"    class="filter"><option value="">학년</option><option>중1</option><option>중2</option><option>중3</option></select>
+      <input  id="year"     class="filter" placeholder="연도" type="number">
+      <select id="semester" class="filter"><option value="">학기</option><option>1학기중간</option><option>1학기기말</option><option>2학기중간</option><option>2학기기말</option></select>
+      <button class="btn btn--search" onclick="searchFiles()"><i class="fa-solid fa-magnifying-glass"></i> 검색</button>
+      <button id="uploadBtn" class="btn btn--primary" style="display:none;margin-left:8px;">
+      <i class="fa-solid fa-upload"></i> 시험지 업로드
+    </button>
+      <button id="manageBtn" class="btn btn--primary" style="display:none;margin-left:8px;">
+      <i class="fa-solid fa-gears"></i> 시험지 관리
+    </button>
     </div>
-    <nav class="menu-area">
-      <a href="main_home.html"       class="nav-link">
-        <img src="home.png"  class="nav-icon" alt="홈">
-        메인홈
-      </a>
 
-      <a href="my_collection.html"   class="nav-link">
-        <img src="book_icon.png"  class="nav-icon" alt="책장">
-        내 책장
-      </a>
-
-      <a href="payment.html"         class="nav-link">
-        <img src="cash_icon.png"  class="nav-icon" alt="캐시">
-        결제하기
-      </a>
-      <a href="admin_upload.html" class="nav-link admin-link" style="display:none;">
-        <img src="icon_upload.png" class="nav-icon" alt=""> 자료 업로드
-      </a>
-      <a href="admin_files.html"  class="nav-link admin-link" style="display:none;">
-        <img src="icon_manage.png" class="nav-icon" alt=""> 자료 관리
-      </a>
-      <!-- 더보기(햄버거) 메뉴 -->
-      <button class="menu-btn" id="moreMenuBtn" title="더보기" type="button">
-        <img src="menu_icon.png" class="menu-icon" alt="더보기">
-      </button>
-      <!-- 프로필(사람) 메뉴 -->
-      <button class="menu-btn nav-profile" id="profileMenuBtn" title="프로필" type="button">
-        <img src="profile_icon.png" class="menu-icon" alt="">
-        <span id="userId" class="user-id"></span>
-      </button>
-    </nav>
-  </header>
-  <div class="nav-underline"></div>
-
-  <!-- ▼ 더보기 메뉴 (모달) -->
-  <div id="moreMenu" class="dropdown-menu menu-dropdown">
-    <ul>
-      <li><a href="problems.html"><span class="menu-icon-menu"><img src="problems.png" alt=""></span>문제은행</a></li>
-      <li><a href="my_collection.html"><span class="menu-icon-menu"><img src="icon_book.png" alt=""></span>내 책장</a></li>
-      <li><a href="notice.html"><span class="menu-icon-menu"><img src="icon_notice.png" alt=""></span>공지사항</a></li>
-      <li><a href="contact.html"><span class="menu-icon-menu"><img src="icon_contact.png" alt=""></span>문의하기</a></li>
-    </ul>
+    <!-- ③ 관리자 전용 -->
+    <button id="uploadBtn" class="btn btn--primary" style="display:none;">
+      <i class="fa-solid fa-upload"></i> 시험지 업로드
+    </button>
   </div>
 
-  <!-- ▼ 프로필 메뉴 (모달) -->
-  <div id="profileMenu" class="dropdown-menu profile-dropdown">
-    <ul>
-      <li><a href="profile.html"><span class="menu-icon-menu"><img src="icon_profilemenu.png" alt=""></span>프로필가기</a></li>
-      <li>
-        <a href="login.html" id="logoutBtn">
-          <span class="menu-icon-menu"><img src="icon_logout.png" alt=""></span>로그아웃
-        </a>
-      </li>
-    </ul>
+  <!-- ─── 테이블 ─── -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:60px">No</th>
+          <th style="text-align:left;padding-left:18px">자료명</th>
+          <th>학년</th><th>학기</th><th>연도</th><th>업로드일</th><th>상태</th><th style="width:140px">작업</th>
+        </tr>
+      </thead>
+      <tbody id="file-list"><!-- JS 삽입 --></tbody>
+    </table>
   </div>
-  <div class="main-layout">
-    <div style="flex:1;min-width:750px;">
-      <!-- 중등/고등관 탭 -->
-      <div class="level-switch-row">
-        <!-- 토글 -->
-        <div class="level-switch">
-          <a href="middle.html" class="switch-btn">중등</a>
-          <a href="high.html"   class="switch-btn active">고등</a>
-        </div>
 
-        <!-- 가운데 문구(아이콘 + 텍스트) -->
-      <div class="level-center-text">
-        <span class="title-type">고등관</span>
-        <span class="title-main">학교기출</span>
-      </div>
-      </div>
-      <!-- 검색/필터 -->
-      <div class="filter-row">
-        <span class="filter-label">정보&nbsp;입력</span>
-        <select class="filter-select" id="region"><option value="">지역</option><option>서울</option><option>경기</option></select>
-        <input class="filter-input" id="district" placeholder="구/군" />
-        <input class="filter-input" id="school" placeholder="학교명" />
-        <select class="filter-select" id="grade">
-          <option value="">학년</option>
-          <option>중1</option><option>중2</option><option>중3</option>
-        </select>
-        <input class="filter-input" id="year" placeholder="연도" type="number"/>
-        <select class="filter-select" id="semester">
-          <option value="">학기</option>
-          <option>1학기중간</option>
-          <option>1학기기말</option>
-          <option>2학기중간</option>
-          <option>2학기기말</option>
-        </select>
-        <button class="filter-btn" onclick="searchFiles()">검색</button>
-      </div>
-      <!-- 표 -->
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>지역</th>
-            <th>구/군</th>
-            <th>학교</th>
-            <th>학년</th>
-            <th>연도</th>
-            <th>학기</th>
-            <th>자료명</th>
-            <th>다운로드</th>
-          </tr>
-        </thead>
-        <tbody id="file-list">
-          <!-- JS로 표 데이터 채움 -->
-        </tbody>
-      </table>
-    </div>
-    <!-- 광고/공지 박스 -->
-    <div class="ads-bar">
-      <div style="height:0px"></div>
-      <div class="ad1-box ad-box"><img src="ad1.png" alt="광고1"/></div>
-      <!-- --- 공지사항 미리보기 박스 --- -->
-      <div class="notice-preview-box" id="noticePreviewBox"></div>
-      <div class="ad2-box ad-box"><img src="ad2.png" alt="광고2"/></div>
-    </div>
-  </div>
-  <script>
-    let fileData = [];
-      async function fetchFiles() {
-        const level = "고등";
-        const region = document.getElementById('region').value;
-        const district = document.getElementById('district').value.trim();
-        const school = document.getElementById('school').value.trim();
-        const grade = document.getElementById('grade').value;
-        const year = document.getElementById('year').value.trim();
-        const semester = document.getElementById('semester').value;
-        const params = new URLSearchParams();
-        params.append('level', level);
-        if(region) params.append('region', region);
-        if(district) params.append('district', district);
-        if(school) params.append('school', school);
-        if(grade) params.append('grade', grade);
-        if(year) params.append('year', year);
-        if(semester) params.append('semester', semester);
+  <!-- ─── 페이지네이션 ─── -->
+  <div class="pagination" id="pagination"></div>
+</div>
 
-        const res = await fetch('/api/files?' + params.toString());
-        fileData = await res.json();
-        renderTable(fileData);
+<script>
+/* ===== 파일 로드 / 렌더 ===== */
+let fileData=[];
+async function fetchFiles(page=1){
+  const params=new URLSearchParams({
+    page,
+    region:   region.value,
+    district: district.value.trim(),
+    school:   school.value.trim(),
+    grade:    grade.value,
+    year:     year.value.trim(),
+    semester: semester.value
+  });
+  params.append('level', '고등');  // 반드시 넣어주세요
+  const res=await fetch('/api/files?'+params.toString());
+  fileData=await res.json();
+  renderTable(fileData.items||[]);
+  renderPagination(fileData.totalPages||1,page);
+}
+function searchFiles(){fetchFiles();}
+
+function renderTable(list){
+  const tb=document.getElementById('file-list');
+  if(!list.length){
+    tb.innerHTML='<tr><td colspan="8" style="padding:20px;color:#9ba4b0;">자료가 없습니다</td></tr>';return;
+  }
+    tb.innerHTML = list.map((row,i)=>`
+    <tr>
+      <td>${row.no??i+1}</td>
+      <td style="text-align:left;padding-left:18px">${row.title}
+        ${row.tag?`<span class="badge badge--${row.tag==='통과'?'green':'red'}" style="margin-left:6px;">${row.tag}</span>`:''}
+      </td>
+      <td>${row.grade}</td><td>${row.semester}</td><td>${row.year}</td><td>${row.date}</td>
+      <td><span class="status-dot"></span>${row.status}</td>
+      <td></td>
+    </tr>`).join('');
+}
+
+function renderPagination(total,curr){
+  const p=document.getElementById('pagination');p.innerHTML='';
+  for(let i=1;i<=total;i++){
+    const d=document.createElement('div');
+    d.className='page'+(i===curr?' active':'');d.textContent=i;
+    if(i!==curr)d.onclick=()=>fetchFiles(i);
+    p.appendChild(d);
+  }
+}
+
+/* ===== 관리자 버튼 표시 ===== */
+async function showUploadIfAdmin(){
+  try{
+    const {isLoggedIn,user={}}=await (await fetch('/check-auth',{credentials:'include'})).json();
+    if(isLoggedIn&&user.role==='admin') uploadBtn.style.display='inline-flex';
+  }catch(e){console.error(e);}
+}
+
+/* ===== 기타 UI 초기화 ===== */
+function setToday(){
+  const t=new Date(),wk=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+        mo=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  todayTxt.textContent = `${wk[t.getDay()]}  ${String(t.getDate()).padStart(2,'0')} ${mo[t.getMonth()]} ${t.getFullYear()}`;
+}
+function initDropdown(){
+  userBox.onclick=e=>{
+    e.stopPropagation();const open=dropdownMenu.style.display==='block';
+    dropdownMenu.style.display=open?'none':'block';
+    arrowIcon.style.transform=open?'rotate(0deg)':'rotate(180deg)';
+  };
+  document.onclick=e=>{
+    if(!dropdownMenu.contains(e.target)){dropdownMenu.style.display='none';arrowIcon.style.transform='rotate(0deg)';}
+  };
+}
+
+/* ===== 더미 ===== */
+const editRow=id=>alert('편집 '+id);
+const deleteRow=id=>confirm('삭제?')&&alert('삭제 '+id);
+
+/* ===== 시작 ===== */
+window.onload=()=>{
+  setToday();
+  initDropdown();
+  showUploadIfAdmin();
+  showAdminButtons();
+  fetchFiles(1);
+};
+async function showAdminButtons(){
+  try{
+    const {isLoggedIn,user={}} = await (await fetch('/check-auth',{credentials:'include'})).json();
+    if(isLoggedIn && user.role==='admin'){
+      const uploadBtn = document.getElementById('uploadBtn');
+      const manageBtn = document.getElementById('manageBtn');
+      if(uploadBtn){
+        uploadBtn.style.display = 'inline-flex';
+        uploadBtn.onclick = () => location.href = 'upload.html';
       }
-      function renderTable(list){
-        const tbody = document.getElementById('file-list');
-        if(!list.length){
-          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#bbb;">자료가 없습니다</td></tr>`;
-          return;
-        }
-        tbody.innerHTML = list.map(row=>`
-          <tr>
-            <td>${row.region}</td>
-            <td>${row.district}</td>
-            <td>${row.school}</td>
-            <td>${row.grade}</td>
-            <td>${row.year}</td>
-            <td>${row.semester}</td>
-            <td>${row.title}</td>
-            <td>
-              ${row.hwp_filename ? `<a href="/download/${row.id}?type=hwp" class="download-img-btn" title="HWP 다운로드"><img src="hwp_btn.png" alt="HWP" style="height:32px;margin-right:4px;"></a>` : ''}
-              ${row.pdf_filename ? `<a href="/download/${row.id}?type=pdf" class="download-img-btn" title="PDF 다운로드"><img src="pdf_btn.png" alt="PDF" style="height:32px;"></a>` : ''}
-              ${!row.hwp_filename && !row.pdf_filename ? '-' : ''}
-            </td>
-          </tr>
-        `).join('');
-      }
-      function searchFiles(){
-        fetchFiles();
-      }
-    // --------- 공지사항 미리보기 JS ---------
-    // API 서버에서 최신 10개 fetch
-    async function fetchNotices() {
-      renderNoticePreview([], true); // << 이게 핵심!
-      try {
-        const res = await fetch('/api/notices');
-        let list = await res.json();
-        list = list.slice(0, 10);
-        list = list.map((n, i) => ({ title: n.title || '(제목없음)' }));
-        renderNoticePreview(list, false); // << 이게 핵심!
-      } catch (e) {
-        renderNoticePreview([
-          {title: "공지사항을 불러올 수 없습니다."}
-        ], false);
+      if(manageBtn){
+        manageBtn.style.display = 'inline-flex';
+        manageBtn.onclick = () => location.href = 'admin_files.html';
       }
     }
-    let noticePage = 0; // 0: 1~5, 1: 6~10
-    function renderNoticePreview(list, loading) {
-      const box = document.getElementById('noticePreviewBox');
-      if(!box) return;
-      box.innerHTML = `
-        <div class="notice-preview-header">
-          <span class="title">공지사항</span>
-          <div class="notice-preview-arrowbtns">
-            <button class="notice-preview-arrow" id="prevNoticeBtn">&lt;</button>
-            <button class="notice-preview-arrow" id="nextNoticeBtn">&gt;</button>
-          </div>
-        </div>
-        <div class="notice-preview-list"></div>
-      `;
-      const listDiv = box.querySelector('.notice-preview-list');
-      if (loading) {
-        listDiv.innerHTML = `<div style="color:#b5b5b5; padding:14px 0; text-align:center;">불러오는 중...</div>`;
-        return;
-      }
-      const start = noticePage * 5, end = start + 5;
-      const view = list.slice(start, end);
-      listDiv.innerHTML = view.map((item, i) =>
-        `<div class="notice-preview-item">
-          <span class="notice-preview-number">${start + i + 1}</span>
-          <span class="notice-preview-title">${item.title}</span>
-        </div>`
-      ).join('');
-      box.querySelector('#prevNoticeBtn').onclick = () => {
-        if(noticePage > 0) { noticePage--; renderNoticePreview(list); }
-      };
-      box.querySelector('#nextNoticeBtn').onclick = () => {
-        if((noticePage+1)*5 < list.length) { noticePage++; renderNoticePreview(list);}
-      };
-    }
-        function startNoticeAutoSlide() {
-      if (noticeSlideTimer) clearInterval(noticeSlideTimer);
-      noticeSlideTimer = setInterval(() => {
-        if (!window.noticeList) return;
-        // 페이지 넘어가거나 반복
-        if((noticePage+1)*5 < window.noticeList.length) noticePage++;
-        else noticePage = 0;
-        renderNoticePreview(window.noticeList, false);
-      }, 5000); // 5초마다
-    }
-    function restartNoticeAutoSlide() {
-      startNoticeAutoSlide();
-    }
-    window.onload = ()=>{ fetchFiles(); fetchNotices(); };
-        document.addEventListener('DOMContentLoaded', function() {
-      // 2. 더보기/프로필 메뉴 닫기 (바깥 클릭 시)
-      document.body.addEventListener('click', function() {
-        document.getElementById('moreMenu').style.display = 'none';
-        document.getElementById('profileMenu').style.display = 'none';
-      });
+  }catch(e){
+    console.error('관리자 체크 실패', e);
+  }
+}
 
-      // 3. 더보기 버튼 클릭: 메뉴 열기
-      document.getElementById('moreMenuBtn').onclick = function(e) {
-        e.stopPropagation();
-        document.getElementById('moreMenu').style.display = 'block';
-        document.getElementById('profileMenu').style.display = 'none';
-      };
+document.getElementById('levelToggle').addEventListener('click', function(){
+  const levelText = document.getElementById('levelText');
+  if(levelText.textContent === '고등'){
+    levelText.textContent = '중등';
+    location.href = 'middle.html';
+  }else{
+    levelText.textContent = '고등';
+    location.href = 'high.html';
+  }
+});
 
-      // 4. 프로필 버튼 클릭: 메뉴 열기
-      document.getElementById('profileMenuBtn').onclick = function(e) {
-        e.stopPropagation();
-        document.getElementById('profileMenu').style.display = 'block';
-        document.getElementById('moreMenu').style.display = 'none';
-      };
-
-      // 5. 메뉴 내에서 클릭 시 메뉴가 닫히지 않도록(버블링 차단)
-      document.getElementById('moreMenu').onclick = function(e) { e.stopPropagation(); };
-      document.getElementById('profileMenu').onclick = function(e) { e.stopPropagation(); };
-
-      // 6. 로그아웃 버튼 연결
-      const logoutBtn = document.getElementById('logoutBtn');
-      if (logoutBtn) {
-        logoutBtn.onclick = function(e) {
-          e.preventDefault();
-          localStorage.removeItem('userEmail');
-          window.location.href = 'login.html';
-        };
-      }
-      checkLoginStatus();
-    });
-    
-    /* ───────── 로그인 상태 확인 & 프로필 옆 아이디 표시 ───────── */
-    async function checkLoginStatus () {
-      const span = document.getElementById('userId');
-      if (!span) return;
-
-      try {
-        const res              = await fetch('/check-auth', {credentials:'include'});
-        const { isLoggedIn, user={} } = await res.json();
-
-        if (isLoggedIn) {
-          const displayId = user.email ? user.email.split('@')[0] : (user.name || '');
-          if (displayId) {
-            span.textContent   = displayId;
-            span.style.display = 'inline';
-          }
-          if (user.role === 'admin') {
-            document.querySelectorAll('.admin-link')
-            .forEach(el => el.style.display = 'flex');
-          }
-          /* 로그아웃 엔드포인트도 서버에 요청 */
-          const logoutBtn = document.getElementById('logoutBtn');
-          if (logoutBtn) {
-            logoutBtn.onclick = async e => {
-              e.preventDefault();
-              await fetch('/logout', {credentials:'include'});
-              location.href = 'login.html';
-            };
-          }
-        }
-      } catch (err) {
-        console.error('login check fail', err);
-      }
-    }
-
-      document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.download-btn').forEach(btn => {
-          btn.addEventListener('click', function(e) {
-            if (!confirm('다운로드 하시겠습니까?')) {
-              e.preventDefault();  // "취소" 누르면 다운로드 취소
-            }
-          });
-        });
-      });
-
-  </script>
+</script>
 </body>
 </html>

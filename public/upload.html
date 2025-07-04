@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>시험지 업로드</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <!-- ✅ 공통 css 불러오기 -->
+  <link rel="stylesheet" href="css/common.css">
+<style>
+
+/* ────── 공지사항 테이블 ────── */
+h2 {
+  margin: 36px 0 20px;
+  font-size: 1.6rem;
+  font-weight: 900;
+}
+.search-box {
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+}
+.search-box input[type="text"] {
+  padding: 8px;
+  width: 200px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.search-box button {
+  padding: 8px 12px;
+  background: #f8c900;
+  color: rgb(0, 0, 0);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 6px;
+}
+.search-box button:last-of-type {
+  margin-left: auto;
+  background: var(--btn-bg);
+}
+.search-box button:last-of-type:hover {
+  background: var(--btn-bg-hov);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+th, td {
+  border-bottom: 1px solid #e0e0e0;
+  padding: 12px;
+  text-align: center;
+}
+th {
+  background: #f9f9f9;
+}
+tr:hover td {
+  background: #f5f5f5;
+}
+
+/* ────── 페이지네이션 ────── */
+.pagination {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.pagination button {
+  background: none;
+  border: none;
+  color: #f8c900;
+  font-size: 16px;
+  margin: 0 4px;
+  cursor: pointer;
+}
+.pagination .active {
+  font-weight: bold;
+  color: black;
+}
+
+    .highlight {
+      position: relative;
+      display: inline-block;
+    }
+
+    .highlight::before {
+      content: "";
+      position: absolute;
+      top: -4px;      /* 글자 위 위치 */
+      left: 0;
+      width: 30px;    /* 선 길이 */
+      height: 5px;    /* 선 굵기 */
+      background: #f8c900;  /* 노란색 */
+      border-radius: 2px;
+    }
+
+        /* ★ 제목 배너  (네이비 톤, 가로 100%) */
+    .page-banner{
+      width:100%;
+      background:#ffffff;           /* 원하는 색상 */
+      color:#111;
+      padding:70px 0;               /* 위·아래 높이 */
+      border-bottom:1px solid #000000;
+    }
+    
+    .page-banner .inner{
+      max-width:1400px;             /* 헤더와 같은 좌우 여백 */
+      margin:0 auto;
+      padding:0 40px;
+    }
+    .page-banner h2{
+      font-size:2.4rem;
+      font-weight:900;
+      margin:0 0 14px 0;
+    }
+    .page-banner p{
+      font-size:1.05rem;
+      line-height:1.5;
+      opacity:.85;
+      margin:0;
+    }
+
+    .notice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1000px; /* 테이블과 폭 통일 */
+  margin: 0 auto 20px auto;
+  padding: 0 24px;
+}
+
+.notice-left {
+  display: flex;
+  align-items: center;
+  gap: 16px; /* 제목과 검색창 사이 여백 */
+}
+
+.notice-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.notice-search input {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.notice-search button {
+  margin-left: 6px;
+  padding: 6px 10px;
+  background: #f8c900;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#fab-add {
+  background: #fdc512;
+  color: #111;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.notice-container {
+  width: 100%;
+  max-width: 1800px; /* 더 넓게 */
+  margin: 0 auto;
+  padding: 0 48px;
+  box-sizing: border-box;
+}
+
+</style>
+</head>
+<body>
+<section class="page-banner">
+  <div class="inner">
+    <h2>시험지 업로드</h2>
+    <p>한글파일/해설작업이 필요한 시험지 PDF파일을 업로드해주시면
+       업로드 순으로 작업이 시작됩니다.</p>
+  </div>
+</section>
+<div class="notice-container">
+  <h2>시험지 파일</h2>
+
+  <div class="search-box">
+    <input type="text" placeholder="검색어를 입력하세요.">
+    <button>🔍</button>
+    <button onclick="openWrite()">글쓰기</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>번호</th>
+        <th>제목</th>
+        <th>등록일</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>5</td><td>아이메디 강서점 멤버쉽 혜택</td><td>2021.08.05</td></tr>
+      <tr><td>4</td><td>롯데택배 배송 불가 지역 안내</td><td>2022.01.11</td></tr>
+      <tr><td>3</td><td>트리플러스 포토후기 이벤트 당첨자 발표</td><td>2021.10.29</td></tr>
+      <tr><td>2</td><td>[오브르스타] 포토후기 이벤트 당첨자 발표</td><td>2021.10.14</td></tr>
+      <tr><td>1</td><td>GOGREEN 이벤트 후기 작성기간 연장 안내</td><td>2021.09.30</td></tr>
+    </tbody>
+  </table>
+
+  <div class="pagination">
+    <button>&laquo;</button>
+    <button>&lt;</button>
+    <button class="active">1</button>
+    <button>&gt;</button>
+    <button>&raquo;</button>
+  </div>
+</div>
+
+<script>
+function openWrite(){
+  let win = window.open("", "글쓰기", "width=600,height=500");
+  win.document.write('<iframe src="write.html" style="width:100%;height:100%;border:none;"></iframe>');
+}
+
+const wk = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const mo = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function setToday(){
+  const t = new Date();
+  document.getElementById('todayTxt').textContent =
+    `${wk[t.getDay()]} ${String(t.getDate()).padStart(2,'0')} ${mo[t.getMonth()]} ${t.getFullYear()}`;
+}
+
+async function bindUser(){
+  try{
+    const res = await fetch('/check-auth?ts='+Date.now(),{credentials:'include',cache:'no-store'});
+    const d = await res.json();
+    if(!d.isLoggedIn) return;
+    const u = d.user||{};
+    const first = (u.name||u.email||'User').split(' ')[0].split('@')[0];
+    document.getElementById('userName').textContent = u.name || first;
+    if(u.avatarUrl){
+      document.getElementById('avatar').src = u.avatarUrl;
+      document.getElementById('avatar').alt = u.name || 'avatar';
+    }
+    document.getElementById('logoutBtn').onclick = async()=>{
+      await fetch('/logout',{credentials:'include'});location.reload();
+    };
+  }catch(e){console.error(e);}
+}
+
+function initDropdown(){
+  const box=document.getElementById('userBox');
+  const menu=document.getElementById('dropdownMenu');
+  const arrow=document.getElementById('arrowIcon');
+  box.addEventListener('click',e=>{
+    e.stopPropagation();
+    const open=menu.style.display==='block';
+    menu.style.display=open?'none':'block';
+    arrow.style.transform=open?'rotate(0deg)':'rotate(180deg)';
+  });
+  document.addEventListener('click',e=>{
+    if(!menu.contains(e.target)){
+      menu.style.display='none';
+      arrow.style.transform='rotate(0deg)';
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  setToday();
+  bindUser();
+  initDropdown();
+});
+</script>
+</body>
+</html>
