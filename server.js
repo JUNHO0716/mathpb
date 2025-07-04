@@ -505,7 +505,7 @@ app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login.html' }),
   (req, res) => {
     req.session.user = req.user;  // 세션 저장
-    res.redirect('/main_home.html'); // 로그인 성공 후 메인으로 이동
+    res.redirect('/index.html'); // 로그인 성공 후 메인으로 이동
   }
 );
 
