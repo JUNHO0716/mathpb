@@ -475,40 +475,43 @@
     
     /* 로그인·프로필 바인딩 + 관리자 판별 */
     let IS_ADMIN=false;
-      async function bindUser(){
-        try {
-          const res=await fetch('/check-auth?ts='+Date.now(),{credentials:'include',cache:'no-store'});
-          const d=await res.json();
-          IS_ADMIN=d.isLoggedIn && d.user && d.user.role==='admin';
-          document.getElementById('fab-add').style.display=IS_ADMIN?'flex':'none';
+          async function bindUser(){
+      try{
+        const res=await fetch('/check-auth?ts='+Date.now(),{credentials:'include',cache:'no-store'});
+        const d=await res.json();
+        console.log('check-auth:', d); // 응답 확인
 
-          if(!d.isLoggedIn) return;
-          const u=d.user||{};
-          let displayId = 'Guest';
-          if (u.email) {
-            displayId = u.email.split('@')[0];
-          }
-          document.getElementById('profileName').textContent = displayId;
+        IS_ADMIN=d.isLoggedIn && d.user && d.user.role==='admin';
 
-          if(u.avatarUrl){
-            document.getElementById('avatar').src=u.avatarUrl;
-            document.getElementById('avatar').alt=displayId;
-          } else {
-            document.getElementById('avatar').src='icon_my_b.png';
-          }
+        // fab-add 안전 처리
+        const fabAdd = document.getElementById('fab-add');
+        if(fabAdd) fabAdd.style.display=IS_ADMIN?'flex':'none';
 
-          document.getElementById('logoutBtn').onclick = async()=>{
-            try {
-              await fetch('/logout', {credentials:'include'});
-              location.href = '/login.html';
-            } catch(e){
-              console.error('로그아웃 실패', e);
-            }
-          };
-        } catch(e){
-          console.error(e);
+        if(!d.isLoggedIn) return;
+
+        const u=d.user||{};
+        let displayId = 'Guest';
+        if (u.id) {
+          displayId = u.id;
+        } else if (u.email) {
+          displayId = u.email.split('@')[0];
         }
+
+        document.getElementById('profileName').textContent = displayId;
+
+        const sidebarProfile = document.getElementById('sidebarProfileEmail');
+        if(sidebarProfile) sidebarProfile.textContent = displayId;
+
+        if(u.avatarUrl){
+          document.getElementById('avatar').src=u.avatarUrl;
+          document.getElementById('avatar').alt=displayId;
+        } else {
+          document.getElementById('avatar').src='icon_my_b.png';
+        }
+      }catch(e){
+        console.error(e);
       }
+    }
 
 
      // 프로필 드롭다운
