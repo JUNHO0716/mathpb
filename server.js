@@ -131,17 +131,18 @@ passport.use(new GoogleStrategy({
       user = newUser[0];
     }
 
-    return done(null, {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      avatarUrl: avatarUrl || null   // ★ 추가
-    });
-  } catch (err) {
-    return done(err);
-  }
-}));
+      return done(null, {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        avatarUrl: profile.photos && profile.photos[0]?.value || null
+      });
+      } catch (err) {
+        console.error('Google Strategy error:', err);
+        return done(err);
+      }
+    }));
 
 passport.serializeUser((user, done) => {
   done(null, user);
