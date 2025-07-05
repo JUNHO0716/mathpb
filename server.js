@@ -205,13 +205,13 @@ app.post('/login', async (req, res) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ msg: "아이디 또는 비밀번호 오류" });
 
-      req.session.user = {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role || 'user',
-        avatarUrl: user.avatarUrl   // ← 이거 추가!
-      };
+    req.session.user = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role || 'user',
+      avatarUrl: user.avatarUrl || '/icon_my_b.png'
+    };
     res.json({ msg: "로그인 성공", user: req.session.user });
   } catch (e) {
     res.status(500).json({ msg: "서버 오류", error: e.message });
@@ -489,6 +489,9 @@ app.get('/', (req, res) => {
 // 로그인 상태 확인 API
 app.get('/check-auth', (req, res) => {
   if (req.session.user) {
+    if (!req.session.user.avatarUrl) {
+      req.session.user.avatarUrl = '/icon_my_b.png';
+    }
     res.json({ isLoggedIn: true, user: req.session.user });
   } else {
     res.json({ isLoggedIn: false });
