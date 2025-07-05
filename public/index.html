@@ -475,39 +475,41 @@
     
     /* 로그인·프로필 바인딩 + 관리자 판별 */
     let IS_ADMIN=false;
-    async function bindUser(){
-      try{
-        const res=await fetch('/check-auth?ts='+Date.now(),{credentials:'include',cache:'no-store'});
-        const d=await res.json();
-        IS_ADMIN=d.isLoggedIn && d.user && d.user.role==='admin';
-        document.getElementById('fab-add').style.display=IS_ADMIN?'flex':'none';
+      async function bindUser(){
+        try {
+          const res=await fetch('/check-auth?ts='+Date.now(),{credentials:'include',cache:'no-store'});
+          const d=await res.json();
+          IS_ADMIN=d.isLoggedIn && d.user && d.user.role==='admin';
+          document.getElementById('fab-add').style.display=IS_ADMIN?'flex':'none';
 
-        if(!d.isLoggedIn) return;
-        const u=d.user||{};
-        let displayId;
+          if(!d.isLoggedIn) return;
+          const u=d.user||{};
+          let displayId = 'Guest';
+          if (u.email) {
+            displayId = u.email.split('@')[0];
+          }
+          document.getElementById('profileName').textContent = displayId;
 
-        if (u.id && u.id.length < 20) {
-          displayId = u.id;
-        } else if (u.email) {
-          displayId = u.email.split('@')[0];
-        } else {
-          displayId = 'Guest';
+          if(u.avatarUrl){
+            document.getElementById('avatar').src=u.avatarUrl;
+            document.getElementById('avatar').alt=displayId;
+          } else {
+            document.getElementById('avatar').src='icon_my_b.png';
+          }
+
+          document.getElementById('logoutBtn').onclick = async()=>{
+            try {
+              await fetch('/logout', {credentials:'include'});
+              location.href = '/login.html';
+            } catch(e){
+              console.error('로그아웃 실패', e);
+            }
+          };
+        } catch(e){
+          console.error(e);
         }
+      }
 
-        document.getElementById('profileName').textContent = displayId;
-
-        if(u.avatarUrl){
-          document.getElementById('avatar').src=u.avatarUrl;
-          document.getElementById('avatar').alt=displayId;
-        } else {
-          document.getElementById('avatar').src='icon_my_b.png';
-        }
-
-        document.getElementById('logoutBtn').onclick=async()=>{
-          await fetch('/logout',{credentials:'include'});location.reload();
-        };
-      }catch(e){console.error(e);}
-    }
 
      // 프로필 드롭다운
     function initDropdown(){
@@ -532,7 +534,28 @@
       setToday();
       initDropdown();
       bindUser();
+
+      const sidebarLogout = document.getElementById('menu8');
+      if(sidebarLogout) sidebarLogout.addEventListener('click', async ()=>{
+        try {
+          await fetch('/logout', {credentials:'include'});
+          location.href = '/login.html';
+        } catch(e){
+          console.error('로그아웃 실패', e);
+        }
+      });
+      const dropdownLogout = document.getElementById('logoutBtn');
+
+      async function logout(){
+        await fetch('/logout',{credentials:'include'});
+        location.href = '/login.html';  // 또는 location.reload(); 원하는 방식 선택
+      }
+
+      if(sidebarLogout) sidebarLogout.addEventListener('click', logout);
+      if(dropdownLogout) dropdownLogout.addEventListener('click', logout);
+
     });
+    
 
 
     // 메뉴 등장 애니메이션 순차적 적용
