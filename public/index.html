@@ -450,7 +450,7 @@
       <a href="review_form.html" class="action-btn"><i class="fa-regular fa-pen-to-square"></i> 후기 남기기</a>
       <div class="user-wrapper" id="userWrapper">
         <div class="user-box loading" id="userBox">
-          <img src="icon_my_b.png" alt="avatar" class="avatar" id="avatar">
+          <img alt="avatar" class="avatar" id="avatar">
           <h3 id="profileName">Guest</h3>
           <i class="fa-solid fa-chevron-down" id="arrowIcon"></i>
         </div>
@@ -477,54 +477,28 @@
     
     /* 로그인·프로필 바인딩 + 관리자 판별 */
     let IS_ADMIN=false;
-          async function bindUser(){
-      try{
-        const res=await fetch('/check-auth?ts='+Date.now(),{credentials:'include',cache:'no-store'});
-        const d=await res.json();
-        console.log('check-auth:', d); // 응답 확인
+      async function bindUser(){
+        try{
+          const res = await fetch('/check-auth?ts=' + Date.now(), {
+            credentials: 'include', cache: 'no-store'
+          });
+          const d = await res.json();
+          if(!d.isLoggedIn) return;
 
-        IS_ADMIN=d.isLoggedIn && d.user && d.user.role==='admin';
+          const u = d.user || {};
+          const displayId = u.email ? u.email.split('@')[0] : (u.name || 'Guest');
 
-        // fab-add 안전 처리
-        const fabAdd = document.getElementById('fab-add');
-        if(fabAdd) fabAdd.style.display=IS_ADMIN?'flex':'none';
+          document.getElementById('profileName').textContent = displayId;
 
-        if(!d.isLoggedIn) return;
+          const avatarEl = document.getElementById('avatar');
+          avatarEl.src = u.avatarUrl || 'icon_my_b.png';
+          avatarEl.alt = displayId;
 
-        const u=d.user||{};
-        let displayId = 'Guest';
-
-        // ✅ 우선 이메일 @앞부분
-        if (u.email) {
-          displayId = u.email.split('@')[0];
+          document.getElementById('userBox').classList.remove('loading');
+        }catch(e){
+          console.error(e);
         }
-        // ✅ id가 문자열이고 @ 포함되면 그것도 @앞부분
-        else if (u.id && typeof u.id === 'string' && u.id.includes('@')) {
-          displayId = u.id.split('@')[0];
-        }
-        // ✅ id가 있지만 숫자거나 그냥 이상하면 name으로
-        else if (u.name) {
-          displayId = u.name;
-        }
-
-        document.getElementById('profileName').textContent = displayId;
-
-        const sidebarProfile = document.getElementById('sidebarProfileEmail');
-        if(sidebarProfile) sidebarProfile.textContent = displayId;
-
-        if(u.avatarUrl){
-          document.getElementById('avatar').src=u.avatarUrl;
-          document.getElementById('avatar').alt=displayId;
-        } else {
-          document.getElementById('avatar').src='icon_my_b.png';
-        }
-
-      document.getElementById('userBox').classList.remove('loading');
-
-      }catch(e){
-        console.error(e);
       }
-    }
 
 
      // 프로필 드롭다운

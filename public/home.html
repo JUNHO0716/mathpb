@@ -362,7 +362,7 @@
 
     <!-- 1) 프로필 카드 -->
     <div class="profile-card">
-      <img id="profileAvatar" src="icon_my_b.png" alt="avatar">
+      <img id="profileAvatar" alt="avatar">
      <div class="info loading">
       <!-- ★ 이름(id) + 이메일(id) -->
     <h3 id="profileName">Guest</h3>
@@ -466,42 +466,36 @@ function setToday(){
 }
 
 /* 2) 로그인 정보 반영 */
-async function bindUser(){
-  try{
-    const res = await fetch('/check-auth?ts=' + Date.now(), {credentials:'include', cache:'no-store'});
-    const d = await res.json();
-    if(!d.isLoggedIn) return;
+    async function bindUser(){
+      try{
+        const res = await fetch('/check-auth?ts=' + Date.now(), {credentials:'include', cache:'no-store'});
+        const d = await res.json();
+        if(!d.isLoggedIn) return;
 
-      const u = d.user || {};
-      let displayId = 'Guest';
+        const u = d.user || {};
+        let displayId = 'Guest';
+        if (u.email) {
+          displayId = u.email.split('@')[0];
+        } else if (u.id) {
+          displayId = u.id.split('@')[0];
+        } else {
+          displayId = u.name || 'User';
+        }
+        document.getElementById('profileName').textContent = displayId;
+        document.getElementById('profileEmail').textContent = u.email || '-';
 
-      // ✅ 무조건 @앞 부분만 표시
-      if (u.email) {
-        displayId = u.email.split('@')[0];
-      } else if (u.id) {
-        displayId = u.id.split('@')[0]; // 혹시 id가 email이라면
-      } else {
-        displayId = u.name || 'User';
-      }
-    // ⭐ 아이디(@앞)만 표시
-    document.getElementById('profileName').textContent = displayId;
+        const av = document.getElementById('profileAvatar');
+        if (av) {
+          av.src = u.avatarUrl || 'icon_my_b.png';
+          av.alt = displayId;
+        }
 
-    // 이메일 전체는 아래 그대로
-    document.getElementById('profileEmail').textContent = u.email || '-';
-
-    const av = document.getElementById('profileAvatar');
-    if (av) {
-      av.src = u.avatarUrl || 'icon_my_b.png';
-      av.alt = displayId;
+        document.querySelector('.info').classList.remove('loading');
+      } catch(e) { console.error(e); }
     }
-
-    document.querySelector('.info').classList.remove('loading');
-  } catch(e) { console.error(e); }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  bindUser();
-});
+    document.addEventListener('DOMContentLoaded', () => {
+      bindUser();
+    });
 
 /* 3) 드롭다운 토글 */
 function initDropdown(){

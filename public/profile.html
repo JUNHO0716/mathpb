@@ -237,7 +237,7 @@ body {
     <div class="profile-card">
       <div class="profile-center">
         <label class="avatar-label" for="profileImageInput">
-          <img id="profileAvatar" src="icon_my_b.png" alt="avatar">
+          <img id="profileAvatar" alt="avatar">
           <input type="file" id="profileImageInput" accept="image/*" style="display:none;">
           <button type="button" class="change-photo-btn">프로필 사진 변경</button>
         </label>
@@ -348,18 +348,20 @@ document.getElementById('profileImageInput').addEventListener('change', async fu
 async function setProfileInfo() {
   try {
     const res = await fetch('/check-auth?ts=' + Date.now(), {
-      credentials: 'include', cache: 'no-store'
+      credentials: 'include',
+      cache: 'no-store'
     });
     const d = await res.json();
     if(!d.isLoggedIn) return;
 
     const u = d.user || {};
-    // 프로필카드
-    document.getElementById('profileName').textContent = u.email ? u.email.split('@')[0] : (u.name || '-');
+    const displayId = u.email ? u.email.split('@')[0] : (u.name || 'User');
+    document.getElementById('profileName').textContent = displayId;
     document.getElementById('profileEmail').textContent = u.email || '-';
-    if(u.avatarUrl){
-      document.getElementById('profileAvatar').src = u.avatarUrl;
-    }
+
+    const av = document.getElementById('profileAvatar');
+    av.src = u.avatarUrl || 'icon_my_b.png';
+    av.alt = displayId;
 
     // 정보 카드
     document.getElementById('mem-email').textContent = u.email || '-';
@@ -373,12 +375,14 @@ async function setProfileInfo() {
     switch((u.grade||'').toLowerCase()){
       case 'gold':   label = '골드';   cls = 'grade-gold';   break;
       case 'silver': label = '실버';   cls = 'grade-silver'; break;
-      case 'bronze': label = '브론즈'; cls = 'grade-bronze'; break;
+      case 'bronze': cls = 'grade-bronze'; label = '브론즈'; break;
     }
     gradeSpan.textContent = label;
     gradeSpan.className = 'grade-label ' + cls;
 
-  } catch(e){}
+    document.querySelector('.info').classList.remove('loading');
+    document.querySelector('.member-info').classList.remove('loading');
+  } catch(e) { console.error(e); }
 }
 setProfileInfo();
 
