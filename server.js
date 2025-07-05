@@ -616,9 +616,40 @@ app.post('/api/board_secure/:id/delete', async (req, res) => {
 });
 
 
+// ─────────────────────────────
+// (추가) 프로필 사진 업로드
+// POST /upload-profile-photo
+// ─────────────────────────────
+app.post('/upload-profile-photo', isLoggedIn, upload.single('photo'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ msg: '파일이 없습니다.' });
+    }
+
+    // DB 업데이트
+    await db.query(
+      'UPDATE users SET avatarUrl=? WHERE id=?',
+      ['/uploads/' + req.file.filename, req.session.user.id]
+    );
+
+    // 세션도 같이 갱신
+    req.session.user.avatarUrl = '/uploads/' + req.file.filename;
+
+    res.json({
+      success: true,
+      avatarUrl: '/uploads/' + req.file.filename
+    });
+  } catch (e) {
+    console.error('프로필 사진 업로드 오류:', e);
+    res.status(500).json({ msg: '서버 오류', error: e.message });
+  }
+});
+
+
 // 서버 실행
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
   console.log(`서버 실행 http://localhost:${PORT}`);
 });
+
