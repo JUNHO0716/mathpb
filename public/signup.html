@@ -344,6 +344,60 @@
         font-size: 1rem;
       }
     }
+
+/* ---------- Animation 초기 상태 ---------- */
+.signup-card-bg {
+  opacity: 0;
+  transform: translateX(-80px);
+  animation: slideInLeft 0.9s ease forwards;
+  animation-delay: 0.2s;
+}
+
+.signup-card {
+  opacity: 0;
+  transform: translateY(-30px);
+  animation: fadeSlideDown 1s ease forwards;
+  animation-delay: 0.9s;
+}
+
+.signup-header h1, .signup-header .sub {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.signup-header h1 {
+  animation: fadeUp 0.7s ease forwards;
+  animation-delay: 1.5s;
+}
+.signup-header .sub {
+  animation: fadeUp 0.7s ease forwards;
+  animation-delay: 1.8s;
+}
+
+.signup-form {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.8s ease forwards;
+  animation-delay: 2.2s;
+}
+
+/* ---------- Keyframes ---------- */
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-80px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
   </style>
   <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </head>

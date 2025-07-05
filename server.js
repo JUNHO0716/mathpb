@@ -188,23 +188,21 @@ app.post('/register', async (req, res) => {
 
 // 로그인 API - 세션 저장 포함
 app.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { id, password } = req.body; // email -> id
   try {
-    const [rows] = await db.query('SELECT * FROM users WHERE email=?', [email]);
-    if (!rows.length) return res.status(401).json({ msg: "이메일 또는 비밀번호 오류" });
+    const [rows] = await db.query('SELECT * FROM users WHERE id=?', [id]);
+    if (!rows.length) return res.status(401).json({ msg: "아이디 또는 비밀번호 오류" });
 
     const user = rows[0];
     const valid = await bcrypt.compare(password, user.password);
-    if (!valid) return res.status(401).json({ msg: "이메일 또는 비밀번호 오류" });
+    if (!valid) return res.status(401).json({ msg: "아이디 또는 비밀번호 오류" });
 
-    // ✅ 로그인 성공: 세션에 사용자 정보 저장
     req.session.user = {
       id: user.id,
       email: user.email,
       name: user.name,
-      role: user.role || 'user'  // 관리자 여부 포함
+      role: user.role || 'user'
     };
-
     res.json({ msg: "로그인 성공", user: req.session.user });
   } catch (e) {
     res.status(500).json({ msg: "서버 오류", error: e.message });

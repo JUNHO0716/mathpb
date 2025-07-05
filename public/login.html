@@ -18,42 +18,41 @@
       height: 100vh;
     }
     .main-container {
-      width: 1320px; max-width: 97vw;
+      margin-left: 400px;  /* left-bg 만큼 띄우기 */
+      flex: 1;
       display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      padding: 80px;
-      align-items: flex-start;
-      box-sizing: border-box;
+      align-items: center;
+      justify-content: center;
     }
     /* 왼쪽 배경 (지도 느낌 SVG or PNG로 대체) */
     .left-bg {
-      flex: 1.4;
-      position: relative;
-      border-radius: 0 0 0 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 500px; /* 원하는 너비로 고정 */
+      height: 100%;
       background: #111;
-      overflow: hidden;
       display: flex;
       flex-direction: column;
-      justify-content: flex-start; /* 위쪽으로 */
-      height: 100%; 
+      justify-content: flex-start;
+      z-index: 1;
     }
+
     /* 오른쪽 카드 (오버랩) */
     .login-card {
-      flex: 1.1;
-      min-width: 0;
       background: #fff;
-      border-radius: 15px 15px 15px 15px;
+      border-radius: 15px;
       box-shadow: 0 7px 24px 0 rgba(30,40,90,0.2), 0 1px 3px rgba(30,30,30,0.04);
-      position: absolute;
-      right: 800px;  /* 약간 오버랩 */
-      top: 50%; transform: translateY(-50%);
-      width: 500px; max-width: 94vw;
+      width: 500px;
+      max-width: 94vw;
       height: 750px;
       min-height: 630px;
-      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-      z-index: 4;
-      padding: 0 0 0 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 0;
+      position: static; /* absolute 제거 */
     }
     /* 로그인 패널에 로고+회사명 */
     .login-logo-wrap {
@@ -216,23 +215,19 @@
 }
 
 .yellow-box {
-  position: fixed;
+  position: absolute;
   top: 25%;
-  right: 360px; /* 왼쪽에 딱 붙게 */
+  right: 20px; /* left 대신 right 사용해서 안쪽에 고정 */
   transform: translateY(-50%);
   width: 65px;
   height: 65px;
   background: #ffd400;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   border-radius: 15px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  z-index: 1000;
 }
 .sns-links {
   position: fixed; /* 기존 absolute → fixed */
-  right: 50px;
+  left: 50px;
   display: flex;
   gap: 80px;
   bottom: 60px;
@@ -250,35 +245,132 @@
   transform: scale(1.15);
 }
 
-.left-text {
-  color: #fff;
-  padding: 210px 60px; /* 위 padding 제거, 좌우 유지 */
-  z-index: 5;
-}
-.left-text h2 {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 2.2rem;
-  line-height: 1.3;
-  margin: 0 0 20px 0;
-}
-.left-text p {
-  font-size: 1.1rem;
-  color: #ddd;
-  margin: 0;
+.left-text-box {
+  background: #ffd400;
+  width: 510px;
+  height: 140px;       /* ← 고정된 높이 */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;  /* 왼쪽 정렬 */
+  padding: 0px 0 25px 30px;    /* 좌우 여백 늘림 */
+  justify-content: center; /* 중앙 정렬 */
+  border-radius: 5px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  text-align: center;
+  margin: 150px auto 0 auto;
 }
 
+.left-text h2 {
+  font-size: 2.0rem;
+  margin-bottom: 6px;
+  text-align: left;         /* 텍스트 왼쪽 정렬 */
+  color: #111;
+}
+.left-text p {
+  font-size: 0.9rem;
+  text-align: left;         /* 텍스트 왼쪽 정렬 */
+  color: #111;
+  margin: 0;
+}
     
-    @media (max-width: 970px) {
-      .main-container { width: 99vw; min-width: 0; height: auto; flex-direction: column;}
-      .left-bg { border-radius: 22px 22px 0 0; min-height: 220px;}
-      .login-card { position: static; right: 0; top: 0; transform: none; margin: -44px auto 0 auto; box-shadow: 0 4px 22px 0 rgba(30,40,90,0.12);}
+  @media (max-width: 970px) {
+    .main-container {
+      flex-direction: row; /* row 고정 */
     }
-    @media (max-width: 630px) {
-      .main-container, .login-card, .left-bg { border-radius: 14px !important; }
-      .left-content { padding: 28px 16px 26px 16px;}
-      .login-form-wrap { padding: 26px 9px 10px 9px;}
-      .login-card { width: 98vw;}
+    .login-card {
+      position: absolute; /* 고정 유지 */
+      right: 800px;
+      top: 50%;
+      transform: translateY(-50%);
     }
+  }
+
+/* ===================== */
+/* 1. left-bg 왼쪽에서 슬라이드 */
+/* ===================== */
+.left-bg {
+  animation: slideInLeft 1.2s ease forwards;
+}
+
+/* ===================== */
+/* 2. left-text-box 약간 delay 후 등장 */
+/* ===================== */
+.left-text-box {
+  opacity: 0;
+  transform: translateX(-40px);
+  animation: fadeSlideLeft 1s ease forwards;
+  animation-delay: 1.3s; /* left-bg 후 등장 */
+}
+
+/* ===================== */
+/* 3. left-text 내부 글자 더 늦게 fadeInUp */
+.left-text h2, .left-text p {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.8s ease forwards;
+}
+.left-text h2 {
+  animation-delay: 2.0s;
+}
+.left-text p {
+  animation-delay: 2.3s;
+}
+
+/* ===================== */
+/* 4. logo 위에서 내려오기 */
+/* ===================== */
+.left-deco {
+  opacity: 0;
+  transform: translateY(-30px);
+  animation: fadeSlideDown 1s ease forwards;
+  animation-delay: 0.8s;
+}
+
+/* ===================== */
+/* 5. sns-links 아래에서 올라오기 */
+.sns-links {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeSlideUp 1s ease forwards;
+  animation-delay: 2.5s;
+}
+
+/* ===================== */
+/* 6. login-card 자연스럽게 fadeUp */
+.login-card {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeSlideUp 1.2s ease forwards;
+  animation-delay: 3s;
+}
+
+/* --------------------- */
+/* keyframes 정의 */
+/* --------------------- */
+@keyframes slideInLeft {
+  from { transform: translateX(-500px); }
+  to { transform: translateX(0); }
+}
+
+@keyframes fadeSlideLeft {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
   </style>
 </head>
@@ -287,24 +379,10 @@
       <img src="logo_m.png" class="logo-img" alt="로고">
       <div class="logo-text">M.class</div>
     </div>
-      <div class="yellow-box">
-      </div>
+
     </div>
       <div class="main-container">
-    </div>
-    <!-- 왼쪽 지도 배경 영역 -->
-    <div class="left-bg">
-        <div class="left-text">
-        <h2>Welcome to<br>수학 문제은행</h2>
-        <p>여기에 짧은 설명이나 캐치프레이즈를 넣으세요.</p>
-      </div>
-        <div class="sns-links">
-    <a href="https://yourblog.com" target="_blank"><img src="blog_icon.png" alt="블로그"></a>
-    <a href="https://instagram.com/youraccount" target="_blank"><img src="insta_icon.png" alt="인스타그램"></a>
-    <a href="https://pf.kakao.com/_xxxxxx" target="_blank"><img src="kakaoch_icon.png" alt="카카오채널"></a>
-  </div>
-    </div>
-    <!-- 오른쪽 오버랩 카드 (폼/소셜/링크 모두 기존 그대로) -->
+            <!-- 오른쪽 오버랩 카드 (폼/소셜/링크 모두 기존 그대로) -->
     <div class="login-card">
       <div class="corner-box">
         <img src="login.png" alt="코너 이미지" class="corner-img">
@@ -350,6 +428,23 @@
         </div>
       </div>
       </div>
+    </div>
+    <!-- 왼쪽 지도 배경 영역 -->
+    <div class="left-bg">
+        <div class="left-text-box">
+        <div class="left-text">
+        <h2>Welcome to, 수학 문제은행</h2>
+        <p>여기에 짧은 설명이나 캐치프레이즈를 넣으세요.</p>
+      </div>
+      </div>
+        <div class="sns-links">
+    <a href="https://yourblog.com" target="_blank"><img src="blog_icon.png" alt="블로그"></a>
+    <a href="https://instagram.com/youraccount" target="_blank"><img src="insta_icon.png" alt="인스타그램"></a>
+    <a href="https://pf.kakao.com/_xxxxxx" target="_blank"><img src="kakaoch_icon.png" alt="카카오채널"></a>
+    <a href="https://youtube.com/yourchannel" target="_blank"><img src="youtube_icon.png" alt="유튜브"></a>
+  </div>
+    </div>
+
   </div>
   <script>
    
@@ -375,32 +470,32 @@
       }
     });
     // 실제 서버 연동 로그인 (Node.js + MySQL)
-    document.getElementById('loginForm').onsubmit = async function(e) {
-      e.preventDefault();
-      const email = document.getElementById('login_email').value.trim();
-      const password = document.getElementById('login_password').value;
-      const box      = document.getElementById('loginResult');
-      try {
-        const res = await fetch('/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-        if (res.ok) {
-          localStorage.setItem('userEmail', email);
-          window.location.href = '/main_home.html';
-        } else {
-          box.className   = 'login-result error';
-          box.textContent = data.msg || '아이디 또는 비밀번호가 올바르지 않습니다.';
+      document.getElementById('loginForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('login_email').value.trim(); // email → id
+        const password = document.getElementById('login_password').value;
+        const box = document.getElementById('loginResult');
+        try {
+          const res = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, password }) // email → id
+          });
+          const data = await res.json();
+          if (res.ok) {
+            localStorage.setItem('userId', id);
+            window.location.href = '/index.html'; // 이동 경로 index.html
+          } else {
+            box.className = 'login-result error';
+            box.textContent = data.msg || '아이디 또는 비밀번호가 올바르지 않습니다.';
+            box.style.display = 'block';
+          }
+        } catch (err) {
+          box.className = 'login-result error';
+          box.textContent = '서버 연결 오류';
           box.style.display = 'block';
         }
-      } catch (err) {
-        box.className   = 'login-result error';
-        box.textContent = '서버 연결 오류';
-        box.style.display = 'block';
-      }
-    };
+      };
     
 
   </script>
