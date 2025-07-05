@@ -322,6 +322,8 @@
       border-radius: 2px;
     }
 
+    .info.loading * { visibility: hidden; }
+
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
 <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
@@ -361,7 +363,7 @@
     <!-- 1) 프로필 카드 -->
     <div class="profile-card">
       <img id="profileAvatar" src="icon_my_b.png" alt="avatar">
-       <div class="info">
+     <div class="info loading">
       <!-- ★ 이름(id) + 이메일(id) -->
     <h3 id="profileName">Guest</h3>
     <div id="profileEmail">guest@example.com</div>
@@ -492,6 +494,8 @@ async function bindUser(){
       av.src = u.avatarUrl || 'icon_my_b.png';
       av.alt = displayId;
     }
+
+    document.querySelector('.info').classList.remove('loading');
   } catch(e) { console.error(e); }
 }
 

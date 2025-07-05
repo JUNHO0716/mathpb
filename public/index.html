@@ -369,6 +369,8 @@
       padding: 0;
       overflow: hidden;
     }
+    
+    .user-box.loading * { visibility: hidden; }
 
   </style>
 </head>
@@ -447,7 +449,7 @@
       <a href="payment.html" class="action-btn"><i class="fa-regular fa-credit-card"></i> 결제하기</a>
       <a href="review_form.html" class="action-btn"><i class="fa-regular fa-pen-to-square"></i> 후기 남기기</a>
       <div class="user-wrapper" id="userWrapper">
-        <div class="user-box" id="userBox">
+        <div class="user-box loading" id="userBox">
           <img src="icon_my_b.png" alt="avatar" class="avatar" id="avatar">
           <h3 id="profileName">Guest</h3>
           <i class="fa-solid fa-chevron-down" id="arrowIcon"></i>
@@ -516,6 +518,9 @@
         } else {
           document.getElementById('avatar').src='icon_my_b.png';
         }
+
+      document.getElementById('userBox').classList.remove('loading');
+
       }catch(e){
         console.error(e);
       }

@@ -196,6 +196,11 @@ body {
 .grade-silver { color: #6a7a8b; background: #f0f4f7; }
 .grade-bronze { color: #be7625; background: #ffe7ce; }
 
+.info.loading *,
+.member-info.loading * {
+  visibility: hidden;
+}
+
   </style>
 </head>
 <body>
@@ -236,7 +241,7 @@ body {
           <input type="file" id="profileImageInput" accept="image/*" style="display:none;">
           <button type="button" class="change-photo-btn">프로필 사진 변경</button>
         </label>
-        <div class="info">
+        <div class="info loading">
           <h3 id="profileName">UserName</h3>
           <div class="role" id="profileEmail">user@example.com</div>
         </div>
@@ -302,6 +307,9 @@ async function setProfileInfo() {
     if(u.avatarUrl){
       document.getElementById('profileAvatar').src = u.avatarUrl;
     }
+
+    document.querySelector('.info').classList.remove('loading');
+    document.querySelector('.member-info').classList.remove('loading');
   } catch(e) {}
 }
 setProfileInfo();
