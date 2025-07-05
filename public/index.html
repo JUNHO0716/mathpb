@@ -492,7 +492,7 @@
         const u=d.user||{};
         let displayId = 'Guest';
         if (u.id) {
-          displayId = u.id;
+          displayId = u.id.split('@')[0];
         } else if (u.email) {
           displayId = u.email.split('@')[0];
         }

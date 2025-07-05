@@ -470,9 +470,17 @@ async function bindUser(){
     const d = await res.json();
     if(!d.isLoggedIn) return;
 
-    const u = d.user || {};
-    let displayId = u.id || (u.email ? u.email.split('@')[0] : (u.name || 'User'));
+      const u = d.user || {};
+      let displayId = 'Guest';
 
+      // ✅ 무조건 @앞 부분만 표시
+      if (u.email) {
+        displayId = u.email.split('@')[0];
+      } else if (u.id) {
+        displayId = u.id.split('@')[0]; // 혹시 id가 email이라면
+      } else {
+        displayId = u.name || 'User';
+      }
     // ⭐ 아이디(@앞)만 표시
     document.getElementById('profileName').textContent = displayId;
 
