@@ -484,14 +484,25 @@
 
         if(!d.isLoggedIn) return;
         const u=d.user||{};
-        const first=(u.name||u.email||'User').split(' ')[0].split('@')[0];
+        let displayId;
 
-        document.getElementById('userName').textContent=u.name||first;
+        if (u.id && u.id.length < 20) {
+          displayId = u.id;
+        } else if (u.email) {
+          displayId = u.email.split('@')[0];
+        } else {
+          displayId = 'Guest';
+        }
+
+        document.getElementById('userName').textContent = displayId;
+
         if(u.avatarUrl){
           document.getElementById('avatar').src=u.avatarUrl;
-          document.getElementById('avatar').alt=u.name||'avatar';
+          document.getElementById('avatar').alt=displayId;
+        } else {
+          document.getElementById('avatar').src='icon_my_b.png';
         }
-        /* 프로필 드롭다운 로그아웃 */
+
         document.getElementById('logoutBtn').onclick=async()=>{
           await fetch('/logout',{credentials:'include'});location.reload();
         };

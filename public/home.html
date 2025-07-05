@@ -466,33 +466,42 @@ function setToday(){
 /* 2) 로그인 정보 반영 */
 async function bindUser(){
   try{
-    const res=await fetch('/check-auth?ts='+Date.now(),{credentials:'include',cache:'no-store'});
-    const d=await res.json();
+    const res = await fetch('/check-auth?ts=' + Date.now(), {credentials:'include', cache:'no-store'});
+    const d = await res.json();
     if(!d.isLoggedIn) return;
 
-    const u=d.user||{};
-    const first=(u.name||u.email||'User').split(' ')[0].split('@')[0];
-    document.getElementById('userName').textContent=u.name||first;
+    const u = d.user || {};
+    // 🔥 id → email 앞부분 → name 순서
+    let displayId = u.id || (u.email ? u.email.split('@')[0] : (u.name || 'User'));
 
-    if(u.avatarUrl){
-      const av=document.getElementById('avatar');
-      av.src=u.avatarUrl;av.alt=u.name||'avatar';
+    // 프로필 이름(id)
+    document.getElementById('profileName').textContent = displayId;
+    // 프로필 이메일
+    document.getElementById('profileEmail').textContent = u.email || '-';
+
+    // 상단(또는 다른 곳) userName (ex: header)
+    const headerName = document.getElementById('userName');
+    if (headerName) headerName.textContent = displayId;
+
+    // 아바타 이미지
+    const av1 = document.getElementById('avatar');
+    if (av1) {
+      av1.src = u.avatarUrl || 'icon_my_b.png';
+      av1.alt = displayId;
     }
-    /* ▼▼▼  대시보드 프로필 카드 동기화  ▼▼▼ */
-    document.getElementById('profileAvatar').src =
-          u.avatarUrl || 'icon_my_b.png';
+    const av2 = document.getElementById('profileAvatar');
+    if (av2) {
+      av2.src = u.avatarUrl || 'icon_my_b.png';
+      av2.alt = displayId;
+    }
 
-    document.getElementById('profileName').textContent =
-          u.username || u.name || (u.email ? u.email.split('@')[0] : 'User');
+    // 로그아웃
+    document.getElementById('logoutBtn')?.addEventListener('click', async()=>{
+      await fetch('/logout',{credentials:'include'});
+      location.reload();
+    });
 
-    document.getElementById('profileEmail').textContent =
-          u.email || '-';
-
-    document.getElementById('logoutBtn').onclick=async()=>{
-      await fetch('/logout',{credentials:'include'});location.reload();
-    };
-  }catch(e){console.error(e);}
-  
+  } catch(e) { console.error(e); }
 }
 
 /* 3) 드롭다운 토글 */

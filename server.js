@@ -1,19 +1,25 @@
-require('dotenv').config(); // 이 줄을 맨 위에 추가!
+import dotenv from 'dotenv';
+dotenv.config();
 
-const path = require('path');
+import express from 'express';
+import session from 'express-session';
+import passport from 'passport';
+import GoogleStrategy from 'passport-google-oauth20';
+import mysql from 'mysql2/promise';
+import bcrypt from 'bcrypt';
+import cors from 'cors';
+import multer from 'multer';
+import fs from 'fs/promises';
+import fssync from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
-const fsSync = require('fs');   // fs.promises 말고 동기 fs
-if (!fsSync.existsSync(UPLOAD_DIR)) fsSync.mkdirSync(UPLOAD_DIR);
-const express = require('express');
-const mysql = require('mysql2/promise');
-const bcrypt = require('bcrypt');
-const cors = require('cors');
-const multer  = require('multer');
-const fs = require('fs').promises;
-const session = require('express-session');
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
+if (!fssync.existsSync(UPLOAD_DIR)) fssync.mkdirSync(UPLOAD_DIR);
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
   filename: (req, file, cb) => {
@@ -129,7 +135,8 @@ passport.use(new GoogleStrategy({
       id: user.id,
       email: user.email,
       name: user.name,
-      role: user.role
+      role: user.role,
+      avatarUrl: avatarUrl || null   // ★ 추가
     });
   } catch (err) {
     return done(err);
