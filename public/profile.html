@@ -291,22 +291,47 @@ const adSwiper = new Swiper('.adSwiper', {
 });
 
 
-async function setProfileInfo() {
+async function setProfileInfo () {
   try {
     const res = await fetch('/check-auth?ts=' + Date.now(), {
       credentials: 'include',
       cache: 'no-store'
     });
     const d = await res.json();
-    if(!d.isLoggedIn) return;
+    if (!d.isLoggedIn) return;            // 로그인 안 돼 있으면 그대로 둠
 
     const u = d.user || {};
     const displayId = u.email ? u.email.split('@')[0] : (u.name || 'User');
-    document.getElementById('profileName').textContent = displayId;
+
+    /* 좌측 프로필 카드 */
+    document.getElementById('profileName').textContent  = displayId;
     document.getElementById('profileEmail').textContent = u.email || '-';
+
+    const av = document.getElementById('profileAvatar');
+    av.src = u.avatarUrl || '/icon_my_b.png';   // ← 아바타 삽입
+    av.alt = displayId;
+
+    /* 우측 정보 카드 */
+    document.getElementById('mem-email').textContent = u.email || '-';
+    document.getElementById('mem-name').textContent  = u.name  || '-';
+    document.getElementById('mem-phone').textContent = u.phone || '-';
+
+    /* 등급(옵션) */
+    const gradeSpan = document.getElementById('mem-grade');
+    let label = '-', cls = '';
+    switch ((u.grade || '').toLowerCase()) {
+      case 'gold':   label = '골드';   cls = 'grade-gold';   break;
+      case 'silver': label = '실버';   cls = 'grade-silver'; break;
+      case 'bronze': label = '브론즈'; cls = 'grade-bronze'; break;
+    }
+    gradeSpan.textContent = label;
+    gradeSpan.className   = 'grade-label ' + cls;
+
     document.querySelector('.info').classList.remove('loading');
     document.querySelector('.member-info').classList.remove('loading');
-  } catch(e) {}
+  } catch (e) {
+    console.error(e);
+  }
 }
 setProfileInfo();
 
