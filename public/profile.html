@@ -123,17 +123,6 @@ body {
   cursor: pointer;
   gap: 10px;
 }
-#profileAvatar {
-  width: 96px;         /* 권장: 80~120px (추천값은 96px) */
-  height: 96px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #eaeaea;
-  margin-bottom: 8px;
-  border: 2px solid #eee;
-  transition: filter .2s;
-}
-#profileAvatar:hover { filter: brightness(0.95); }
 
 .change-photo-btn {
   background: #f7f8fa;
@@ -245,7 +234,7 @@ body {
     <div class="profile-card">
       <div class="profile-center">
         <label class="avatar-label" for="profileImageInput">
-          <img id="profileAvatar" alt="avatar" style="visibility:hidden;">
+          <img id="profileAvatar" alt="avatar">
           <input type="file" id="profileImageInput"
            name="avatar"  
            accept="image/*"
@@ -316,10 +305,17 @@ async function setProfileInfo () {
     document.getElementById('profileName').textContent  = displayId;
     document.getElementById('profileEmail').textContent = u.email || '-';
 
+    const defaultImg = '/icon_my_b.png';
     const av = document.getElementById('profileAvatar');
-    av.onload = () => { av.style.visibility = 'visible'; };
-    av.src = u.avatarUrl || '/icon_my_b.png';   // ← 아바타 삽입
     av.alt = displayId;
+    av.src = defaultImg;                 // 기본 이미지를 먼저 보여줌
+    av.style.visibility = 'visible';     // 즉시 표시
+
+    if (u.avatarUrl && u.avatarUrl !== defaultImg) {
+      const preload = new Image();       // 실제 사진을 백그라운드 로드
+      preload.onload = () => { av.src = u.avatarUrl; };
+      preload.src = u.avatarUrl;
+    }
 
     /* 우측 정보 카드 */
     document.getElementById('mem-email').textContent = u.email || '-';
@@ -413,8 +409,13 @@ document.getElementById('savePhotoBtn').addEventListener('click', async function
       credentials: 'include'
     });
     const result = await res.json();
-    if(result.success && result.avatarUrl){
-      document.getElementById('profileAvatar').src = result.avatarUrl;
+    if (result.success && result.avatarUrl) {
+      const preload = new Image();
+      preload.onload = () => {
+        document.getElementById('profileAvatar').src = result.avatarUrl;
+      };
+      preload.src = result.avatarUrl;
+
       alert('프로필 사진이 변경되었습니다!');
       selectedFile = null;
       document.getElementById('savePhotoBtn').style.display = 'none';
@@ -442,8 +443,8 @@ document.getElementById('deletePhotoBtn').addEventListener('click', async functi
       credentials: 'include'
     });
     const result = await res.json();
-    if(result.success && result.avatarUrl){
-      document.getElementById('profileAvatar').src = result.avatarUrl;
+    if (result.success) {
+      document.getElementById('profileAvatar').src = '/icon_my_b.png';
       alert('프로필 사진이 기본 이미지로 변경되었습니다.');
       selectedFile = null;
       document.getElementById('savePhotoBtn').style.display = 'none';
