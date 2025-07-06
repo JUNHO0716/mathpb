@@ -269,11 +269,6 @@ input:checked + .slider:before {
       <i class="fa-solid fa-gears"></i> 시험지 관리
     </button>
     </div>
-
-    <!-- ③ 관리자 전용 -->
-    <button id="uploadBtn" class="btn btn--primary" style="display:none;">
-      <i class="fa-solid fa-upload"></i> 시험지 업로드
-    </button>
   </div>
 
   <!-- ─── 테이블 ─── -->
@@ -341,15 +336,6 @@ function renderPagination(total,curr){
     p.appendChild(d);
   }
 }
-
-/* ===== 관리자 버튼 표시 ===== */
-async function showUploadIfAdmin(){
-  try{
-    const {isLoggedIn,user={}}=await (await fetch('/check-auth',{credentials:'include'})).json();
-    if(isLoggedIn&&user.role==='admin') uploadBtn.style.display='inline-flex';
-  }catch(e){console.error(e);}
-}
-
 /* ===== 기타 UI 초기화 ===== */
 function setToday(){
   const t=new Date(),wk=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
@@ -373,9 +359,6 @@ const deleteRow=id=>confirm('삭제?')&&alert('삭제 '+id);
 
 /* ===== 시작 ===== */
 window.onload=()=>{
-  setToday();
-  initDropdown();
-  showUploadIfAdmin();
   showAdminButtons();
   fetchFiles(1);
 };
@@ -387,7 +370,7 @@ async function showAdminButtons(){
       const manageBtn = document.getElementById('manageBtn');
       if(uploadBtn){
         uploadBtn.style.display = 'inline-flex';
-        uploadBtn.onclick = () => location.href = 'upload.html';
+        uploadBtn.onclick = ()=> location.href = 'admin_upload.html';
       }
       if(manageBtn){
         manageBtn.style.display = 'inline-flex';

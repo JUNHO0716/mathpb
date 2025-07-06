@@ -256,7 +256,7 @@ input:checked + .slider:before {
       <select id="region"   class="filter"><option value="">지역</option><option>서울</option><option>경기</option></select>
       <input  id="district" class="filter" placeholder="구/군">
       <input  id="school"   class="filter" placeholder="학교명">
-      <select id="grade"    class="filter"><option value="">학년</option><option>중1</option><option>중2</option><option>중3</option></select>
+      <select id="grade"    class="filter"><option value="">학년</option><option>고1</option><option>고2</option><option>고3</option></select>
       <input  id="year"     class="filter" placeholder="연도" type="number">
       <select id="semester" class="filter"><option value="">학기</option><option>1학기중간</option><option>1학기기말</option><option>2학기중간</option><option>2학기기말</option></select>
       <button class="btn btn--search" onclick="searchFiles()"><i class="fa-solid fa-magnifying-glass"></i> 검색</button>
@@ -267,13 +267,7 @@ input:checked + .slider:before {
       <i class="fa-solid fa-gears"></i> 시험지 관리
     </button>
     </div>
-
-    <!-- ③ 관리자 전용 -->
-    <button id="uploadBtn" class="btn btn--primary" style="display:none;">
-      <i class="fa-solid fa-upload"></i> 시험지 업로드
-    </button>
-  </div>
-
+    </div>
   <!-- ─── 테이블 ─── -->
   <div class="table-wrap">
     <table>
@@ -340,13 +334,6 @@ function renderPagination(total,curr){
   }
 }
 
-/* ===== 관리자 버튼 표시 ===== */
-async function showUploadIfAdmin(){
-  try{
-    const {isLoggedIn,user={}}=await (await fetch('/check-auth',{credentials:'include'})).json();
-    if(isLoggedIn&&user.role==='admin') uploadBtn.style.display='inline-flex';
-  }catch(e){console.error(e);}
-}
 
 /* ===== 기타 UI 초기화 ===== */
 function setToday(){
@@ -369,33 +356,31 @@ function initDropdown(){
 const editRow=id=>alert('편집 '+id);
 const deleteRow=id=>confirm('삭제?')&&alert('삭제 '+id);
 
-/* ===== 시작 ===== */
-window.onload=()=>{
-  setToday();
-  initDropdown();
-  showUploadIfAdmin();
-  showAdminButtons();
-  fetchFiles(1);
-};
 async function showAdminButtons(){
   try{
-    const {isLoggedIn,user={}} = await (await fetch('/check-auth',{credentials:'include'})).json();
+    const { isLoggedIn, user={} } =
+      await (await fetch('/check-auth',{ credentials:'include' })).json();
+
     if(isLoggedIn && user.role==='admin'){
       const uploadBtn = document.getElementById('uploadBtn');
       const manageBtn = document.getElementById('manageBtn');
-      if(uploadBtn){
-        uploadBtn.style.display = 'inline-flex';
-        uploadBtn.onclick = () => location.href = 'upload.html';
-      }
-      if(manageBtn){
-        manageBtn.style.display = 'inline-flex';
-        manageBtn.onclick = () => location.href = 'admin_files.html';
-      }
+      uploadBtn.style.display = 'inline-flex';
+      manageBtn.style.display = 'inline-flex';
+
+      // ★ 관리자용 페이지로 연결
+      uploadBtn.onclick = ()=> location.href = 'admin_upload.html';
+      manageBtn.onclick = ()=> location.href = 'admin_files.html';
     }
   }catch(e){
-    console.error('관리자 체크 실패', e);
+    console.error('관리자 확인 실패', e);
   }
 }
+
+/* ===== 시작 ===== */
+window.onload=()=>{
+  showAdminButtons();
+  fetchFiles(1);
+};
 
 document.getElementById('levelToggle').addEventListener('click', function(){
   const levelText = document.getElementById('levelText');

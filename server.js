@@ -25,20 +25,10 @@ const s3 = new AWS.S3({
   region: process.env.AWS_REGION
 });
 
-const upload = multer({
-  storage: multerS3({
-    s3: s3,
-    bucket: process.env.AWS_S3_BUCKET,
-    contentType: multerS3.AUTO_CONTENT_TYPE,
-    key: function (req, file, cb) {
-      const ext = file.originalname.split('.').pop();
-      const filename = `profile/${Date.now()}-${Math.round(Math.random()*1e9)}.${ext}`;
-      cb(null, filename);
-    }
-  })
-});
+const deleteS3 = key =>
+  s3.deleteObject({ Bucket: process.env.AWS_S3_BUCKET, Key: key }).promise();
 
-// ─── [추가] 로그인·관리자 체크 미들웨어 ───
+// ─── 로그인·관리자 체크 ───
 function isLoggedIn(req, res, next) {
   if (req.session.user) return next();
   return res.status(401).json({ msg: '로그인 필요' });
@@ -47,6 +37,26 @@ function isAdmin(req, res, next) {
   if (req.session.user?.role === 'admin') return next();
   return res.status(403).json({ msg: '관리자 전용' });
 }
+
+// ─── 새 업로더 두 개 (코드 최상단에) ───
+const avatarUpload = multer({
+  storage: multerS3({ s3, bucket: process.env.AWS_S3_BUCKET,
+    key: (req,file,cb)=> {
+      const ext=file.originalname.split('.').pop();
+      cb(null,`profile/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`);
+    }
+  })
+});
+
+const fileUpload = multer({
+  storage: multerS3({ s3, bucket: process.env.AWS_S3_BUCKET,
+    key: (req,file,cb)=> {
+      const today=new Date().toISOString().slice(0,10);
+      const ext=file.originalname.split('.').pop();
+      cb(null,`files/${today}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`);
+    }
+  })
+});
 
 const app = express();
 app.use(cors({
@@ -236,19 +246,17 @@ app.post('/resetpw', async (req, res) => {
     res.status(500).json({ msg: "서버 오류", error: e.message });
   }
 });
-// 업로드된 이미지 파일 접근
-app.use('/uploads', express.static('uploads'));
 
 // 공지 등록 (POST /api/notices) ─ 관리자만
 app.post('/api/notices',
   isLoggedIn, isAdmin,
-  upload.single('image'),
+  fileUpload.single('image'),
   async (req, res) => {
     const { title, content } = req.body;
     if (!title || !content)
       return res.status(400).json({ msg: '필수 입력값' });
 
-    const imageUrl = req.file ? '/uploads/' + req.file.filename : null;
+    const imageUrl = req.file ? req.file.location : null;   // S3 URL
     const today    = new Date().toISOString().slice(0, 10);
 
     await db.query(
@@ -291,25 +299,25 @@ app.delete('/api/notices/:id',
 });
 
     // 업로드 API (관리자용)
-    app.post('/api/upload', isLoggedIn, isAdmin, upload.array('files'), async (req, res) => {
+    app.post('/api/upload', isLoggedIn, isAdmin, fileUpload.array('files'), async (req,res)=> {
       try {
         const { region, district, school, grade, year, semester, title, level } = req.body;
         const files = req.files;
         if(!files || files.length === 0) return res.status(400).json({ message: '파일이 없습니다.' });
 
         // 확장자별로 구분
-        let hwpFile = null, pdfFile = null;
-        for (let f of files) {
-          const ext = path.extname(f.originalname).toLowerCase();
-          if (['.hwp', '.hwpx'].includes(ext)) hwpFile = f.filename;
-          if (ext === '.pdf') pdfFile = f.filename;
-        }
+        let hwpKey = null, pdfKey = null;
+for (const f of files) {
+  const ext = path.extname(f.originalname).toLowerCase();   // ✅ ext 선언
+  if (['.hwp', '.hwpx'].includes(ext)) hwpKey = f.key;
+  if (ext === '.pdf')               pdfKey = f.key;
+}
 
         await db.query(
           `INSERT INTO files 
             (region, district, school, grade, year, semester, title, hwp_filename, pdf_filename, level)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [region, district, school, grade, year, semester, title, hwpFile, pdfFile, level]
+          [region, district, school, grade, year, semester, title, hwpKey, pdfKey, level]
         );
         res.json({ message: '업로드 성공' });
       } catch (e) {
@@ -359,22 +367,32 @@ app.delete('/api/notices/:id',
           if (filename && filename.endsWith('.hwpx')) ext = '.hwpx';
         }
         if (!filename) return res.status(404).send('해당 형식 파일 없음');
-        const filePath = path.join(__dirname, 'uploads', filename);
-
-        // 한글 파일명 처리
-        const downloadName = encodeURIComponent(title + ext);
-        res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${downloadName}`);
-        res.sendFile(filePath);
+      const key = filename;                      // DB 에 저장된 S3 Key
+      const signed = s3.getSignedUrl('getObject', {
+        Bucket: process.env.AWS_S3_BUCKET,
+        Key: key,
+        Expires: 60   // 1 분 유효
+      });
+     return res.redirect(signed);
       } catch (e) {
         res.status(500).send('다운로드 오류');
       }
     });
 
-    // 파일 정보 수정 (관리자)
-    app.put('/api/files/:id', upload.array('files'), async (req, res) => {
-      try {
-        const { region, district, school, grade, year, semester, title, level } = req.body;
-        const files = req.files || [];
+      // 파일 정보 수정 (관리자)
+      app.put('/api/files/:id', isLoggedIn, isAdmin, fileUpload.array('files'), async (req, res) => {
+        try {
+          const { region, district, school, grade, year, semester, title, level } = req.body;
+      const files = req.files || [];
+      // 첨부파일 없이 메타데이터만 수정할 때
+      if (!files.length) {
+        await db.query(`
+          UPDATE files SET region=?, district=?, school=?, grade=?, year=?,
+            semester=?, title=?, level=? WHERE id=?`,
+          [region, district, school, grade, year, semester, title, level, req.params.id]
+        );
+        return res.json({ message: '수정 완료(파일 변경 없음)' });
+      }
 
         // 기존 파일명 조회
         const [[row]] = await db.query('SELECT hwp_filename, pdf_filename FROM files WHERE id=?', [req.params.id]);
@@ -386,12 +404,12 @@ app.delete('/api/notices/:id',
           const ext = path.extname(f.originalname).toLowerCase();
           if (['.hwp', '.hwpx'].includes(ext)) {
             // 기존 파일 실제 삭제
-            if (newHwp) { try { await fs.unlink(__dirname + '/uploads/' + newHwp); } catch (e) {} }
-            newHwp = f.filename;
+            if (newHwp) { try { await deleteS3(newHwp); } catch (e) {} }
+            newHwp = f.key;
           }
           if (ext === '.pdf') {
-            if (newPdf) { try { await fs.unlink(__dirname + '/uploads/' + newPdf); } catch (e) {} }
-            newPdf = f.filename;
+            if (newPdf) { try { await deleteS3(newPdf); } catch (e) {} }
+            newPdf = f.key;
           }
         }
 
@@ -408,12 +426,12 @@ app.delete('/api/notices/:id',
       }
     });
 // 문의/업로드 글 등록 (POST /api/board)
-app.post('/api/board', upload.array('fileInput', 10), async (req, res) => {
+app.post('/api/board',  fileUpload.array('fileInput', 10), async (req, res) => {
   try {
     const { boardType, title, password, content } = req.body;
     // 첨부파일명(여러개 콤마로)
-    const files = req.files && req.files.length > 0
-      ? req.files.map(f => f.filename).join(',')
+  const files = req.files && req.files.length > 0
+      ? req.files.map(f => f.key).join(',')        // ✅ S3 Key
       : '';
     await db.query(
       'INSERT INTO board (boardType, title, password, content, files) VALUES (?, ?, ?, ?, ?)',
@@ -468,7 +486,7 @@ app.post('/api/board/:id/delete', async (req, res) => {
       const fileArr = rows[0].files.split(',');
       for (let f of fileArr) {
         if (f) {
-          try { await fs.unlink(__dirname + '/uploads/' + f); } catch (e) {}
+          try { await deleteS3(f); } catch (e) {}
         }
       }
     }
@@ -517,6 +535,17 @@ app.get('/auth/google/callback',
   }
 );
 
+// ──────────────────────────────────────
+//  관리자만 접근 가능한 정적 페이지
+// ──────────────────────────────────────
+app.get('/admin_upload.html', isLoggedIn, isAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin_upload.html'));
+});
+
+app.get('/admin_files.html',  isLoggedIn, isAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin_files.html'));
+});
+
 app.use(express.static('public'));
 
 // 파일 삭제 (관리자만)
@@ -528,10 +557,10 @@ app.delete('/api/files/:id', isLoggedIn, isAdmin, async (req, res) => {
 
     // 실제 파일 삭제 (존재하면)
     if (row.hwp_filename) {
-      try { await fs.unlink(path.join(__dirname, 'uploads', row.hwp_filename)); } catch (e) {}
+      try { await deleteS3(row.hwp_filename); } catch (e) {}
     }
     if (row.pdf_filename) {
-      try { await fs.unlink(path.join(__dirname, 'uploads', row.pdf_filename)); } catch (e) {}
+      try { await deleteS3(row.pdf_filename); } catch (e) {}
     }
 
     // DB에서 삭제
@@ -542,11 +571,11 @@ app.delete('/api/files/:id', isLoggedIn, isAdmin, async (req, res) => {
   }
 });
 
-app.post('/api/board_secure', upload.array('fileInput', 10), async (req, res) => {
+app.post('/api/board_secure', fileUpload.array('fileInput', 10), async (req, res) => {
   try {
     const { boardType, title, password, content } = req.body;
     const files = req.files && req.files.length > 0
-      ? req.files.map(f => f.filename).join(',')
+      ? req.files.map(f => f.key).join(',')
       : '';
 
     const hash = await bcrypt.hash(password, 10);
@@ -622,7 +651,7 @@ app.post('/api/board_secure/:id/delete', async (req, res) => {
 // (추가) 프로필 사진 업로드
 // POST /upload-profile-photo
 // ─────────────────────────────
-    app.post('/api/upload-profile-photo', isLoggedIn, upload.single('avatar'), async (req, res) => {
+    app.post('/api/upload-profile-photo', isLoggedIn, avatarUpload.single('avatar'), async (req, res) => {
       try {
         if (!req.file) {
           return res.status(400).json({ msg: '파일이 없습니다.' });
@@ -653,10 +682,7 @@ app.post('/api/board_secure/:id/delete', async (req, res) => {
     const url = req.session.user.avatarUrl;
     if (url && !url.includes('/icon_my_b.png')) { // 기본이미지 아니면
       const key = url.split('.amazonaws.com/')[1];
-      await s3.deleteObject({
-        Bucket: process.env.AWS_S3_BUCKET,
-        Key: key
-      }).promise();
+      await deleteS3(key);
     }
 
     await db.query('UPDATE users SET avatarUrl=? WHERE id=?',
