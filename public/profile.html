@@ -284,12 +284,6 @@ const adSwiper = new Swiper('.adSwiper', {
     },
 });
 
-/* 5초마다 자동 슬라이드 */
-setInterval(()=>{
-  if(!noticeData.length) return;
-  noticePage = (noticePage+1) % Math.ceil(noticeData.length/NOTICE_PER_PAGE);
-  renderNotices();
-},5000);
 
 async function setProfileInfo() {
   try {
@@ -305,9 +299,10 @@ async function setProfileInfo() {
     document.getElementById('profileName').textContent = displayId;
     document.getElementById('profileEmail').textContent = u.email || '-';
     if(u.avatarUrl){
-      document.getElementById('profileAvatar').src = u.avatarUrl;
+    document.getElementById('profileAvatar').src = user.avatarUrl;
+    } else {
+      document.getElementById('profileAvatar').src = '/icon_my_b.png';
     }
-
     document.querySelector('.info').classList.remove('loading');
     document.querySelector('.member-info').classList.remove('loading');
   } catch(e) {}
