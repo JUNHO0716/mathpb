@@ -640,9 +640,13 @@ app.post('/api/board_secure/:id/delete', async (req, res) => {
         res.json({ success: true, avatarUrl: url });
       } catch (e) {
         console.error('프로필 사진 업로드 오류:', e);
-        res.status(500).json({ msg: '서버 오류', error: e.message });
+        res.status(500).json({
+          msg: '서버 오류',
+          error: e.message,
+          detail: e,       // ← 에러 전체 객체도 같이 내려줌
+          stack: e.stack   // ← 에러 stack trace도 같이
+        });
       }
-    });
 
     app.delete('/api/delete-profile-photo', isLoggedIn, async (req, res) => {
   try {
