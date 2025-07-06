@@ -311,47 +311,6 @@ async function setProfileInfo() {
 setProfileInfo();
 
 
-async function setProfileInfo() {
-  try {
-    const res = await fetch('/check-auth?ts=' + Date.now(), {
-      credentials: 'include',
-      cache: 'no-store'
-    });
-    const d = await res.json();
-    if(!d.isLoggedIn) return;
-
-    const u = d.user || {};
-    const displayId = u.email ? u.email.split('@')[0] : (u.name || 'User');
-    document.getElementById('profileName').textContent = displayId;
-    document.getElementById('profileEmail').textContent = u.email || '-';
-
-    const av = document.getElementById('profileAvatar');
-    av.src = u.avatarUrl || '/icon_my_b.png';
-    av.alt = displayId;
-
-    // 정보 카드
-    document.getElementById('mem-email').textContent = u.email || '-';
-    document.getElementById('mem-name').textContent = u.name || '-';
-    document.getElementById('mem-phone').textContent = u.phone || '-';
-    if(u.bizNum){ showBizNum(u.bizNum); }
-
-    // 등급
-    const gradeSpan = document.getElementById('mem-grade');
-    let label = '-', cls = '';
-    switch((u.grade||'').toLowerCase()){
-      case 'gold':   label = '골드';   cls = 'grade-gold';   break;
-      case 'silver': label = '실버';   cls = 'grade-silver'; break;
-      case 'bronze': cls = 'grade-bronze'; label = '브론즈'; break;
-    }
-    gradeSpan.textContent = label;
-    gradeSpan.className = 'grade-label ' + cls;
-
-    document.querySelector('.info').classList.remove('loading');
-    document.querySelector('.member-info').classList.remove('loading');
-  } catch(e) { console.error(e); }
-}
-setProfileInfo();
-
 document.getElementById('mem-biz-save').onclick = async function() {
   const value = document.getElementById('mem-biz-input').value.trim();
   if(!value) return alert('번호를 입력하세요');
@@ -410,7 +369,7 @@ document.getElementById('savePhotoBtn').addEventListener('click', async function
     return;
   }
   const formData = new FormData();
-  formData.append('avatar', selectedFile);
+  formData.append('avatar', selectedFile, selectedFile.name); // ← 파일명 명시
 
   try {
     const res = await fetch('/api/upload-profile-photo', {

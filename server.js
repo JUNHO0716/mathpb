@@ -29,7 +29,6 @@ const upload = multer({
   storage: multerS3({
     s3: s3,
     bucket: process.env.AWS_S3_BUCKET,
-    acl: 'public-read',
     contentType: multerS3.AUTO_CONTENT_TYPE,
     key: function (req, file, cb) {
       const ext = file.originalname.split('.').pop();
