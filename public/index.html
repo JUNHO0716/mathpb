@@ -491,7 +491,11 @@
           document.getElementById('profileName').textContent = displayId;
 
           const avatarEl = document.getElementById('avatar');
-          avatarEl.src = u.avatarUrl || 'icon_my_b.png';
+          if (u.avatarUrl && u.avatarUrl.trim() !== "") {
+            avatarEl.src = u.avatarUrl;
+          } else {
+            avatarEl.src = 'icon_my_b.png';
+          }
           avatarEl.alt = displayId;
 
           document.getElementById('userBox').classList.remove('loading');
