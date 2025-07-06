@@ -350,7 +350,7 @@ async function setProfileInfo() {
     document.getElementById('profileEmail').textContent = u.email || '-';
 
     const av = document.getElementById('profileAvatar');
-    av.src = u.avatarUrl || 'icon_my_b.png';
+    av.src = u.avatarUrl || '/icon_my_b.png';
     av.alt = displayId;
 
     // 정보 카드
