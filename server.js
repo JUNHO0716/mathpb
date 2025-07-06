@@ -1,11 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
-// AWS S3 연결
-const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: process.env.AWS_REGION
-});
+
 
 import express from 'express';
 import session from 'express-session';
@@ -17,6 +12,13 @@ import cors from 'cors';
 import AWS from 'aws-sdk';
 import multer from 'multer';
 import multerS3 from 'multer-s3';
+
+// AWS S3 연결
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION
+});
 
 const upload = multer({
   storage: multerS3({
