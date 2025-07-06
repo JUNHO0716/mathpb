@@ -1,9 +1,12 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-import express from 'express';
-import session from 'express-session';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 import passport from 'passport';
 import GoogleStrategy from 'passport-google-oauth20';
 import mysql from 'mysql2/promise';
@@ -12,6 +15,8 @@ import cors from 'cors';
 import AWS from 'aws-sdk';
 import multer from 'multer';
 import multerS3 from 'multer-s3';
+import express from 'express';
+import session from 'express-session';
 
 // AWS S3 연결
 const s3 = new AWS.S3({
