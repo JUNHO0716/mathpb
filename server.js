@@ -647,6 +647,7 @@ app.post('/api/board_secure/:id/delete', async (req, res) => {
           stack: e.stack   // ← 에러 stack trace도 같이
         });
       }
+    });
 
     app.delete('/api/delete-profile-photo', isLoggedIn, async (req, res) => {
   try {
