@@ -216,6 +216,13 @@ body {
   transition: background .15s, color .15s;
 }
 
+  /* [NEW] 프로필 사진 페이드-인 */
+  #profileAvatar{
+    opacity:0;                       /* 처음엔 투명 */
+    transition:opacity .6s ease;     /* 0.6초 동안 부드럽게 */
+  }
+  #profileAvatar.fade-in{opacity:1;} /* 클래스 붙으면 나타남 */
+
   </style>
 </head>
 <body>
@@ -472,6 +479,31 @@ document.getElementById('deletePhotoBtn').addEventListener('click', async functi
   } catch (err) {
     alert('삭제 오류: ' + err);
   }
+});
+
+/* 공통 유틸 – 새 src 가 적용돼 이미지가 완전히 로드되면 페이드-인 */
+function fadeInAvatar() {
+  const av = document.getElementById('profileAvatar');
+  av.classList.remove('fade-in');        // 재사용 대비 먼저 제거
+  requestAnimationFrame(()=> av.classList.add('fade-in'));
+}
+
+/* (1) 초기 프로필 세팅 */
+const av = document.getElementById('profileAvatar');
+av.onload = fadeInAvatar;                // ⭐ 이미지가 로드될 때마다 실행
+
+/* (2) 서버에서 실제 사진을 가져올 때 */
+preload.onload = () => { av.src = u.avatarUrl; }   // 기존 코드 OK – onload가 자동 호출되어 페이드-인
+
+/* (3) 파일 선택(미리보기) */
+reader.onload = function(evt){
+  av.src = evt.target.result;            // onload 이벤트가 또 발생 → 페이드-인
+};
+
+/* (4) 기본 이미지로 되돌릴 때 */
+document.getElementById('deletePhotoBtn').addEventListener('click', async()=>{
+  /* …삭제 로직… */
+  av.src = '/icon_my_b.png';             // 역시 onload → 페이드-인
 });
 
 
