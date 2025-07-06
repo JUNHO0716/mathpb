@@ -196,8 +196,7 @@ body {
 .grade-silver { color: #6a7a8b; background: #f0f4f7; }
 .grade-bronze { color: #be7625; background: #ffe7ce; }
 
-.info.loading *,
-.member-info.loading * {
+.info.loading *, .member-info.loading * {
   visibility: hidden;
 }
 
@@ -239,7 +238,10 @@ body {
         <label class="avatar-label" for="profileImageInput">
           <img id="profileAvatar" alt="avatar">
           <input type="file" id="profileImageInput" accept="image/*" style="display:none;">
-          <button type="button" class="change-photo-btn">프로필 사진 변경</button>
+          <div style="display:flex;gap:8px;">
+            <button type="button" class="change-photo-btn">사진 변경</button>
+            <button type="button" class="change-photo-btn" id="savePhotoBtn" style="display:none;">저장</button>
+          </div>
         </label>
         <div class="info loading">
           <h3 id="profileName">UserName</h3>
@@ -408,6 +410,61 @@ function showBizNum(bizNum) {
 document.querySelector('.change-photo-btn').onclick = function() {
   document.getElementById('profileImageInput').click();
 };
+
+let selectedFile = null;
+
+// 사진 선택하면 미리보기만
+document.getElementById('profileImageInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  selectedFile = file;  // 저장 버튼을 누를 때 전송하기 위해 보관
+  // 미리보기
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    document.getElementById('profileAvatar').src = evt.target.result;
+  };
+  reader.readAsDataURL(file);
+
+  // 저장 버튼 표시
+  document.getElementById('savePhotoBtn').style.display = 'inline-block';
+});
+
+// 저장 버튼 눌러야 서버에 업로드
+document.getElementById('savePhotoBtn').addEventListener('click', async function() {
+  if (!selectedFile) {
+    alert('사진을 먼저 선택하세요.');
+    return;
+  }
+  const formData = new FormData();
+  formData.append('avatar', selectedFile);
+
+  try {
+    const res = await fetch('/api/upload-profile-photo', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include'
+    });
+    const result = await res.json();
+    if(result.success && result.avatarUrl){
+      document.getElementById('profileAvatar').src = result.avatarUrl;
+      alert('프로필 사진이 변경되었습니다!');
+      selectedFile = null;
+      document.getElementById('savePhotoBtn').style.display = 'none';
+    } else {
+      alert('프로필 사진 업로드에 실패했습니다.');
+    }
+  } catch (err) {
+    alert('업로드 에러: ' + err);
+  }
+});
+
+// 페이지 떠나기 전에 저장 안 했으면 경고
+window.addEventListener('beforeunload', function (e) {
+  if (selectedFile) {
+    e.preventDefault();
+    e.returnValue = '';  // 크롬/사파리에서 기본 경고
+  }
+});
 
 
 </script>
