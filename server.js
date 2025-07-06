@@ -373,6 +373,8 @@ for (const f of files) {
       const key = filename;                      // DB 에 저장된 S3 Key
       const signed = s3.getSignedUrl('getObject', {
         Bucket: process.env.AWS_S3_BUCKET,
+        acl: 'public-read',                       // ➊ S3 객체 공개 권한
+        contentType: multerS3.AUTO_CONTENT_TYPE,  // ➋ 실제 MIME-Type 지정
         Key: key,
         Expires: 60   // 1 분 유효
       });
