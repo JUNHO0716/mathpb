@@ -237,7 +237,10 @@ body {
       <div class="profile-center">
         <label class="avatar-label" for="profileImageInput">
           <img id="profileAvatar" alt="avatar">
-          <input type="file" id="profileImageInput" accept="image/*" style="display:none;">
+          <input type="file" id="profileImageInput"
+           name="avatar"  
+           accept="image/*"
+           style="display:none;">
           <div style="display:flex;gap:8px;">
             <button type="button" class="change-photo-btn">사진 변경</button>
             <button type="button" class="change-photo-btn" id="savePhotoBtn" style="display:none;">저장</button>
@@ -307,36 +310,6 @@ async function setProfileInfo() {
 }
 setProfileInfo();
 
-document.getElementById('profileImageInput').addEventListener('change', async function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  // 미리보기
-  const reader = new FileReader();
-  reader.onload = function(evt) {
-    document.getElementById('profileAvatar').src = evt.target.result;
-  };
-  reader.readAsDataURL(file);
-
-  // 서버 업로드
-  const formData = new FormData();
-  formData.append('avatar', file);
-
-  try {
-    const res = await fetch('/api/upload-profile-photo', {
-      method: 'POST',
-      body: formData,
-      credentials: 'include'
-    });
-    const result = await res.json();
-    if(result.success && result.avatarUrl){
-      document.getElementById('profileAvatar').src = result.avatarUrl;
-    } else {
-      alert('프로필 사진 업로드에 실패했습니다.');
-    }
-  } catch (err) {
-    alert('업로드 에러: ' + err);
-  }
-});
 
 async function setProfileInfo() {
   try {
