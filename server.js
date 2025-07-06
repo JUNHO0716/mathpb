@@ -489,13 +489,13 @@ app.get('/', (req, res) => {
 // 로그인 상태 확인 API
 app.get('/check-auth', (req, res) => {
   if (req.session.user) {
+    // avatarUrl 이 null, undefined, 빈 문자열이면 기본 이미지로
     if (!req.session.user.avatarUrl) {
       req.session.user.avatarUrl = '/icon_my_b.png';
     }
-    res.json({ isLoggedIn: true, user: req.session.user });
-  } else {
-    res.json({ isLoggedIn: false });
+    return res.json({ isLoggedIn: true, user: req.session.user });
   }
+  res.json({ isLoggedIn: false });
 });
 
 // 로그아웃 API

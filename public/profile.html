@@ -298,11 +298,6 @@ async function setProfileInfo() {
     const displayId = u.email ? u.email.split('@')[0] : (u.name || 'User');
     document.getElementById('profileName').textContent = displayId;
     document.getElementById('profileEmail').textContent = u.email || '-';
-    if(u.avatarUrl){
-    document.getElementById('profileAvatar').src = user.avatarUrl;
-    } else {
-      document.getElementById('profileAvatar').src = '/icon_my_b.png';
-    }
     document.querySelector('.info').classList.remove('loading');
     document.querySelector('.member-info').classList.remove('loading');
   } catch(e) {}
