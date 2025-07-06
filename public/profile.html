@@ -189,6 +189,33 @@ body {
   visibility: hidden;
 }
 
+#profileAvatar {
+  width: 120px;         /* 권장: 80~120px (추천값은 96px) */
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #eaeaea;
+  margin-bottom: 8px;
+  border: 2px solid #eee;
+  transition: filter .2s;
+  margin-bottom: 8px; 
+  margin-top: -120px; 
+  margin-bottom: 30px;  
+}
+#profileAvatar:hover { filter: brightness(0.95); }
+
+.change-photo-btn {
+  background: #f7f8fa;
+  border: 1px solid #ccc;
+  border-radius: 9999px;
+  padding: 4px 18px;
+  font-size: 0.95rem;
+  color: #333;
+  cursor: pointer;
+  margin-top: 2px;
+  transition: background .15s, color .15s;
+}
+
   </style>
 </head>
 <body>
