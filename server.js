@@ -1,5 +1,11 @@
 import dotenv from 'dotenv';
 dotenv.config();
+// AWS S3 연결
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION
+});
 
 import express from 'express';
 import session from 'express-session';
@@ -8,36 +14,22 @@ import GoogleStrategy from 'passport-google-oauth20';
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcrypt';
 import cors from 'cors';
+import AWS from 'aws-sdk';
 import multer from 'multer';
-import fs from 'fs/promises';
-import fssync from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import multerS3 from 'multer-s3';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const UPLOAD_DIR = path.join(__dirname, 'uploads');
-if (!fssync.existsSync(UPLOAD_DIR)) fssync.mkdirSync(UPLOAD_DIR);
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => {
-    const ext      = path.extname(file.originalname);         // .pdf …
-    const basename = path.basename(file.originalname, ext);   // 원본이름
-    const stamp    = Date.now() + '-' + Math.round(Math.random()*1e4);
-    cb(null, `${basename}-${stamp}${ext}`);
-  }
-});
 const upload = multer({
-  storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB 제한 (필요시)
-  fileFilter: (req, file, cb) => {
-    const allowed = ['.pdf', '.jpg', '.jpeg', '.png', '.hwp', '.doc', '.xls', '.xlsx', '.html', '.hwpx'];
-    const ext = path.extname(file.originalname).toLowerCase();
-    if (allowed.includes(ext)) cb(null, true);
-    else cb(new Error('허용되지 않는 파일형식'));
-  }
+  storage: multerS3({
+    s3: s3,
+    bucket: process.env.AWS_S3_BUCKET,
+    acl: 'public-read',
+    contentType: multerS3.AUTO_CONTENT_TYPE,
+    key: function (req, file, cb) {
+      const ext = file.originalname.split('.').pop();
+      const filename = `profile/${Date.now()}-${Math.round(Math.random()*1e9)}.${ext}`;
+      cb(null, filename);
+    }
+  })
 });
 
 // ─── [추가] 로그인·관리자 체크 미들웨어 ───
@@ -630,19 +622,42 @@ app.post('/api/board_secure/:id/delete', async (req, res) => {
           return res.status(400).json({ msg: '파일이 없습니다.' });
         }
 
+        const url = req.file.location; // S3에 저장된 URL
+
         await db.query(
           'UPDATE users SET avatarUrl=? WHERE id=?',
-          ['/uploads/' + req.file.filename, req.session.user.id]
+          [url, req.session.user.id]
         );
+        req.session.user.avatarUrl = url;
 
-        req.session.user.avatarUrl = '/uploads/' + req.file.filename;
-
-        res.json({ success: true, avatarUrl: '/uploads/' + req.file.filename });
+        res.json({ success: true, avatarUrl: url });
       } catch (e) {
         console.error('프로필 사진 업로드 오류:', e);
         res.status(500).json({ msg: '서버 오류', error: e.message });
       }
     });
+
+    app.delete('/api/delete-profile-photo', isLoggedIn, async (req, res) => {
+  try {
+    const url = req.session.user.avatarUrl;
+    if (url && !url.includes('/icon_my_b.png')) { // 기본이미지 아니면
+      const key = url.split('.amazonaws.com/')[1];
+      await s3.deleteObject({
+        Bucket: process.env.AWS_S3_BUCKET,
+        Key: key
+      }).promise();
+    }
+
+    await db.query('UPDATE users SET avatarUrl=? WHERE id=?',
+      ['/icon_my_b.png', req.session.user.id]);
+    req.session.user.avatarUrl = '/icon_my_b.png';
+
+    res.json({ success: true, avatarUrl: '/icon_my_b.png' });
+  } catch (e) {
+    console.error('프로필 삭제 오류:', e);
+    res.status(500).json({ msg: '삭제 오류', error: e.message });
+  }
+});
 
 
 // 서버 실행

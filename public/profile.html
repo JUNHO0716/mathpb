@@ -241,6 +241,7 @@ body {
           <div style="display:flex;gap:8px;">
             <button type="button" class="change-photo-btn">사진 변경</button>
             <button type="button" class="change-photo-btn" id="savePhotoBtn" style="display:none;">저장</button>
+            <button type="button" class="change-photo-btn" id="deletePhotoBtn">삭제</button>
           </div>
         </label>
         <div class="info loading">
@@ -463,6 +464,27 @@ window.addEventListener('beforeunload', function (e) {
   if (selectedFile) {
     e.preventDefault();
     e.returnValue = '';  // 크롬/사파리에서 기본 경고
+  }
+});
+
+document.getElementById('deletePhotoBtn').addEventListener('click', async function() {
+  if (!confirm('정말 프로필 사진을 기본 이미지로 변경하시겠습니까?')) return;
+  try {
+    const res = await fetch('/api/delete-profile-photo', {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    const result = await res.json();
+    if(result.success && result.avatarUrl){
+      document.getElementById('profileAvatar').src = result.avatarUrl;
+      alert('프로필 사진이 기본 이미지로 변경되었습니다.');
+      selectedFile = null;
+      document.getElementById('savePhotoBtn').style.display = 'none';
+    } else {
+      alert('프로필 사진 삭제 실패!');
+    }
+  } catch (err) {
+    alert('삭제 오류: ' + err);
   }
 });
 
