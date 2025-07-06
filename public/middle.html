@@ -304,10 +304,19 @@ async function fetchFiles(page=1){
   });
   params.append('level', '중등');  // 반드시 넣어주세요
   const res=await fetch('/api/files?'+params.toString());
-  fileData=await res.json();
-  renderTable(fileData.items||[]);
-  renderPagination(fileData.totalPages||1,page);
+ fileData   = await res.json();
+
+ // 배열·객체 모두 대응
+ const list = Array.isArray(fileData) ? fileData
+             : (fileData.items || []);
+
+ renderTable(list);
+
+ // ② 페이지 수: 서버에서 안 주면 프론트에서 계산(10개씩이라고 가정)
+ const totalPages = Math.ceil(list.length / 10) || 1;
+ renderPagination(totalPages, page);
 }
+
 function searchFiles(){fetchFiles();}
 
 function renderTable(list){
@@ -315,16 +324,21 @@ function renderTable(list){
   if(!list.length){
     tb.innerHTML='<tr><td colspan="8" style="padding:20px;color:#9ba4b0;">자료가 없습니다</td></tr>';return;
   }
-  tb.innerHTML=list.map((row,i)=>`
-    <tr>
-      <td>${row.no??i+1}</td>
-      <td style="text-align:left;padding-left:18px">${row.title}
-        ${row.tag?`<span class="badge badge--${row.tag==='통과'?'green':'red'}" style="margin-left:6px;">${row.tag}</span>`:''}
-      </td>
-      <td>${row.grade}</td><td>${row.semester}</td><td>${row.year}</td><td>${row.date}</td>
-      <td><span class="status-dot"></span>${row.status}</td>
-      <td></td>
-    </tr>`).join('');
+ tb.innerHTML = list.map((row, i) => `
+   <tr>
+     <td>${i + 1}</td>                              <!-- 단순 인덱스 + 1 -->
+     <td style="text-align:left;padding-left:18px">
+       ${row.title}
+       ${row.tag ? `<span class="badge badge--${row.tag === '통과' ? 'green' : 'red'}" style="margin-left:6px;">${row.tag}</span>` : ''}
+     </td>
+     <td>${row.grade}</td>
+     <td>${row.semester}</td>
+     <td>${row.year}</td>
+     <td>${row.uploaded_at || row.date || '-'}</td> <!-- 날짜 없으면 ‘-’ -->
+     <td><span class="status-dot"></span>${row.status || '-'}</td>
+     <td></td>
+   </tr>
+ `).join('');
 }
 
 function renderPagination(total,curr){

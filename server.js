@@ -334,7 +334,10 @@ for (const f of files) {
         if(region)   { sql += " AND region=?";   params.push(region); }
         if(district) { sql += " AND district=?"; params.push(district); }
         if(school)   { sql += " AND school=?";   params.push(school); }
-        if(grade)    { sql += " AND grade=?";    params.push(grade); }
+        if (grade !== '' && grade !== undefined) {
+            sql += " AND grade = ?";
+            params.push(grade);
+          }
         if(year)     { sql += " AND year=?";     params.push(year); }
         if(semester) { sql += " AND semester=?"; params.push(semester); }
         if(level)    { sql += " AND level=?";    params.push(level); }
@@ -505,9 +508,8 @@ app.get('/', (req, res) => {
 // 로그인 상태 확인 API
 app.get('/check-auth', (req, res) => {
   if (req.session.user) {
-    // avatarUrl 이 null, undefined, 빈 문자열이면 기본 이미지로
     if (!req.session.user.avatarUrl) {
-      req.session.user.avatarUrl = '/icon_my_b.png';
+      req.session.user.avatarUrl = '/icon_my_b.png';   // ★ 기본값 보장
     }
     return res.json({ isLoggedIn: true, user: req.session.user });
   }
@@ -647,35 +649,33 @@ app.post('/api/board_secure/:id/delete', async (req, res) => {
 });
 
 
-// ─────────────────────────────
-// (추가) 프로필 사진 업로드
-// POST /upload-profile-photo
-// ─────────────────────────────
-    app.post('/api/upload-profile-photo', isLoggedIn, avatarUpload.single('avatar'), async (req, res) => {
-      try {
-        if (!req.file) {
-          return res.status(400).json({ msg: '파일이 없습니다.' });
-        }
+ // ――― 프로필 사진 업로드 ―――
+ //  1)  클라이언트쪽 필드명이 'avatar' 또는 'file' 둘 다 올 수 있게 처리
+ //  2)  multer / S3 단계에서 발생한 에러도 500 → 400 으로 내려주기
+ app.post('/api/upload-profile-photo', isLoggedIn, (req, res, next) => {
+   // avatar 로 먼저 시도
+   avatarUpload.single('avatar')(req, res, err => {
+     if (err && err.code === 'LIMIT_UNEXPECTED_FILE') {
+       // avatar 필드가 없으면 file 로 한 번 더
+       return avatarUpload.single('file')(req, res, next);
+     }
+     next(err);
+   });
+ }, async (req, res) => {
+   try {
+     if (!req.file) return res.status(400).json({ msg: '업로드된 파일이 없습니다.' });
 
-        const url = req.file.location; // S3에 저장된 URL
+     const url = req.file.location;          // S3 public URL
+     await db.query('UPDATE users SET avatarUrl=? WHERE id=?',
+       [url, req.session.user.id]);
+     req.session.user.avatarUrl = url;
 
-        await db.query(
-          'UPDATE users SET avatarUrl=? WHERE id=?',
-          [url, req.session.user.id]
-        );
-        req.session.user.avatarUrl = url;
-
-        res.json({ success: true, avatarUrl: url });
-      } catch (e) {
-        console.error('프로필 사진 업로드 오류:', e);
-        res.status(500).json({
-          msg: '서버 오류',
-          error: e.message,
-          detail: e,       // ← 에러 전체 객체도 같이 내려줌
-          stack: e.stack   // ← 에러 stack trace도 같이
-        });
-      }
-    });
+     return res.json({ success: true, avatarUrl: url });
+   } catch (err) {
+     console.error('프로필 사진 업로드 오류:', err);
+     res.status(500).json({ msg: '서버 오류', error: err.message });
+   }
+ });
 
     app.delete('/api/delete-profile-photo', isLoggedIn, async (req, res) => {
   try {
