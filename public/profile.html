@@ -200,6 +200,15 @@ body {
   visibility: hidden;
 }
 
+#profileAvatar {
+  transition: opacity .25s ease;
+  opacity: 0;                     /* 처음엔 투명 */
+}
+#profileAvatar.visible {          /* JS 에서 클래스 붙임 */
+  opacity: 1;
+  visibility: visible;
+}
+
   </style>
 </head>
 <body>
@@ -236,7 +245,7 @@ body {
     <div class="profile-card">
       <div class="profile-center">
         <label class="avatar-label" for="profileImageInput">
-          <img id="profileAvatar" alt="avatar">
+          <img id="profileAvatar" alt="avatar" style="visibility:hidden;">
           <input type="file" id="profileImageInput"
            name="avatar"  
            accept="image/*"
@@ -308,6 +317,7 @@ async function setProfileInfo () {
     document.getElementById('profileEmail').textContent = u.email || '-';
 
     const av = document.getElementById('profileAvatar');
+    av.onload = () => { av.style.visibility = 'visible'; };
     av.src = u.avatarUrl || '/icon_my_b.png';   // ← 아바타 삽입
     av.alt = displayId;
 
