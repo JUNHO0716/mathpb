@@ -40,7 +40,11 @@ function isAdmin(req, res, next) {
 
 // ─── 새 업로더 두 개 (코드 최상단에) ───
 const avatarUpload = multer({
-  storage: multerS3({ s3, bucket: process.env.AWS_S3_BUCKET,
+  storage: multerS3({
+    s3,
+    bucket: process.env.AWS_S3_BUCKET,
+    acl: 'public-read',                    // ★ 누구나 읽기
+    contentType: multerS3.AUTO_CONTENT_TYPE, // ★ 올바른 MIME 설정
     key: (req,file,cb)=> {
       const ext=file.originalname.split('.').pop();
       cb(null,`profile/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`);
@@ -654,30 +658,40 @@ app.post('/api/board_secure/:id/delete', async (req, res) => {
  // ――― 프로필 사진 업로드 ―――
  //  1)  클라이언트쪽 필드명이 'avatar' 또는 'file' 둘 다 올 수 있게 처리
  //  2)  multer / S3 단계에서 발생한 에러도 500 → 400 으로 내려주기
- app.post('/api/upload-profile-photo', isLoggedIn, (req, res, next) => {
-   // avatar 로 먼저 시도
-   avatarUpload.single('avatar')(req, res, err => {
-     if (err && err.code === 'LIMIT_UNEXPECTED_FILE') {
-       // avatar 필드가 없으면 file 로 한 번 더
-       return avatarUpload.single('file')(req, res, next);
-     }
-     next(err);
-   });
- }, async (req, res) => {
-   try {
-     if (!req.file) return res.status(400).json({ msg: '업로드된 파일이 없습니다.' });
+app.post(
+  '/api/upload-profile-photo',
+  isLoggedIn,
+  avatarUpload.single('avatar'),      // ← 한 줄이면 충분 (필드명 'avatar'만 씀)
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ msg: '업로드된 파일이 없습니다.' });
+      }
 
-     const url = req.file.location;          // S3 public URL
-     await db.query('UPDATE users SET avatarUrl=? WHERE id=?',
-       [url, req.session.user.id]);
-     req.session.user.avatarUrl = url;
+      const url = req.file.location;   // S3 public URL
 
-     return res.json({ success: true, avatarUrl: url });
-   } catch (err) {
-     console.error('프로필 사진 업로드 오류:', err);
-     res.status(500).json({ msg: '서버 오류', error: err.message });
-   }
- });
+      // ① DB 저장
+      await db.query(
+        'UPDATE users SET avatarUrl=? WHERE id=?',
+        [url, req.session.user.id]
+      );
+
+      // ② 세션에도 반영하고, 반드시 save!
+      req.session.user.avatarUrl = url;
+      req.session.save(err => {
+        if (err) {
+          console.error('세션 저장 오류:', err);
+          return res.status(500).json({ msg: '세션 저장 오류' });
+        }
+        // ③ 클라이언트에 새 URL 반환
+        res.json({ success: true, avatarUrl: url });
+      });
+    } catch (e) {
+      console.error('프로필 사진 업로드 오류:', e);
+      res.status(500).json({ msg: '서버 오류', error: e.message });
+    }
+  }
+);
 
     app.delete('/api/delete-profile-photo', isLoggedIn, async (req, res) => {
   try {
