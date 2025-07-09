@@ -519,12 +519,13 @@ app.get('/', (req, res) => {
 });
 
 // 로그인 상태 확인 API
-app.get('/check-auth', (req, res) => {
+app.get('/check-auth', async (req, res) => {
   if (req.session.user) {
-    if (!req.session.user.avatarUrl) {
-      req.session.user.avatarUrl = '/icon_my_b.png';   // ★ 기본값 보장
-    }
-    return res.json({ isLoggedIn: true, user: req.session.user });
+    // 세션 정보로 DB에서 avatarUrl을 다시 읽어옴
+    const [rows] = await db.query('SELECT avatarUrl FROM users WHERE id = ?', [req.session.user.id]);
+    const avatarUrl = rows.length && rows[0].avatarUrl ? rows[0].avatarUrl : '/icon_my_b.png';
+    req.session.user.avatarUrl = avatarUrl; // 세션에도 업데이트
+    return res.json({ isLoggedIn: true, user: { ...req.session.user, avatarUrl } });
   }
   res.json({ isLoggedIn: false });
 });
