@@ -85,6 +85,14 @@ app.use(session({
 }));
 app.use(express.json());
 
+function multerErrorHandler(err, req, res, next) {
+  if (err && err.field === 'avatar') {
+    return res.status(400).json({ ok: false, code: err.code, msg: err.message, field: err.field });
+  }
+  next(err);
+}
+app.use(multerErrorHandler);
+
 // ──────────────────────────────────────────────
 // 아이디 중복 확인  POST /check-id
 // Body: { id : "사용자가 입력한 아이디" }
