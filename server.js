@@ -671,6 +671,8 @@ app.post(
   isLoggedIn,
   avatarUpload.single('avatar'),      // ← 한 줄이면 충분 (필드명 'avatar'만 씀)
   async (req, res) => {
+    console.log('req.body:', req.body);
+    console.log('req.file:', req.file);
     try {
       if (!req.file) {
         return res.status(400).json({ msg: '업로드된 파일이 없습니다.' });
