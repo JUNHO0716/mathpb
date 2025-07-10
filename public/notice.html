@@ -260,48 +260,7 @@
 
     /* 로그인·프로필 바인딩 + 관리자 판별 */
     let IS_ADMIN=false;
-    async function bindUser(){
-      try{
-        const res=await fetch('/check-auth?ts='+Date.now(),{credentials:'include',cache:'no-store'});
-        const d=await res.json();
-        IS_ADMIN=d.isLoggedIn && d.user && d.user.role==='admin';
-        document.getElementById('fab-add').style.display=IS_ADMIN?'flex':'none';
 
-        if(!d.isLoggedIn) return;
-        const u=d.user||{};
-        const first=(u.name||u.email||'User').split(' ')[0].split('@')[0];
-
-        document.getElementById('userName').textContent=u.name||first;
-        if(u.avatarUrl){
-          document.getElementById('avatar').src=u.avatarUrl;
-          document.getElementById('avatar').alt=u.name||'avatar';
-        }
-        /* 프로필 드롭다운 로그아웃 */
-        document.getElementById('logoutBtn').onclick=async()=>{
-          await fetch('/logout',{credentials:'include'});location.reload();
-        };
-      }catch(e){console.error(e);}
-    }
-
-    /* 프로필 드롭다운 토글 */
-    function initDropdown(){
-      const box=document.getElementById('userBox');
-      const menu=document.getElementById('dropdownMenu');
-      const arrow=document.getElementById('arrowIcon');
-
-      box.addEventListener('click',e=>{
-        e.stopPropagation();
-        const open=menu.style.display==='block';
-        menu.style.display=open?'none':'block';
-        arrow.style.transform=open?'rotate(0deg)':'rotate(180deg)';
-      });
-      document.addEventListener('click',e=>{
-        if(!menu.contains(e.target)){
-          menu.style.display='none';
-          arrow.style.transform='rotate(0deg)';
-        }
-      });
-    }
 
     /* 공지 CRUD */
     let noticeListData=[];let page=1;const perPage=7;
@@ -458,8 +417,6 @@
 
     /* ── 초기화 ── */
     document.addEventListener('DOMContentLoaded',()=>{
-      bindUser();
-      initDropdown();
       loadNotices();
     });
   </script>
