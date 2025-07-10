@@ -539,8 +539,10 @@ const NOTICE_PER_PAGE=7;
 async function fetchNotices(){
   try{
     const res  = await fetch('/api/notices');
-    noticeData = (await res.json())
-                 .map(n=>({title:n.title || '(제목없음)'}));
+    noticeData = (await res.json()).map(n=>({
+      id: n.id,                // ← 반드시 id 포함!
+      title: n.title || '(제목없음)'
+    }));
   }catch(e){
     console.error(e);
     noticeData = [{title:'공지사항을 불러올 수 없습니다.'}];
@@ -666,13 +668,18 @@ function slideNoticeList() {
   }, 400);
 }
 
+function goNotice(noticeId) {
+  // 부모 window(index.html)의 iframe src 변경!
+  parent.document.getElementById('contentFrame').src = 'notice.html?id=' + noticeId;
+}
+
 function renderNotices(slideIn) {
   const listEl = document.getElementById('noticeList');
   if(!listEl) return;
   const start = noticePage * NOTICE_PER_PAGE;
   const view  = noticeData.slice(start, start+NOTICE_PER_PAGE);
   listEl.innerHTML = view.map((n,i)=>`
-    <div class="notice-item">
+    <div class="notice-item" onclick="goNotice(${n.id})">
       <span class="notice-num">${start+i+1}</span>
       <span class="notice-title">${n.title}</span>
     </div>`).join('');
