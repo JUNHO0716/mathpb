@@ -255,7 +255,7 @@
     .notice-item:hover{background:#f5faf8;}
     .notice-num{
       min-width:18px;height:18px;background:#fdc512;color:#fff;
-      border-radius:4px;font-size:.76rem;font-weight:700;
+      border-radius:50px;font-size:.76rem;font-weight:700;
       display:flex;align-items:center;justify-content:center;
       margin-right:6px;
       transition:background .23s;
@@ -534,7 +534,7 @@ avatar.onload = () => {                    // src 가 바뀌어 이미지가 로
 /* 4) 공지사항 미리보기 -------------------------------------- */
 let noticeData=[];          // 전체 목록
 let noticePage=0;           // 0:1~5, 1:6~10 …
-const NOTICE_PER_PAGE=8;
+const NOTICE_PER_PAGE=7;
 
 async function fetchNotices(){
   try{
