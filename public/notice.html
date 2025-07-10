@@ -362,7 +362,12 @@
         /* 3) 날짜 */
         const tdDate  = document.createElement('td');
         tdDate.className = 'date';
-        tdDate.textContent = item.date.slice(0,10).replace(/-/g,'.');
+
+        const d = new Date(item.date);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth()+1).padStart(2,'0');
+        const dd = String(d.getDate()).padStart(2,'0');
+        tdDate.textContent = `${yyyy}.${mm}.${dd}`;
 
         tr.append(tdCat, tdTitle, tdDate);
         tbody.appendChild(tr);
