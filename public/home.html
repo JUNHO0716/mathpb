@@ -502,25 +502,6 @@ avatar.onload = () => {                    // src 가 바뀌어 이미지가 로
       bindUser();
     });
 
-/* 3) 드롭다운 토글 */
-function initDropdown(){
-  const box=document.getElementById('userBox');
-  const menu=document.getElementById('dropdownMenu');
-  const arrow=document.getElementById('arrowIcon');
-
-  box.addEventListener('click',e=>{
-    e.stopPropagation();
-    const open=menu.style.display==='block';
-    menu.style.display=open?'none':'block';
-    arrow.style.transform=open?'rotate(0deg)':'rotate(180deg)';
-  });
-  document.addEventListener('click',e=>{
-    if(!menu.contains(e.target)){
-      menu.style.display='none';
-      arrow.style.transform='rotate(0deg)';
-    }
-  });
-}
 
 /* 4) 공지사항 미리보기 -------------------------------------- */
 let noticeData=[];          // 전체 목록
@@ -592,7 +573,6 @@ setInterval(()=>{
 document.addEventListener('DOMContentLoaded', () => {
   /* 날짜·로그인·드롭다운 */
   bindUser();
-  initDropdown();
 
   /* 공지사항 버튼·데이터 초기화 */
   bindNoticeButtons();   // ← 추가
