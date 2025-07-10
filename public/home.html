@@ -468,14 +468,6 @@ avatar.onload = () => {                    // src 가 바뀌어 이미지가 로
   avatar.classList.remove('fade-in');      // (재사용 대비) 초기화
   requestAnimationFrame(() => avatar.classList.add('fade-in'));
 };
-/* 1) 오늘 날짜 */
-const wk=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-const mo=['January','February','March','April','May','June','July','August','September','October','November','December'];
-function setToday(){
-  const t=new Date();
-  document.getElementById('todayTxt').textContent=
-    `${wk[t.getDay()]}  ${String(t.getDate()).padStart(2,'0')} ${mo[t.getMonth()]} ${t.getFullYear()}`;
-}
 
 /* 2) 로그인 정보 반영 */
     async function bindUser(){
@@ -599,7 +591,6 @@ setInterval(()=>{
 /* 실행 */
 document.addEventListener('DOMContentLoaded', () => {
   /* 날짜·로그인·드롭다운 */
-  setToday();
   bindUser();
   initDropdown();
 
