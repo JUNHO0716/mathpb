@@ -93,7 +93,7 @@ body{background:#ffffff;;color:var(--c-text);min-height:100vh;display:flex;flex-
   transition:background .15s;font-size:.93rem;
 }
 .btn--search{background:var(--c-accent);color:#fff;}
-.btn--search:hover{background:#0d965f;}
+.btn--search:hover{background:#4a4a4a;}
 .btn--primary{background:var(--c-btn);color:#fff;}
 .btn--primary:hover{background:var(--c-btn-hov);}
 
@@ -278,7 +278,11 @@ input:checked + .slider:before {
         <tr>
           <th style="width:60px">No</th>
           <th style="text-align:left;padding-left:18px">자료명</th>
-          <th>학년</th><th>학기</th><th>연도</th><th>업로드일</th><th>상태</th><th style="width:140px">작업</th>
+          <th>학년</th>
+          <th>학기</th>
+          <th>연도</th>
+          <th>업로드일</th>
+          <th style="width:170px">다운로드</th>
         </tr>
       </thead>
       <tbody id="file-list"><!-- JS 삽입 --></tbody>
@@ -319,26 +323,49 @@ async function fetchFiles(page=1){
 
 function searchFiles(){fetchFiles();}
 
-function renderTable(list){
-  const tb=document.getElementById('file-list');
-  if(!list.length){
-    tb.innerHTML='<tr><td colspan="8" style="padding:20px;color:#9ba4b0;">자료가 없습니다</td></tr>';return;
+// 날짜 YYYY-MM-DD로 변환 함수
+function formatDate(dateString) {
+  if(!dateString) return '';
+  const d = new Date(dateString);
+  if(isNaN(d)) return (dateString.split('T')[0] || dateString);
+  return d.toISOString().slice(0, 10);
+}
+
+function renderTable(list) {
+  const tb = document.getElementById('file-list');
+
+  if (!list.length) {
+    tb.innerHTML = '<tr><td colspan="7" style="padding:20px;color:#9ba4b0;">자료가 없습니다</td></tr>';
+    return;
   }
- tb.innerHTML = list.map((row, i) => `
-   <tr>
-     <td>${i + 1}</td>                              <!-- 단순 인덱스 + 1 -->
-     <td style="text-align:left;padding-left:18px">
-       ${row.title}
-       ${row.tag ? `<span class="badge badge--${row.tag === '통과' ? 'green' : 'red'}" style="margin-left:6px;">${row.tag}</span>` : ''}
-     </td>
-     <td>${row.grade}</td>
-     <td>${row.semester}</td>
-     <td>${row.year}</td>
-     <td>${row.uploaded_at || row.date || '-'}</td> <!-- 날짜 없으면 ‘-’ -->
-     <td><span class="status-dot"></span>${row.status || '-'}</td>
-     <td></td>
-   </tr>
- `).join('');
+
+  tb.innerHTML = list.map((row, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td style="text-align:left;padding-left:18px">
+        ${row.title}
+        ${
+          row.tag
+            ? `<span class="badge badge--${row.tag === '통과' ? 'green' : 'red'}" style="margin-left:6px;">${row.tag}</span>`
+            : ''
+        }
+      </td>
+      <td>${row.grade || ''}</td>
+      <td>${row.semester || ''}</td>
+      <td>${row.year || ''}</td>
+      <td>${formatDate(row.uploaded_at || row.date)}</td>
+      <td>
+        <button class="download-btn" title="PDF 다운로드" onclick="downloadFile('${row.id}','pdf')"
+          style="background:none;border:none;cursor:pointer;">
+          <img src="/assets/pdf_download.png" alt="PDF 다운로드" style="width:28px;height:28px;">
+        </button>
+        <button class="download-btn" title="HWP 다운로드" onclick="downloadFile('${row.id}','hwp')"
+          style="background:none;border:none;cursor:pointer;">
+          <img src="/assets/hwp_download.png" alt="HWP 다운로드" style="width:28px;height:28px;">
+        </button>
+      </td>
+    </tr>
+  `).join('');
 }
 
 function renderPagination(total,curr){
