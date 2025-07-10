@@ -242,7 +242,11 @@
     .notice-arrow:hover{ color:#000000; }   /* 살짝 어두워짐 */
     .notice-arrow:disabled{ color:#cfd4cf; cursor:default; }  /* 필요 시 */
     
-    .notice-list{display:flex;flex-direction:column;gap:6px;}
+    .notice-list{
+      display:flex;
+      flex-direction:
+      column;gap:6px;
+    }
     .notice-item{
       display:flex;align-items:center;height:28px;padding:0 2px;
       border-radius:6px;font-size:.95rem;cursor:pointer;
@@ -250,10 +254,11 @@
     }
     .notice-item:hover{background:#f5faf8;}
     .notice-num{
-      min-width:18px;height:18px;background:#d0d2d6;color:#fff;
+      min-width:18px;height:18px;background:#fdc512;color:#fff;
       border-radius:4px;font-size:.76rem;font-weight:700;
       display:flex;align-items:center;justify-content:center;
       margin-right:6px;
+      transition:background .23s;
     }
     .notice-title{
       flex:1;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;
@@ -329,6 +334,29 @@
       transition:opacity .6s ease;   /* 0.6초 동안 부드럽게 */
     }
     #profileAvatar.fade-in{opacity:1;}  /* 클래스가 붙으면 나타남 */
+
+.notice-list {
+  position: relative;
+  min-height: 230px; /* 필요한 만큼 */
+  transition: transform .7s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+.notice-list.slide-out {
+  transform: translateY(-30px);
+  opacity: 0;
+  transition: transform .5s, opacity .5s;
+}
+.notice-list.slide-in {
+  transform: translateY(30px);
+  opacity: 0;
+  transition: none;
+}
+.notice-list.visible {
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform .7s, opacity .7s;
+}
+
 
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
@@ -506,12 +534,12 @@ avatar.onload = () => {                    // src 가 바뀌어 이미지가 로
 /* 4) 공지사항 미리보기 -------------------------------------- */
 let noticeData=[];          // 전체 목록
 let noticePage=0;           // 0:1~5, 1:6~10 …
-const NOTICE_PER_PAGE=5;
+const NOTICE_PER_PAGE=8;
 
 async function fetchNotices(){
   try{
     const res  = await fetch('/api/notices');
-    noticeData = (await res.json()).slice(0,10)
+    noticeData = (await res.json())
                  .map(n=>({title:n.title || '(제목없음)'}));
   }catch(e){
     console.error(e);
@@ -540,15 +568,14 @@ function bindNoticeButtons(){
   const next=document.getElementById('noticeNextBtn');
   if(!prev || !next) return;
   prev.onclick = ()=>{
-    if(noticePage>0){ noticePage--; renderNotices(); }
+    if(noticePage>0){ noticePage--; slideNoticeList(); }
   };
   next.onclick = ()=>{
     if((noticePage+1)*NOTICE_PER_PAGE < noticeData.length){
-      noticePage++; renderNotices();
+      noticePage++; slideNoticeList();
     }
   };
 }
-
 /* ── Swiper 광고배너 ───────────────────────── */
 const adSwiper = new Swiper('.adSwiper', {
   loop: true,
@@ -562,12 +589,12 @@ const adSwiper = new Swiper('.adSwiper', {
 });
 
 
-/* 5초마다 자동 슬라이드 */
+/* 10초마다 자동 슬라이드 */
 setInterval(()=>{
   if(!noticeData.length) return;
   noticePage = (noticePage+1) % Math.ceil(noticeData.length/NOTICE_PER_PAGE);
-  renderNotices();
-},5000);
+  slideNoticeList();
+},10000);
 
 /* 실행 */
 document.addEventListener('DOMContentLoaded', () => {
@@ -611,7 +638,55 @@ document.addEventListener('DOMContentLoaded', () => {
     closeBtn.onclick = hideModal;
     modal.onclick = e => { if(e.target === modal) hideModal(); };
 
+      setTimeout(()=>{
+    const listEl = document.getElementById('noticeList');
+    if(listEl) listEl.classList.add('visible');
+  },100);
+
 });
+
+
+
+function slideNoticeList() {
+  const listEl = document.getElementById('noticeList');
+  if(!listEl) return;
+
+  // 슬라이드 아웃
+  listEl.classList.add('slide-out');
+  setTimeout(() => {
+    // 새로운 데이터로 교체 전 슬라이드인 상태로 리셋
+    renderNotices(true); // slideIn 플래그 전달
+    listEl.classList.remove('slide-out');
+    listEl.classList.add('slide-in');
+    // 슬라이드인 -> visible로 자연스럽게
+    setTimeout(() => {
+      listEl.classList.remove('slide-in');
+      listEl.classList.add('visible');
+    }, 10); // 약간의 딜레이
+  }, 400);
+}
+
+function renderNotices(slideIn) {
+  const listEl = document.getElementById('noticeList');
+  if(!listEl) return;
+  const start = noticePage * NOTICE_PER_PAGE;
+  const view  = noticeData.slice(start, start+NOTICE_PER_PAGE);
+  listEl.innerHTML = view.map((n,i)=>`
+    <div class="notice-item">
+      <span class="notice-num">${start+i+1}</span>
+      <span class="notice-title">${n.title}</span>
+    </div>`).join('');
+
+  // 애니메이션 클래스 조절
+  if (slideIn) {
+    listEl.classList.add('slide-in');
+    setTimeout(()=>listEl.classList.add('visible'), 10);
+    setTimeout(()=>listEl.classList.remove('slide-in'), 400);
+  } else {
+    listEl.classList.add('visible');
+  }
+}
+
 </script>
 </body>
 </html>
