@@ -270,18 +270,21 @@
        6. 모달(팝업) 스타일 — 원본 그대로,
        버튼 색만 변경
        ============================================== */
-    .modal-bg {
-      position: fixed;
-      z-index: 1000;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(60,70,110,0.15);
-      display: none;
-      align-items: center;
-      justify-content: center;
+    .signup-card {
+      position: relative; /* 추가! */
     }
+      .modal-bg {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        z-index: 1000 !important;
+        display: none;
+        align-items: center !important;
+        justify-content: center !important;
+        background: rgba(60,70,110,0.15);
+      }
     .modal {
       background: #fff;
       border-radius: 16px;
@@ -344,6 +347,12 @@
         font-size: 1rem;
       }
     }
+
+    html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
 
 /* ---------- Animation 초기 상태 ---------- */
 .signup-card-bg {
@@ -483,20 +492,18 @@
         <!-- 가입 완료 버튼 (하나만) -->
         <div class="signup-btn-row">
           <button type="submit" class="signup-btn submit">가입완료</button>
+      </div>
         </div>
       </form>
     </div>
+          <div class="modal-bg" id="modalBg">
+          <div class="modal">
+            <div class="modal-title" id="modalTitle"></div>
+            <div class="modal-msg" id="modalMsg"></div>
+            <button class="modal-btn" id="modalOkBtn">확인</button>
+          </div>
+        </div>
   </div>
-
-  <!-- 팝업(모달) -->
-  <div class="modal-bg" id="modalBg">
-    <div class="modal">
-      <div class="modal-title" id="modalTitle"></div>
-      <div class="modal-msg" id="modalMsg"></div>
-      <button class="modal-btn" id="modalOkBtn">확인</button>
-    </div>
-  </div>
-
   <script>
     // 상단 닫기(X) 버튼 클릭 → 이전 페이지(로그인)로 이동
     function closeSignup() {
@@ -567,16 +574,20 @@
       }
 
     // 팝업(모달) 표시 함수
-    function showModal(title, msg, onOk) {
-      document.getElementById('modalTitle').innerText = title || '';
-      document.getElementById('modalMsg').innerText = msg || '';
-      document.getElementById('modalBg').style.display = 'flex';
-      const btn = document.getElementById('modalOkBtn');
-      btn.onclick = function() {
-        document.getElementById('modalBg').style.display = 'none';
-        if (typeof onOk === "function") onOk();
-      };
-    }
+function showModal(title, msg, onOk) {
+  document.getElementById('modalTitle').innerText = title || '';
+  document.getElementById('modalMsg').innerText = msg || '';
+  const modalBg = document.getElementById('modalBg');
+  modalBg.style.display = 'flex';
+  modalBg.style.alignItems = 'center';         // 추가
+  modalBg.style.justifyContent = 'center';     // 추가
+  modalBg.style.position = 'fixed';            // 추가
+  const btn = document.getElementById('modalOkBtn');
+  btn.onclick = function() {
+    modalBg.style.display = 'none';
+    if (typeof onOk === "function") onOk();
+  };
+}
 
     // 실제 회원가입 서버 연동
     document.getElementById('signupForm').onsubmit = async function(e) {
@@ -658,5 +669,8 @@
     }).open();
   }
   </script>
+
+    <!-- 팝업(모달) -->
+
 </body>
 </html>
