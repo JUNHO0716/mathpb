@@ -281,57 +281,63 @@
     function daysBetween(a,b){ return Math.floor((b-a)/864e5); }   // NEW 뱃지용
 
     /* ── 공지 목록 그리기 (표 버전) ───────── */
-    function renderNoticeList(){
-      const tbody = document.getElementById('notice-tbody');   // ← div 대신 table tbody
-      tbody.innerHTML = '';
+function renderNoticeList(){
+  const tbody = document.getElementById('notice-tbody');
+  tbody.innerHTML = '';
 
-      if (noticeListData.length === 0){
-        tbody.innerHTML =
-          '<tr><td colspan="3" style="padding:40px;text-align:center;color:#777;">등록된 공지사항이 없습니다.</td></tr>';
-        document.querySelector('.pagination').innerHTML = '';
-        return;
-      }
+  if (noticeListData.length === 0){
+    tbody.innerHTML =
+      '<tr><td colspan="3" style="padding:40px;text-align:center;color:#777;">등록된 공지사항이 없습니다.</td></tr>';
+    document.querySelector('.pagination').innerHTML = '';
+    return;
+  }
 
-      const start = (page-1) * perPage;
-      const view  = noticeListData.slice(start, start+perPage);
+  const start = (page-1) * perPage;
+  const view  = noticeListData.slice(start, start+perPage);
 
-      view.forEach(item=>{
-        const tr = document.createElement('tr'); tr.tabIndex = 0;
-        tr.onclick   = ()=> toggleDetail(tr, item.id);
-        tr.onkeydown = e => { if (e.key === 'Enter') toggleDetail(tr, item.id); };
+  view.forEach(item=>{
+    const tr = document.createElement('tr'); tr.tabIndex = 0;
 
-        /* 1) 유형 */
-        const tdCat   = document.createElement('td');
-        tdCat.className = 'cat';
-        tdCat.textContent = item.category || '공지';
+    // **여기를 아래처럼 수정!**
+    tr.onclick   = ()=> openNoticeDetail(item.id);  // ★★★
+    tr.onkeydown = e => { if (e.key === 'Enter') openNoticeDetail(item.id); }; // ★★★
 
-        /* 2) 제목  (+ NEW 뱃지) */
-        const tdTitle = document.createElement('td');
-        tdTitle.className = 'title';
+    // ... 이하 동일 ...
+    // (아래는 건드리지 말고 그대로 두세요)
+    const tdCat   = document.createElement('td');
+    tdCat.className = 'cat';
+    tdCat.textContent = item.category || '공지';
 
-        const written = new Date(item.date);
-        if (daysBetween(written, new Date()) <= 7){      // 7일 이내
-          const badge = document.createElement('span');
-          badge.className = 'badge-new';
-          badge.textContent = 'NEW';
-          tdTitle.appendChild(badge);
-        }
-        tdTitle.append(item.title);
+    const tdTitle = document.createElement('td');
+    tdTitle.className = 'title';
 
-        /* 3) 날짜 */
-        const tdDate  = document.createElement('td');
-        tdDate.className = 'date';
-
-        const d = new Date(item.date);
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth()+1).padStart(2,'0');
-        const dd = String(d.getDate()).padStart(2,'0');
-        tdDate.textContent = `${yyyy}.${mm}.${dd}`;
-
-        tr.append(tdCat, tdTitle, tdDate);
-        tbody.appendChild(tr);
-      });
+    const written = new Date(item.date);
+    if (daysBetween(written, new Date()) <= 7){
+      const badge = document.createElement('span');
+      badge.className = 'badge-new';
+      badge.textContent = 'NEW';
+      tdTitle.appendChild(badge);
     }
+    tdTitle.append(item.title);
+
+    const tdDate  = document.createElement('td');
+    tdDate.className = 'date';
+
+    const d = new Date(item.date);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    tdDate.textContent = `${yyyy}.${mm}.${dd}`;
+
+    tr.append(tdCat, tdTitle, tdDate);
+    tbody.appendChild(tr);
+  });
+}
+
+function openNoticeDetail(noticeId) {
+  // 부모(index.html)에게 신호 보내기!
+  parent.postMessage({ type: 'goNotice', noticeId }, '*');
+}
 
     async function loadNotices(){
       page=1;
@@ -340,42 +346,51 @@
     }
 
     let openedDetail=null;
-    async function toggleDetail(row,id){
-      // 기존 상세 열 닫기
-      if(openedDetail){
-        openedDetail.nextSibling?.remove();
-        openedDetail.classList.remove('active');
-        if(openedDetail===row){openedDetail=null;return;}
-      }
+async function toggleDetail(row, id){
+  // 기존 상세 열 닫기
+  if(openedDetail && openedDetail.nextSibling){
+    openedDetail.nextSibling.remove();
+    openedDetail.classList.remove('active');
+    if(openedDetail===row){openedDetail=null;return;}
+  }
 
-      const res = await fetch(`/api/notices/${id}`);
-      const data=await res.json();
+  const res = await fetch(`/api/notices/${id}`);
+  const data=await res.json();
 
-      // ① tr로 detail을 만들어서 colspan=3로 표시
-      const detailTr=document.createElement('tr');
-      detailTr.className='notice-detail-row';
+  // 상세 표시
+  const tbody = document.getElementById('notice-tbody');
+  let insertAfter = row;
+  if (!row) {
+    // row가 없으면 마지막 tr 뒤에 붙임 (상세만 표시)
+    insertAfter = tbody.lastElementChild;
+  }
+  const detailTr=document.createElement('tr');
+  detailTr.className='notice-detail-row';
 
-      // ② td 하나만 쓰고, col 3칸 전체 합침 + 패딩 스타일
-      const detailTd=document.createElement('td');
-      detailTd.colSpan = 3;
-      detailTd.style.cssText='background:#fff9e6;border-bottom:1.5px solid #d5eddc;padding:30px 50px 18px 50px;color:#222;font-size:1.09rem;animation:fadeIn .2s;';
+  const detailTd=document.createElement('td');
+  detailTd.colSpan = 3;
+  detailTd.style.cssText='background:#fff9e6;border-bottom:1.5px solid #d5eddc;padding:30px 50px 18px 50px;color:#222;font-size:1.09rem;animation:fadeIn .2s;';
 
-      // 내용 표시
-      let contentHtml = '';
-      if(IS_ADMIN){
-        contentHtml += `<button style="float:right;margin-left:15px;background:#e54e4e;color:#fff;border:none;border-radius:5px;font-size:.98rem;padding:7px 18px;cursor:pointer;" onclick="deleteNotice('${id}', this)">삭제</button>`;
-      }
-      contentHtml += `<div style="font-size:1.07rem;margin-bottom:15px;white-space:pre-line;">${data.content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>`;
-      if(data.imageUrl){
-        contentHtml += `<img src="${data.imageUrl}" style="max-width:360px;border-radius:9px;margin-top:10px;">`;
-      }
+  let contentHtml = '';
+  if(IS_ADMIN){
+    contentHtml += `<button style="float:right;margin-left:15px;background:#e54e4e;color:#fff;border:none;border-radius:5px;font-size:.98rem;padding:7px 18px;cursor:pointer;" onclick="deleteNotice('${id}', this)">삭제</button>`;
+  }
+  contentHtml += `<div style="font-size:1.07rem;margin-bottom:15px;white-space:pre-line;">${data.content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>`;
+  if(data.imageUrl){
+    contentHtml += `<img src="${data.imageUrl}" style="max-width:360px;border-radius:9px;margin-top:10px;">`;
+  }
 
-      detailTd.innerHTML = contentHtml;
-      detailTr.appendChild(detailTd);
-      row.after(detailTr);
-      row.classList.add('active');
-      openedDetail=row;
-    }
+  detailTd.innerHTML = contentHtml;
+  detailTr.appendChild(detailTd);
+
+  if (insertAfter)
+    insertAfter.after(detailTr);
+  else
+    tbody.appendChild(detailTr);
+
+  if (row) row.classList.add('active');
+  openedDetail=row;
+}
 
     // 삭제버튼 함수 분리 (상세 내 삭제)
     window.deleteNotice = async function(id, btn){
@@ -415,10 +430,18 @@
       else alert('등록 실패: '+data.msg);
     };
 
-    /* ── 초기화 ── */
-    document.addEventListener('DOMContentLoaded',()=>{
-      loadNotices();
-    });
+document.addEventListener('DOMContentLoaded', function(){
+  const params = new URLSearchParams(location.search);
+  const noticeId = params.get('id');
+  if (noticeId) {
+    (async () => {
+      await loadNotices();
+      toggleDetail(null, noticeId);
+    })();
+  } else {
+    loadNotices();
+  }
+});
   </script>
 </body>
 </html>

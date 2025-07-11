@@ -550,7 +550,27 @@
 
     });
     
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'goNotice') {
+        // 1) 메뉴 '공지사항' 활성화
+        document.querySelectorAll('.menu-item').forEach(i => {
+          i.classList.remove('active');
+          var icon = i.querySelector('.menu-icon');
+          if (icon) icon.src = icon.dataset.iconWhite;
+        });
+        const noticeMenu = document.getElementById('menu6');
+        noticeMenu.classList.add('active');
+        const icon = noticeMenu.querySelector('.menu-icon');
+        if (icon) icon.src = icon.dataset.iconBlack;
 
+        // 2) 타이틀 변경
+        const pageTitle = document.getElementById('pageTitle');
+        pageTitle.innerHTML = `<span class="highlight">No</span>tice`;
+
+        // 3) notice.html?id=XX로 iframe 로드
+        document.getElementById('contentFrame').src = 'notice.html?id=' + event.data.noticeId;
+      }
+    });
 
     // 메뉴 등장 애니메이션 순차적 적용
     window.addEventListener('DOMContentLoaded', () => {
