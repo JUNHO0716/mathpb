@@ -380,33 +380,37 @@ for (const f of files) {
     // /download/:id?hwp OR ?pdf
     app.get('/api/download/:id', async (req, res) => {
       try {
-        const [rows] = await db.query('SELECT hwp_filename, pdf_filename, title FROM files WHERE id=?', [req.params.id]);
+        const [rows] = await db.query(
+          'SELECT hwp_filename, pdf_filename, title FROM files WHERE id=?',
+          [req.params.id]
+        );
         if (!rows.length) return res.status(404).send('파일 없음');
         const { hwp_filename, pdf_filename, title } = rows[0];
 
-        // 어떤 타입인지 쿼리 파라미터로 지정 (예: /download/123?type=pdf)
         const type = req.query.type;
         let filename = null, ext = null;
         if (type === 'pdf') {
           filename = pdf_filename;
           ext = '.pdf';
         } else {
-          // 기본값: hwp
           filename = hwp_filename;
-          ext = '.hwp'; // hwpx도 hwp로 표시
+          ext = '.hwp';
           if (filename && filename.endsWith('.hwpx')) ext = '.hwpx';
         }
         if (!filename) return res.status(404).send('해당 형식 파일 없음');
-      const key = filename;                      // DB 에 저장된 S3 Key
-      const signed = s3.getSignedUrl('getObject', {
-        Bucket: process.env.AWS_S3_BUCKET,
-        acl: 'public-read',                       // ➊ S3 객체 공개 권한
-        contentType: multerS3.AUTO_CONTENT_TYPE,  // ➋ 실제 MIME-Type 지정
-        Key: key,
-        Expires: 60   // 1 분 유효
-      });
-     return res.redirect(signed);
+
+        // 💡 어떤 값이 넘어오는지 콘솔에 출력!
+        console.log('다운로드 요청:', { id: req.params.id, type, filename });
+
+        // 옵션 꼭 아래처럼만 최소한으로!
+        const signed = s3.getSignedUrl('getObject', {
+          Bucket: process.env.AWS_S3_BUCKET,
+          Key: filename,
+          Expires: 60
+        });
+        return res.redirect(signed);
       } catch (e) {
+        console.error('다운로드 오류:', e);
         res.status(500).send('다운로드 오류');
       }
     });
