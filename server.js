@@ -133,6 +133,7 @@ passport.use(new GoogleStrategy({
   try {
     const email = profile.emails[0].value;
     const name = profile.displayName;
+    const avatarUrl = profile.photos && profile.photos[0]?.value || null;
 
     // DB에 이미 있는 유저인지 확인
     const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
@@ -140,28 +141,33 @@ passport.use(new GoogleStrategy({
     let user;
     if (rows.length) {
       user = rows[0];
+      // DB에 사진이 없으면 업데이트
+      if (avatarUrl && (!user.avatarUrl || user.avatarUrl === '/icon_my_b.png')) {
+        await db.query('UPDATE users SET avatarUrl=? WHERE id=?', [avatarUrl, user.id]);
+        user.avatarUrl = avatarUrl; // 메모리상에도 갱신
+      }
     } else {
-      // 없으면 새로 회원가입 처리
+      // 신규 가입: avatarUrl까지 같이 저장!
       await db.query(
-        'INSERT INTO users (id, email, name, password, phone) VALUES (?, ?, ?, NULL, "")',
-        [profile.id, email, name]
+        'INSERT INTO users (id, email, name, password, phone, avatarUrl) VALUES (?, ?, ?, NULL, "", ?)',
+        [profile.id, email, name, avatarUrl]
       );
       const [newUser] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
       user = newUser[0];
     }
 
-      return done(null, {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        avatarUrl: profile.photos && profile.photos[0]?.value || null
-      });
-      } catch (err) {
-        console.error('Google Strategy error:', err);
-        return done(err);
-      }
-    }));
+    return done(null, {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      avatarUrl: user.avatarUrl || '/icon_my_b.png'
+    });
+  } catch (err) {
+    console.error('Google Strategy error:', err);
+    return done(err);
+  }
+}));
 
 passport.serializeUser((user, done) => {
   done(null, user);
