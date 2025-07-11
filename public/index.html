@@ -629,6 +629,33 @@
       // iframe 기본 로드
       document.getElementById('contentFrame').src = first.dataset.url;   // ← 핵심
     });
+
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const menuParam = params.get('menu');
+  if (menuParam === 'notice') {
+    // 모든 메뉴 비활성화 및 아이콘 white
+    document.querySelectorAll('.menu-item').forEach(i => {
+      i.classList.remove('active');
+      var icon = i.querySelector('.menu-icon');
+      if (icon) icon.src = icon.dataset.iconWhite;
+    });
+    // 공지사항 메뉴만 active 및 아이콘 black
+    const noticeMenu = document.getElementById('menu6');
+    noticeMenu.classList.add('active');
+    const icon = noticeMenu.querySelector('.menu-icon');
+    if (icon) icon.src = icon.dataset.iconBlack;
+
+    // 타이틀
+    const pageTitle = document.getElementById('pageTitle');
+    pageTitle.innerHTML = `<span class="highlight">No</span>tice`;
+
+    // iframe src
+    document.getElementById('contentFrame').src = 'notice.html';
+  }
+});
+
+
       function toggleSidebarAnim () {
         const sb  = document.getElementById('sidebar');
         const btn = document.getElementById('toggleBtn');
