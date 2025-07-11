@@ -728,6 +728,22 @@ app.post(
   }
 });
 
+// 최근 업로드 10개를 반환하는 API
+app.get('/api/uploads/recent', async (req, res) => {
+  try {
+    // files 테이블에서 최신 10개의 파일명(title), 업로드일(uploaded_at)만 뽑기
+    const [rows] = await db.query(
+      `SELECT title AS name, DATE_FORMAT(uploaded_at, '%Y-%m-%d') AS date
+       FROM files
+       ORDER BY uploaded_at DESC
+       LIMIT 10`
+    );
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ message: '업로드 목록 오류', error: e.message });
+  }
+});
+
 
 // 서버 실행
 const PORT = process.env.PORT || 3001;
