@@ -444,6 +444,13 @@ document.getElementById('levelToggle').addEventListener('click', function(){
   }
 });
 
+function downloadFile(id, type) {
+  // type: 'pdf' 또는 'hwp'
+  // api/download로 GET 요청 (리디렉션 방식)
+  const url = `/api/download/${id}?type=${type}`;
+  window.location.href = url;
+}
+
 </script>
 </body>
 </html>
