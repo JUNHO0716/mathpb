@@ -378,42 +378,42 @@ for (const f of files) {
 
     // 파일 다운로드
     // /download/:id?hwp OR ?pdf
-    app.get('/api/download/:id', async (req, res) => {
-      try {
-        const [rows] = await db.query(
-          'SELECT hwp_filename, pdf_filename, title FROM files WHERE id=?',
-          [req.params.id]
-        );
-        if (!rows.length) return res.status(404).send('파일 없음');
-        const { hwp_filename, pdf_filename, title } = rows[0];
+app.get('/api/download/:id', async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      'SELECT hwp_filename, pdf_filename, title FROM files WHERE id=?',
+      [req.params.id]
+    );
+    if (!rows.length) return res.status(404).send('파일 없음');
+    const { hwp_filename, pdf_filename, title } = rows[0];
 
-        const type = req.query.type;
-        let filename = null, ext = null;
-        if (type === 'pdf') {
-          filename = pdf_filename;
-          ext = '.pdf';
-        } else {
-          filename = hwp_filename;
-          ext = '.hwp';
-          if (filename && filename.endsWith('.hwpx')) ext = '.hwpx';
-        }
-        if (!filename) return res.status(404).send('해당 형식 파일 없음');
+    const type = req.query.type;
+    let filename = null, ext = null;
+    if (type === 'pdf') {
+      filename = pdf_filename;
+      ext = '.pdf';
+    } else {
+      filename = hwp_filename;
+      ext = '.hwp';
+      if (filename && filename.endsWith('.hwpx')) ext = '.hwpx';
+    }
+    if (!filename) return res.status(404).send('해당 형식 파일 없음');
 
-        // 💡 어떤 값이 넘어오는지 콘솔에 출력!
-        console.log('다운로드 요청:', { id: req.params.id, type, filename });
+    const downloadFileName = `${title}${ext}`;
+    console.log('다운로드시 파일명:', downloadFileName); // 실제 찍어보기
 
-        // 옵션 꼭 아래처럼만 최소한으로!
-        const signed = s3.getSignedUrl('getObject', {
-          Bucket: process.env.AWS_S3_BUCKET,
-          Key: filename,
-          Expires: 60
-        });
-        return res.redirect(signed);
-      } catch (e) {
-        console.error('다운로드 오류:', e);
-        res.status(500).send('다운로드 오류');
-      }
+    const signed = s3.getSignedUrl('getObject', {
+      Bucket: process.env.AWS_S3_BUCKET,
+      Key: filename,
+      Expires: 60,
+      ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(downloadFileName)}`
     });
+    return res.redirect(signed);
+  } catch (e) {
+    console.error('다운로드 오류:', e);
+    res.status(500).send('다운로드 오류');
+  }
+});
 
       // 파일 정보 수정 (관리자)
       app.put('/api/files/:id', isLoggedIn, isAdmin, fileUpload.array('files'), async (req, res) => {
