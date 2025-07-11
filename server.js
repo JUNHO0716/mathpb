@@ -378,7 +378,7 @@ for (const f of files) {
 
     // 파일 다운로드
     // /download/:id?hwp OR ?pdf
-    app.get('/download/:id', async (req, res) => {
+    app.get('/api/download/:id', async (req, res) => {
       try {
         const [rows] = await db.query('SELECT hwp_filename, pdf_filename, title FROM files WHERE id=?', [req.params.id]);
         if (!rows.length) return res.status(404).send('파일 없음');
