@@ -360,7 +360,17 @@ for (const f of files) {
         if(level)    { sql += " AND level=?";    params.push(level); }
         sql += " ORDER BY uploaded_at DESC";
         const [rows] = await db.query(sql, params);
-        res.json(rows);
+
+        // rows 배열을 프론트 요구형태로 가공!
+        const newRows = rows.map(r => ({
+          ...r,
+          files: {
+            pdf: !!r.pdf_filename,      // 파일이 있으면 true, 없으면 false
+            hwp: !!r.hwp_filename
+          }
+        }));
+
+        res.json(newRows);
       } catch (e) {
         res.status(500).json({ message: 'DB 오류', error: e.message });
       }

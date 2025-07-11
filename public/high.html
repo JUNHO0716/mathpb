@@ -336,40 +336,43 @@ function renderTable(list) {
     return;
   }
 
-  tb.innerHTML = list.map((row, i) => `
-    <tr>
-      <td>${i + 1}</td>
-      <td style="text-align:left;padding-left:18px">
-        ${row.title}
-        ${
-          row.tag
-            ? `<span class="badge badge--${row.tag === '통과' ? 'green' : 'red'}" style="margin-left:6px;">${row.tag}</span>`
-            : ''
-        }
-      </td>
-      <td>${row.grade || ''}</td>
-      <td>${row.semester || ''}</td>
-      <td>${row.year || ''}</td>
-      <td>${formatDate(row.uploaded_at || row.date)}</td>
-      <td>
-        <button class="download-btn" title="PDF 다운로드" onclick="downloadFile('${row.id}','pdf')"
+  tb.innerHTML = list.map((row, i) => {
+    let btns = '';
+    if (row.files?.pdf) {
+      btns += `<button class="download-btn" title="PDF 다운로드" onclick="downloadFile('${row.id}','pdf')"
           style="background:none;border:none;cursor:pointer;">
           <img src="/pdf_download.png" alt="PDF 다운로드" style="width:32px;height:32px;">
-        </button>
-        <button class="download-btn" title="HWP 다운로드" onclick="downloadFile('${row.id}','hwp')"
+        </button>`;
+    }
+    if (row.files?.hwp) {
+      btns += `<button class="download-btn" title="HWP 다운로드" onclick="downloadFile('${row.id}','hwp')"
           style="background:none;border:none;cursor:pointer;">
           <img src="/hwp_download.png" alt="HWP 다운로드" style="width:32px;height:32px;">
-        </button>
-      </td>
-    </tr>
-  `).join('');
+        </button>`;
+    }
+    return `
+      <tr>
+        <td>${i + 1}</td>
+        <td style="text-align:left;padding-left:18px">
+          ${row.title}
+          ${
+            row.tag
+              ? `<span class="badge badge--${row.tag === '통과' ? 'green' : 'red'}" style="margin-left:6px;">${row.tag}</span>`
+              : ''
+          }
+        </td>
+        <td>${row.grade || ''}</td>
+        <td>${row.semester || ''}</td>
+        <td>${row.year || ''}</td>
+        <td>${formatDate(row.uploaded_at || row.date)}</td>
+        <td>${btns}</td>
+      </tr>
+    `;
+  }).join('');
 }
-
 // 다운로드 함수(실제 구현 필요)
 function downloadFile(id, type) {
-  // 실제 다운로드 주소로 변경 필요
-  // window.location.href = `/api/download/${id}?type=${type}`;
-  alert(`[예시] ${type.toUpperCase()} 다운로드: ${id}`);
+  window.location.href = `/api/download/${id}?type=${type}`;
 }
 
 function renderPagination(total,curr){
