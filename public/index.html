@@ -552,8 +552,7 @@
     
     window.addEventListener('message', function(event) {
       if (event.data && event.data.type === 'goNotice') {
-        console.log('[index] goNotice 메시지 수신', event.data.noticeId);
-        // 1) 메뉴 '공지사항' 활성화
+        // ... 기존 코드 ...
         document.querySelectorAll('.menu-item').forEach(i => {
           i.classList.remove('active');
           var icon = i.querySelector('.menu-icon');
@@ -564,15 +563,49 @@
         const icon = noticeMenu.querySelector('.menu-icon');
         if (icon) icon.src = icon.dataset.iconBlack;
 
-        // 2) 타이틀 변경
         const pageTitle = document.getElementById('pageTitle');
         pageTitle.innerHTML = `<span class="highlight">No</span>tice`;
 
-        // 3) notice.html?id=XX로 iframe 로드
         document.getElementById('contentFrame').src = 'notice.html?id=' + event.data.noticeId;
       }
-    });
 
+      // ★★★ "더보기" 버튼 클릭 시 ★★★
+      if (event.data && event.data.type === 'goNoticeMore') {
+        // 메뉴 전체 비활성화 및 아이콘 변경
+        document.querySelectorAll('.menu-item').forEach(i => {
+          i.classList.remove('active');
+          var icon = i.querySelector('.menu-icon');
+          if (icon) icon.src = icon.dataset.iconWhite;
+        });
+        // 공지사항 메뉴만 active 및 아이콘 black
+        const noticeMenu = document.getElementById('menu6');
+        noticeMenu.classList.add('active');
+        const icon = noticeMenu.querySelector('.menu-icon');
+        if (icon) icon.src = icon.dataset.iconBlack;
+
+        // 타이틀 변경
+        const pageTitle = document.getElementById('pageTitle');
+        if (pageTitle) pageTitle.innerHTML = `<span class="highlight">No</span>tice`;
+
+        // notice.html 로 iframe 이동
+        document.getElementById('contentFrame').src = 'notice.html';
+      }
+        // ★★★ "최근 업로드 더보기" 버튼 클릭 시 ★★★
+        if (event.data && event.data.type === 'goUploadMore') {
+          document.querySelectorAll('.menu-item').forEach(i => {
+            i.classList.remove('active');
+            var icon = i.querySelector('.menu-icon');
+            if (icon) icon.src = icon.dataset.iconWhite;
+          });
+          const menu3 = document.getElementById('menu3');
+          menu3.classList.add('active');
+          const icon = menu3.querySelector('.menu-icon');
+          if (icon) icon.src = icon.dataset.iconBlack;
+          const pageTitle = document.getElementById('pageTitle');
+          if (pageTitle) pageTitle.innerHTML = `<span class="highlight">Te</span>st paper`;
+          document.getElementById('contentFrame').src = 'high.html';
+        }
+    });
     // 메뉴 등장 애니메이션 순차적 적용
     window.addEventListener('DOMContentLoaded', () => {
       const menuIds = ["menu1", "menu2", "menu3", "menu4", "menu5", "menu6", "menu7", "menu8"];
