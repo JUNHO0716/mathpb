@@ -362,6 +362,38 @@
   transition: transform .7s, opacity .7s;
 }
 
+.notice-card,
+.uploads-card {
+  position: relative;
+}
+
+.btn-plus {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: none;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s;
+  z-index: 10;
+}
+
+.btn-plus i {
+  color: #fdc512;         /* 노란색 */
+  font-size: 1.35rem;
+  transition: color 0.18s;
+}
+
+.btn-plus:hover i,
+.btn-plus:focus i {
+  color: #d9a90f;         /* 진한 노랑 */
+}
+
 
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
@@ -411,14 +443,12 @@
 
     <!-- 2) 공지사항 카드 -->
     <div class="notice-card">
+    <button id="noticeMoreBtn" class="btn-plus" title="더보기">
+    <i class="fas fa-plus"></i>
+    </button>
     <div class="notice-head">
       <h2 style="margin:0;">공지사항</h2>
-      <button id="noticeMoreBtn" style="padding:4px 16px;margin-left:8px;border-radius:999px;background:#222;color:#fff;font-weight:700;cursor:pointer;border:none;font-size:.92rem;">더보기</button>
-      <div class="notice-arrows">
-        <button class="notice-arrow" id="noticePrevBtn">&lt;</button>
-        <button class="notice-arrow" id="noticeNextBtn">&gt;</button>
       </div>
-    </div>
       <div id="noticeList" class="notice-list">
         <div style="text-align:center;color:#aaa;">불러오는 중...</div>
       </div>
@@ -437,7 +467,6 @@
   <!-- 왼쪽 2/3 │ 최근 다운로드 -->
   <div class="downloads-card">
     <div class="rf-header"><i class="fas fa-download"></i>최근 다운로드</div>
-
     <div class="rf-table-wrap">
       <table class="rf-table">
         <thead>
@@ -454,9 +483,11 @@
 
   <!-- 오른쪽 1/3 │ 최근 업로드 -->
   <div class="uploads-card">
-  <div class="rf-header">
-    <i class="fas fa-upload"></i>최근 업로드
-    <button style="margin-left:auto;font-size:.9rem;cursor:pointer;" onclick="parent.postMessage({type:'goUploadMore'},'*')">더보기</button>
+    <button class="btn-plus" title="더보기" onclick="parent.postMessage({type:'goUploadMore'},'*')">
+      <i class="fas fa-plus"></i>
+    </button>
+    <div class="rf-header">
+      <i class="fas fa-upload"></i>최근 업로드
   </div>
 
     <div class="rf-table-wrap">

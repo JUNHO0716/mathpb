@@ -18,7 +18,7 @@
       height: 100vh;
     }
     .main-container {
-      margin-left: 400px;  /* left-bg 만큼 띄우기 */
+      margin-left: 280px;  /* left-bg 만큼 띄우기 */
       flex: 1;
       display: flex;
       align-items: center;
@@ -29,7 +29,7 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 500px; /* 원하는 너비로 고정 */
+      width: 250px; /* 원하는 너비로 고정 */
       height: 100%;
       background: #111;
       display: flex;
@@ -145,7 +145,7 @@
     /* 소셜 로그인 */
     .social-divider-box {
       margin: 22px 0 13px 0;
-      display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%;
+      display: flex; align-items: center; justify-content: center; gap: 18px; width: 100%;
     }
     .divider-line { flex: 1; height: 1px; background: #ccc; max-width: 160px;}
     .divider-text { color: #999; font-size: 0.95em; font-weight: 500;}
@@ -153,7 +153,7 @@
       display: flex; gap: 20px; justify-content: center; width: 100%; max-width: 320px; margin-bottom: 8px;
     }
     .social-btn {
-      border-radius: 50%; width: 54px; height: 54px;
+      border-radius: 50%; width: 50px; height: 50px;
       display: flex; align-items: center; justify-content: center;
       border: none; background: #f2f2f2; margin: 0 5px;
       box-shadow: 0 1px 6px rgba(40,60,100,0.07);
@@ -165,7 +165,7 @@
             box-shadow: 0 6px 16px rgba(243, 247, 241, 1);
       }
     
-    .social-btn img { width: 48px; height: 48px; }
+    .social-btn img { width: 44px; height: 44px; }
     .social-btn.naver-btn { background: #13c300; }
     .social-btn.kakao-btn { background: #fee500; }
     .social-btn.google-btn { background: #fff; }
@@ -227,15 +227,15 @@
 }
 .sns-links {
   position: fixed; /* 기존 absolute → fixed */
-  left: 50px;
+  left: 15px;
   display: flex;
-  gap: 80px;
+  gap: 40px;
   bottom: 60px;
   z-index: 20;
 }
 
 .sns-links a img {
-  width: 28px;
+  width: 23px;
   height: px;
   object-fit: contain;
   transition: transform 0.2s;
@@ -247,22 +247,21 @@
 
 .left-text-box {
   background: #ffd400;
-  width: 510px;
-  height: 140px;       /* ← 고정된 높이 */
+  width: 300px;
+  height: 100px;       /* ← 고정된 높이 */
   display: flex;
   flex-direction: column;
   align-items: flex-start;  /* 왼쪽 정렬 */
   padding: 0px 0 25px 30px;    /* 좌우 여백 늘림 */
   justify-content: center; /* 중앙 정렬 */
-  border-radius: 5px;
   box-shadow: 0 3px 8px rgba(0,0,0,0.15);
   text-align: center;
   margin: 150px auto 0 auto;
 }
 
 .left-text h2 {
-  font-size: 2.0rem;
-  margin-bottom: 6px;
+  font-size: 1.3rem;
+  margin-bottom: 10px;
   text-align: left;         /* 텍스트 왼쪽 정렬 */
   color: #111;
 }
