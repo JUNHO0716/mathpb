@@ -297,6 +297,7 @@ function renderNoticeList(){
 
   view.forEach(item=>{
     const tr = document.createElement('tr'); tr.tabIndex = 0;
+    tr.setAttribute('data-id', item.id); // ★ 추가
 
     // **여기를 아래처럼 수정!**
     tr.onclick   = ()=> openNoticeDetail(item.id);  // ★★★
@@ -335,7 +336,7 @@ function renderNoticeList(){
 }
 
 function openNoticeDetail(noticeId) {
-  // 부모(index.html)에게 신호 보내기!
+  console.log('[공지상세] goNotice 메시지 전송', noticeId);
   parent.postMessage({ type: 'goNotice', noticeId }, '*');
 }
 
@@ -354,16 +355,15 @@ async function toggleDetail(row, id){
     if(openedDetail===row){openedDetail=null;return;}
   }
 
+  // row(공지 tr)가 없으면 id로 tr을 찾아서 row에 할당!
+if (!row) {
+  row = document.querySelector(`tr[data-id="${id}"]`);
+}
+
   const res = await fetch(`/api/notices/${id}`);
   const data=await res.json();
 
   // 상세 표시
-  const tbody = document.getElementById('notice-tbody');
-  let insertAfter = row;
-  if (!row) {
-    // row가 없으면 마지막 tr 뒤에 붙임 (상세만 표시)
-    insertAfter = tbody.lastElementChild;
-  }
   const detailTr=document.createElement('tr');
   detailTr.className='notice-detail-row';
 
@@ -383,10 +383,8 @@ async function toggleDetail(row, id){
   detailTd.innerHTML = contentHtml;
   detailTr.appendChild(detailTd);
 
-  if (insertAfter)
-    insertAfter.after(detailTr);
-  else
-    tbody.appendChild(detailTr);
+  if (row) row.after(detailTr);
+  else document.getElementById('notice-tbody').appendChild(detailTr);
 
   if (row) row.classList.add('active');
   openedDetail=row;

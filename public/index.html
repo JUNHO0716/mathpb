@@ -552,6 +552,7 @@
     
     window.addEventListener('message', function(event) {
       if (event.data && event.data.type === 'goNotice') {
+        console.log('[index] goNotice 메시지 수신', event.data.noticeId);
         // 1) 메뉴 '공지사항' 활성화
         document.querySelectorAll('.menu-item').forEach(i => {
           i.classList.remove('active');
