@@ -134,7 +134,6 @@
       if(res.ok){
         msg.textContent = '업로드 완료!';
         form.reset();
-        setGradeOptions('');
       }else{
         const result = await res.json();
         msg.textContent = result.message || '업로드 실패';
