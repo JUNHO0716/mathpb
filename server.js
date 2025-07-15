@@ -766,3 +766,12 @@ app.listen(PORT, () => {
   console.log(`서버 실행 http://localhost:${PORT}`);
 });
 
+// DB 연결 끊김 방지를 위해 1분마다 ping
+setInterval(async () => {
+  try {
+    await db.query('SELECT 1');
+    console.log('✅ DB keepalive ping');
+  } catch (err) {
+    console.error('❌ DB keepalive ping failed:', err);
+  }
+}, 60 * 1000); // 1분마다
