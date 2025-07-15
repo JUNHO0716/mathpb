@@ -104,7 +104,7 @@ app.post('/check-id', async (req, res) => {
     if (!id) return res.status(400).json({ msg: '아이디를 입력하세요.' });
 
     // 2) DB 조회   ★컬럼명(userId)과 테이블(users) 확인!
-    const [rows] = await db.query(
+    const [rows] = await safeQuery(
       'SELECT id FROM users WHERE id = ?',
       [id]
     );
@@ -135,24 +135,21 @@ passport.use(new GoogleStrategy({
     const name = profile.displayName;
     const avatarUrl = profile.photos && profile.photos[0]?.value || null;
 
-    // DB에 이미 있는 유저인지 확인
-    const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+    const [rows] = await safeQuery('SELECT * FROM users WHERE email = ?', [email]);
 
     let user;
     if (rows.length) {
       user = rows[0];
-      // DB에 사진이 없으면 업데이트
       if (avatarUrl && (!user.avatarUrl || user.avatarUrl === '/icon_my_b.png')) {
-        await db.query('UPDATE users SET avatarUrl=? WHERE id=?', [avatarUrl, user.id]);
-        user.avatarUrl = avatarUrl; // 메모리상에도 갱신
+        await safeQuery('UPDATE users SET avatarUrl=? WHERE id=?', [avatarUrl, user.id]);
+        user.avatarUrl = avatarUrl;
       }
     } else {
-      // 신규 가입: avatarUrl까지 같이 저장!
-      await db.query(
+      await safeQuery(
         'INSERT INTO users (id, email, name, password, phone, avatarUrl) VALUES (?, ?, ?, NULL, "", ?)',
         [profile.id, email, name, avatarUrl]
       );
-      const [newUser] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+      const [newUser] = await safeQuery('SELECT * FROM users WHERE email = ?', [email]);
       user = newUser[0];
     }
 
@@ -183,10 +180,23 @@ const db = mysql.createPool({
   port: process.env.DB_PORT,
 });
 
+// DB 쿼리 안전하게 감싸는 함수 (connection lost 자동 재시도)
+async function safeQuery(sql, params) {
+  try {
+    return await db.query(sql, params);
+  } catch (err) {
+    if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+      console.error('🔄 DB connection lost. Retrying...');
+      return await db.query(sql, params); // 재시도
+    }
+    throw err;
+  }
+}
+
 // 서버 상태 확인용 라우트 (MySQL 연결 확인)
 app.get('/ping-db', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT NOW() AS now');
+    const [rows] = await safeQuery('SELECT NOW() AS now');
     res.send(`✅ DB 연결 성공! 현재 시간: ${rows[0].now}`);
   } catch (e) {
     console.error('❌ DB 연결 실패:', e);
@@ -223,7 +233,7 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
   const { id, password } = req.body; // email -> id
   try {
-    const [rows] = await db.query('SELECT * FROM users WHERE id=?', [id]);
+    const [rows] = await safeQuery('SELECT * FROM users WHERE id=?', [id]);
     if (!rows.length) return res.status(401).json({ msg: "아이디 또는 비밀번호 오류" });
 
     const user = rows[0];
@@ -250,7 +260,7 @@ app.post('/resetpw', async (req, res) => {
   if (!email || !name || !phone || !password) return res.status(400).json({ msg: "입력값 오류" });
   try {
     // 세 정보가 모두 맞는 회원만 비번 변경 허용
-    const [rows] = await db.query(
+    const [rows] = await safeQuery(
       'SELECT * FROM users WHERE email=? AND name=? AND phone=?',
       [email, name, phone]
     );
@@ -286,7 +296,7 @@ app.post('/api/notices',
 // 공지사항 목록 (제목, 날짜만)
 app.get('/api/notices', async (req, res) => {
   try {
-    const [rows] = await db.query(
+    const [rows] = await safeQuery(
       'SELECT id, title, date FROM notices ORDER BY date DESC, id DESC'
     );
     res.json(rows);
@@ -298,7 +308,7 @@ app.get('/api/notices', async (req, res) => {
 // 공지 상세 조회
 app.get('/api/notices/:id', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM notices WHERE id=?', [req.params.id]);
+    const [rows] = await safeQuery('SELECT * FROM notices WHERE id=?', [req.params.id]);
     if (rows.length) res.json(rows[0]);
     else res.status(404).json({ msg: "공지 없음" });
   } catch (e) {
@@ -359,7 +369,7 @@ for (const f of files) {
         if(semester) { sql += " AND semester=?"; params.push(semester); }
         if(level)    { sql += " AND level=?";    params.push(level); }
         sql += " ORDER BY uploaded_at DESC";
-        const [rows] = await db.query(sql, params);
+        const [rows] = await safeQuery(sql, params);
 
         // rows 배열을 프론트 요구형태로 가공!
         const newRows = rows.map(r => ({
@@ -380,7 +390,7 @@ for (const f of files) {
     // /download/:id?hwp OR ?pdf
 app.get('/api/download/:id', async (req, res) => {
   try {
-    const [rows] = await db.query(
+    const [rows] = await safeQuery(
       'SELECT hwp_filename, pdf_filename, title FROM files WHERE id=?',
       [req.params.id]
     );
@@ -483,7 +493,7 @@ app.post('/api/board',  fileUpload.array('fileInput', 10), async (req, res) => {
 app.get('/api/board', async (req, res) => {
   try {
     const type = req.query.type; // 'ask' or 'upload'
-    const [rows] = await db.query(
+    const [rows] = await safeQuery(
       'SELECT id, title, created_at, files FROM board WHERE boardType=? ORDER BY id DESC',
       [type]
     );
@@ -496,7 +506,7 @@ app.get('/api/board', async (req, res) => {
 // 게시글 상세조회 (GET /api/board/:id)
 app.get('/api/board/:id', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM board WHERE id=?', [req.params.id]);
+    const [rows] = await safeQuery('SELECT * FROM board WHERE id=?', [req.params.id]);
     if (rows.length) res.json(rows[0]);
     else res.status(404).json({ message: '글 없음' });
   } catch (e) {
@@ -509,7 +519,7 @@ app.post('/api/board/:id/delete', async (req, res) => {
   try {
     // 관리자: 그냥 삭제, 본인: 비밀번호 체크 필요!
     const { password } = req.body;
-    const [rows] = await db.query('SELECT * FROM board WHERE id=?', [req.params.id]);
+    const [rows] = await safeQuery('SELECT * FROM board WHERE id=?', [req.params.id]);
     if (!rows.length) return res.status(404).json({ message: '글 없음' });
 
     // 비공개글이면 비번 체크
@@ -542,7 +552,7 @@ app.get('/', (req, res) => {
 app.get('/check-auth', async (req, res) => {
   if (req.session.user) {
     // 세션 정보로 DB에서 avatarUrl을 다시 읽어옴
-    const [rows] = await db.query('SELECT avatarUrl FROM users WHERE id = ?', [req.session.user.id]);
+    const [rows] = await safeQuery('SELECT avatarUrl FROM users WHERE id = ?', [req.session.user.id]);
     const avatarUrl = rows.length && rows[0].avatarUrl ? rows[0].avatarUrl : '/icon_my_b.png';
     req.session.user.avatarUrl = avatarUrl; // 세션에도 업데이트
     return res.json({ isLoggedIn: true, user: { ...req.session.user, avatarUrl } });
@@ -630,7 +640,7 @@ app.post('/api/board_secure', fileUpload.array('fileInput', 10), async (req, res
 app.get('/api/board_secure', async (req, res) => {
   try {
     const type = req.query.type; // 예: 'notice' 등
-    const [rows] = await db.query(
+    const [rows] = await safeQuery(
       'SELECT id, title, created_at FROM board_secure WHERE boardType=? ORDER BY id DESC',
       [type]
     );
@@ -746,7 +756,7 @@ app.post(
 app.get('/api/uploads/recent', async (req, res) => {
   try {
     // files 테이블에서 최신 10개의 파일명(title), 업로드일(uploaded_at)만 뽑기
-    const [rows] = await db.query(
+    const [rows] = await safeQuery(
       `SELECT title AS name, DATE_FORMAT(uploaded_at, '%Y-%m-%d') AS date
        FROM files
        ORDER BY uploaded_at DESC
