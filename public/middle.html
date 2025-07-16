@@ -305,13 +305,10 @@ td.download-cell {
 
 <script>
 /* ===== 파일 로드 / 렌더 ===== */
-let fileData = [];
-let currentPage = 1;
-const pageSize = 30;  // 🔥 여기서 30개로 설정
-
-
-async function fetchFiles() {
-  const params = new URLSearchParams({
+let fileData=[];
+async function fetchFiles(page=1){
+  const params=new URLSearchParams({
+    page,
     region:   region.value,
     district: district.value.trim(),
     school:   school.value.trim(),
@@ -319,13 +316,13 @@ async function fetchFiles() {
     year:     year.value.trim(),
     semester: semester.value
   });
-  params.append('level', '중등');
+  params.append('level', '중등');  // 반드시 넣어주세요
+  const res=await fetch('/api/files?'+params.toString());
+ fileData   = await res.json();
 
-  const res = await fetch('/api/files?' + params.toString());
-  fileData = await res.json();
-  currentPage = 1;  // 검색시 1페이지
-  renderPage();
-}
+ // 배열·객체 모두 대응
+ const list = Array.isArray(fileData) ? fileData
+             : (fileData.items || []);
 
  renderTable(list);
 
@@ -381,30 +378,12 @@ function renderTable(list) {
   `).join('');
 }
 
-function renderPage(){
-  const start = (currentPage - 1) * pageSize;
-  const end = start + pageSize;
-  const list = Array.isArray(fileData) ? fileData : (fileData.items || []);
-  const pageData = list.slice(start, end);
-  renderTable(pageData);
-  renderPagination();
-}
-
-function renderPagination(){
-  const list = Array.isArray(fileData) ? fileData : (fileData.items || []);
-  const totalPages = Math.ceil(list.length / pageSize) || 1;
-  const p = document.getElementById('pagination');
-  p.innerHTML = '';
-  for(let i=1; i<=totalPages; i++){
-    const d = document.createElement('div');
-    d.className = 'page' + (i === currentPage ? ' active' : '');
-    d.textContent = i;
-    if(i !== currentPage) {
-      d.onclick = () => {
-        currentPage = i;
-        renderPage();
-      };
-    }
+function renderPagination(total,curr){
+  const p=document.getElementById('pagination');p.innerHTML='';
+  for(let i=1;i<=total;i++){
+    const d=document.createElement('div');
+    d.className='page'+(i===curr?' active':'');d.textContent=i;
+    if(i!==curr)d.onclick=()=>fetchFiles(i);
     p.appendChild(d);
   }
 }
