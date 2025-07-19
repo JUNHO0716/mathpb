@@ -291,6 +291,8 @@ input:checked + .slider:before {
 </div>
 
 <script>
+
+let currentUser = null; // 로그인한 사용자 정보 저장용
 /* ===== 파일 로드 / 렌더 ===== */
 let fileData=[];
 async function fetchFiles(page=1){
@@ -390,6 +392,14 @@ function renderPagination(total,curr){
   }
 }
 
+function downloadFile(id, type) {
+  if (!currentUser || !currentUser.hasPaid) {
+    alert('권한이 없습니다. 다운로드는 결제 후 이용 가능합니다.');
+    return;
+  }
+
+  window.location.href = `/api/download/${id}?type=${type}`;
+}
 
 /* ===== 기타 UI 초기화 ===== */
 function setToday(){
@@ -417,17 +427,21 @@ async function showAdminButtons(){
     const { isLoggedIn, user={} } =
       await (await fetch('/check-auth',{ credentials:'include' })).json();
 
-    if(isLoggedIn && user.role==='admin'){
-      const uploadBtn = document.getElementById('uploadBtn');
-      const manageBtn = document.getElementById('manageBtn');
-      uploadBtn.style.display = 'inline-flex';
-      manageBtn.style.display = 'inline-flex';
+      if (isLoggedIn) {
+      currentUser = user; // ✅ 현재 로그인 사용자 정보를 전역에 저장
 
-      // ★ 관리자용 페이지로 연결
-      uploadBtn.onclick = ()=> location.href = 'admin_upload.html';
-      manageBtn.onclick = ()=> location.href = 'admin_files.html';
+      if (user.role === 'admin') {
+        const uploadBtn = document.getElementById('uploadBtn');
+        const manageBtn = document.getElementById('manageBtn');
+        uploadBtn.style.display = 'inline-flex';
+        manageBtn.style.display = 'inline-flex';
+
+        // ★ 관리자용 페이지로 연결
+        uploadBtn.onclick = () => location.href = 'admin_upload.html';
+        manageBtn.onclick = () => location.href = 'admin_files.html';
+      }
     }
-  }catch(e){
+  } catch (e) {
     console.error('관리자 확인 실패', e);
   }
 }

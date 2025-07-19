@@ -304,6 +304,8 @@ td.download-cell {
 </div>
 
 <script>
+let currentUser = null;
+
 /* ===== 파일 로드 / 렌더 ===== */
 let fileData = [];
 let currentPage = 1;
@@ -433,16 +435,19 @@ window.onload=()=>{
 async function showAdminButtons(){
   try{
     const {isLoggedIn,user={}} = await (await fetch('/check-auth',{credentials:'include'})).json();
-    if(isLoggedIn && user.role==='admin'){
-      const uploadBtn = document.getElementById('uploadBtn');
-      const manageBtn = document.getElementById('manageBtn');
-      if(uploadBtn){
-        uploadBtn.style.display = 'inline-flex';
-        uploadBtn.onclick = ()=> location.href = 'admin_upload.html';
-      }
-      if(manageBtn){
-        manageBtn.style.display = 'inline-flex';
-        manageBtn.onclick = () => location.href = 'admin_files.html';
+    if(isLoggedIn){
+      currentUser = user; // ✅ 이 줄 꼭 필요
+      if(user.role==='admin'){
+        const uploadBtn = document.getElementById('uploadBtn');
+        const manageBtn = document.getElementById('manageBtn');
+        if(uploadBtn){
+          uploadBtn.style.display = 'inline-flex';
+          uploadBtn.onclick = ()=> location.href = 'admin_upload.html';
+        }
+        if(manageBtn){
+          manageBtn.style.display = 'inline-flex';
+          manageBtn.onclick = () => location.href = 'admin_files.html';
+        }
       }
     }
   }catch(e){
@@ -462,8 +467,11 @@ document.getElementById('levelToggle').addEventListener('click', function(){
 });
 
 function downloadFile(id, type) {
-  // type: 'pdf' 또는 'hwp'
-  // api/download로 GET 요청 (리디렉션 방식)
+  if (!currentUser || !currentUser.hasPaid) {
+    alert('권한이 없습니다. 다운로드는 결제 후 이용 가능합니다.');
+    return;
+  }
+
   const url = `/api/download/${id}?type=${type}`;
   window.location.href = url;
 }

@@ -342,6 +342,10 @@ for (const f of files) {
       }
     });
 
+
+
+
+
     // 파일 목록(필터/검색)
     app.get('/api/files', async (req, res) => {
       try {
@@ -379,6 +383,13 @@ for (const f of files) {
     // 파일 다운로드
     // /download/:id?hwp OR ?pdf
 app.get('/api/download/:id', async (req, res) => {
+  const user = req.session.user;
+
+  // ✅ 로그인 & 결제 확인
+  if (!user || !user.hasPaid) {
+    return res.status(403).send('권한이 없습니다.');
+  }
+
   try {
     const [rows] = await db.query(
       'SELECT hwp_filename, pdf_filename, title FROM files WHERE id=?',
@@ -397,23 +408,24 @@ app.get('/api/download/:id', async (req, res) => {
       ext = '.hwp';
       if (filename && filename.endsWith('.hwpx')) ext = '.hwpx';
     }
+
     if (!filename) return res.status(404).send('해당 형식 파일 없음');
 
     const downloadFileName = `${title}${ext}`;
-    console.log('다운로드시 파일명:', downloadFileName); // 실제 찍어보기
-
     const signed = s3.getSignedUrl('getObject', {
       Bucket: process.env.AWS_S3_BUCKET,
       Key: filename,
       Expires: 60,
       ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(downloadFileName)}`
     });
+
     return res.redirect(signed);
   } catch (e) {
     console.error('다운로드 오류:', e);
     res.status(500).send('다운로드 오류');
   }
 });
+
 
       // 파일 정보 수정 (관리자)
       app.put('/api/files/:id', isLoggedIn, isAdmin, fileUpload.array('files'), async (req, res) => {
@@ -541,12 +553,29 @@ app.get('/', (req, res) => {
 // 로그인 상태 확인 API
 app.get('/check-auth', async (req, res) => {
   if (req.session.user) {
-    // 세션 정보로 DB에서 avatarUrl을 다시 읽어옴
-    const [rows] = await db.query('SELECT avatarUrl FROM users WHERE id = ?', [req.session.user.id]);
+    // DB에서 아바타와 결제 여부를 함께 조회
+    const [rows] = await db.query(
+      'SELECT avatarUrl, hasPaid FROM users WHERE id = ?',
+      [req.session.user.id]
+    );
+
     const avatarUrl = rows.length && rows[0].avatarUrl ? rows[0].avatarUrl : '/icon_my_b.png';
-    req.session.user.avatarUrl = avatarUrl; // 세션에도 업데이트
-    return res.json({ isLoggedIn: true, user: { ...req.session.user, avatarUrl } });
+    const hasPaid   = rows.length && rows[0].hasPaid   ? true : false;
+
+    // 세션에도 업데이트
+    req.session.user.avatarUrl = avatarUrl;
+    req.session.user.hasPaid = hasPaid;
+
+    return res.json({
+      isLoggedIn: true,
+      user: {
+        ...req.session.user,
+        avatarUrl,
+        hasPaid             // ✅ 이 줄이 중요
+      }
+    });
   }
+
   res.json({ isLoggedIn: false });
 });
 
