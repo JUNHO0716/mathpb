@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>시험지 업로드</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/common.css">
+<style>
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  margin: 0;
+  background: #fff;
+}
+.page-banner {
+  background: #ffffff;
+  border-bottom: 1px solid #000;
+  padding: 70px 0;
+  text-align: center;
+}
+.page-banner h2 {
+  font-size: 2.4rem;
+  font-weight: 900;
+  margin-bottom: 14px;
+}
+.page-banner p {
+  font-size: 1rem;
+  opacity: .85;
+  margin: 0;
+}
+.main-wrapper {
+  display: flex;
+  height: 80vh;
+  width: 100%;
+}
+.left-panel {
+  width: 20%;
+  background: #f9f9f9;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+}
+.left-panel h3 {
+  font-size: 1.2rem;
+  margin-bottom: 16px;
+}
+.upload-box {
+  border: 2px dashed #bcbcbc;
+  padding: 40px 20px;
+  width: 100%;
+  background-color: #ffffff;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.upload-box:hover {
+  background: #f0f0f0;
+}
+.upload-box input[type="file"] {
+  display: none;
+}
+.upload-box label {
+  display: block;
+  cursor: pointer;
+}
+.right-panel {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 20px;
+  box-sizing: border-box;
+}
+.status-section, .completed-section, .rejected-section {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+}
+.section-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+th, td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+th {
+  background: #f0f0f0;
+}
+.status-working {
+  color: orange;
+}
+.status-completed {
+  color: green;
+  font-weight: bold;
+}
+.status-rejected {
+  color: red;
+}
+
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.card {
+  width: 160px;
+  border: 2px solid #f3c24b;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  font-size: 0.9rem;
+  background: #fff;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
+}
+
+.card img {
+  width: 50px;
+  margin: 10px 0;
+}
+
+.card-label,
+.card-status {
+  text-align: left;
+  padding-left: 4px;
+}
+
+.dots {
+  display: inline-block;
+}
+
+.dots span {
+  animation: wave 1.2s infinite;
+  display: inline-block;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+.dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes wave {
+  0% { transform: translateY(0); }
+  30% { transform: translateY(-4px); }
+  60% { transform: translateY(0); }
+  100% { transform: translateY(0); }
+}
+
+</style>
+</head>
+<body>
+<section class="page-banner">
+  <div class="inner">
+    <h2>시험지 업로드</h2>
+    <p>시험지 PDF 파일을 업로드하면, 순서대로 작업됩니다.</p>
+  </div>
+</section>
+<div class="main-wrapper">
+  <div class="left-panel">
+    <h3>Upload Files</h3>
+    <form class="upload-box" id="uploadForm" enctype="multipart/form-data">
+      <label for="fileInput">
+        <i class="fas fa-cloud-upload-alt fa-2x" style="margin-bottom:10px;"></i><br>
+        Drag and drop files<br>
+        <span style="font-size:0.85rem;color:#777;">or click to choose files (PDF, Max: 1GB)</span>
+      </label>
+      <input type="file" id="fileInput" name="fileInput" multiple />
+    </form>
+  </div>
+  <div class="right-panel">
+    <div class="status-section">
+      <h3 class="section-title">업로드 파일</h3>
+      <div class="card-container" id="upload-card-container"></div>
+    </div>
+    <div class="completed-section">
+      <h3 class="section-title">완료 파일</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>번호</th>
+            <th>파일명</th>
+            <th>상태</th>
+          </tr>
+        </thead>
+        <tbody id="completed-body">
+        </tbody>
+      </table>
+    </div>
+    <div class="rejected-section">
+      <h3 class="section-title">반려 파일</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>번호</th>
+            <th>파일명</th>
+            <th>반려 사유</th>
+          </tr>
+        </thead>
+        <tbody id="rejected-body">
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</body>
+<script>
+async function loadMyUploads() {
+  const res = await fetch('/api/my-uploads', { credentials: 'include' });
+  const data = await res.json();
+
+  const uploadCardContainer = document.getElementById('upload-card-container');
+  const completedTbody = document.getElementById('completed-body');
+  const rejectTbody = document.getElementById('rejected-body');
+
+  uploadCardContainer.innerHTML = '';
+  completedTbody.innerHTML = '';
+  rejectTbody.innerHTML = '';
+
+  let statusIndex = 1;
+  let completedIndex = 1;
+  let rejectedIndex = 1;
+
+  data.forEach(row => {
+    if (row.status === '반려') {
+      rejectTbody.innerHTML += `
+        <tr>
+          <td>${rejectedIndex++}</td>
+          <td>${row.filename}</td>
+          <td>${row.reject_reason || '-'}</td>
+        </tr>`;
+    } else if (row.status === '완료') {
+      completedTbody.innerHTML += `
+        <tr>
+          <td>${completedIndex++}</td>
+          <td>${row.filename}</td>
+          <td><span class="status-completed">완료</span></td>
+        </tr>`;
+    } else {
+      uploadCardContainer.innerHTML += `
+        <div class="card">
+          <div><strong>${row.filename}</strong></div>
+          <img src="/assets/pdf-icon.gif" alt="PDF Icon">
+          <div class="card-label">작업 상태</div>
+          <div class="card-status">
+            ${row.status.includes('확인') 
+              ? '시험지 확인중<span class="dots"><span>.</span><span>.</span><span>.</span></span>' 
+              : '시험지 제작중<span class="dots"><span>.</span><span>.</span><span>.</span></span>'}
+          </div>
+        </div>`;
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  const fileInput = document.getElementById('fileInput');
+  const uploadCardContainer = document.getElementById('upload-card-container');
+
+  fileInput.addEventListener('change', async function () {
+    const files = fileInput.files;
+    if (!files.length) return;
+
+    // 업로드 카드 먼저 표시
+    [...files].forEach(file => {
+      const card = document.createElement('div');
+      card.classList.add('card');
+      card.innerHTML = `
+        <div><strong>${file.name}</strong></div>
+        <img src="/assets/pdf-icon.gif" alt="PDF Icon">
+        <div class="card-label">작업 상태</div>
+        <div class="card-status">업로드 대기중<span class="dots"><span>.</span><span>.</span><span>.</span></span></div>
+      `;
+      uploadCardContainer.appendChild(card);
+    });
+
+    // 서버 업로드 요청
+    const formData = new FormData();
+    [...files].forEach(file => formData.append('fileInput', file));
+
+    const res = await fetch('/api/user-upload', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    });
+
+    if (res.ok) {
+      fileInput.value = '';
+      loadMyUploads(); // 실제 상태로 갱신
+    } else {
+      alert('업로드 실패');
+    }
+  });
+
+  loadMyUploads(); // 최초 로딩
+});
+</script>
+</html>
