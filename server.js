@@ -491,6 +491,40 @@ app.post('/api/board',  fileUpload.array('fileInput', 10), async (req, res) => {
   }
 });
 
+app.post('/api/user-upload', isLoggedIn, fileUpload.single('fileInput'), async (req, res) => {
+  try {
+    const userId = req.session.user.id;   // 로그인한 사용자
+    const file = req.file;                 // 사용자가 올린 파일
+
+    if (!file) return res.status(400).json({ msg: '파일이 없습니다.' });
+
+    await db.query(
+      'INSERT INTO uploads (user_id, filename, s3_key) VALUES (?, ?, ?)',
+      [userId, file.originalname, file.key]
+    );
+
+    res.json({ msg: '업로드 성공' });
+  } catch (e) {
+    res.status(500).json({ msg: '서버 오류', error: e.message });
+  }
+});
+
+app.get('/api/my-uploads', isLoggedIn, async (req, res) => {
+  try {
+    const userId = req.session.user.id;  // 로그인한 사용자만 조회 가능
+    const [rows] = await db.query(`
+      SELECT id, filename, status, reject_reason, uploaded_at
+      FROM uploads
+      WHERE user_id = ?
+      ORDER BY uploaded_at DESC
+    `, [userId]);
+    res.json(rows);  // 프론트에 데이터 전달
+  } catch (e) {
+    res.status(500).json({ msg: '업로드 조회 실패', error: e.message });
+  }
+});
+
+
 // 게시판 목록 (GET /api/board?type=ask OR type=upload)
 app.get('/api/board', async (req, res) => {
   try {

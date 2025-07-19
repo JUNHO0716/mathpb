@@ -5,173 +5,165 @@
 <title>시험지 업로드</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
-
-  <!-- ✅ 공통 css 불러오기 -->
-  <link rel="stylesheet" href="css/common.css">
+<link rel="stylesheet" href="css/common.css">
 <style>
-
-/* ────── 공지사항 테이블 ────── */
-h2 {
-  margin: 36px 0 20px;
-  font-size: 1.6rem;
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  margin: 0;
+  background: #fff;
+}
+.page-banner {
+  background: #ffffff;
+  border-bottom: 1px solid #000;
+  padding: 70px 0;
+  text-align: center;
+}
+.page-banner h2 {
+  font-size: 2.4rem;
   font-weight: 900;
+  margin-bottom: 14px;
 }
-.search-box {
-  margin-bottom: 18px;
+.page-banner p {
+  font-size: 1rem;
+  opacity: .85;
+  margin: 0;
+}
+.main-wrapper {
   display: flex;
+  height: 80vh;
+  width: 100%;
+}
+.left-panel {
+  width: 20%;
+  background: #f9f9f9;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
 }
-.search-box input[type="text"] {
-  padding: 8px;
-  width: 200px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.left-panel h3 {
+  font-size: 1.2rem;
+  margin-bottom: 16px;
 }
-.search-box button {
-  padding: 8px 12px;
-  background: #f8c900;
-  color: rgb(0, 0, 0);
-  border: none;
-  border-radius: 4px;
+.upload-box {
+  border: 2px dashed #bcbcbc;
+  padding: 40px 20px;
+  width: 100%;
+  background-color: #ffffff;
+  border-radius: 10px;
   cursor: pointer;
-  margin-left: 6px;
+  transition: background 0.3s;
 }
-.search-box button:last-of-type {
-  margin-left: auto;
-  background: var(--btn-bg);
+.upload-box:hover {
+  background: #f0f0f0;
 }
-.search-box button:last-of-type:hover {
-  background: var(--btn-bg-hov);
+.upload-box input[type="file"] {
+  display: none;
+}
+.upload-box label {
+  display: block;
+  cursor: pointer;
+}
+.right-panel {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 20px;
+  box-sizing: border-box;
+}
+.status-section, .completed-section, .rejected-section {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+}
+.section-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 16px;
 }
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
+  font-size: 0.95rem;
 }
 th, td {
-  border-bottom: 1px solid #e0e0e0;
-  padding: 12px;
+  border: 1px solid #ddd;
+  padding: 10px;
   text-align: center;
 }
 th {
-  background: #f9f9f9;
+  background: #f0f0f0;
 }
-tr:hover td {
-  background: #f5f5f5;
+.status-working {
+  color: orange;
 }
-
-/* ────── 페이지네이션 ────── */
-.pagination {
-  text-align: center;
-  margin-bottom: 40px;
-}
-.pagination button {
-  background: none;
-  border: none;
-  color: #f8c900;
-  font-size: 16px;
-  margin: 0 4px;
-  cursor: pointer;
-}
-.pagination .active {
+.status-completed {
+  color: green;
   font-weight: bold;
-  color: black;
+}
+.status-rejected {
+  color: red;
 }
 
-    .highlight {
-      position: relative;
-      display: inline-block;
-    }
-
-    .highlight::before {
-      content: "";
-      position: absolute;
-      top: -4px;      /* 글자 위 위치 */
-      left: 0;
-      width: 30px;    /* 선 길이 */
-      height: 5px;    /* 선 굵기 */
-      background: #f8c900;  /* 노란색 */
-      border-radius: 2px;
-    }
-
-        /* ★ 제목 배너  (네이비 톤, 가로 100%) */
-    .page-banner{
-      width:100%;
-      background:#ffffff;           /* 원하는 색상 */
-      color:#111;
-      padding:70px 0;               /* 위·아래 높이 */
-      border-bottom:1px solid #000000;
-    }
-    
-    .page-banner .inner{
-      max-width:1400px;             /* 헤더와 같은 좌우 여백 */
-      margin:0 auto;
-      padding:0 40px;
-    }
-    .page-banner h2{
-      font-size:2.4rem;
-      font-weight:900;
-      margin:0 0 14px 0;
-    }
-    .page-banner p{
-      font-size:1.05rem;
-      line-height:1.5;
-      opacity:.85;
-      margin:0;
-    }
-
-    .notice-header {
+.card-container {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1000px; /* 테이블과 폭 통일 */
-  margin: 0 auto 20px auto;
-  padding: 0 24px;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
-.notice-left {
-  display: flex;
-  align-items: center;
-  gap: 16px; /* 제목과 검색창 사이 여백 */
+.card {
+  width: 160px;
+  border: 2px solid #f3c24b;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  font-size: 0.9rem;
+  background: #fff;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
 }
 
-.notice-title {
-  font-size: 1.6rem;
-  font-weight: 700;
+.card img {
+  width: 50px;
+  margin: 10px 0;
 }
 
-.notice-search input {
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.card-label,
+.card-status {
+  text-align: left;
+  padding-left: 4px;
 }
 
-.notice-search button {
-  margin-left: 6px;
-  padding: 6px 10px;
-  background: #f8c900;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.dots {
+  display: inline-block;
 }
 
-#fab-add {
-  background: #fdc512;
-  color: #111;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: 700;
+.dots span {
+  animation: wave 1.2s infinite;
+  display: inline-block;
+  font-weight: bold;
+  font-size: 1rem;
 }
 
-.notice-container {
-  width: 100%;
-  max-width: 1800px; /* 더 넓게 */
-  margin: 0 auto;
-  padding: 0 48px;
-  box-sizing: border-box;
+.dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+.dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes wave {
+  0% { transform: translateY(0); }
+  30% { transform: translateY(-4px); }
+  60% { transform: translateY(0); }
+  100% { transform: translateY(0); }
 }
 
 </style>
@@ -180,101 +172,133 @@ tr:hover td {
 <section class="page-banner">
   <div class="inner">
     <h2>시험지 업로드</h2>
-    <p>한글파일/해설작업이 필요한 시험지 PDF파일을 업로드해주시면
-       업로드 순으로 작업이 시작됩니다.</p>
+    <p>시험지 PDF 파일을 업로드하면, 순서대로 작업됩니다.</p>
   </div>
 </section>
-<div class="notice-container">
-  <h2>시험지 파일</h2>
-
-  <div class="search-box">
-    <input type="text" placeholder="검색어를 입력하세요.">
-    <button>🔍</button>
-    <button onclick="openWrite()">글쓰기</button>
+<div class="main-wrapper">
+  <div class="left-panel">
+    <h3>Upload Files</h3>
+    <form class="upload-box" id="uploadForm" enctype="multipart/form-data">
+      <label for="fileInput">
+        <i class="fas fa-cloud-upload-alt fa-2x" style="margin-bottom:10px;"></i><br>
+        Drag and drop files<br>
+        <span style="font-size:0.85rem;color:#777;">or click to choose files (PDF, Max: 1GB)</span>
+      </label>
+      <input type="file" id="fileInput" name="fileInput" onchange="this.form.submit()" />
+    </form>
   </div>
-
-  <table>
-    <thead>
-      <tr>
-        <th>번호</th>
-        <th>제목</th>
-        <th>등록일</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td>5</td><td>아이메디 강서점 멤버쉽 혜택</td><td>2021.08.05</td></tr>
-      <tr><td>4</td><td>롯데택배 배송 불가 지역 안내</td><td>2022.01.11</td></tr>
-      <tr><td>3</td><td>트리플러스 포토후기 이벤트 당첨자 발표</td><td>2021.10.29</td></tr>
-      <tr><td>2</td><td>[오브르스타] 포토후기 이벤트 당첨자 발표</td><td>2021.10.14</td></tr>
-      <tr><td>1</td><td>GOGREEN 이벤트 후기 작성기간 연장 안내</td><td>2021.09.30</td></tr>
-    </tbody>
-  </table>
-
-  <div class="pagination">
-    <button>&laquo;</button>
-    <button>&lt;</button>
-    <button class="active">1</button>
-    <button>&gt;</button>
-    <button>&raquo;</button>
+  <div class="right-panel">
+    <div class="status-section">
+      <h3 class="section-title">업로드 파일</h3>
+      <div class="card-container" id="upload-card-container"></div>
+    </div>
+    <div class="completed-section">
+      <h3 class="section-title">완료 파일</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>번호</th>
+            <th>파일명</th>
+            <th>상태</th>
+          </tr>
+        </thead>
+        <tbody id="completed-body">
+        </tbody>
+      </table>
+    </div>
+    <div class="rejected-section">
+      <h3 class="section-title">반려 파일</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>번호</th>
+            <th>파일명</th>
+            <th>반려 사유</th>
+          </tr>
+        </thead>
+        <tbody id="rejected-body">
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
-
+</body>
 <script>
-function openWrite(){
-  let win = window.open("", "글쓰기", "width=600,height=500");
-  win.document.write('<iframe src="write.html" style="width:100%;height:100%;border:none;"></iframe>');
-}
+async function loadMyUploads() {
+  const res = await fetch('/api/my-uploads', { credentials: 'include' });
+  const data = await res.json();
 
-const wk = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-const mo = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const uploadCardContainer = document.getElementById('upload-card-container');
+  const completedTbody = document.getElementById('completed-body');
+  const rejectTbody = document.getElementById('rejected-body');
 
-function setToday(){
-  const t = new Date();
-  document.getElementById('todayTxt').textContent =
-    `${wk[t.getDay()]} ${String(t.getDate()).padStart(2,'0')} ${mo[t.getMonth()]} ${t.getFullYear()}`;
-}
+  uploadCardContainer.innerHTML = '';  // ✅ 이 줄 추가
+  completedTbody.innerHTML = '';
+  rejectTbody.innerHTML = '';
 
-async function bindUser(){
-  try{
-    const res = await fetch('/check-auth?ts='+Date.now(),{credentials:'include',cache:'no-store'});
-    const d = await res.json();
-    if(!d.isLoggedIn) return;
-    const u = d.user||{};
-    const first = (u.name||u.email||'User').split(' ')[0].split('@')[0];
-    document.getElementById('userName').textContent = u.name || first;
-    if(u.avatarUrl){
-      document.getElementById('avatar').src = u.avatarUrl;
-      document.getElementById('avatar').alt = u.name || 'avatar';
+  let statusIndex = 1;
+  let completedIndex = 1;
+  let rejectedIndex = 1;
+
+  data.forEach(row => {
+    if (row.status === '반려') {
+      rejectTbody.innerHTML += `
+        <tr>
+          <td>${rejectedIndex++}</td>
+          <td>${row.filename}</td>
+          <td>${row.reject_reason || '-'}</td>
+        </tr>`;
+    } else if (row.status === '완료') {
+      completedTbody.innerHTML += `
+        <tr>
+          <td>${completedIndex++}</td>
+          <td>${row.filename}</td>
+          <td><span class="status-completed">완료</span></td>
+        </tr>`;
+    } else {
+        uploadCardContainer.innerHTML += `
+          <div class="card">
+            <div><strong>${row.filename}</strong></div>
+            <img src="/assets/pdf-icon.gif" alt="PDF Icon">
+            <div class="card-label">작업 상태</div>
+            <div class="card-status">
+              ${row.status.includes('확인') 
+                ? '시험지 확인중<span class="dots"><span>.</span><span>.</span><span>.</span></span>' 
+                : '시험지 제작중<span class="dots"><span>.</span><span>.</span><span>.</span></span>'
+              }
+            </div>
+          </div>
+        `;
     }
-    document.getElementById('logoutBtn').onclick = async()=>{
-      await fetch('/logout',{credentials:'include'});location.reload();
-    };
-  }catch(e){console.error(e);}
+  });
 }
 
-function initDropdown(){
-  const box=document.getElementById('userBox');
-  const menu=document.getElementById('dropdownMenu');
-  const arrow=document.getElementById('arrowIcon');
-  box.addEventListener('click',e=>{
-    e.stopPropagation();
-    const open=menu.style.display==='block';
-    menu.style.display=open?'none':'block';
-    arrow.style.transform=open?'rotate(0deg)':'rotate(180deg)';
-  });
-  document.addEventListener('click',e=>{
-    if(!menu.contains(e.target)){
-      menu.style.display='none';
-      arrow.style.transform='rotate(0deg)';
+
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('uploadForm');
+  const fileInput = document.getElementById('fileInput');
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault(); // 폼 기본 제출 막기
+
+    const formData = new FormData();
+    formData.append('fileInput', fileInput.files[0]);
+
+    const res = await fetch('/api/user-upload', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    });
+
+    if (res.ok) {
+      fileInput.value = ''; // 선택된 파일 초기화
+      loadMyUploads();      // 업로드 후 목록 새로고침
+    } else {
+      alert('업로드 실패');
     }
   });
-}
 
-document.addEventListener('DOMContentLoaded',()=>{
-  setToday();
-  bindUser();
-  initDropdown();
+  loadMyUploads(); // 초기 로드
 });
 </script>
-</body>
 </html>
