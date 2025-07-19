@@ -242,6 +242,7 @@ td.download-cell {
 }
 
 </style>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
@@ -468,7 +469,23 @@ document.getElementById('levelToggle').addEventListener('click', function(){
 
 function downloadFile(id, type) {
   if (!currentUser || !currentUser.hasPaid) {
-    alert('권한이 없습니다. 다운로드는 결제 후 이용 가능합니다.');
+    Swal.fire({
+      icon: 'warning',
+      title: '다운로드 권한 없음',
+      text: '결제 후 이용 가능합니다.',
+      showCancelButton: true,
+      confirmButtonText: '결제하러 가기',
+      cancelButtonText: '닫기',
+      confirmButtonColor: '#FDC512', // 노랑 버튼
+      cancelButtonColor: '#444',     // 짙은 회색
+      background: '#1a1a1a',          // 검정 배경
+      color: '#ffffff',               // 흰색 글자
+      iconColor: '#FDC512'            // 노랑 아이콘
+    }).then((result) => {
+      if (result.isConfirmed) {
+        location.href = '/pay.html';  // ✅ 결제 페이지 URL
+      }
+    });
     return;
   }
 
