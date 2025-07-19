@@ -395,7 +395,7 @@ function renderPagination(total,curr){
 }
 
 function downloadFile(id, type) {
-  if (!currentUser || !currentUser.hasPaid) {
+  if (!currentUser || (!currentUser.hasPaid && currentUser.role !== 'admin')) {
     Swal.fire({
       icon: 'warning',
       title: '다운로드 권한 없음',
@@ -405,9 +405,9 @@ function downloadFile(id, type) {
       cancelButtonText: '닫기',
       confirmButtonColor: '#FDC512', // 노랑 버튼
       cancelButtonColor: '#444',     // 짙은 회색
-      background: '#1a1a1a',          // 검정 배경
-      color: '#ffffff',               // 흰색 글자
-      iconColor: '#FDC512'            // 노랑 아이콘
+      background: '#1a1a1a',         // 검정 배경
+      color: '#ffffff',              // 흰색 글자
+      iconColor: '#FDC512'           // 노랑 아이콘
     }).then((result) => {
       if (result.isConfirmed) {
         location.href = '/pay.html';  // ✅ 결제 페이지 URL

@@ -373,6 +373,7 @@
     .user-box.loading * { visibility: hidden; }
 
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
@@ -474,6 +475,8 @@
       document.getElementById('todayTxt').textContent =
         `${wk[t.getDay()]}  ${String(t.getDate()).padStart(2,'0')} ${mo[t.getMonth()]} ${t.getFullYear()}`;
     }
+
+    let currentUser = null;
     
     /* 로그인·프로필 바인딩 + 관리자 판별 */
     let IS_ADMIN=false;
@@ -486,6 +489,7 @@
           if(!d.isLoggedIn) return;
 
           const u = d.user || {};
+          currentUser = u; // ✅ 이 줄 추가!!! (딱 이거!)
           const displayId = u.email ? u.email.split('@')[0] : (u.name || 'Guest');
 
           document.getElementById('profileName').textContent = displayId;
@@ -634,8 +638,49 @@
         // 아이콘 검정으로 변경
         var activeIcon = this.querySelector('.menu-icon');
         if (activeIcon) activeIcon.src = activeIcon.dataset.iconBlack;
-        const url = this.dataset.url;                         // ★ 추가
-       if (url) document.getElementById('contentFrame').src = url;  // ★ 추가
+const url = this.dataset.url;
+const menuId = this.id;
+
+if (menuId === 'menu5') {
+  fetch('/check-auth', { credentials: 'include', cache: 'no-store' })
+    .then(res => res.json())
+    .then(data => {
+      if (data.isLoggedIn && (data.user?.hasPaid || data.user?.isAdmin)) {
+        // ✅ 관리자도 허용
+        document.getElementById('contentFrame').src = url;
+      } else {
+        Swal.fire({
+          icon: 'warning',
+          title: '이용 불가',
+          text: '해당 서비스는 결제한 사용자만 이용할 수 있습니다.',
+          confirmButtonText: '확인',
+          confirmButtonColor: '#FDC512',
+          background: '#1a1a1a',
+          color: '#fff',
+          iconColor: '#FDC512'
+        }).then(() => {
+          // 홈으로 이동 및 초기화
+          document.getElementById('contentFrame').src = 'home.html';
+          document.querySelectorAll('.menu-item').forEach(i => {
+            i.classList.remove('active');
+            const icon = i.querySelector('.menu-icon');
+            if (icon) icon.src = icon.dataset.iconWhite;
+          });
+          const menu1 = document.getElementById('menu1');
+          menu1.classList.add('active');
+          const firstIcon = menu1.querySelector('.menu-icon');
+          if (firstIcon) firstIcon.src = firstIcon.dataset.iconBlack;
+          const pageTitle = document.getElementById('pageTitle');
+          if (pageTitle) pageTitle.innerHTML = `<span class="highlight">Ma</span>in home`;
+        });
+      }
+    })
+    .catch(err => {
+      console.error('결제 확인 실패', err);
+    });
+} else if (url) {
+  document.getElementById('contentFrame').src = url;
+}
 
         // **★ 여기에 타이틀 변경 코드 추가 ★**
         const pageTitle = document.getElementById('pageTitle');
@@ -756,6 +801,35 @@ window.addEventListener('DOMContentLoaded', () => {
             });
           });
         });
+
+function downloadFile(id, type) {
+  if (!currentUser || (!currentUser.hasPaid && !currentUser.isAdmin)) {
+    Swal.fire({
+      icon: 'warning',
+      title: '접근 권한 없음',
+      text: '결제 후 이용 가능합니다.',
+      showCancelButton: true,
+      confirmButtonText: '결제하러 가기',
+      cancelButtonText: '닫기',
+      confirmButtonColor: '#FDC512',
+      cancelButtonColor: '#444',
+      background: '#1a1a1a',
+      color: '#ffffff',
+      iconColor: '#FDC512'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        location.href = '/pay.html';
+      }
+    });
+    return;
+  }
+
+  const url = `/api/download/${id}?type=${type}`;
+  window.location.href = url;
+}
+
+
+
 </script>
 </body>
 </html>
