@@ -802,34 +802,6 @@ window.addEventListener('DOMContentLoaded', () => {
           });
         });
 
-function downloadFile(id, type) {
-  if (!currentUser || (!currentUser.hasPaid && !currentUser.isAdmin)) {
-    Swal.fire({
-      icon: 'warning',
-      title: '접근 권한 없음',
-      text: '결제 후 이용 가능합니다.',
-      showCancelButton: true,
-      confirmButtonText: '결제하러 가기',
-      cancelButtonText: '닫기',
-      confirmButtonColor: '#FDC512',
-      cancelButtonColor: '#444',
-      background: '#1a1a1a',
-      color: '#ffffff',
-      iconColor: '#FDC512'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        location.href = '/pay.html';
-      }
-    });
-    return;
-  }
-
-  const url = `/api/download/${id}?type=${type}`;
-  window.location.href = url;
-}
-
-
-
 </script>
 </body>
 </html>

@@ -560,7 +560,7 @@ app.get('/check-auth', async (req, res) => {
     );
 
     const avatarUrl = rows.length && rows[0].avatarUrl ? rows[0].avatarUrl : '/icon_my_b.png';
-    const hasPaid   = rows.length && rows[0].hasPaid   ? true : false;
+    const hasPaid = (req.session.user.role === 'admin') || (rows.length && rows[0].hasPaid);
 
     // 세션에도 업데이트
     req.session.user.avatarUrl = avatarUrl;
