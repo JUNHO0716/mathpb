@@ -305,10 +305,13 @@ td.download-cell {
 
 <script>
 /* ===== 파일 로드 / 렌더 ===== */
-let fileData=[];
-async function fetchFiles(page=1){
-  const params=new URLSearchParams({
-    page,
+let fileData = [];
+let currentPage = 1;
+const pageSize = 30;  // 🔥 여기서 30개로 설정
+
+
+async function fetchFiles() {
+  const params = new URLSearchParams({
     region:   region.value,
     district: district.value.trim(),
     school:   school.value.trim(),
@@ -316,20 +319,14 @@ async function fetchFiles(page=1){
     year:     year.value.trim(),
     semester: semester.value
   });
-  params.append('level', '중등');  // 반드시 넣어주세요
-  const res=await fetch('/api/files?'+params.toString());
- fileData   = await res.json();
+  params.append('level', '중등');
 
- // 배열·객체 모두 대응
- const list = Array.isArray(fileData) ? fileData
-             : (fileData.items || []);
-
- renderTable(list);
-
- // ② 페이지 수: 서버에서 안 주면 프론트에서 계산(10개씩이라고 가정)
- const totalPages = Math.ceil(list.length / 10) || 1;
- renderPagination(totalPages, page);
+  const res = await fetch('/api/files?' + params.toString());
+  fileData = await res.json();
+  currentPage = 1;  // 검색시 1페이지
+  renderPage();
 }
+
 
 function searchFiles(){fetchFiles();}
 
@@ -349,9 +346,9 @@ function renderTable(list) {
     return;
   }
 
-  tb.innerHTML = list.map((row, i) => `
-    <tr>
-      <td>${i + 1}</td>
+tb.innerHTML = list.map((row, i) => `
+  <tr>
+    <td>${(currentPage - 1) * pageSize + i + 1}</td>
       <td style="text-align:left;padding-left:18px">
         ${row.title}
         ${
@@ -378,12 +375,30 @@ function renderTable(list) {
   `).join('');
 }
 
-function renderPagination(total,curr){
-  const p=document.getElementById('pagination');p.innerHTML='';
-  for(let i=1;i<=total;i++){
-    const d=document.createElement('div');
-    d.className='page'+(i===curr?' active':'');d.textContent=i;
-    if(i!==curr)d.onclick=()=>fetchFiles(i);
+function renderPage(){
+  const start = (currentPage - 1) * pageSize;
+  const end = start + pageSize;
+  const list = Array.isArray(fileData) ? fileData : (fileData.items || []);
+  const pageData = list.slice(start, end);
+  renderTable(pageData);
+  renderPagination();
+}
+
+function renderPagination(){
+  const list = Array.isArray(fileData) ? fileData : (fileData.items || []);
+  const totalPages = Math.ceil(list.length / pageSize) || 1;
+  const p = document.getElementById('pagination');
+  p.innerHTML = '';
+  for(let i=1; i<=totalPages; i++){
+    const d = document.createElement('div');
+    d.className = 'page' + (i === currentPage ? ' active' : '');
+    d.textContent = i;
+    if(i !== currentPage) {
+      d.onclick = () => {
+        currentPage = i;
+        renderPage();
+      };
+    }
     p.appendChild(d);
   }
 }
@@ -411,8 +426,10 @@ const deleteRow=id=>confirm('삭제?')&&alert('삭제 '+id);
 /* ===== 시작 ===== */
 window.onload=()=>{
   showAdminButtons();
-  fetchFiles(1);
+  fetchFiles();  // ✅ 이렇게 수정
 };
+
+
 async function showAdminButtons(){
   try{
     const {isLoggedIn,user={}} = await (await fetch('/check-auth',{credentials:'include'})).json();
