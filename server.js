@@ -491,17 +491,20 @@ app.post('/api/board',  fileUpload.array('fileInput', 10), async (req, res) => {
   }
 });
 
-app.post('/api/user-upload', isLoggedIn, fileUpload.single('fileInput'), async (req, res) => {
+app.post('/api/user-upload', isLoggedIn, fileUpload.array('fileInput', 10), async (req, res) => {
   try {
-    const userId = req.session.user.id;   // 로그인한 사용자
-    const file = req.file;                 // 사용자가 올린 파일
+    const userId = req.session.user.id;
+    const files = req.files;
 
-    if (!file) return res.status(400).json({ msg: '파일이 없습니다.' });
+    if (!files || files.length === 0)
+      return res.status(400).json({ msg: '파일이 없습니다.' });
 
+    for (const file of files) {
     await db.query(
-      'INSERT INTO uploads (user_id, filename, s3_key) VALUES (?, ?, ?)',
-      [userId, file.originalname, file.key]
+      'INSERT INTO uploads (user_id, filename, s3_key, status) VALUES (?, ?, ?, ?)',
+      [userId, file.originalname, file.key, '확인중']
     );
+    }
 
     res.json({ msg: '업로드 성공' });
   } catch (e) {
@@ -513,7 +516,12 @@ app.get('/api/my-uploads', isLoggedIn, async (req, res) => {
   try {
     const userId = req.session.user.id;  // 로그인한 사용자만 조회 가능
     const [rows] = await db.query(`
-      SELECT id, filename, status, reject_reason, uploaded_at
+      SELECT id,
+             filename,
+             status,
+             reject_reason,
+             uploaded_at,
+             completed_at           -- ← 여기 추가
       FROM uploads
       WHERE user_id = ?
       ORDER BY uploaded_at DESC
@@ -549,6 +557,66 @@ app.get('/api/board/:id', async (req, res) => {
     res.status(500).json({ message: '글 상세 오류', error: e.message });
   }
 });
+
+// ── 관리자 전용 업로드 리스트 조회 ──
+// GET /api/admin/uploads
+app.get(
+  '/api/admin/uploads',
+  isLoggedIn, isAdmin,
+  async (req, res) => {
+    try {
+      const [rows] = await db.query(
+        `SELECT id, user_id, filename, status, reject_reason, uploaded_at, completed_at
+         FROM uploads
+         ORDER BY uploaded_at DESC`
+      );
+      res.json(rows);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ msg: '관리자 업로드 조회 실패' });
+    }
+  }
+);
+
+// ── 관리자 전용 상태 변경 ──
+// PATCH /api/admin/uploads/:id
+// Body: { status: "in_progress"|"rejected"|"completed", reason?: string }
+app.patch(
+  '/api/admin/uploads/:id',
+  isLoggedIn, isAdmin,
+  express.json(),
+  async (req, res) => {
+    try {
+      const { status, reason } = req.body;
+      const id = req.params.id;
+      let sql, params;
+
+      if (status === 'in_progress') {
+        sql    = 'UPDATE uploads SET status=? WHERE id=?';
+        params = ['제작중', id];
+
+      } else if (status === 'rejected') {
+        sql    = 'UPDATE uploads SET status=?, reject_reason=? WHERE id=?';
+        params = ['반려', reason || '', id];
+
+      } else if (status === 'completed') {
+        sql    = 'UPDATE uploads SET status=?, completed_at=NOW() WHERE id=?';
+        params = ['완료', id];
+
+      } else {
+        return res.status(400).json({ msg: '올바른 status만 변경 가능합니다.' });
+      }
+
+      const [r] = await db.query(sql, params);
+      if (r.affectedRows === 0) return res.status(404).json({ msg: '해당 업로드가 없습니다.' });
+      res.json({ msg: '상태 변경 성공' });
+
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ msg: '상태 변경 실패', error: e.message });
+    }
+  }
+);
 
 // 글 삭제 (관리자/본인, POST /api/board/:id/delete)
 app.post('/api/board/:id/delete', async (req, res) => {

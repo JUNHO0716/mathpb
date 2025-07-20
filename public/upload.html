@@ -40,9 +40,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   text-align: center;
   padding: 24px;
+  position: relative;
 }
 .left-panel h3 {
   font-size: 1.2rem;
@@ -159,6 +159,75 @@ th {
   animation-delay: 0.4s;
 }
 
+/* HEAD style 안에 추가! */
+.preview-item {
+  width: 100%;
+  min-height: 40px;         /* 높이 더 낮게 */
+  border: 1.5px solid #eee;
+  border-radius: 8px;       /* 더 작은 radius */
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+  background: #fff;
+  box-shadow: 0.5px 0.5px 3px rgba(0,0,0,0.04);
+  padding: 5px 10px 5px 8px;   /* 여백도 줄임 */
+}
+.preview-item img {
+  width: 22px;              /* 아이콘 더 작게 */
+  margin-right: 10px;
+}
+.preview-item .filename {
+  flex: 1;
+  text-align: left;
+  font-size: 0.8em;         /* 글씨도 약간 작게 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+.preview-item .remove-btn {
+  cursor: pointer;
+  color: #111;
+  font-size: 1.05em;
+  margin-left: 12px;
+}
+
+.preview-bottom-btns {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 12px;
+  position: absolute;     /* 왼쪽 패널 하단에 고정 */
+  left: 0;
+  bottom: 30px;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+#upload-btn,
+#add-file-btn {
+  width: 100%;
+  padding: 8px 0;
+  font-size: 1.04rem;
+  border-radius: 7px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#upload-btn { background: #ffcb2c; color: #222; }
+#add-file-btn { background: #e0e7ef; color: #333; }
+
+#preview-card-container {
+  margin: 0;
+  padding: 0;
+}
+
+#upload-head-area {
+  margin-top: 130px;  /* 원하는 만큼 조정 (예: 120px) */
+}
+
 @keyframes wave {
   0% { transform: translateY(0); }
   30% { transform: translateY(-4px); }
@@ -176,17 +245,27 @@ th {
   </div>
 </section>
 <div class="main-wrapper">
-  <div class="left-panel">
+<div class="left-panel">
+  <div id="upload-head-area">
     <h3>Upload Files</h3>
-    <form class="upload-box" id="uploadForm" enctype="multipart/form-data">
-      <label for="fileInput">
-        <i class="fas fa-cloud-upload-alt fa-2x" style="margin-bottom:10px;"></i><br>
-        Drag and drop files<br>
-        <span style="font-size:0.85rem;color:#777;">or click to choose files (PDF, Max: 1GB)</span>
-      </label>
-      <input type="file" id="fileInput" name="fileInput" onchange="this.form.submit()" />
+    <form class="upload-box" id="uploadForm" enctype="multipart/form-data" onsubmit="return false;">
+      <div id="drag-area">
+        <label for="fileInput">
+          <i class="fas fa-cloud-upload-alt fa-2x" style="margin-bottom:10px;"></i><br>
+          Drag and drop files<br>
+          <span style="font-size:0.85rem;color:#777;">or click to choose files (PDF, Max: 1GB, 최대 10개)</span>
+        </label>
+        <input type="file" id="fileInput" name="fileInput" multiple accept="application/pdf" style="display:none;"/>
+      </div>
     </form>
   </div>
+  <div id="preview-card-container"></div>
+  <!-- 버튼을 여기로 이동! -->
+  <div class="preview-bottom-btns">
+    <button id="upload-btn" type="button">파일 업로드</button>
+    <button id="add-file-btn" type="button" style="display:none;">파일 추가</button>
+  </div>
+</div>
   <div class="right-panel">
     <div class="status-section">
       <h3 class="section-title">업로드 파일</h3>
@@ -224,81 +303,184 @@ th {
 </div>
 </body>
 <script>
-async function loadMyUploads() {
-  const res = await fetch('/api/my-uploads', { credentials: 'include' });
-  const data = await res.json();
+let selectedFiles = [];
 
-  const uploadCardContainer = document.getElementById('upload-card-container');
-  const completedTbody = document.getElementById('completed-body');
-  const rejectTbody = document.getElementById('rejected-body');
+const fileInput = document.getElementById('fileInput');
+const previewCardContainer = document.getElementById('preview-card-container');
+const uploadBtn = document.getElementById('upload-btn');
+const addFileBtn = document.getElementById('add-file-btn');
+const dragArea = document.getElementById('drag-area');
+const uploadHeadArea = document.getElementById('upload-head-area');
+const leftPanel = document.querySelector('.left-panel');
+const uploadCardContainer = document.getElementById('upload-card-container');
+const completedBody      = document.getElementById('completed-body');
+const rejectedBody       = document.getElementById('rejected-body');
 
-  uploadCardContainer.innerHTML = '';  // ✅ 이 줄 추가
-  completedTbody.innerHTML = '';
-  rejectTbody.innerHTML = '';
-
-  let statusIndex = 1;
-  let completedIndex = 1;
-  let rejectedIndex = 1;
-
-  data.forEach(row => {
-    if (row.status === '반려') {
-      rejectTbody.innerHTML += `
-        <tr>
-          <td>${rejectedIndex++}</td>
-          <td>${row.filename}</td>
-          <td>${row.reject_reason || '-'}</td>
-        </tr>`;
-    } else if (row.status === '완료') {
-      completedTbody.innerHTML += `
-        <tr>
-          <td>${completedIndex++}</td>
-          <td>${row.filename}</td>
-          <td><span class="status-completed">완료</span></td>
-        </tr>`;
-    } else {
-        uploadCardContainer.innerHTML += `
-          <div class="card">
-            <div><strong>${row.filename}</strong></div>
-            <img src="/assets/pdf-icon.gif" alt="PDF Icon">
-            <div class="card-label">작업 상태</div>
-            <div class="card-status">
-              ${row.status.includes('확인') 
-                ? '시험지 확인중<span class="dots"><span>.</span><span>.</span><span>.</span></span>' 
-                : '시험지 제작중<span class="dots"><span>.</span><span>.</span><span>.</span></span>'
-              }
-            </div>
-          </div>
-        `;
+// 1) 파일 처리 로직을 분리
+function handleFileSelection(files) {
+  // PDF만, 최대 10개
+  const pdfs = files.filter(f => f.type === 'application/pdf');
+  if (selectedFiles.length + pdfs.length > 10) {
+    alert('최대 10개까지 업로드할 수 있습니다.');
+    return;
+  }
+  pdfs.forEach(file => {
+    if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+      selectedFiles.push(file);
     }
+  });
+
+  // 업로드 헤더 숨김/추가 버튼 노출
+  if (selectedFiles.length > 0) {
+    uploadHeadArea.style.display = 'none';
+    addFileBtn.style.display = '';
+  } else {
+    uploadHeadArea.style.display = '';
+    addFileBtn.style.display = 'none';
+  }
+
+  renderPreviewCards();
+}
+
+// 2) file input change 시에도 같은 함수 호출
+fileInput.addEventListener('change', function (e) {
+  handleFileSelection(Array.from(e.target.files));
+  fileInput.value = '';
+});
+
+// 파일 추가 버튼
+addFileBtn.addEventListener('click', () => fileInput.click());
+
+// 3) 드래그 앤 드롭 이벤트를 left-panel 전체에 바인딩
+['dragenter', 'dragover'].forEach(evt =>
+  leftPanel.addEventListener(evt, e => {
+    e.preventDefault();
+    leftPanel.classList.add('dragover');
+  })
+);
+['dragleave', 'drop'].forEach(evt =>
+  leftPanel.addEventListener(evt, e => {
+    e.preventDefault();
+    leftPanel.classList.remove('dragover');
+  })
+);
+leftPanel.addEventListener('drop', e => {
+  handleFileSelection(Array.from(e.dataTransfer.files));
+});
+
+// 기존 렌더링 함수 등은 그대로 유지
+function renderPreviewCards() {
+  previewCardContainer.innerHTML = '';
+  [...selectedFiles].slice().reverse().forEach((file, idx) => {
+    const realIdx = selectedFiles.length - 1 - idx;
+    const item = document.createElement('div');
+    item.className = 'preview-item';
+    item.innerHTML = `
+      <img src="pdf_icon.png" alt="PDF Icon">
+      <div class="filename" title="${file.name}">${file.name}</div>
+      <div style="color:#666;font-size:0.9em;margin-left:10px;">${(file.size/1024/1024).toFixed(2)} MB</div>
+      <span class="remove-btn" data-idx="${realIdx}" title="삭제"><i class="fas fa-times"></i></span>
+    `;
+    previewCardContainer.appendChild(item);
+  });
+  previewCardContainer.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.onclick = () => {
+      selectedFiles.splice(+btn.dataset.idx, 1);
+      if (selectedFiles.length === 0) {
+        uploadHeadArea.style.display = '';
+        addFileBtn.style.display = 'none';
+      }
+      renderPreviewCards();
+    };
   });
 }
 
+// ▶ 추가: 내 업로드 현황 불러오기
+async function loadMyUploads() {
+  try {
+    const res  = await fetch('/api/my-uploads', { credentials: 'include' });
+    const data = await res.json();
+    // (1) 초기화
+    uploadCardContainer.innerHTML = '';
+    completedBody.innerHTML        = '';
+    rejectedBody.innerHTML         = '';
+    // (2) 상태별 렌더링
+    data.forEach(item => {
+      const { id, filename, status, reject_reason, completed_at } = item;
+      if (status === '확인중' || status === '제작중') {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="card-label">${filename}</div>
+          <img src="pdf_icon.png" alt="PDF">
+          <div class="card-status">
+            ${status === '확인중'
+              ? '시험지 확인중......'
+              : '시험지 제작중......'}
+          </div>`;
+        uploadCardContainer.appendChild(card);
 
-document.addEventListener('DOMContentLoaded', function () {
-  const form = document.getElementById('uploadForm');
-  const fileInput = document.getElementById('fileInput');
+      } else if (status === '완료') {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${id}</td>
+          <td>${filename}</td>
+          <td>${new Date(completed_at).toLocaleDateString()}</td>`;
+        completedBody.appendChild(tr);
 
-  form.addEventListener('submit', async function (e) {
-    e.preventDefault(); // 폼 기본 제출 막기
-
-    const formData = new FormData();
-    formData.append('fileInput', fileInput.files[0]);
-
-    const res = await fetch('/api/user-upload', {
-      method: 'POST',
-      credentials: 'include',
-      body: formData
+      } else if (status === '반려') {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${id}</td>
+          <td>${filename}</td>
+          <td>${reject_reason || ''}</td>`;
+        rejectedBody.appendChild(tr);
+      }
     });
+  } catch (e) {
+    console.error('업로드 현황 로드 실패:', e);
+  }
+}
 
-    if (res.ok) {
-      fileInput.value = ''; // 선택된 파일 초기화
-      loadMyUploads();      // 업로드 후 목록 새로고침
-    } else {
-      alert('업로드 실패');
-    }
+// 업로드 버튼 클릭 로직도 그대로
+uploadBtn.addEventListener('click', async () => {
+  if (!selectedFiles.length) {
+    alert('업로드할 파일을 선택하세요!');
+    return;
+  }
+  uploadBtn.disabled = true;
+  uploadBtn.innerText = '업로드 중...';
+
+  const formData = new FormData();
+  selectedFiles.forEach(file => formData.append('fileInput', file));
+  const res = await fetch('/api/user-upload', {
+    method: 'POST',
+    credentials: 'include',
+    body: formData
   });
 
-  loadMyUploads(); // 초기 로드
+  if (res.ok) {
+    selectedFiles = [];
+    renderPreviewCards();
+    // 업로드 후에도 헤더는 숨긴 채로
+    uploadHeadArea.style.display = 'none';
+    addFileBtn.style.display = 'none';
+    uploadBtn.disabled = false;
+    uploadBtn.innerText = '파일 업로드';
+    loadMyUploads();
+  } else {
+    alert('업로드 실패');
+    uploadBtn.disabled = false;
+    uploadBtn.innerText = '파일 업로드';
+  }
+});
+
+// 초기화
+document.addEventListener('DOMContentLoaded', () => {
+  renderPreviewCards();
+  loadMyUploads();
+  // ▶ 추가: 5초마다 업로드 현황 갱신
+  setInterval(loadMyUploads, 5000);
 });
 </script>
 </html>
