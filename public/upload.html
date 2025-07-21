@@ -136,8 +136,37 @@ th {
 }
 
 .card-label {
-  text-align: left;
-  padding-left: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;      /* ::after 툴팁용 */
+}
+
+/* 툴팁용 ::after */
+.card-label::after {
+  content: attr(data-fullname);
+  position: absolute;
+  left: 0; bottom: calc(100% + 6px);
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease-in .8s;   /* 0.8초 딜레이 후 fade-in */
+  z-index: 10;
+}
+
+.card img {
+  display: block;
+  margin: 12px auto;     /* 위아래 12px, 좌우 자동 */
+  width: 80px;           /* 원하는 크기로 조절 */
+}
+
+
+.card-label:hover::after {
+  opacity: 1;
 }
 
 .card-status {
@@ -405,28 +434,38 @@ async function loadMyUploads() {
     data.forEach(item => {
       const { id, filename, status, reject_reason, completed_at } = item;
       if (status === '확인중' || status === '제작중') {
-     const card = document.createElement('div');
-     card.className = 'card';
-     card.innerHTML = `
-       <div class="card-label">${filename}</div>
-       <img src="pending.gif" alt="확인중" style="width:50px; margin:10px 0;">
-       <div class="card-status">
-         ${status === '확인중'
-           ? '시험지 확인중……'
-           : '시험지 제작중……'}
-       </div>`;
-        uploadCardContainer.appendChild(card);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div 
+        class="card-label" 
+        data-fullname="${filename}"
+      >${filename}</div>
+      <img 
+        src="pending.gif" 
+        alt="확인중"
+      >
+      <div class="card-status">
+        시험지 확인중……
+      </div>`;
+    uploadCardContainer.appendChild(card);
 
    } else if (status === '완료') {
-     const card = document.createElement('div');
-     card.className = 'card';
-     card.innerHTML = `
-       <div class="card-label">${filename}</div>
-       <img src="complete.png" alt="완료" style="width:50px; margin:10px 0;">
-       <div class="card-status status-completed">
-         ${new Date(completed_at).toLocaleDateString()}
-       </div>`;
-     completedCardContainer.appendChild(card);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div 
+        class="card-label" 
+        data-fullname="${filename}"
+      >${filename}</div>
+      <img 
+        src="complete.png" 
+        alt="완료"
+      >
+      <div class="card-status status-completed">
+        ${new Date(completed_at).toLocaleDateString()}
+      </div>`;
+    completedCardContainer.appendChild(card);
 
       } else if (status === '반려') {
         const tr = document.createElement('tr');
