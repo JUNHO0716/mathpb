@@ -181,11 +181,11 @@ passport.deserializeUser((obj, done) => {
    password: process.env.DB_PASSWORD,
    database: process.env.DB_NAME,
    port: process.env.DB_PORT,
-   // 클라이언트(연결) 쪽 charset 은 반드시 'utf8mb4' 로!
-   charset: 'utf8mb4',
+  // Collation까지 함께 지정해 줍니다.
+  charset: 'utf8mb4_unicode_ci',
    timezone: 'Z'
  });
- 
+
 // 서버 상태 확인용 라우트 (MySQL 연결 확인)
 app.get('/ping-db', async (req, res) => {
   try {
