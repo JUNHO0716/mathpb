@@ -236,10 +236,11 @@ app.post(
       }
 
       for (const f of files) {
-        // ① Multer가 뱉어낸 깨진 이름(raw Latin1) → Buffer
-        const raw = Buffer.from(f.originalname, 'binary');
-        // ② EUC-KR 바이트로 다시 해석
-        const decodedName = iconv.decode(raw, 'euc-kr');
+       // 헤더 바이트를 latin1 로 뽑아서 → UTF-8 로 해석
+       const decodedName = Buffer
+         .from(f.originalname, 'latin1')
+         .toString('utf8');
+
 
         // ③ DB에 저장할 때는 decodedName 을 사용!
         await db.query(
