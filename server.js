@@ -181,6 +181,7 @@ const db = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT,
+  charset:  'utf8mb4'
 });
 
 // 서버 상태 확인용 라우트 (MySQL 연결 확인)

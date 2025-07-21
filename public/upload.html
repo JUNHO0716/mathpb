@@ -273,17 +273,7 @@ th {
     </div>
     <div class="completed-section">
       <h3 class="section-title">완료 파일</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>번호</th>
-            <th>파일명</th>
-            <th>상태</th>
-          </tr>
-        </thead>
-        <tbody id="completed-body">
-        </tbody>
-      </table>
+      <div class="card-container" id="completed-card-container"></div>
     </div>
     <div class="rejected-section">
       <h3 class="section-title">반려 파일</h3>
@@ -313,8 +303,8 @@ const dragArea = document.getElementById('drag-area');
 const uploadHeadArea = document.getElementById('upload-head-area');
 const leftPanel = document.querySelector('.left-panel');
 const uploadCardContainer = document.getElementById('upload-card-container');
-const completedBody      = document.getElementById('completed-body');
 const rejectedBody       = document.getElementById('rejected-body');
+const completedCardContainer = document.getElementById('completed-card-container');
 
 // 1) 파일 처리 로직을 분리
 function handleFileSelection(files) {
@@ -401,32 +391,35 @@ async function loadMyUploads() {
     const res  = await fetch('/api/my-uploads', { credentials: 'include' });
     const data = await res.json();
     // (1) 초기화
-    uploadCardContainer.innerHTML = '';
-    completedBody.innerHTML        = '';
+    uploadCardContainer.innerHTML      = '';
+    completedCardContainer.innerHTML  = '';
     rejectedBody.innerHTML         = '';
     // (2) 상태별 렌더링
     data.forEach(item => {
       const { id, filename, status, reject_reason, completed_at } = item;
       if (status === '확인중' || status === '제작중') {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <div class="card-label">${filename}</div>
-          <img src="pdf_icon.png" alt="PDF">
-          <div class="card-status">
-            ${status === '확인중'
-              ? '시험지 확인중......'
-              : '시험지 제작중......'}
-          </div>`;
+     const card = document.createElement('div');
+     card.className = 'card';
+     card.innerHTML = `
+       <div class="card-label">${filename}</div>
+       <img src="pending.gif" alt="확인중" style="width:50px; margin:10px 0;">
+       <div class="card-status">
+         ${status === '확인중'
+           ? '시험지 확인중……'
+           : '시험지 제작중……'}
+       </div>`;
         uploadCardContainer.appendChild(card);
 
-      } else if (status === '완료') {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${id}</td>
-          <td>${filename}</td>
-          <td>${new Date(completed_at).toLocaleDateString()}</td>`;
-        completedBody.appendChild(tr);
+   } else if (status === '완료') {
+     const card = document.createElement('div');
+     card.className = 'card';
+     card.innerHTML = `
+       <div class="card-label">${filename}</div>
+       <img src="complete.png" alt="완료" style="width:50px; margin:10px 0;">
+       <div class="card-status status-completed">
+         ${new Date(completed_at).toLocaleDateString()}
+       </div>`;
+     completedCardContainer.appendChild(card);
 
       } else if (status === '반려') {
         const tr = document.createElement('tr');
@@ -448,6 +441,13 @@ uploadBtn.addEventListener('click', async () => {
     alert('업로드할 파일을 선택하세요!');
     return;
   }
+
+    // ───────────────────────────────────
+   // (1) 확인/취소 모달
+  if (!confirm('파일을 정말 업로드하시겠습니까?')) {
+    return;
+  }
+
   uploadBtn.disabled = true;
   uploadBtn.innerText = '업로드 중...';
 
@@ -468,6 +468,10 @@ uploadBtn.addEventListener('click', async () => {
     uploadBtn.disabled = false;
     uploadBtn.innerText = '파일 업로드';
     loadMyUploads();
+
+    // ───────────────────────────────────
+    // (2) 업로드 완료 알림
+    alert('업로드가 완료되었습니다!');
   } else {
     alert('업로드 실패');
     uploadBtn.disabled = false;
