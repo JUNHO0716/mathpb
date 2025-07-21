@@ -27,6 +27,7 @@ import multer from 'multer';
 import multerS3 from 'multer-s3';
 import express from 'express';
 import session from 'express-session';
+import iconv from 'iconv-lite';
 
 // AWS S3 연결
 const s3 = new AWS.S3({
@@ -229,18 +230,24 @@ app.post(
   async (req, res) => {
     try {
       const userId = req.session.user.id;
-      const files = req.files;
-      if (!files?.length) return res.status(400).json({ msg: '파일이 없습니다.' });
+      const files  = req.files;
+      if (!files || !files.length) {
+        return res.status(400).json({ msg: '파일이 없습니다.' });
+      }
 
-      for (const file of files) {
-        const filename = Buffer
-          .from(file.originalname, 'latin1')
-          .toString('utf8');
+      for (const f of files) {
+        // ① Multer가 뱉어낸 깨진 이름(raw Latin1) → Buffer
+        const raw = Buffer.from(f.originalname, 'binary');
+        // ② EUC-KR 바이트로 다시 해석
+        const decodedName = iconv.decode(raw, 'euc-kr');
+
+        // ③ DB에 저장할 때는 decodedName 을 사용!
         await db.query(
           'INSERT INTO uploads (user_id, filename, s3_key, status) VALUES (?, ?, ?, ?)',
-          [userId, filename, file.key, '확인중']
+          [userId, decodedName, f.key, '확인중']
         );
       }
+
       res.json({ msg: '업로드 성공' });
     } catch (e) {
       console.error(e);
@@ -523,21 +530,21 @@ app.post('/api/board',  fileUpload.array('fileInput', 10), async (req, res) => {
 
 
 app.get('/api/my-uploads', isLoggedIn, async (req, res) => {
-  const [rows] = await db.query(`
-    SELECT id, filename, status, reject_reason, uploaded_at, completed_at
-    FROM uploads
-    WHERE user_id = ?
-    ORDER BY uploaded_at DESC
-  `, [req.session.user.id]);
+  try {
+    const [rows] = await db.query(`
+      SELECT id, filename, status, reject_reason, uploaded_at, completed_at
+      FROM uploads
+      WHERE user_id = ?
+      ORDER BY uploaded_at DESC
+    `, [req.session.user.id]);
 
-  // DB에 저장된 깨진 이름을 다시 UTF-8로 복원
-  const fixed = rows.map(r => ({
-    ...r,
-    filename: Buffer.from(r.filename, 'latin1').toString('utf8')
-  }));
-  res.json(fixed);
+    // 새로 업로드된 이름은 이미 UTF-8로 잘 저장돼 있으므로 바로 내려줍니다.
+    res.json(rows);
+  } catch (e) {
+    console.error('my-uploads 조회 오류:', e);
+    res.status(500).json({ msg: '업로드 조회 실패', error: e.message });
+  }
 });
-
 
 // 게시판 목록 (GET /api/board?type=ask OR type=upload)
 app.get('/api/board', async (req, res) => {
