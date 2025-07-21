@@ -437,12 +437,16 @@ async function loadMyUploads() {
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
-      <div class="card-label" data-fullname="${filename}">${filename}</div>
-      <img src="pending.gif" alt="확인중">
+      <div 
+        class="card-label" 
+        data-fullname="${filename}"
+      >${filename}</div>
+      <img 
+        src="pending.gif" 
+        alt="확인중"
+      >
       <div class="card-status">
-        시험지 확인중<span class="dots">
-          <span>.</span><span>.</span><span>.</span>
-        </span>
+        시험지 확인중……
       </div>`;
     uploadCardContainer.appendChild(card);
 
@@ -478,36 +482,21 @@ async function loadMyUploads() {
 }
 
 // 업로드 버튼 클릭 로직도 그대로
-// 모달 요소
-const confirmModal = document.getElementById('confirmModal');
-const modalConfirm  = document.getElementById('modalConfirm');
-const modalCancel   = document.getElementById('modalCancel');
-
-// 기존 uploadBtn 핸들러 대신
-uploadBtn.addEventListener('click', () => {
+uploadBtn.addEventListener('click', async () => {
   if (!selectedFiles.length) {
     alert('업로드할 파일을 선택하세요!');
     return;
   }
-  // 커스텀 모달 띄우기
-  confirmModal.classList.add('show');
-});
 
-// 모달 확인 버튼
-modalConfirm.addEventListener('click', async () => {
-  confirmModal.classList.remove('show');
-  await doUpload();  // 아래에 정의할 실제 업로드 함수
-});
+    // ───────────────────────────────────
+   // (1) 확인/취소 모달
+  if (!confirm('파일을 정말 업로드하시겠습니까?')) {
+    return;
+  }
 
-// 모달 취소 버튼
-modalCancel.addEventListener('click', () => {
-  confirmModal.classList.remove('show');
-});
-
-// 실제 업로드 로직을 분리
-async function doUpload() {
   uploadBtn.disabled = true;
   uploadBtn.innerText = '업로드 중...';
+
   const formData = new FormData();
   selectedFiles.forEach(file => formData.append('fileInput', file));
   const res = await fetch('/api/user-upload', {
@@ -515,19 +504,26 @@ async function doUpload() {
     credentials: 'include',
     body: formData
   });
+
   if (res.ok) {
     selectedFiles = [];
     renderPreviewCards();
+    // 업로드 후에도 헤더는 숨긴 채로
     uploadHeadArea.style.display = 'none';
     addFileBtn.style.display = 'none';
-    alert('업로드가 완료되었습니다!');
+    uploadBtn.disabled = false;
+    uploadBtn.innerText = '파일 업로드';
     loadMyUploads();
+
+    // ───────────────────────────────────
+    // (2) 업로드 완료 알림
+    alert('업로드가 완료되었습니다!');
   } else {
     alert('업로드 실패');
+    uploadBtn.disabled = false;
+    uploadBtn.innerText = '파일 업로드';
   }
-  uploadBtn.disabled = false;
-  uploadBtn.innerText = '파일 업로드';
-}
+});
 
 // 초기화
 document.addEventListener('DOMContentLoaded', () => {
