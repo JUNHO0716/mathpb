@@ -434,23 +434,16 @@ async function loadMyUploads() {
     data.forEach(item => {
       const { id, filename, status, reject_reason, completed_at } = item;
       if (status === '확인중' || status === '제작중') {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <div 
-        class="card-label" 
-        data-fullname="${filename}"
-      >${filename}</div>
-      <img 
-        src="pending.gif" 
-        alt="확인중"
-      >
-      <div class="card-status">
-        시험지 확인중……
-      </div>`;
-    uploadCardContainer.appendChild(card);
-
-   } else if (status === '완료') {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="card-label" data-fullname="${filename}">${filename}</div>
+        <img src="pending.gif" alt="${status}">
+        <div class="card-status">
+          시험지 ${status === '제작중' ? '제작중' : '확인중'}<span class="dots"><span>.</span><span>.</span><span>.</span></span>
+        </div>`;
+      uploadCardContainer.appendChild(card);
+    } else if (status === '완료') {
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
