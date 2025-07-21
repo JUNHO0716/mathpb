@@ -380,7 +380,27 @@ for (const f of files) {
       }
     });
 
+// – 로그인된 사용자만, 본인이 올린 항목만 삭제 가능
+app.delete('/api/uploads/:id', isLoggedIn, async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const uploadId = req.params.id;
 
+    // 본인이 올린 것만 삭제
+    const [result] = await db.query(
+      'DELETE FROM uploads WHERE id = ? AND user_id = ?',
+      [uploadId, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ msg: '삭제할 업로드가 없거나 권한이 없습니다.' });
+    }
+    res.json({ msg: '삭제 성공' });
+  } catch (err) {
+    console.error('DELETE /api/uploads/:id error:', err);
+    res.status(500).json({ msg: '서버 오류' });
+  }
+});
 
 
 
