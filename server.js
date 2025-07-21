@@ -10,6 +10,16 @@ const __dirname = path.dirname(__filename);
 import passport from 'passport';
 import GoogleStrategy from 'passport-google-oauth20';
 import mysql from 'mysql2/promise';
+const db = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT,
+  charset: 'utf8mb4',
+  timezone: 'Z'
+});
+db.on('connection', conn => conn.query("SET NAMES utf8mb4"));
 import bcrypt from 'bcrypt';
 import cors from 'cors';
 import AWS from 'aws-sdk';
@@ -175,16 +185,6 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser((obj, done) => {
   done(null, obj);
 });
- const db = mysql.createPool({
-   host: process.env.DB_HOST,
-   user: process.env.DB_USER,
-   password: process.env.DB_PASSWORD,
-   database: process.env.DB_NAME,
-   port: process.env.DB_PORT,
-  // Collation까지 함께 지정해 줍니다.
-  charset: 'utf8mb4_unicode_ci',
-   timezone: 'Z'
- });
 
 // 서버 상태 확인용 라우트 (MySQL 연결 확인)
 app.get('/ping-db', async (req, res) => {
@@ -221,6 +221,33 @@ app.post('/register', async (req, res) => {
     }
   }
 });
+
+app.post(
+  '/api/user-upload',
+  isLoggedIn,
+  fileUpload.array('fileInput', 10),
+  async (req, res) => {
+    try {
+      const userId = req.session.user.id;
+      const files = req.files;
+      if (!files?.length) return res.status(400).json({ msg: '파일이 없습니다.' });
+
+      for (const file of files) {
+        const filename = Buffer
+          .from(file.originalname, 'latin1')
+          .toString('utf8');
+        await db.query(
+          'INSERT INTO uploads (user_id, filename, s3_key, status) VALUES (?, ?, ?, ?)',
+          [userId, filename, file.key, '확인중']
+        );
+      }
+      res.json({ msg: '업로드 성공' });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ msg: '서버 오류', error: e.message });
+    }
+  }
+);
 
 // 로그인 API - 세션 저장 포함
 app.post('/login', async (req, res) => {
@@ -494,45 +521,21 @@ app.post('/api/board',  fileUpload.array('fileInput', 10), async (req, res) => {
   }
 });
 
-app.post('/api/user-upload', isLoggedIn, fileUpload.array('fileInput', 10), async (req, res) => {
-  try {
-    const userId = req.session.user.id;
-    const files = req.files;
-
-    if (!files || files.length === 0)
-      return res.status(400).json({ msg: '파일이 없습니다.' });
-
-    for (const file of files) {
-    await db.query(
-      'INSERT INTO uploads (user_id, filename, s3_key, status) VALUES (?, ?, ?, ?)',
-      [userId, file.originalname, file.key, '확인중']
-    );
-    }
-
-    res.json({ msg: '업로드 성공' });
-  } catch (e) {
-    res.status(500).json({ msg: '서버 오류', error: e.message });
-  }
-});
 
 app.get('/api/my-uploads', isLoggedIn, async (req, res) => {
-  try {
-    const userId = req.session.user.id;  // 로그인한 사용자만 조회 가능
-    const [rows] = await db.query(`
-      SELECT id,
-             filename,
-             status,
-             reject_reason,
-             uploaded_at,
-             completed_at           -- ← 여기 추가
-      FROM uploads
-      WHERE user_id = ?
-      ORDER BY uploaded_at DESC
-    `, [userId]);
-    res.json(rows);  // 프론트에 데이터 전달
-  } catch (e) {
-    res.status(500).json({ msg: '업로드 조회 실패', error: e.message });
-  }
+  const [rows] = await db.query(`
+    SELECT id, filename, status, reject_reason, uploaded_at, completed_at
+    FROM uploads
+    WHERE user_id = ?
+    ORDER BY uploaded_at DESC
+  `, [req.session.user.id]);
+
+  // DB에 저장된 깨진 이름을 다시 UTF-8로 복원
+  const fixed = rows.map(r => ({
+    ...r,
+    filename: Buffer.from(r.filename, 'latin1').toString('utf8')
+  }));
+  res.json(fixed);
 });
 
 
