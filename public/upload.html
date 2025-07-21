@@ -267,6 +267,17 @@ th {
   margin-top: 130px;  /* 원하는 만큼 조정 (예: 120px) */
 }
 
+/* 선택된 카드 강조 */
+.card.selected {
+  border-color: #f44 !important;
+  box-shadow: 0 0 8px rgba(244,0,0,0.4);
+}
+/* 제작중 카드 비활성화 */
+.card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
 @keyframes wave {
   0% { transform: translateY(0); }
   30% { transform: translateY(-4px); }
@@ -308,8 +319,9 @@ th {
   <div class="right-panel">
     <div class="status-section">
       <h3 class="section-title">업로드 파일</h3>
-      <div class="card-container" id="upload-card-container"></div>
-    </div>
+        <button id="delete-btn" disabled style="float:right; margin-top:-36px;">삭제하기</button>
+        <div class="card-container" id="upload-card-container"></div>
+      </div>
     <div class="completed-section">
       <h3 class="section-title">완료 파일</h3>
       <div class="card-container" id="completed-card-container"></div>
@@ -330,10 +342,30 @@ th {
     </div>
   </div>
 </div>
+<!-- 삭제 확인 모달 (body 끝 바로 위에 추가) -->
+<div id="delete-modal" style="
+     display:none; position:fixed; top:0; left:0;
+     width:100%; height:100%; background:rgba(0,0,0,0.4);
+     align-items:center; justify-content:center;
+">
+  <div style="
+       background:#fff; padding:20px; border-radius:8px;
+       text-align:center; min-width:240px;
+  ">
+    <p>선택한 파일을 삭제하시겠습니까?</p>
+    <button id="confirm-delete" style="margin-right:8px;">삭제</button>
+    <button id="cancel-delete">취소</button>
+  </div>
+</div>
 </body>
 <script>
 let selectedFiles = [];
 
+const deleteBtn     = document.getElementById('delete-btn');
+const deleteModal   = document.getElementById('delete-modal');
+const confirmDelete = document.getElementById('confirm-delete');
+const cancelDelete  = document.getElementById('cancel-delete');
+let selectedIds = [];
 const fileInput = document.getElementById('fileInput');
 const previewCardContainer = document.getElementById('preview-card-container');
 const uploadBtn = document.getElementById('upload-btn');
@@ -397,6 +429,8 @@ leftPanel.addEventListener('drop', e => {
   handleFileSelection(Array.from(e.dataTransfer.files));
 });
 
+dragArea.addEventListener('click', () => fileInput.click());
+
 // 기존 렌더링 함수 등은 그대로 유지
 function renderPreviewCards() {
   previewCardContainer.innerHTML = '';
@@ -429,47 +463,42 @@ async function loadMyUploads() {
   try {
     const res  = await fetch('/api/my-uploads', { credentials: 'include' });
     const data = await res.json();
-    // (1) 초기화
-    uploadCardContainer.innerHTML      = '';
-    completedCardContainer.innerHTML  = '';
-    rejectedBody.innerHTML         = '';
-    // (2) 상태별 렌더링
+    uploadCardContainer.innerHTML     = '';
+    completedCardContainer.innerHTML = '';
+    rejectedBody.innerHTML           = '';
+    selectedIds = [];
+    deleteBtn.disabled = true;
+
     data.forEach(item => {
-      const { id, filename, status, reject_reason, completed_at } = item;
-      if (status === '확인중' || status === '제작중') {
+      const { id, filename, status, completed_at } = item;
       const card = document.createElement('div');
       card.className = 'card';
+      card.dataset.id = id;
+
+      // “확인중”만 클릭 가능 → toggleSelection으로 토글
+      if (status === '확인중') {
+        card.addEventListener('click', () => toggleSelection(card, id));
+      } else {
+        card.classList.add('disabled');
+      }
+
+      // 카드 내부 내용 (기존과 동일하게)
       card.innerHTML = `
         <div class="card-label" data-fullname="${filename}">${filename}</div>
-        <img src="pending.gif" alt="${status}">
-        <div class="card-status">
-          시험지 ${status === '제작중' ? '제작중' : '확인중'}<span class="dots"><span>.</span><span>.</span><span>.</span></span><span>.</span><span>.</span><span>.</span></span>
+        <img src="${status === '완료' ? 'complete.png' : 'pending.gif'}" alt="${status}">
+        <div class="card-status ${status==='완료'?'status-completed':''}">
+          ${
+            status === '완료'
+              ? new Date(completed_at).toLocaleDateString()
+              : `시험지 확인중<span class="dots"><span>.</span><span>.</span><span>.</span></span>`
+          }
         </div>`;
-      uploadCardContainer.appendChild(card);
-    } else if (status === '완료') {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <div 
-        class="card-label" 
-        data-fullname="${filename}"
-      >${filename}</div>
-      <img 
-        src="complete.png" 
-        alt="완료"
-      >
-      <div class="card-status status-completed">
-        ${new Date(completed_at).toLocaleDateString()}
-      </div>`;
-    completedCardContainer.appendChild(card);
 
-      } else if (status === '반려') {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${id}</td>
-          <td>${filename}</td>
-          <td>${reject_reason || ''}</td>`;
-        rejectedBody.appendChild(tr);
+      // 위치 분기
+      if (status === '완료') {
+        completedCardContainer.appendChild(card);
+      } else {
+        uploadCardContainer.appendChild(card);
       }
     });
   } catch (e) {
@@ -519,6 +548,39 @@ uploadBtn.addEventListener('click', async () => {
     uploadBtn.disabled = false;
     uploadBtn.innerText = '파일 업로드';
   }
+});
+
+function toggleSelection(card, id) {
+  if (card.classList.contains('selected')) {
+    card.classList.remove('selected');
+    selectedIds = selectedIds.filter(x => x !== id);
+  } else {
+    card.classList.add('selected');
+    selectedIds.push(id);
+  }
+  deleteBtn.disabled = selectedIds.length === 0;
+}
+
+// “삭제하기” 누르면 모달 띄우기
+deleteBtn.addEventListener('click', () => {
+  deleteModal.style.display = 'flex';
+});
+// 모달 취소
+cancelDelete.addEventListener('click', () => {
+  deleteModal.style.display = 'none';
+});
+// 모달 삭제 확정
+confirmDelete.addEventListener('click', async () => {
+  deleteModal.style.display = 'none';
+  // 선택된 ID들만 DELETE
+  await Promise.all(selectedIds.map(id =>
+    fetch(`/api/admin/uploads/${id}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    })
+  ));
+  // 목록 다시 불러오기
+  loadMyUploads();
 });
 
 // 초기화
