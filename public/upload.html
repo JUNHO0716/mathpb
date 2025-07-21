@@ -117,8 +117,11 @@ th {
 }
 
 .card {
+  display: flex;               /* 이 줄 추가 */
+  flex-direction: column;      /* 이 줄도 추가해야 위/아래로 분리됩니다 */
   width: 160px;
   border: 2px solid #f3c24b;
+  justify-content: space-between; /* 위와 아래로 요소를 분리 */
   border-radius: 12px;
   padding: 12px;
   text-align: center;
@@ -132,10 +135,14 @@ th {
   margin: 10px 0;
 }
 
-.card-label,
-.card-status {
+.card-label {
   text-align: left;
   padding-left: 4px;
+}
+
+.card-status {
+  margin-top: 8px; /* 위 텍스트와 간격 */
+  text-align: left;
 }
 
 .dots {

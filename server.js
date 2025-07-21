@@ -181,8 +181,13 @@ const db = mysql.createPool({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT,
-  charset:  'utf8mb4'
+  charset: 'utf8mb4',         // ← 문자셋만 지정
+  timezone: 'Z'               // ← (선택) UTC 고정
 });
+
+db.query("SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci")
+  .then(() => console.log("✅ MySQL connection charset set to utf8mb4"))
+  .catch(err => console.error("❌ charset 설정 실패:", err));
 
 // 서버 상태 확인용 라우트 (MySQL 연결 확인)
 app.get('/ping-db', async (req, res) => {
@@ -714,7 +719,19 @@ app.get('/admin_files.html',  isLoggedIn, isAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin_files.html'));
 });
 
-app.use(express.static('public'));
+app.use(
+  express.static(path.join(__dirname, 'public'), {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Content-Type', 'text/html; charset=UTF-8');
+      } else if (filePath.endsWith('.js')) {
+        res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
+      } else if (filePath.endsWith('.css')) {
+        res.setHeader('Content-Type', 'text/css; charset=UTF-8');
+      }
+    }
+  })
+);
 
 // 파일 삭제 (관리자만)
 app.delete('/api/files/:id', isLoggedIn, isAdmin, async (req, res) => {
