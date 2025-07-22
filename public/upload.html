@@ -312,6 +312,26 @@ th {
   color: #000;
 }
 
+/* 1) 헤더 안에서 제목과 버튼을 좌우로 정렬 */
+.status-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 2) 삭제 버튼 기본 스타일 (검정 바탕 + 흰 글씨) */
+#delete-btn {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  /* float 제거하고 마진 초기화 */
+  float: none;
+  margin: 0;
+}
+
 </style>
 </head>
 <body>
@@ -344,11 +364,13 @@ th {
   </div>
 </div>
   <div class="right-panel">
-    <div class="status-section">
+  <div class="status-section">
+    <div class="section-header">
       <h3 class="section-title">업로드 파일</h3>
-        <button id="delete-btn" disabled>삭제하기</button>
-        <div class="card-container" id="upload-card-container"></div>
-      </div>
+      <button id="delete-btn" disabled>삭제하기</button>
+    </div>
+    <div class="card-container" id="upload-card-container"></div>
+  </div>
     <div class="completed-section">
       <h3 class="section-title">완료 파일</h3>
       <div class="card-container" id="completed-card-container"></div>
@@ -421,7 +443,7 @@ function handleFileSelection(files) {
   // 업로드 헤더 숨김/추가 버튼 노출
   if (selectedFiles.length > 0) {
     uploadHeadArea.style.display = 'none';
-    addFileBtn.style.display = '';
+    addFileBtn.style.display     = 'block';
   } else {
     uploadHeadArea.style.display = '';
     addFileBtn.style.display = 'none';
