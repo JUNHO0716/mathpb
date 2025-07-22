@@ -569,19 +569,26 @@ deleteBtn.addEventListener('click', () => {
 cancelDelete.addEventListener('click', () => {
   deleteModal.style.display = 'none';
 });
-// 모달 삭제 확정
-confirmDelete.addEventListener('click', async () => {
-  deleteModal.style.display = 'none';
-  // 선택된 ID들만 DELETE
-  await Promise.all(selectedIds.map(id =>
-    fetch(`/api/admin/uploads/${id}`, {
-      method: 'DELETE',
-      credentials: 'include'
-    })
+
+ confirmDelete.addEventListener('click', async () => {
+   // 모달 닫기
+   deleteModal.style.display = 'none';
+
+   // 선택된 ID들에 대해 모두 DELETE 요청 (/api/uploads/:id)
+   await Promise.all(selectedIds.map(id =>
+     fetch(`/api/uploads/${id}`, {
+       method: 'DELETE',
+       credentials: 'include'
+     })
   ));
-  // 목록 다시 불러오기
-  loadMyUploads();
-});
+
+   // 삭제 후 목록 다시 로드
+   loadMyUploads();
+
+   // 선택 초기화
+   selectedIds = [];
+   deleteBtn.disabled = true;
+ });
 
 // 초기화
 document.addEventListener('DOMContentLoaded', () => {
