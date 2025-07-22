@@ -285,6 +285,33 @@ th {
   100% { transform: translateY(0); }
 }
 
+/* 삭제하기 버튼 스타일 */
+#delete-btn {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* 모달 안의 버튼 스타일 */
+#confirm-delete, #cancel-delete {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 0 6px;
+}
+#confirm-delete {
+  background-color: #000;
+  color: #fff;
+}
+#cancel-delete {
+  background-color: #e0e0e0;
+  color: #000;
+}
+
 </style>
 </head>
 <body>
@@ -319,7 +346,7 @@ th {
   <div class="right-panel">
     <div class="status-section">
       <h3 class="section-title">업로드 파일</h3>
-        <button id="delete-btn" disabled style="float:right; margin-top:-36px;">삭제하기</button>
+        <button id="delete-btn" disabled>삭제하기</button>
         <div class="card-container" id="upload-card-container"></div>
       </div>
     <div class="completed-section">
@@ -342,7 +369,7 @@ th {
     </div>
   </div>
 </div>
-<!-- 삭제 확인 모달 (body 끝 바로 위에 추가) -->
+<!-- 삭제 확인 모달 (body 끝 바로 위) -->
 <div id="delete-modal" style="
      display:none; position:fixed; top:0; left:0;
      width:100%; height:100%; background:rgba(0,0,0,0.4);
@@ -352,8 +379,8 @@ th {
        background:#fff; padding:20px; border-radius:8px;
        text-align:center; min-width:240px;
   ">
-    <p>선택한 파일을 삭제하시겠습니까?</p>
-    <button id="confirm-delete" style="margin-right:8px;">삭제</button>
+    <p>정말 선택한 파일을 삭제하시겠습니까?</p>
+    <button id="confirm-delete">삭제</button>
     <button id="cancel-delete">취소</button>
   </div>
 </div>
@@ -561,34 +588,34 @@ function toggleSelection(card, id) {
   deleteBtn.disabled = selectedIds.length === 0;
 }
 
-// “삭제하기” 누르면 모달 띄우기
+// “삭제하기” 버튼 클릭 → 모달 열기
 deleteBtn.addEventListener('click', () => {
   deleteModal.style.display = 'flex';
 });
+
 // 모달 취소
 cancelDelete.addEventListener('click', () => {
   deleteModal.style.display = 'none';
 });
 
- confirmDelete.addEventListener('click', async () => {
-   // 모달 닫기
-   deleteModal.style.display = 'none';
+// 모달에서 삭제 확정
+confirmDelete.addEventListener('click', async () => {
+  // 모달 닫기
+  deleteModal.style.display = 'none';
 
-   // 선택된 ID들에 대해 모두 DELETE 요청 (/api/uploads/:id)
-   await Promise.all(selectedIds.map(id =>
-     fetch(`/api/uploads/${id}`, {
-       method: 'DELETE',
-       credentials: 'include'
-     })
+  // 선택된 ID들에 대해 DELETE 요청
+  await Promise.all(selectedIds.map(id =>
+    fetch(`/api/uploads/${id}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    })
   ));
 
-   // 삭제 후 목록 다시 로드
-   loadMyUploads();
-
-   // 선택 초기화
-   selectedIds = [];
-   deleteBtn.disabled = true;
- });
+  // 삭제 후 목록 갱신 및 선택 초기화
+  loadMyUploads();
+  selectedIds = [];
+  deleteBtn.disabled = true;
+});
 
 // 초기화
 document.addEventListener('DOMContentLoaded', () => {
