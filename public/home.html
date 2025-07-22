@@ -84,18 +84,38 @@
 
     /* 이미지는 영역을 꽉 채우고 비율 유지(잘릴 수 있음) */
     .adSwiper .swiper-slide img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;     /* ✅ 이미지가 잘려도 꽉 채움 */
     }
 
   .promo-banner{
-    margin:40px 40px;
-    height:280px;
-    border-radius:22px;
-    overflow:hidden;
-    width:calc(100% - 80px);
+    margin: 0;             /* ✅ 여백 제거 */
+    padding: 0;
+    height: 100px;
+    border-radius: 0;      /* ✅ 둥근 테두리 제거 (선택사항) */
+    overflow: hidden;
+    width: 100%;           /* ✅ 전체 너비로 확장 */
   }
+
+  /* 🔶 탑 광고배너 스타일 (배너 크고 좌우 꽉 차게) */
+.top-banner {
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  border-bottom: 1px solid #eee;
+}
+.topSwiper,
+.topSwiper .swiper-wrapper,
+.topSwiper .swiper-slide {
+  width: 100%;
+  height: 100%;
+}
+.topSwiper .swiper-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
   /* ▣ 모달 */
   .modal{position:fixed;inset:0;display:none;align-items:center;
@@ -254,7 +274,7 @@
     }
     .notice-item:hover{background:#f5faf8;}
     .notice-num{
-      min-width:18px;height:18px;background:#fdc512;color:#fff;
+      min-width:18px;height:18px;background:#111;color:#fff;
       border-radius:50px;font-size:.76rem;font-weight:700;
       display:flex;align-items:center;justify-content:center;
       margin-right:6px;
@@ -394,12 +414,27 @@
   color: #d9a90f;         /* 진한 노랑 */
 }
 
+.topSwiper .swiper-pagination {
+  display: none !important;
+}
+
 
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
 <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
 </head>
 <body>
+<!-- 🔶 탑 광고배너 (클릭 없이 이미지 자동 슬라이드만) -->
+<section class="top-banner">
+  <div class="swiper topSwiper">
+    <div class="swiper-wrapper">
+      <div class="swiper-slide"><img src="ad_big1.jpg" alt="탑 배너 1"></div>
+      <div class="swiper-slide"><img src="ad_big2.jpg" alt="탑 배너 2"></div>
+      <div class="swiper-slide"><img src="ad_big3.jpg" alt="탑 배너 3"></div>
+    </div>
+    <div class="swiper-pagination"></div>
+  </div>
+</section>
 
 <!-- ▣ 광고 슬라이더 ▣ -->
 <section class="promo-banner">
@@ -407,19 +442,19 @@
     <div class="swiper-wrapper">         <!-- ② 래퍼 -->
 <!-- ③ 슬라이드: 필요만큼 복사해서 추가 -->
       <div class="swiper-slide" data-url="promo1.html">
-        <img src="ad1.png" alt="배너 1">
+        <img src="ad1.jpg" alt="배너 1">
       </div>
 
       <div class="swiper-slide" data-url="promo2.html">
-        <img src="ad2.png" alt="배너 2">
+        <img src="ad2.jpg" alt="배너 2">
       </div>
 
       <div class="swiper-slide" data-url="promo3.html">
-        <img src="ad3.png" alt="배너 3">
+        <img src="ad3.jpg" alt="배너 3">
       </div>
 
       <div class="swiper-slide" data-url="promo4.html">
-        <img src="ad4.png" alt="배너 4">
+        <img src="ad4.jpg" alt="배너 4">
       </div>
       </div>
    <div class="swiper-pagination"></div> <!-- 페이지네이션은 wrapper 밖 -->
@@ -623,6 +658,21 @@ const adSwiper = new Swiper('.adSwiper', {
   },
 });
 
+const topSwiper = new Swiper('.topSwiper', {
+  loop: true,
+  autoplay: { delay: 4000 },
+  effect: 'fade',           // ✅ 페이드 전환 효과
+  fadeEffect: {
+    crossFade: true         // ✅ 자연스럽게 겹쳐지듯 전환
+  },
+  speed: 1000,              // ✅ 페이드 속도 (1초)
+  allowTouchMove: false,
+  simulateTouch: false,
+  pagination: {
+    el: '.topSwiper .swiper-pagination',
+    clickable: false
+  }
+});
 
 /* 10초마다 자동 슬라이드 */
 setInterval(()=>{
