@@ -6,6 +6,21 @@
   <link rel="icon" type="image/png" href="/favicon.png" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@toast-ui/editor-plugin-color-picker/dist/toastui-editor-plugin-color-picker.min.css">
+
+  <!-- 2. 에디터 JS (본체) -->
+  <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+
+  <!-- 3. Color Picker 플러그인 (***JS 꼭 추가!!***) -->
+  <script src="https://cdn.jsdelivr.net/npm/@toast-ui/editor-plugin-color-picker/dist/toastui-editor-plugin-color-picker.min.js"></script>
+
+  <!-- 4. Color Syntax 플러그인 -->
+  <script src="https://uicdn.toast.com/editor-plugin-color-syntax/latest/toastui-editor-plugin-color-syntax.min.js"></script>
+
+  <!-- 5. FontSize/FontFamily 플러그인 -->
+  <script src="https://cdn.jsdelivr.net/npm/@toast-ui/editor-plugin-font-size/dist/toastui-editor-plugin-font-size.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@toast-ui/editor-plugin-font-family/dist/toastui-editor-plugin-font-family.min.js"></script>
 
   <style>
   :root{
@@ -225,6 +240,14 @@
       border-bottom-color: #f8c900;          /* ✅ 색상만 바뀜 */
     }
 
+    #notice-modal-box {
+      resize: both;
+      overflow: auto;
+      min-height: 400px;
+      min-width: 360px;
+      max-width: 95vw;
+    }
+
   </style>
 </head>
 <body>
@@ -280,10 +303,13 @@
         <input id="input-title" name="title" type="text" placeholder="제목을 입력하세요" maxlength="60" required>
 
         <label for="input-content">내용</label>
-        <textarea id="input-content" name="content" placeholder="내용을 입력하세요" required></textarea>
+        <div id="editor" style="height:320px; margin-bottom:10px;"></div>
 
         <label for="input-img">이미지 첨부 (선택)</label>
         <input id="input-img" name="image" type="file" accept="image/*">
+
+        <label for="input-file">파일 첨부 (선택)</label>
+        <input id="input-file" name="file" type="file">
 
         <button type="submit" id="modal-submit">등록</button>
       </div>
@@ -458,7 +484,7 @@ if (!row) {
   if(IS_ADMIN){
     contentHtml += `<button style="float:right;margin-left:15px;background:#e54e4e;color:#fff;border:none;border-radius:5px;font-size:.98rem;padding:7px 18px;cursor:pointer;" onclick="deleteNotice('${id}', this)">삭제</button>`;
   }
-  contentHtml += `<div style="font-size:1.07rem;margin-bottom:15px;white-space:pre-line;">${data.content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>`;
+  contentHtml += `<div style="font-size:1.07rem;margin-bottom:15px;">${data.content}</div>`;
   if(data.imageUrl){
     contentHtml += `<img src="${data.imageUrl}" style="max-width:360px;border-radius:9px;margin-top:10px;">`;
   }
@@ -490,30 +516,98 @@ if (!row) {
     document.getElementById('fab-add').onclick=()=>{
       document.getElementById('notice-modal-bg').style.display='flex';
       document.getElementById('input-title').value='';
-      document.getElementById('input-content').value='';
+      toastEditor.setHTML(''); // 이걸로 Toast 에디터 초기화!
       document.getElementById('input-img').value='';
       document.getElementById('input-title').focus();
     };
     document.getElementById('notice-modal-close').onclick=()=>{document.getElementById('notice-modal-bg').style.display='none';};
     document.getElementById('notice-modal-bg').onclick=e=>{if(e.target===e.currentTarget)e.currentTarget.style.display='none';};
 
-    document.getElementById('notice-form').onsubmit=async e=>{
-      e.preventDefault();
-      const title=document.getElementById('input-title').value.trim();
-      const content=document.getElementById('input-content').value.trim();
-      const image=document.getElementById('input-img').files[0];
-      if(!title||!content){alert('제목과 내용을 입력하세요');return;}
 
-      const fd=new FormData();fd.append('title',title);fd.append('content',content);if(image)fd.append('image',image);
-      const res=await fetch('/api/notices',{method:'POST',body:fd,credentials:'include'});
-      const data=await res.json();
-      if(data.msg==='공지 등록 성공'){document.getElementById('notice-modal-bg').style.display='none';loadNotices();}
-      else alert('등록 실패: '+data.msg);
-    };
+let toastEditor;  // 에디터 인스턴스
 
-document.addEventListener('DOMContentLoaded', async function(){
-  await checkAuth(); // <<-- 가장 먼저 실행! (중요)
+document.addEventListener('DOMContentLoaded', async function() {
+toastEditor = new toastui.Editor({
+  el: document.querySelector('#editor'),
+  height: '320px',
+  initialEditType: 'wysiwyg',
+  previewStyle: 'vertical',
+  language: 'ko',
+  toolbarItems: [
+    ['heading', 'bold', 'italic', 'underline', 'strike', 'divider',
+    'fontSize', 'fontFamily', 'color', 'bgColor', 'divider',
+    'hr', 'quote', 'divider',
+    'ul', 'ol', 'task', 'indent', 'outdent', 'divider',
+    'table', 'link', 'image', 'code', 'codeblock']
+  ],
+  plugins: [
+    toastui.Editor.plugin.colorSyntax,
+    toastui.Editor.plugin.fontSize,
+    toastui.Editor.plugin.fontFamily
+  ],
+  hooks: {
+    addImageBlobHook: async (blob, callback) => {
+      const formData = new FormData();
+      formData.append('image', blob);
+      const res = await fetch('/api/upload-img', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      const data = await res.json();
+      callback(data.url, '이미지');
+    }
+  }
+});
 
+  // 글쓰기 모달, 새 글이면 에디터 초기화
+  document.getElementById('fab-add').onclick = () => {
+    document.getElementById('notice-modal-bg').style.display = 'flex';
+    document.getElementById('input-title').value = '';
+    // 리치에디터 내용 비우기
+    toastEditor.setHTML('');
+    document.getElementById('input-img').value = '';
+    document.getElementById('input-title').focus();
+  };
+
+  // 기존 loadNotices, 상세 등 기존대로 유지
+  // ...
+
+  // 공지 등록 submit에서 textarea → 리치에디터 값 사용!
+  document.getElementById('notice-form').onsubmit = async e => {
+    e.preventDefault();
+    const title = document.getElementById('input-title').value.trim();
+    const content = toastEditor.getHTML(); // 여기!!
+    const image = document.getElementById('input-img').files[0];
+    if(!title || !content) {
+      alert('제목과 내용을 입력하세요');
+      return;
+    }
+
+    const fd = new FormData();
+    fd.append('title', title);
+    fd.append('content', content);
+    if(image) fd.append('image', image);
+
+    const res = await fetch('/api/notices', {method:'POST', body: fd, credentials:'include'});
+    const data = await res.json();
+    if(data.msg === '공지 등록 성공') {
+      document.getElementById('notice-modal-bg').style.display = 'none';
+      loadNotices();
+    } else alert('등록 실패: '+data.msg);
+  };
+
+  // 삭제 등 나머지 기존 로직 그대로
+  // ...
+
+  // 관리자가 아니면 글쓰기 버튼 숨김
+  if (IS_ADMIN) {
+    document.getElementById('fab-add').style.display = 'flex';
+  } else {
+    document.getElementById('fab-add').style.display = 'none';
+  }
+
+  // 첫 로딩
   const params = new URLSearchParams(location.search);
   const noticeId = params.get('id');
   if (noticeId) {
