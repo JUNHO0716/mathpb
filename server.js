@@ -792,12 +792,12 @@ app.post('/api/download-log', async (req, res) => {
 });
 
 app.get('/api/downloads/recent', async (req, res) => {
-  const userEmail = req.query.email;
-  if (!userEmail) return res.status(400).json({ error: '이메일 누락' });
-
-  const conn = await pool.getConnection();
   try {
-    const [rows] = await conn.query(`
+    const userEmail = req.query.email;
+    if (!userEmail) return res.status(400).json({ error: '이메일 누락' });
+
+    // db로 수정!
+    const [rows] = await db.query(`
       SELECT file_name AS name, COUNT(*) AS count, MAX(downloaded_at) AS date
       FROM downloads_log
       WHERE user_email = ?
@@ -806,15 +806,12 @@ app.get('/api/downloads/recent', async (req, res) => {
       LIMIT 5
     `, [userEmail]);
 
-    res.json(rows);  // ✅ 이 부분!!
+    res.json(rows); // 이 rows가 프론트에서 map 가능한 배열
   } catch (e) {
     console.error('최근 다운로드 불러오기 실패', e);
     res.status(500).json({ error: '서버 오류' });
-  } finally {
-    conn.release();
   }
 });
-
 
 
 // 파일 삭제 (관리자만)
