@@ -423,6 +423,21 @@
   display: none !important;
 }
 
+.download-btn {
+  background: #fdc512;
+  border: none;
+  color: #111;
+  border-radius: 7px;
+  padding: 6px 14px;
+  font-size: 0.93rem;
+  font-weight: 700;
+  margin: 0 2px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.download-btn:hover {
+  background: #d9a90f;
+}
 
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
@@ -512,11 +527,11 @@
         <thead>
           <tr>
             <th style="width:60%;">파일명</th>
-            <th style="width:20%;">문제수</th>
-            <th style="width:20%;">다운로드일</th>
+            <th style="width:20%;">다운로드</th> <!-- "다운로드일" → "다운로드" -->
+            <th style="width:20%;">파일</th>
           </tr>
         </thead>
-        <tbody></tbody>
+        <tbody id="recentDownloadsTbody"></tbody>
       </table>
     </div>
   </div>
@@ -834,12 +849,20 @@ document.addEventListener('DOMContentLoaded', function() {
   loadRecentDownloads();
 });
 
+
+// 날짜 YYYY-MM-DD로 포맷
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  return dateStr.split('T')[0];
+}
+
 async function loadRecentDownloads() {
   try {
-    // (세션 로그인 기준이면 email 파라미터 없이도 동작하게 백엔드 짜는게 더 일반적임)
-    const res = await fetch('/api/downloads/recent?email=gh_6399@naver.com', { credentials: 'include' });
+    // 실제 이메일 변수로 교체해야 함. 여기선 예시로 사용
+    const userEmail = document.getElementById('profileEmail')?.textContent?.trim();
+    const res = await fetch('/api/downloads/recent?email=' + encodeURIComponent(userEmail), { credentials: 'include' });
     const data = await res.json();
-    const tbody = document.querySelector('.downloads-card .rf-table tbody');
+    const tbody = document.getElementById('recentDownloadsTbody');
     if (!tbody) return;
     if (!Array.isArray(data) || data.length === 0) {
       tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#aaa;">최근 다운로드 내역이 없습니다.</td></tr>';
@@ -847,18 +870,28 @@ async function loadRecentDownloads() {
     }
     tbody.innerHTML = data.map(row => `
       <tr>
-        <td class="title">${row.name || row.file_name || '-'}</td>
-        <td>${row.count || '-'}</td>
-        <td>${row.date || '-'}</td>
+        <td style="text-align:center;" class="title">${row.name || row.file_name || '-'}</td>
+        <td style="text-align:center;">${formatDate(row.date)}</td>
+        <td style="text-align:center;">
+          <button class="download-btn" onclick="downloadFile('${row.name}', 'hwp')">한글</button>
+          <button class="download-btn" onclick="downloadFile('${row.name}', 'pdf')">PDF</button>
+        </td>
       </tr>
     `).join('');
   } catch (e) {
-    const tbody = document.querySelector('.downloads-card .rf-table tbody');
+    const tbody = document.getElementById('recentDownloadsTbody');
     if (tbody) {
       tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:red;">다운로드 목록을 불러오지 못했습니다.</td></tr>';
     }
     console.error(e);
   }
+}
+
+// 파일 다운로드 버튼 동작 예시
+function downloadFile(fileName, type) {
+  // 실제로는 file_id도 같이 넘기는 게 맞음! (file_name 중복될 수 있으니)
+  // file_id를 백엔드에서 내려주면 row.id로 바꿔서 구현
+  window.open(`/api/download?name=${encodeURIComponent(fileName)}&type=${type}`, '_blank');
 }
 
 </script>
