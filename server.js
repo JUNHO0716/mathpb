@@ -307,7 +307,7 @@ app.post('/api/notices',
   isLoggedIn, isAdmin,
   fileUpload.single('image'),
   async (req, res) => {
-    const { title, content } = req.body;
+    const { title, content, category } = req.body;
     if (!title || !content)
       return res.status(400).json({ msg: '필수 입력값' });
 
@@ -315,21 +315,25 @@ app.post('/api/notices',
     const today    = new Date().toISOString().slice(0, 10);
 
     await db.query(
-      'INSERT INTO notices (title, date, content, imageUrl) VALUES (?,?,?,?)',
-      [title, today, content, imageUrl]
+      'INSERT INTO notices (title, date, content, imageUrl, category) VALUES (?,?,?,?,?)',
+      [title, today, content, imageUrl, category || '공지']
     );
     res.json({ msg: '공지 등록 성공' });
 });
 
 // 공지사항 목록 (제목, 날짜만)
 app.get('/api/notices', async (req, res) => {
+  const type = req.query.type || '공지';  // 기본값: 공지
+
   try {
     const [rows] = await db.query(
-      'SELECT id, title, date FROM notices ORDER BY date DESC, id DESC'
+      'SELECT * FROM notices WHERE category = ? ORDER BY id DESC',
+      [type]
     );
     res.json(rows);
-  } catch (e) {
-    res.status(500).json({ msg: '공지 불러오기 오류', error: e.message });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'DB 오류' });
   }
 });
 
@@ -761,6 +765,58 @@ app.get('/admin_files.html',  isLoggedIn, isAdmin, (req, res) => {
    })
  );
 
+ // 파일 다운로드 log
+app.post('/api/download-log', async (req, res) => {
+  const { fileId, type, userEmail } = req.body;
+  if (!fileId || !type || !userEmail) {
+    return res.status(400).json({ error: '데이터 누락' });
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    const [file] = await conn.query('SELECT title FROM files WHERE id = ?', [fileId]);
+    const title = file[0]?.title || '제목없음';
+
+    await conn.query(`
+      INSERT INTO downloads_log (file_id, file_name, type, user_email, downloaded_at)
+      VALUES (?, ?, ?, ?, NOW())
+    `, [fileId, title, type, userEmail]);
+
+    res.json({ success: true });
+  } catch (e) {
+    console.error('다운로드 로그 저장 실패', e);
+    res.status(500).json({ error: '서버 오류' });
+  } finally {
+    conn.release();
+  }
+});
+
+app.get('/api/downloads/recent', async (req, res) => {
+  const userEmail = req.query.email;
+  if (!userEmail) return res.status(400).json({ error: '이메일 누락' });
+
+  const conn = await pool.getConnection();
+  try {
+    const rows = await conn.query(`
+      SELECT file_name AS name, COUNT(*) AS count, MAX(downloaded_at) AS date
+      FROM downloads_log
+      WHERE user_email = ?
+      GROUP BY file_name
+      ORDER BY date DESC
+      LIMIT 5
+    `, [userEmail]);
+
+    res.json(rows);
+  } catch (e) {
+    console.error('최근 다운로드 불러오기 실패', e);
+    res.status(500).json({ error: '서버 오류' });
+  } finally {
+    conn.release();
+  }
+});
+
+
+
 // 파일 삭제 (관리자만)
 app.delete('/api/files/:id', isLoggedIn, isAdmin, async (req, res) => {
   try {
@@ -933,6 +989,15 @@ app.get('/api/uploads/recent', async (req, res) => {
   } catch (e) {
     res.status(500).json({ message: '업로드 목록 오류', error: e.message });
   }
+});
+
+app.post('/api/save-academy-address', async (req, res) => {
+  const userId = req.session.user?.id;
+  const { address } = req.body;
+  if (!userId || !address) return res.json({ success: false });
+
+  await db.execute('UPDATE users SET academyAddress = ? WHERE id = ?', [address, userId]);
+  res.json({ success: true });
 });
 
 

@@ -189,6 +189,41 @@
       background: #f8c900;  /* 노란색 */
       border-radius: 2px;
     }
+    /* ✅ 탭 버튼을 감싸는 고정 상자 */
+    .tab-box {
+      width: 100%;
+      height: 80px; 
+      background: transparent;   /* ✅ 배경 제거 */
+      border: none;              /* ✅ 테두리 제거 */
+      box-shadow: none;          /* ✅ 그림자 제거 */
+      padding: 16px 40px 10px;
+      z-index: 10;
+    }
+
+    /* ✅ 탭 버튼 자체 */
+    .notice-tabs {
+      display: flex;
+      gap: 16px;
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+
+    .notice-tabs .tab-btn {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      font-weight: 700;
+      padding: 8px 16px;
+      cursor: pointer;
+      color: #969696;
+      border-bottom: 4px solid transparent;  /* ✅ 항상 4px로 고정 */
+      transition: all 0.2s;
+    }
+
+    .notice-tabs .tab-btn.active {
+      color: #f8c900;
+      border-bottom-color: #f8c900;          /* ✅ 색상만 바뀜 */
+    }
 
   </style>
 </head>
@@ -197,12 +232,18 @@
 <!-- ─── 1.5) 제목 배너 ─── -->
 <section class="page-banner">
   <div class="inner">
-    <h2>공지사항</h2>
+    <h2>게시판</h2>
     <p>여러분의 성공적인 내신대비를 카카오의 검증된 IT 서비스
        경험을 Kakao i Cloud에 담아 나누고자 합니다.</p>
-  </div>
+</div>
 </section>
-
+<div class="tab-box">
+  <div class="notice-tabs">
+  <button class="tab-btn active" data-type="공지">공지사항</button>
+  <button class="tab-btn" data-type="업데이트">업데이트</button>
+  <button class="tab-btn" data-type="패치">수정사항</button>
+  </div> 
+</div>
   <!-- ───────── 공지사항 리스트 ───────── -->
   <div class="notice-container">
     <div class="notice-title">공지사항</div>
@@ -277,6 +318,16 @@
       }
     }
 
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      selectedType = btn.dataset.type;
+      loadNotices();
+    };
+  });
+
     /* ── helpers ─────────────────────────── */
     function daysBetween(a,b){ return Math.floor((b-a)/864e5); }   // NEW 뱃지용
 
@@ -345,6 +396,22 @@ function openNoticeDetail(noticeId) {
       const res=await fetch('/api/notices');noticeListData=await res.json();
       renderNoticeList();renderPagination();
     }
+
+    function loadNoticesByCategory(category) {
+  fetch(`/api/notices?type=${category}`)
+    .then(res => res.json())
+    .then(data => {
+          renderNoticeList(data); // 테이블에 글 목록 그려주는 함수
+        });
+    }
+
+    // 예시: 탭 클릭 시 호출
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const category = btn.dataset.type;
+        loadNoticesByCategory(category);
+      });
+    });
 
     let openedDetail=null;
 async function toggleDetail(row, id){

@@ -14,32 +14,32 @@ body {
   font-family: 'Noto Sans KR', sans-serif;
 }
 
- /* ────── 2) 광고 배너 (전면 이미지 + 연보라 백업색) ────── */
-  @media(max-width:1180px){
-    .promo-banner.img-only{padding-top:38%;}
-  }
-
-   /* swiper-slide 전체를 배너 높이(260px)에 맞춤 */
-    .adSwiper,
-    .adSwiper .swiper-wrapper,
-    .adSwiper .swiper-slide{
-      width:100%;
-      height:100%;
-    }
-
-    /* 이미지는 영역을 꽉 채우고 비율 유지(잘릴 수 있음) */
-    .adSwiper .swiper-slide img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-    }
-
-  .promo-banner{
-    margin:40px 40px;
-    height:280px;
-    border-radius:22px;
-    overflow:hidden;
-  }
+ /* 🔶 탑 광고배너 스타일 */
+.top-banner {
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  border-bottom: 1px solid #eee;
+}
+.topSwiper,
+.topSwiper .swiper-wrapper,
+.topSwiper .swiper-slide {
+  width: 100%;
+  height: 100%;
+}
+.topSwiper .swiper-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.topSwiper .swiper-slide img.loaded {
+  opacity: 1;
+}
+.topSwiper .swiper-pagination {
+  display: none !important;
+}
 
   /* ▣ 모달 */
   .modal{position:fixed;inset:0;display:none;align-items:center;
@@ -189,6 +189,24 @@ body {
   visibility: hidden;
 }
 
+.member-info > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.member-info label {
+  width: 120px;
+  font-weight: 600;
+}
+
+.mysheet-board {
+  border-radius: 20px;
+  padding: 32px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+}
+
 #profileAvatar {
   width: 120px;         /* 권장: 80~120px (추천값은 96px) */
   height: 120px;
@@ -223,34 +241,51 @@ body {
   }
   #profileAvatar.fade-in{opacity:1;} /* 클래스 붙으면 나타남 */
 
+button {
+  background: #6366f1;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+button:hover {
+  background: #4f46e5;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"] {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border 0.2s;
+}
+input:focus {
+  border-color: #6366f1;
+  outline: none;
+}
+
+
   </style>
 </head>
 <body>
 
 <!-- ▣ 광고 슬라이더 ▣ -->
-<section class="promo-banner">
-  <div class="swiper adSwiper">          <!-- ① Swiper 컨테이너 -->
-    <div class="swiper-wrapper">         <!-- ② 래퍼 -->
-<!-- ③ 슬라이드: 필요만큼 복사해서 추가 -->
-      <div class="swiper-slide" data-url="promo1.html">
-        <img src="ad1.png" alt="배너 1">
-      </div>
-
-      <div class="swiper-slide" data-url="promo2.html">
-        <img src="ad2.png" alt="배너 2">
-      </div>
-
-      <div class="swiper-slide" data-url="promo3.html">
-        <img src="ad3.png" alt="배너 3">
-      </div>
-
-      <div class="swiper-slide" data-url="promo4.html">
-        <img src="ad4.png" alt="배너 4">
-      </div>
-      </div>
-   <div class="swiper-pagination"></div> <!-- 페이지네이션은 wrapper 밖 -->
- </div>                                   <!-- </div> adSwiper -->
-</section>   
+<section class="top-banner">
+  <div class="swiper topSwiper">
+    <div class="swiper-wrapper">
+      <div class="swiper-slide"><img src="ad_big1.jpg" alt="탑 배너 1"></div>
+      <div class="swiper-slide"><img src="ad_big2.jpg" alt="탑 배너 2"></div>
+      <div class="swiper-slide"><img src="ad_big3.jpg" alt="탑 배너 3"></div>
+    </div>
+    <div class="swiper-pagination"></div>
+  </div>
+</section>
 
 <div class="dashboard-body" style="display:flex;flex-wrap:wrap;gap:20px;margin:28px 40px 80px;">
   <!-- (왼쪽) 프로필 카드 -->
@@ -281,38 +316,70 @@ body {
   <!-- (오른쪽) 내 문제지 카드 -->
   <div class="mysheet-board" style="flex:1 1 420px; background:#fff;border:1px solid #e9e9e9;border-radius:22px;box-shadow:0 4px 12px rgba(0,0,0,.04);padding:28px;min-height:420px;">
     <h2 style="font-size:1.25rem;font-weight:900;margin-bottom:22px;">회원 정보</h2>
-    <div class="member-info">
-  <div><b>ID(이메일)</b> : <span id="mem-email">-</span></div>
-  <div><b>이름</b> : <span id="mem-name">-</span></div>
+<div class="member-info">
+  <div><b>ID</b> : <span id="mem-id">-</span></div>
+  <div><b>비밀번호 변경</b></div>
+  <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
+    <input type="password" id="new-password" placeholder="새 비밀번호" style="flex:1;">
+    <input type="password" id="confirm-password" placeholder="비밀번호 확인" style="flex:1;">
+    <button id="pw-change-btn" style="padding:10px 18px;border-radius:8px;background:#6366f1;color:#fff;border:none;">변경</button>
+  </div>
+  <div><b>이메일</b> : <span id="mem-email">-</span></div>
   <div><b>휴대폰 번호</b> : <span id="mem-phone">-</span></div>
-  <div style="margin-top:8px;">
-    <b>현금영수증 발급 번호</b> : 
-    <input id="mem-biz-input" type="text" placeholder="사업자/휴대폰번호" style="width:160px;padding:3px 7px;border:1px solid #ddd;border-radius:7px;font-size:1rem;">
-    <button id="mem-biz-save" style="padding:3px 12px;margin-left:4px;font-size:0.97rem;border-radius:7px;background:#218155;color:#fff;border:none;cursor:pointer;">저장</button>
-    <span id="mem-biz-view" style="margin-left:8px;color:#218155;font-weight:700;display:none;"></span>
+  <div><b>구독</b> : 
+    <span id="mem-subscription" class="grade-label">-</span>
+    <button id="subscribeBtn" style="margin-left:10px;display:none;padding:4px 10px;font-size:0.85rem;border-radius:6px;border:none;background:#FDC512;color:#111;cursor:pointer;">구독하기</button>
   </div>
-  <div style="margin-top:14px;">
-    <b>등급</b> : <span id="mem-grade" class="grade-label">-</span>
+  <div style="margin-top:18px;"><b>현금영수증 발급 번호</b> :
+    <input id="mem-biz-input" type="text" placeholder="사업자/휴대폰번호" style="width:160px;padding:4px 8px;border:1px solid #ccc;border-radius:7px;font-size:0.95rem;">
+    <button id="mem-biz-save">저장</button>
+    <span id="mem-biz-view" style="margin-left:10px;color:#218155;font-weight:700;display:none;"></span>
   </div>
+  <div style="margin-top:18px;"><b>학원 명</b> : 
+    <input id="mem-academy-name" type="text" style="width:200px;padding:4px 8px;" placeholder="학원명">
+  </div>
+<div style="margin-top:16px;"><b>학원 주소</b> : </div>
+<div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px;">
+  <input id="mem-academy-address-input" type="text" placeholder="학원 주소 입력" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:8px;">
+  <button id="academy-address-save" style="padding:10px 18px;border-radius:8px;background:#6366f1;color:#fff;border:none;">변경</button>
+</div>
+<span id="mem-academy-address" style="display:block; color:#333; font-weight:500;">-</span>
+  <div><b>학원 번호</b> : 
+    <input id="mem-academy-phone" type="text" style="width:160px;padding:4px 8px;" placeholder="전화번호">
+  </div>
+  <button id="academy-save-btn" style="margin-top:10px;padding:5px 12px;font-size:0.95rem;border-radius:7px;background:#218155;color:#fff;border:none;cursor:pointer;">학원 정보 저장</button>
 </div>
     <!-- 원하는 내용 추가 -->
   </div>
-</div>
+
 
 <!-- Swiper JS (광고배너용) -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
 <script>
-/* ── Swiper 광고배너 ───────────────────────── */
-const adSwiper = new Swiper('.adSwiper', {
+
+const topSwiper = new Swiper('.topSwiper', {
   loop: true,
-  grabCursor: true,
-  autoplay: { delay: 5000 },
+  autoplay: { delay: 4000 },
+  effect: 'fade',
+  fadeEffect: { crossFade: true },
+  speed: 1000,
+  allowTouchMove: false,
+  simulateTouch: false,
   pagination: {
-    el: '.adSwiper .swiper-pagination',
-    clickable: true,
-    },
+    el: '.topSwiper .swiper-pagination',
+    clickable: false
+  }
 });
 
+document.querySelectorAll('.topSwiper .swiper-slide img').forEach(img => {
+  if (img.complete) {
+    img.classList.add('loaded');
+  } else {
+    img.addEventListener('load', () => {
+      img.classList.add('loaded');
+    });
+  }
+});
 
 async function setProfileInfo () {
   try {
@@ -340,11 +407,27 @@ async function setProfileInfo () {
       const preload = new Image();       // 실제 사진을 백그라운드 로드
       preload.onload = () => { av.src = u.avatarUrl; };
       preload.src = u.avatarUrl;
+      
+    document.getElementById('mem-id').textContent = u.id || '-';
+    document.getElementById('mem-academy-address').textContent = u.academyAddress || '-';
+
+    const subLabel = document.getElementById('mem-subscription');
+    const subBtn = document.getElementById('subscribeBtn');
+    if (u.hasPaid) {
+      subLabel.textContent = '구독중';
+      subBtn.style.display = 'none';
+    } else {
+      subLabel.textContent = '미구독';
+      subBtn.style.display = 'inline-block';
+      subBtn.onclick = () => location.href = '/subscribe';
+    }
+
+
+
     }
 
     /* 우측 정보 카드 */
     document.getElementById('mem-email').textContent = u.email || '-';
-    document.getElementById('mem-name').textContent  = u.name  || '-';
     document.getElementById('mem-phone').textContent = u.phone || '-';
 
     /* 등급(옵션) */
@@ -388,6 +471,25 @@ document.getElementById('mem-biz-save').onclick = async function() {
     alert('오류 발생');
   }
 };
+
+document.getElementById('academy-save-btn').onclick = async () => {
+  const name = document.getElementById('mem-academy-name').value.trim();
+  const phone = document.getElementById('mem-academy-phone').value.trim();
+  try {
+    const res = await fetch('/api/save-academy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ name, phone })
+    });
+    const d = await res.json();
+    if (d.success) alert('저장 완료!');
+    else alert('저장 실패');
+  } catch (e) {
+    alert('오류 발생');
+  }
+};
+
 function showBizNum(bizNum) {
   document.getElementById('mem-biz-input').style.display = 'none';
   document.getElementById('mem-biz-save').style.display = 'none';
@@ -505,6 +607,28 @@ document.getElementById('deletePhotoBtn').addEventListener('click', async()=>{
   /* …삭제 로직… */
   av.src = '/icon_my_b.png';             // 역시 onload → 페이드-인
 });
+
+document.getElementById('academy-address-save').onclick = async () => {
+  const addr = document.getElementById('mem-academy-address-input').value.trim();
+  if (!addr) return alert('주소를 입력하세요.');
+  try {
+    const res = await fetch('/api/save-academy-address', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ address: addr })
+    });
+    const d = await res.json();
+    if (d.success) {
+      document.getElementById('mem-academy-address').textContent = addr;
+      alert('주소가 저장되었습니다.');
+    } else {
+      alert('저장 실패');
+    }
+  } catch (e) {
+    alert('오류 발생');
+  }
+};
 
 
 </script>
