@@ -772,7 +772,7 @@ app.post('/api/download-log', async (req, res) => {
     return res.status(400).json({ error: '데이터 누락' });
   }
 
-  const conn = await pool.getConnection();
+  const conn = await db.getConnection();
   try {
     const [file] = await conn.query('SELECT title FROM files WHERE id = ?', [fileId]);
     const title = file[0]?.title || '제목없음';
@@ -795,7 +795,7 @@ app.get('/api/downloads/recent', async (req, res) => {
   const userEmail = req.query.email;
   if (!userEmail) return res.status(400).json({ error: '이메일 누락' });
 
-  const conn = await pool.getConnection();
+  const conn = await db.getConnection();
   try {
     const rows = await conn.query(`
       SELECT file_name AS name, COUNT(*) AS count, MAX(downloaded_at) AS date
