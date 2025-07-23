@@ -324,6 +324,7 @@
     /* 로그인·프로필 바인딩 + 관리자 판별 */
     let IS_ADMIN = false;
     let IS_LOGGEDIN = false;
+    let selectedType = '공지'; // 🟢 파일 상단 스크립트에 추가
 
     // 로그인·관리자 체크
     async function checkAuth() {
@@ -368,11 +369,15 @@
 
     /* ── helpers ─────────────────────────── */
     function daysBetween(a,b){ return Math.floor((b-a)/864e5); }   // NEW 뱃지용
+    
 
     /* ── 공지 목록 그리기 (표 버전) ───────── */
-function renderNoticeList(){
+function renderNoticeList(data){
   const tbody = document.getElementById('notice-tbody');
   tbody.innerHTML = '';
+
+  // 데이터를 noticeListData에 할당 (이 라인 추가!)
+  if (data) noticeListData = data;
 
   if (noticeListData.length === 0){
     tbody.innerHTML =
@@ -429,11 +434,13 @@ function openNoticeDetail(noticeId) {
   parent.postMessage({ type: 'goNotice', noticeId }, '*');
 }
 
-    async function loadNotices(){
-      page=1;
-      const res=await fetch('/api/notices');noticeListData=await res.json();
-      renderNoticeList();renderPagination();
-    }
+async function loadNotices(){
+  page=1;
+  const res=await fetch('/api/notices');
+  const data=await res.json();
+  renderNoticeList(data); // 여기
+  renderPagination();
+}
 
     function loadNoticesByCategory(category) {
   fetch(`/api/notices?type=${category}`)
@@ -523,6 +530,7 @@ if (!row) {
 let toastEditor;  // 에디터 인스턴스
 
 document.addEventListener('DOMContentLoaded', async function() {
+  await checkAuth();   // 👈 반드시 여기에 추가!!
 toastEditor = new toastui.Editor({
   el: document.querySelector('#editor'),
   height: '320px',
@@ -537,9 +545,9 @@ toastEditor = new toastui.Editor({
     'table', 'link', 'image', 'code', 'codeblock']
   ],
   plugins: [
-    toastui.Editor.plugin.colorSyntax,
-    toastui.Editor.plugin.fontSize,
-    toastui.Editor.plugin.fontFamily
+    window.toastui.Editor.plugin.colorSyntax,
+    window.toastui.Editor.plugin.fontSize,
+    window.toastui.Editor.plugin.fontFamily
   ],
   hooks: {
     addImageBlobHook: async (blob, callback) => {
