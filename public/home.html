@@ -584,7 +584,7 @@ avatar.onload = () => {                    // src 가 바뀌어 이미지가 로
   requestAnimationFrame(() => avatar.classList.add('fade-in'));
 };
 
-/* 2) 로그인 정보 반영 */
+    /* 2) 로그인 정보 반영 */
     async function bindUser(){
       try{
         const res = await fetch('/check-auth?ts=' + Date.now(), {credentials:'include', cache:'no-store'});
@@ -605,7 +605,7 @@ avatar.onload = () => {                    // src 가 바뀌어 이미지가 로
 
         const av = document.getElementById('profileAvatar');
         if (av) {
-          avatar.classList.remove('fade-in');   // 동일 이미지일 때도 효과 재적용
+          av.classList.remove('fade-in');
           av.src = u.avatarUrl || 'icon_my_b.png';
           av.alt = displayId;
         }
@@ -613,10 +613,14 @@ avatar.onload = () => {                    // src 가 바뀌어 이미지가 로
         document.querySelector('.info').classList.remove('loading');
       } catch(e) { console.error(e); }
     }
-    document.addEventListener('DOMContentLoaded', () => {
-      bindUser();
-    });
 
+    async function pageInit() {
+      await bindUser();
+      loadRecentUploads();
+      loadRecentDownloads();
+    }
+
+    document.addEventListener('DOMContentLoaded', pageInit);
 
 /* 4) 공지사항 미리보기 -------------------------------------- */
 let noticeData=[];          // 전체 목록
@@ -843,10 +847,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-document.addEventListener('DOMContentLoaded', function() {
-  loadRecentUploads();
-  loadRecentDownloads();
-});
 
 
 // 날짜 YYYY-MM-DD로 포맷
