@@ -892,7 +892,7 @@ async function loadRecentDownloads() {
 
 // 파일 다운로드 버튼 동작 예시
 function downloadFile(fileId, type) {
-  window.open(`/api/download/${fileId}?type=${type}`, '_blank');
+  window.location.href = `/api/download/${fileId}?type=${type}`;
 }
 
 </script>
