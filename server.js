@@ -797,14 +797,15 @@ app.get('/api/downloads/recent', async (req, res) => {
     if (!userEmail) return res.status(400).json({ error: '이메일 누락' });
 
     // db로 수정!
-    const [rows] = await db.query(`
-      SELECT file_name AS name, COUNT(*) AS count, MAX(downloaded_at) AS date
-      FROM downloads_log
-      WHERE user_email = ?
-      GROUP BY file_name
-      ORDER BY date DESC
-      LIMIT 5
-    `, [userEmail]);
+      const [rows] = await db.query(`
+        SELECT f.id, l.file_name AS name, COUNT(*) AS count, MAX(l.downloaded_at) AS date
+        FROM downloads_log l
+        JOIN files f ON f.title = l.file_name
+        WHERE l.user_email = ?
+        GROUP BY f.id, l.file_name
+        ORDER BY date DESC
+        LIMIT 5
+      `, [userEmail]);
 
     res.json(rows); // 이 rows가 프론트에서 map 가능한 배열
   } catch (e) {

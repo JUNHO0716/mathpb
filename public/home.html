@@ -869,15 +869,15 @@ async function loadRecentDownloads() {
     }
     tbody.innerHTML = data.map(row => `
       <tr>
-        <td style="text-align:left; vertical-align:middle;" class="title">${row.name || row.file_name || '-'}</td>
-        <td style="text-align:center; vertical-align:middle;">${formatDate(row.date)}</td>
-        <td style="text-align:center; vertical-align:middle;">
+        <td style="text-align:left;" class="title">${row.name || row.file_name || '-'}</td>
+        <td style="text-align:center;">${formatDate(row.date)}</td>
+        <td style="text-align:center;">
           <img src="hwp_download.png" alt="HWP" title="한글 다운로드"
-              style="width:28px;height:28px;cursor:pointer;margin-right:5px;vertical-align:middle;"
-              onclick="downloadFile('${row.name}', 'hwp')">
+              style="width:28px;height:28px;cursor:pointer;margin-right:5px;"
+              onclick="downloadFile('${row.id}', 'hwp')">
           <img src="pdf_download.png" alt="PDF" title="PDF 다운로드"
-              style="width:28px;height:28px;cursor:pointer;vertical-align:middle;"
-              onclick="downloadFile('${row.name}', 'pdf')">
+              style="width:28px;height:28px;cursor:pointer;"
+              onclick="downloadFile('${row.id}', 'pdf')">
         </td>
       </tr>
     `).join('');
@@ -891,10 +891,8 @@ async function loadRecentDownloads() {
 }
 
 // 파일 다운로드 버튼 동작 예시
-function downloadFile(fileName, type) {
-  // 실제로는 file_id도 같이 넘기는 게 맞음! (file_name 중복될 수 있으니)
-  // file_id를 백엔드에서 내려주면 row.id로 바꿔서 구현
-  window.open(`/api/download?name=${encodeURIComponent(fileName)}&type=${type}`, '_blank');
+function downloadFile(fileId, type) {
+  window.open(`/api/download/${fileId}?type=${type}`, '_blank');
 }
 
 </script>
