@@ -524,12 +524,13 @@
       <div class="rf-header"><i class="fas fa-download"></i>최근 다운로드</div>
       <div class="rf-table-wrap">
         <table class="rf-table">
-          <thead>
-            <tr>
-              <th style="width:60%; text-align:center;">파일명</th>
-              <th style="width:40%; text-align:center;">다운로드일</th>
-            </tr>
-          </thead>
+        <thead>
+          <tr>
+            <th style="width:60%; text-align:center;">파일명</th>
+            <th style="width:25%; text-align:center;">다운로드일</th>
+            <th style="width:15%; text-align:center;">다운로드</th>
+          </tr>
+        </thead>
           <tbody id="recentDownloadsTbody"></tbody>
         </table>
       </div>
@@ -863,25 +864,27 @@ async function loadRecentDownloads() {
     const tbody = document.getElementById('recentDownloadsTbody');
     if (!tbody) return;
     if (!Array.isArray(data) || data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;color:#aaa;">최근 다운로드 내역이 없습니다.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#aaa;">최근 다운로드 내역이 없습니다.</td></tr>`;
       return;
     }
     tbody.innerHTML = data.map(row => `
       <tr>
         <td style="text-align:center; vertical-align:middle;" class="title">${row.name || row.file_name || '-'}</td>
         <td style="text-align:center; vertical-align:middle;">${formatDate(row.date)}</td>
-      </tr>
-      <tr>
-        <td colspan="2" style="text-align:center; padding-bottom:16px;">
-          <button class="download-btn" onclick="downloadFile('${row.name}', 'hwp')">한글</button>
-          <button class="download-btn" onclick="downloadFile('${row.name}', 'pdf')">PDF</button>
+        <td style="text-align:center; vertical-align:middle;">
+          <button class="download-btn" onclick="downloadFile('${row.name}', 'hwp')">
+            <img src="hwp_download.png" alt="한글" style="width:20px; height:20px; vertical-align:middle; margin-right:5px;">한글
+          </button>
+          <button class="download-btn" onclick="downloadFile('${row.name}', 'pdf')">
+            <img src="pdf_download.png" alt="PDF" style="width:20px; height:20px; vertical-align:middle; margin-right:5px;">PDF
+          </button>
         </td>
       </tr>
     `).join('');
   } catch (e) {
     const tbody = document.getElementById('recentDownloadsTbody');
     if (tbody) {
-      tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;color:red;">다운로드 목록을 불러오지 못했습니다.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:red;">다운로드 목록을 불러오지 못했습니다.</td></tr>`;
     }
     console.error(e);
   }
