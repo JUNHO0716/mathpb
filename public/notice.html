@@ -300,7 +300,23 @@
     }
 
     /* 로그인·프로필 바인딩 + 관리자 판별 */
-    let IS_ADMIN=false;
+    let IS_ADMIN = false;
+    let IS_LOGGEDIN = false;
+
+    // 로그인·관리자 체크
+    async function checkAuth() {
+      try {
+        const res = await fetch('/check-auth', { credentials: 'include' });
+        const data = await res.json();
+        IS_LOGGEDIN = data.isLoggedIn;
+        IS_ADMIN = data.user?.role === 'admin';
+        // 콘솔로 확인해도 OK
+        // console.log('isAdmin:', IS_ADMIN, 'isLoggedIn:', IS_LOGGEDIN);
+      } catch (e) {
+        IS_LOGGEDIN = false;
+        IS_ADMIN = false;
+      }
+    }
 
 
     /* 공지 CRUD */
@@ -495,14 +511,14 @@ if (!row) {
       else alert('등록 실패: '+data.msg);
     };
 
-document.addEventListener('DOMContentLoaded', function(){
+document.addEventListener('DOMContentLoaded', async function(){
+  await checkAuth(); // <<-- 가장 먼저 실행! (중요)
+
   const params = new URLSearchParams(location.search);
   const noticeId = params.get('id');
   if (noticeId) {
-    (async () => {
-      await loadNotices();
-      toggleDetail(null, noticeId);
-    })();
+    await loadNotices();
+    toggleDetail(null, noticeId);
   } else {
     loadNotices();
   }
