@@ -30,8 +30,9 @@ body {
 }
 .main-wrapper {
   display: flex;
-  height: 80vh;
   width: 100%;
+  /* 아래로 충분히 길어지도록, 뷰포트 높이 최소 보장 */
+  min-height: 100vh;
 }
 .left-panel {
   width: 20%;
@@ -42,7 +43,11 @@ body {
   align-items: center;
   text-align: center;
   padding: 24px;
-  position: relative;
+  /* 화면 상단부터 아래로 쭉 100% 뷰포트 높이 */
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
 }
 .left-panel h3 {
   font-size: 1.2rem;
@@ -635,6 +640,8 @@ async function loadMyUploads() {
         } else { // 완료
           icon = 'done.gif';
           cls  = 'status-completed';
+          // ★ 카드 컨테이너에도 클래스 추가
+          card.classList.add('status-completed');
           text = `시험지 작업 완료 🎉`;
         }
 
