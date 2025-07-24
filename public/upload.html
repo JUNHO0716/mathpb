@@ -120,14 +120,14 @@ th {
   display: flex;               /* 이 줄 추가 */
   flex-direction: column;      /* 이 줄도 추가해야 위/아래로 분리됩니다 */
   width: 160px;
-  border: 2px solid #f3c24b;
+  border: none; 
   justify-content: space-between; /* 위와 아래로 요소를 분리 */
   border-radius: 12px;
   padding: 12px;
   text-align: center;
   font-size: 0.9rem;
-  background: #fff;
-  box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
+  background-color: #f7f7f7;   
+  box-shadow: 0 4px 8px rgba(243, 194, 75, 0.25);
 }
 
 .card img {
@@ -332,6 +332,20 @@ th {
   margin: 0;
 }
 
+.btn-admin {
+  background: #6c757d;       /* 회색 계열 */
+  color: #fff;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.btn-admin:hover {
+  background: #5a6268;
+}
+
+
 </style>
 </head>
 <body>
@@ -367,6 +381,7 @@ th {
   <div class="status-section">
     <div class="section-header">
       <h3 class="section-title">업로드 파일</h3>
+      <button id="admin-move-btn" style="display:none; margin-right:4px;">요청 확인</button>
       <button id="delete-btn" disabled>삭제하기</button>
     </div>
     <div class="card-container" id="upload-card-container"></div>
@@ -638,6 +653,19 @@ confirmDelete.addEventListener('click', async () => {
   selectedIds = [];
   deleteBtn.disabled = true;
 });
+
+const adminMoveBtn = document.getElementById('admin-move-btn');
+adminMoveBtn.addEventListener('click', () => {
+  window.location.href = '/admin_upload.html';
+});
+fetch('/check-auth', { credentials: 'include' })
+  .then(res => res.json())
+  .then(data => {
+    if (data.isLoggedIn && data.user.role === 'admin') {
+      adminMoveBtn.style.display = 'inline-block';
+    }
+  })
+  .catch(console.error);
 
 // 초기화
 document.addEventListener('DOMContentLoaded', () => {
