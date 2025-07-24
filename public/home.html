@@ -1054,16 +1054,16 @@ async function loadMySheetRequests() {
 }
 
 function goToSheetRequestPage() {
-  // 시험지 요청(업로드) 페이지로 이동
+  // 왼쪽 메뉴에서 "시험지 요청" (5번째) 메뉴로 이동
   if(window.parent){
-    window.parent.postMessage({type: 'goUploadMore'}, '*');
+    window.parent.postMessage({type: 'selectMenu', menuIndex: 4}, '*');
   }
 }
 
 function goToNaesinPage() {
-  // 내신기출 시험지 페이지로 이동
+  // 왼쪽 메뉴에서 "내신기출 시험지" (3번째) 메뉴로 이동
   if(window.parent){
-    window.parent.postMessage({type: 'goNaesinMore'}, '*');
+    window.parent.postMessage({type: 'selectMenu', menuIndex: 2}, '*');
   }
 }
 
