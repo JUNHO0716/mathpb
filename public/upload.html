@@ -110,6 +110,13 @@ th {
   color: red;
 }
 
+.card-status,
+.status-working,
+.status-completed,
+.status-rejected {
+  color: #000 !important;
+}
+
 .card-container {
   display: flex;
   flex-wrap: wrap;
@@ -126,7 +133,7 @@ th {
   padding: 12px;
   text-align: center;
   font-size: 0.9rem;
-  background-color: #eeeeee; 
+  background-color: #f7f7f7;
   box-shadow:
     0 6px 12px rgba(243, 194, 75, 0.35),
     0 0 8px rgba(243, 194, 75, 0.2);
@@ -355,6 +362,33 @@ th {
   background-color: #222;
 }
 
+.status-section .section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;       /* 버튼들 사이 간격 */
+}
+
+/* 삭제하기 & 요청 확인 공통 버튼 스타일 */
+.btn-delete {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  /* margin-left 제거 */
+}
+
+.btn-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-delete:hover:enabled {
+  background-color: #222;
+}
+
 
 </style>
 </head>
@@ -412,7 +446,6 @@ th {
       <table>
         <thead>
           <tr>
-            <th>번호</th>
             <th>파일명</th>
             <th>반려 사유</th>
           </tr>
@@ -541,69 +574,63 @@ function renderPreviewCards() {
 
 // ▶ 추가: 내 업로드 현황 불러오기
 async function loadMyUploads() {
-  try {
-    const res  = await fetch('/api/my-uploads', { credentials: 'include' });
-    const data = await res.json();
-    // 비우기
-    uploadCardContainer.innerHTML     = '';
-    completedCardContainer.innerHTML = '';
-    rejectedBody.innerHTML           = '';
-    selectedIds = [];
-    deleteBtn.disabled = true;
+  // ... 생략
 
-    data.forEach((item, idx) => {
-      const { id, filename, status, completed_at, reject_reason } = item;
+  data.forEach(item => {
+    const { id, filename, status, completed_at, reject_reason } = item;
 
-      if (status === '반려') {
-        // 반려 테이블에 추가
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${idx + 1}</td>
-          <td>${filename}</td>
-          <td>${reject_reason}</td>
-        `;
-        rejectedBody.appendChild(tr);
+    if (status === '반려') {
+      // 번호 없이 파일명·사유만
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${filename}</td>
+        <td>${reject_reason}</td>
+      `;
+      rejectedBody.appendChild(tr);
 
-      } else {
-        // 카드 만들기
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.dataset.id = id;
-        // 상태별 텍스트·아이콘·클래스
-        let text, icon, cls;
-        if (status === '확인중') {
-          text = `시험지 확인중<span class="dots"><span>.</span><span>.</span><span>.</span></span>`;
-          icon = 'pending.gif';
-          cls  = 'status-working';
-          // 선택 가능
-          card.addEventListener('click', () => toggleSelection(card, id));
-        } else if (status === '제작중') {
-          text = `시험지 제작중<span class="dots"><span>.</span><span>.</span><span>.</span></span>`;
-          icon = 'pending.gif';
-          cls  = 'status-working';
-        } else /* 완료 */ {
-          text = `시험지 완료 🎉`;
-          icon = 'complete.png';
-          cls  = 'status-completed';
-        }
+    } else {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.id = id;
 
-        card.innerHTML = `
-          <div class="card-label" data-fullname="${filename}">${filename}</div>
-          <img src="${icon}" alt="${status}">
-          <div class="card-status ${cls}">${text}</div>
-        `;
+      let text, icon, cls;
+      if (status === '확인중') {
+        icon = 'pending.gif';
+        cls  = 'status-working';
+        // wave 6점
+        text = `시험지 확인중<span class="dots">
+          <span>.</span><span>.</span><span>.</span>
+          <span>.</span><span>.</span><span>.</span>
+        </span>`;
+        card.addEventListener('click', () => toggleSelection(card, id));
 
-        // 위치 분기
-        if (status === '완료') {
-          completedCardContainer.appendChild(card);
-        } else {
-          uploadCardContainer.appendChild(card);
-        }
+      } else if (status === '제작중') {
+        icon = 'working.gif';   // 제작중 전용 GIF
+        cls  = 'status-working';
+        text = `시험지 제작중<span class="dots">
+          <span>.</span><span>.</span><span>.</span>
+          <span>.</span><span>.</span><span>.</span>
+        </span>`;
+
+      } else { // 완료
+        icon = 'done.png';      // 완료 전용 PNG
+        cls  = 'status-completed';
+        text = `시험지 완료 🎉`;
       }
-    });
-  } catch (e) {
-    console.error('업로드 현황 로드 실패:', e);
-  }
+
+      card.innerHTML = `
+        <div class="card-label" data-fullname="${filename}">${filename}</div>
+        <img src="${icon}" alt="${status}">
+        <div class="card-status ${cls}">${text}</div>
+      `;
+
+      if (status === '완료') {
+        completedCardContainer.appendChild(card);
+      } else {
+        uploadCardContainer.appendChild(card);
+      }
+    }
+  });
 }
 
 // 업로드 버튼 클릭 로직도 그대로
