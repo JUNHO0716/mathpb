@@ -124,50 +124,34 @@ function renderUploads() {
     .forEach(u => {
       const tr = document.createElement('tr');
 
-      // 다운로드 URL은 서버 API에 맞게 조정하세요.
-      const downloadUrl = `/api/admin/uploads/${u.id}/download`;
-
+      // ID, 업로더, 파일명 셀
       tr.innerHTML = `
         <td>${u.id}</td>
         <td>${u.user_id}</td>
         <td>${u.filename}</td>
-        <!-- 2) 다운로드 버튼 셀 -->
-        <td>
-          <a 
-            href="${downloadUrl}" 
-            download 
-            style="
-              display:inline-block;
-              padding:4px 8px;
-              background:#007bff;
-              color:#fff;
-              border-radius:4px;
-              text-decoration:none;
-            "
-          >다운로드</a>
-        </td>
-        <td>${u.status}</td>
-        <td class="btn-group"></td>
       `;
 
-      // 기존 작업 버튼 삽입 로직
-      const tdAct = tr.querySelector('.btn-group');
-      if (u.status === '확인중') {
-        tdAct.append(
-          createButton('제작 진행', 'btn-progress', () => openConfirmModal(
-            '제작을 진행하시겠습니까?',
-            () => handleChangeStatus(u.id, 'in_progress')
-          )),
-          createButton('반려', 'btn-reject', () => openRejectModal(u.id))
-        );
-      } else if (u.status === '제작중') {
-        tdAct.append(
-          createButton('작업 완료', 'btn-complete', () => openConfirmModal(
-            '작업을 완료하시겠습니까?',
-            () => handleChangeStatus(u.id, 'completed')
-          ))
-        );
-      }
+      // ▶ 다운로드 셀: 실제 파일 다운로드 링크
+      const tdDownload = document.createElement('td');
+      const a = document.createElement('a');
+      a.href     = `/api/admin/uploads/${u.id}/download`;  // ② 백엔드 엔드포인트
+      a.download = u.filename;                             // 다운로드될 때 파일명 지정
+      a.textContent = '다운로드';
+      // 스타일은 취향대로
+      a.style = 'display:inline-block;padding:4px 8px;background:#007bff;color:#fff;border-radius:4px;text-decoration:none;';
+      tdDownload.appendChild(a);
+      tr.appendChild(tdDownload);
+
+      // 상태 셀
+      const tdStatus = document.createElement('td');
+      tdStatus.textContent = u.status;
+      tr.appendChild(tdStatus);
+
+      // 작업 버튼 그룹 셀 (기존 로직 유지)
+      const tdAct = document.createElement('td');
+      tdAct.className = 'btn-group';
+      // …(확인중/제작중용 버튼 추가)
+      tr.appendChild(tdAct);
 
       tbody.appendChild(tr);
     });

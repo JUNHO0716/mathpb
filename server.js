@@ -731,6 +731,10 @@ app.get('/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
+app.get('/admin_review.html', isLoggedIn, isAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin_review.html'));
+});
+
 // 로그인 후 콜백 처리
 app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/login.html' }),
@@ -997,6 +1001,19 @@ app.post('/api/save-academy-address', async (req, res) => {
   await db.execute('UPDATE users SET academyAddress = ? WHERE id = ?', [address, userId]);
   res.json({ success: true });
 });
+
+
+app.get(
+  '/api/admin/uploads/:id/download',
+  isLoggedIn,         // 로그인 검사
+  isAdmin,            // 관리자 검사
+  async (req, res, next) => {
+    // 내부적으로는 기존 일반 다운로드 엔드포인트로 리다이렉트
+    const { id } = req.params;
+    // PDF 타입으로 내려받게
+    return res.redirect(`/api/download/${id}?type=pdf`);
+  }
+);
 
 
 // 서버 실행
