@@ -587,8 +587,11 @@
   </div>
   <div class="mysheet-right">
     <div class="mysheet-requests-header">
-      <i class="fas fa-file-circle-question" style="color:#fdc512; font-size:1.25em; margin-right:8px;"></i>
+      <i class="fas fa-file-circle-question" style="color:#222; font-size:1.25em; margin-right:8px;"></i>
       시험지 요청
+        <button class="btn-plus" title="더보기" onclick="goToSheetRequestPage()">
+        <i class="fas fa-plus"></i>
+      </button>
     </div>
     <div class="mysheet-scroll-wrap">
       <table class="mysheet-table">
@@ -612,7 +615,11 @@
 
   <!-- 왼쪽 2/3 │ 최근 다운로드 -->
     <div class="downloads-card">
-      <div class="rf-header"><i class="fas fa-download"></i>최근 다운로드</div>
+      <div class="rf-header"><i class="fas fa-download"></i>최근 다운로드
+          <button class="btn-plus" title="더보기" onclick="goToNaesinPage()">
+      <i class="fas fa-plus"></i>
+    </button>
+      </div>
       <div class="rf-table-wrap">
         <table class="rf-table">
         <thead>
@@ -1027,6 +1034,20 @@ async function loadMySheetRequests() {
       tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;color:red;">요청 목록을 불러오지 못했습니다.</td></tr>`;
     }
     console.error(e);
+  }
+}
+
+function goToSheetRequestPage() {
+  // 시험지 요청(업로드) 페이지로 이동
+  if(window.parent){
+    window.parent.postMessage({type: 'goUploadMore'}, '*');
+  }
+}
+
+function goToNaesinPage() {
+  // 내신기출 시험지 페이지로 이동
+  if(window.parent){
+    window.parent.postMessage({type: 'goNaesinMore'}, '*');
   }
 }
 
