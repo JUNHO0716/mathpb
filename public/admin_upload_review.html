@@ -39,20 +39,7 @@
     .actions { text-align:right; margin-top:12px; }
     .actions button { margin-left:8px; }
 
-/* 이동 버튼 스타일 */
-.btn-move {
-  background: #ffc107;      /* 노란 계열 */
-  color: #fff;
-  margin-right: 4px;        /* 오른쪽 간격 */
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.btn-move:hover {
-  background: #e0a800;
-}
-
+    
   </style>
 </head>
 <body>
@@ -72,6 +59,7 @@
           <th>ID</th>
           <th>업로더</th>
           <th>파일명</th>
+          <th>다운로드</th>
           <th>상태</th>
           <th>작업</th>
         </tr>
@@ -130,28 +118,57 @@ function filterStatus(status) {
 function renderUploads() {
   const tbody = document.querySelector('#admin-table tbody');
   tbody.innerHTML = '';
+
   uploads
     .filter(u => currentFilter === 'all' || u.status === currentFilter)
     .forEach(u => {
       const tr = document.createElement('tr');
+
+      // 다운로드 URL은 서버 API에 맞게 조정하세요.
+      const downloadUrl = `/api/admin/uploads/${u.id}/download`;
+
       tr.innerHTML = `
         <td>${u.id}</td>
         <td>${u.user_id}</td>
         <td>${u.filename}</td>
+        <!-- 2) 다운로드 버튼 셀 -->
+        <td>
+          <a 
+            href="${downloadUrl}" 
+            download 
+            style="
+              display:inline-block;
+              padding:4px 8px;
+              background:#007bff;
+              color:#fff;
+              border-radius:4px;
+              text-decoration:none;
+            "
+          >다운로드</a>
+        </td>
         <td>${u.status}</td>
         <td class="btn-group"></td>
       `;
+
+      // 기존 작업 버튼 삽입 로직
       const tdAct = tr.querySelector('.btn-group');
       if (u.status === '확인중') {
         tdAct.append(
-          createButton('제작 진행', 'btn-progress', () => openConfirmModal('제작을 진행하시겠습니까?', () => handleChangeStatus(u.id, 'in_progress'))),
+          createButton('제작 진행', 'btn-progress', () => openConfirmModal(
+            '제작을 진행하시겠습니까?',
+            () => handleChangeStatus(u.id, 'in_progress')
+          )),
           createButton('반려', 'btn-reject', () => openRejectModal(u.id))
         );
       } else if (u.status === '제작중') {
         tdAct.append(
-          createButton('작업 완료', 'btn-complete', () => openConfirmModal('작업을 완료하시겠습니까?', () => handleChangeStatus(u.id, 'completed')))
+          createButton('작업 완료', 'btn-complete', () => openConfirmModal(
+            '작업을 완료하시겠습니까?',
+            () => handleChangeStatus(u.id, 'completed')
+          ))
         );
       }
+
       tbody.appendChild(tr);
     });
 }
