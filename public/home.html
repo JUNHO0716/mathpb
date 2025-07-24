@@ -330,7 +330,14 @@
       text-align:left;
     }
     .rf-table tbody tr:nth-child(even){background:#fafafa;}
-    .rf-table td.title{color:#222;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;}
+    .rf-table td.title {
+        max-width: 210px;    /* 필요시 조절 */
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        display: inline-block;
+        vertical-align: middle;
+      }
     .rf-table td.title:hover{text-decoration:underline;}
     .rf-table-wrap::-webkit-scrollbar{width:6px;}
     .rf-table-wrap::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:4px;}
@@ -463,7 +470,42 @@
 .mysheet-table td.status-working { color: #e7a400; }     /* 노랑: 확인중 */
 .mysheet-table td.status-producing { color: #219e30; }   /* 초록: 제작중 */
 .mysheet-table td.status-completed { color: #007bff; }   /* 파랑: 완료 */
-.mysheet-table td.status-rejected { color: #dc3545; font-weight:700; }  /* 빨강: 반려 */
+.mysheet-table td.status-rejected { color: #dc3545; font-weight:700; }
+
+/* 파일명 ... 처리 (mysheet-table) */
+.mysheet-table .title {
+  max-width: 230px;     /* 적당히 조절 */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* 표 wrapper에 스크롤 적용 */
+.mysheet-scroll-wrap {
+  max-height: 245px;    /* 적당히 조정 (한 7~8줄 정도 보이게) */
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: 10px;
+}
+.mysheet-scroll-wrap::-webkit-scrollbar {
+  width: 6px;
+}
+.mysheet-scroll-wrap::-webkit-scrollbar-thumb {
+  background: #eee;
+  border-radius: 5px;
+}
+
+.fa-hourglass-half.ani-wave {
+  animation: hourglass-shake 0.9s infinite alternate cubic-bezier(.22,.61,.36,1);
+}
+@keyframes hourglass-shake {
+  0%   { transform: rotate(-12deg) scale(1); }
+  35%  { transform: rotate(10deg)  scale(1.08);}
+  75%  { transform: rotate(-8deg) scale(0.96);}
+  100% { transform: rotate(0deg)  scale(1);}
+}
 
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
@@ -548,7 +590,7 @@
       <i class="fas fa-file-circle-question" style="color:#fdc512; font-size:1.25em; margin-right:8px;"></i>
       시험지 요청
     </div>
-    <div style="overflow-x:auto;">
+    <div class="mysheet-scroll-wrap">
       <table class="mysheet-table">
         <thead>
           <tr>
@@ -955,7 +997,7 @@ async function loadMySheetRequests() {
       let icon = '';
       if(row.status === '확인중') {
         statusText = '시험지 확인중';
-        icon = '<i class="fas fa-hourglass-half" style="color:#e7a400;"></i>';
+        icon = '<i class="fas fa-hourglass-half ani-wave" style="color:#e7a400;"></i>';
         statusClass = 'status-working'; // 노랑
       } else if(row.status === '제작중') {
         statusText = '시험지 제작중';
