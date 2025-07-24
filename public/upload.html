@@ -48,6 +48,7 @@ body {
   top: 0;
   align-self: flex-start;
   height: 100vh;
+  box-sizing: border-box;
 }
 .left-panel h3 {
   font-size: 1.2rem;
@@ -395,11 +396,9 @@ th {
 }
 
 .card.status-completed {
-  /* 기존 노란빛 그림자 대신, 또는 추가로 */
   box-shadow:
-    /* 기존 노란빛을 삭제하고 싶으면 이 줄만 남기세요 */
-    0 6px 12px rgba(75, 192, 192, 0.2),
-    0 0 8px rgba(75, 192, 192, 0.1);
+    0 6px 12px rgba(75, 192, 192, 0.2) !important,
+    0 0 8px rgba(75, 192, 192, 0.1) !important;
 }
 
 
@@ -637,12 +636,12 @@ async function loadMyUploads() {
                     <span>.</span><span>.</span><span>.</span>
                   </span>`;
 
-        } else { // 완료
+        } else if (status === '완료') {
           icon = 'done.gif';
           cls  = 'status-completed';
-          // ★ 카드 컨테이너에도 클래스 추가
-          card.classList.add('status-completed');
           text = `시험지 작업 완료 🎉`;
+          // 카드 DOM에 상태 클래스도 붙여야 CSS가 적용됩니다
+          card.classList.add('status-completed');
         }
 
         card.innerHTML = `
