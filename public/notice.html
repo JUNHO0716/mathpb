@@ -10,14 +10,16 @@
     <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css">
     <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
 
-    <!-- 2. Color Syntax 플러그인 (3.x) -->
+    <!-- 2) Color-Syntax -->
     <script src="https://uicdn.toast.com/editor-plugin-color-syntax/latest/toastui-editor-plugin-color-syntax.min.js"></script>
-
-    <!-- 3. FontSize/FontFamily (3.x) -->
+    <!-- 3) Font Size -->
     <script src="https://cdn.jsdelivr.net/npm/@toast-ui/editor-plugin-font-size@3.0.0/dist/toastui-editor-plugin-font-size.min.js"></script>
+    <!-- 4) Font Family -->
     <script src="https://cdn.jsdelivr.net/npm/@toast-ui/editor-plugin-font-family@3.0.0/dist/toastui-editor-plugin-font-family.min.js"></script>
+    <!-- 5) Emoji Picker -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
 
-
+    
   <style>
   :root{
     --purple-bg:#ffffff;
@@ -243,6 +245,20 @@
       min-width: 360px;
       max-width: 95vw;
     }
+
+       /* 이모지 픽커 스타일 */
+      #emoji-picker {
+        position: absolute;
+        display: none;
+        z-index: 2000;
+      }
+      .emoji-btn {
+        font-size: 1.2rem;
+        padding: 0 6px;
+        cursor: pointer;
+        background: none;
+        border: none;
+      }
 
   </style>
 </head>
@@ -515,67 +531,83 @@ if (!row) {
       }
     }
 
-    /* ── 모달 제어 ── */
-    document.getElementById('fab-add').onclick=()=>{
-      document.getElementById('notice-modal-bg').style.display='flex';
-      document.getElementById('input-title').value='';
-      toastEditor.setHTML(''); // 이걸로 Toast 에디터 초기화!
-      document.getElementById('input-img').value='';
-      document.getElementById('input-title').focus();
-    };
-    document.getElementById('notice-modal-close').onclick=()=>{document.getElementById('notice-modal-bg').style.display='none';};
-    document.getElementById('notice-modal-bg').onclick=e=>{if(e.target===e.currentTarget)e.currentTarget.style.display='none';};
-
 
 let toastEditor;  // 에디터 인스턴스
 
 document.addEventListener('DOMContentLoaded', async function() {
   await checkAuth();   // 👈 반드시 여기에 추가!!
-toastEditor = new toastui.Editor({
-  el: document.querySelector('#editor'),
-  height: '320px',
-  initialEditType: 'wysiwyg',
-  previewStyle: 'vertical',
-  language: 'ko',
-  toolbarItems: [
-    ['heading', 'bold', 'italic', 'underline', 'strike', 'divider',
-    'fontSize', 'fontFamily', 'color', 'bgColor', 'divider',
-    'hr', 'quote', 'divider',
-    'ul', 'ol', 'task', 'indent', 'outdent', 'divider',
-    'table', 'link', 'image', 'code', 'codeblock']
-  ],
-  plugins: [
-    window.toastui.Editor.plugin.colorSyntax,
-    window.toastui.Editor.plugin.fontSize,
-    window.toastui.Editor.plugin.fontFamily
-  ],
-  hooks: {
-    addImageBlobHook: async (blob, callback) => {
-      const formData = new FormData();
-      formData.append('image', blob);
-      const res = await fetch('/api/upload-img', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include'
-      });
-      const data = await res.json();
-      callback(data.url, '이미지');
-    }
-  }
-});
+ // 1) Editor 인스턴스 (툴바·플러그인 완전 교체)
+ toastEditor = new toastui.Editor({
+   el: document.querySelector('#editor'),
+   height: '320px',
+   initialEditType: 'wysiwyg',
+   previewStyle: 'vertical',
+   language: 'ko',
+   toolbarItems: [
+     ['heading','bold','italic','underline','strike','divider'],
+     ['fontSize','fontFamily','divider'],
+     ['colorSyntax','colorSyntax:background','divider'],
+     ['ul','ol','task','divider'],
+     ['table','link','image','code','codeblock']
+   ],
+   plugins: [
+     toastuiEditorPluginColorSyntax,
+     toastuiEditorPluginFontSize,
+     toastuiEditorPluginFontFamily
+   ],
+   hooks: {
+     addImageBlobHook: async (blob, callback) => {
+       const fd = new FormData();
+       fd.append('image', blob);
+       const res = await fetch('/api/upload-img', {
+         method: 'POST',
+         body: fd,
+         credentials: 'include'
+       });
+       const data = await res.json();
+       callback(data.url, '이미지');
+     }
+   }
+ });
 
-  // 글쓰기 모달, 새 글이면 에디터 초기화
-  document.getElementById('fab-add').onclick = () => {
-    document.getElementById('notice-modal-bg').style.display = 'flex';
-    document.getElementById('input-title').value = '';
-    // 리치에디터 내용 비우기
-    toastEditor.setHTML('');
-    document.getElementById('input-img').value = '';
-    document.getElementById('input-title').focus();
+   const modalBg  = document.getElementById('notice-modal-bg');
+  const btnClose = document.getElementById('notice-modal-close');
+  btnClose.onclick = () => modalBg.classList.remove('show');
+  modalBg.onclick = e => {
+    if (e.target === modalBg) modalBg.classList.remove('show');
   };
 
-  // 기존 loadNotices, 상세 등 기존대로 유지
-  // ...
+ // 2) fab-add 클릭은 여기서 한 번만 정의
+ document.getElementById('fab-add').onclick = () => {
+   document.getElementById('notice-modal-bg').classList.add('show');
+   document.getElementById('input-title').value = '';
+   toastEditor.setHTML('');
+   document.getElementById('input-img').value = '';
+   document.getElementById('input-title').focus();
+ };
+
+ // 3) 이모지 버튼 추가
+ const toolbar = document.querySelector('.toastui-editor-toolbar');
+ const emojiBtn = document.createElement('button');
+ emojiBtn.type = 'button';
+ emojiBtn.className = 'emoji-btn';
+ emojiBtn.textContent = '😊';
+ emojiBtn.title = 'Emoji';
+ toolbar.appendChild(emojiBtn);
+
+ const picker = document.getElementById('emoji-picker');
+ emojiBtn.addEventListener('click', () => {
+   const rect = emojiBtn.getBoundingClientRect();
+   picker.style.top  = `${rect.bottom + window.scrollY}px`;
+   picker.style.left = `${rect.left + window.scrollX}px`;
+   picker.style.display =
+     picker.style.display === 'block' ? 'none' : 'block';
+ });
+ picker.addEventListener('emoji-click', e => {
+   toastEditor.insertText(e.detail.unicode);
+   picker.style.display = 'none';
+   toastEditor.focus();
+ });
 
   // 공지 등록 submit에서 textarea → 리치에디터 값 사용!
   document.getElementById('notice-form').onsubmit = async e => {
@@ -596,7 +628,6 @@ toastEditor = new toastui.Editor({
     const res = await fetch('/api/notices', {method:'POST', body: fd, credentials:'include'});
     const data = await res.json();
     if(data.msg === '공지 등록 성공') {
-      document.getElementById('notice-modal-bg').style.display = 'none';
       loadNotices();
     } else alert('등록 실패: '+data.msg);
   };
@@ -622,5 +653,6 @@ toastEditor = new toastui.Editor({
   }
 });
   </script>
+  <emoji-picker id="emoji-picker"></emoji-picker>
 </body>
 </html>
