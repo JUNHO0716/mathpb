@@ -6,20 +6,26 @@
   <link rel="icon" type="image/png" href="/favicon.png" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
-    <!-- 1. Editor 본체 (3.x) -->
+    <!-- Toast UI Editor 본체 -->
     <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css">
     <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
 
-    <!-- 2) Color-Syntax -->
+    <!-- 플러그인: color-syntax -->
     <script src="https://uicdn.toast.com/editor-plugin-color-syntax/latest/toastui-editor-plugin-color-syntax.min.js"></script>
-    <!-- 3) Font Size -->
+    <script>
+      var toastuiEditorPluginColorSyntax = window.toastuiEditorPluginColorSyntax || window.toastui?.Editor?.plugin?.colorSyntax;
+    </script>
+    <!-- 플러그인: font-size -->
     <script src="https://cdn.jsdelivr.net/npm/@toast-ui/editor-plugin-font-size@3.0.0/dist/toastui-editor-plugin-font-size.min.js"></script>
-    <!-- 4) Font Family -->
+    <script>
+      var toastuiEditorPluginFontSize = window.toastui?.Editor?.plugin?.fontSize;
+    </script>
+    <!-- 플러그인: font-family -->
     <script src="https://cdn.jsdelivr.net/npm/@toast-ui/editor-plugin-font-family@3.0.0/dist/toastui-editor-plugin-font-family.min.js"></script>
-    <!-- 5) Emoji Picker -->
-    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
+    <script>
+      var toastuiEditorPluginFontFamily = window.toastui?.Editor?.plugin?.fontFamily;
+    </script>
 
-    
   <style>
   :root{
     --purple-bg:#ffffff;
@@ -466,14 +472,6 @@ async function loadNotices(){
         });
     }
 
-    // 예시: 탭 클릭 시 호출
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const category = btn.dataset.type;
-        loadNoticesByCategory(category);
-      });
-    });
-
     let openedDetail=null;
 async function toggleDetail(row, id){
   // 기존 상세 열 닫기
@@ -536,39 +534,56 @@ let toastEditor;  // 에디터 인스턴스
 
 document.addEventListener('DOMContentLoaded', async function() {
   await checkAuth();   // 👈 반드시 여기에 추가!!
+
+  const fabAddBtn = document.getElementById('fab-add');
+  if (IS_ADMIN) {
+    fabAddBtn.style.display = 'flex';
+    fabAddBtn.onclick = () => {
+      document.getElementById('notice-modal-bg').classList.add('show');
+      document.getElementById('input-title').value = '';
+      toastEditor.setHTML('');
+      document.getElementById('input-img').value = '';
+      document.getElementById('input-file').value = '';
+      document.getElementById('input-title').focus();
+    };
+  } else {
+    fabAddBtn.style.display = 'none';
+    fabAddBtn.onclick = null;
+  }
+  
  // 1) Editor 인스턴스 (툴바·플러그인 완전 교체)
- toastEditor = new toastui.Editor({
-   el: document.querySelector('#editor'),
-   height: '320px',
-   initialEditType: 'wysiwyg',
-   previewStyle: 'vertical',
-   language: 'ko',
-   toolbarItems: [
-     ['heading','bold','italic','underline','strike','divider'],
-     ['fontSize','fontFamily','divider'],
-     ['colorSyntax','colorSyntax:background','divider'],
-     ['ul','ol','task','divider'],
-     ['table','link','image','code','codeblock']
-   ],
-   plugins: [
-     toastuiEditorPluginColorSyntax,
-     toastuiEditorPluginFontSize,
-     toastuiEditorPluginFontFamily
-   ],
-   hooks: {
-     addImageBlobHook: async (blob, callback) => {
-       const fd = new FormData();
-       fd.append('image', blob);
-       const res = await fetch('/api/upload-img', {
-         method: 'POST',
-         body: fd,
-         credentials: 'include'
-       });
-       const data = await res.json();
-       callback(data.url, '이미지');
-     }
-   }
- });
+toastEditor = new toastui.Editor({
+  el: document.querySelector('#editor'),
+  height: '320px',
+  initialEditType: 'wysiwyg',
+  previewStyle: 'vertical',
+  language: 'ko',
+  toolbarItems: [
+    ['heading', 'bold', 'italic', 'underline', 'strike', 'divider'],
+    ['fontSize', 'fontFamily', 'divider'],
+    ['colorSyntax', 'colorSyntax:background', 'divider'],
+    ['ul', 'ol', 'task', 'divider'],
+    ['table', 'link', 'image', 'code', 'codeblock']
+  ],
+  plugins: [
+    toastuiEditorPluginColorSyntax,
+    toastuiEditorPluginFontSize,
+    toastuiEditorPluginFontFamily
+  ],
+  hooks: {
+    addImageBlobHook: async (blob, callback) => {
+      const fd = new FormData();
+      fd.append('image', blob);
+      const res = await fetch('/api/upload-img', {
+        method: 'POST',
+        body: fd,
+        credentials: 'include'
+      });
+      const data = await res.json();
+      callback(data.url, '이미지');
+    }
+  }
+});
 
    const modalBg  = document.getElementById('notice-modal-bg');
   const btnClose = document.getElementById('notice-modal-close');
@@ -577,70 +592,64 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (e.target === modalBg) modalBg.classList.remove('show');
   };
 
- // 2) fab-add 클릭은 여기서 한 번만 정의
- document.getElementById('fab-add').onclick = () => {
-   document.getElementById('notice-modal-bg').classList.add('show');
-   document.getElementById('input-title').value = '';
-   toastEditor.setHTML('');
-   document.getElementById('input-img').value = '';
-   document.getElementById('input-title').focus();
- };
 
- // 3) 이모지 버튼 추가
- const toolbar = document.querySelector('.toastui-editor-toolbar');
- const emojiBtn = document.createElement('button');
- emojiBtn.type = 'button';
- emojiBtn.className = 'emoji-btn';
- emojiBtn.textContent = '😊';
- emojiBtn.title = 'Emoji';
- toolbar.appendChild(emojiBtn);
 
- const picker = document.getElementById('emoji-picker');
- emojiBtn.addEventListener('click', () => {
-   const rect = emojiBtn.getBoundingClientRect();
-   picker.style.top  = `${rect.bottom + window.scrollY}px`;
-   picker.style.left = `${rect.left + window.scrollX}px`;
-   picker.style.display =
-     picker.style.display === 'block' ? 'none' : 'block';
- });
- picker.addEventListener('emoji-click', e => {
-   toastEditor.insertText(e.detail.unicode);
-   picker.style.display = 'none';
-   toastEditor.focus();
- });
+// toastEditor 생성 후 아래 코드 추가 (setTimeout 포함!)
+setTimeout(() => {
+  const toolbar = document.querySelector('.toastui-editor-toolbar');
+  if (toolbar && !toolbar.querySelector('.emoji-btn')) {
+    const emojiBtn = document.createElement('button');
+    emojiBtn.type = 'button';
+    emojiBtn.className = 'emoji-btn';
+    emojiBtn.innerHTML = '😊';
+    emojiBtn.title = 'Emoji';
+    emojiBtn.style.fontSize = '1.2rem';
+    toolbar.appendChild(emojiBtn);
+
+    const picker = document.getElementById('emoji-picker');
+    emojiBtn.addEventListener('click', () => {
+      const rect = emojiBtn.getBoundingClientRect();
+      picker.style.top = `${rect.bottom + window.scrollY + 4}px`;
+      picker.style.left = `${rect.left + window.scrollX - 80}px`;
+      picker.style.display =
+        picker.style.display === 'block' ? 'none' : 'block';
+    });
+    picker.addEventListener('emoji-click', e => {
+      toastEditor.insertText(e.detail.unicode);
+      picker.style.display = 'none';
+      toastEditor.focus();
+    });
+  }
+}, 500);
 
   // 공지 등록 submit에서 textarea → 리치에디터 값 사용!
-  document.getElementById('notice-form').onsubmit = async e => {
-    e.preventDefault();
-    const title = document.getElementById('input-title').value.trim();
-    const content = toastEditor.getHTML(); // 여기!!
-    const image = document.getElementById('input-img').files[0];
-    if(!title || !content) {
-      alert('제목과 내용을 입력하세요');
-      return;
-    }
+document.getElementById('notice-form').onsubmit = async e => {
+  e.preventDefault();
+  const title = document.getElementById('input-title').value.trim();
+  const content = toastEditor.getHTML();
+  const image = document.getElementById('input-img').files[0];
+  const file = document.getElementById('input-file').files[0];
+  if(!title || !content) {
+    alert('제목과 내용을 입력하세요');
+    return;
+  }
 
-    const fd = new FormData();
-    fd.append('title', title);
-    fd.append('content', content);
-    if(image) fd.append('image', image);
+  const fd = new FormData();
+  fd.append('title', title);
+  fd.append('content', content);
+  if(image) fd.append('image', image);
+  if(file) fd.append('file', file); // 파일 첨부도 서버로 전송
 
-    const res = await fetch('/api/notices', {method:'POST', body: fd, credentials:'include'});
-    const data = await res.json();
-    if(data.msg === '공지 등록 성공') {
-      loadNotices();
-    } else alert('등록 실패: '+data.msg);
-  };
+  const res = await fetch('/api/notices', {method:'POST', body: fd, credentials:'include'});
+  const data = await res.json();
+  if(data.msg === '공지 등록 성공') {
+    document.getElementById('notice-modal-bg').classList.remove('show'); // 성공 시 모달 닫힘
+    loadNotices();
+  } else alert('등록 실패: '+data.msg);
+};
 
   // 삭제 등 나머지 기존 로직 그대로
   // ...
-
-  // 관리자가 아니면 글쓰기 버튼 숨김
-  if (IS_ADMIN) {
-    document.getElementById('fab-add').style.display = 'flex';
-  } else {
-    document.getElementById('fab-add').style.display = 'none';
-  }
 
   // 첫 로딩
   const params = new URLSearchParams(location.search);
