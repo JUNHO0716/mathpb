@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>공지사항 글쓰기</title>
+  <!-- toastui Editor 3.4.0 CSS (v3만 써야함!) -->
+  <link rel="stylesheet" href="https://uicdn.toast.com/editor/3.4.0/toastui-editor.min.css">
+  <style>
+    body { font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 30px; background: #fff; }
+    .container { max-width: 800px; margin: 40px auto; padding: 32px; background: #f8f8f8; border-radius: 15px; box-shadow: 0 4px 20px #0001; }
+    h2 { font-size: 2rem; margin-bottom: 28px; font-weight: 900; }
+    .row { display: flex; align-items: center; margin-bottom: 18px; }
+    label { min-width: 90px; font-weight: 700; }
+    select, input[type="text"] { font-size: 1rem; padding: 8px 10px; border-radius: 6px; border: 1px solid #bbb; margin-right: 20px; }
+    #editor { margin-bottom: 24px; }
+    input[type="file"] { margin-right: 16px; }
+    .submit-btn { margin-top: 25px; background: #2b7aeb; color: #fff; border: none; padding: 13px 40px; border-radius: 8px; font-size: 1.1rem; font-weight: 800; cursor: pointer; transition: background .14s; }
+    .submit-btn:hover { background: #2367c7; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>공지사항 글쓰기</h2>
+    <form id="notice-form" enctype="multipart/form-data">
+      <div class="row">
+        <label for="category">카테고리</label>
+        <select id="category" name="category" required>
+          <option value="공지">공지사항</option>
+          <option value="업데이트">업데이트</option>
+          <option value="패치">수정사항</option>
+        </select>
+        <label for="title">제목</label>
+        <input type="text" id="title" name="title" placeholder="제목 입력" required style="width:220px;">
+      </div>
+      <div id="editor"></div>
+      <div class="row" style="margin-bottom: 10px;">
+        <label>이미지</label>
+        <input type="file" id="input-img" name="image" accept="image/*">
+        <label style="margin-left:50px;">첨부파일</label>
+        <input type="file" id="input-file" name="file">
+      </div>
+      <button type="submit" class="submit-btn">등록</button>
+    </form>
+  </div>
+  <!-- ✅ toastui Editor 본체: 무조건 v3.4.0 -->
+  <script src="https://uicdn.toast.com/editor/3.4.0/toastui-editor-all.min.js"></script>
+  <!-- ✅ 플러그인도 3.x만 써야됨 -->
+  <script src="https://uicdn.toast.com/editor-plugin-color-syntax/3.1.0/toastui-editor-plugin-color-syntax.min.js"></script>
+  <script src="https://uicdn.toast.com/editor-plugin-font-size/3.0.0/toastui-editor-plugin-font-size.min.js"></script>
+  <script src="https://uicdn.toast.com/editor-plugin-font-family/3.0.0/toastui-editor-plugin-font-family.min.js"></script>
+  <script>
+    // 플러그인 변수
+    var toastuiEditorPluginColorSyntax = window.toastuiEditorPluginColorSyntax;
+    var toastuiEditorPluginFontSize = window.toastuiEditorPluginFontSize;
+    var toastuiEditorPluginFontFamily = window.toastuiEditorPluginFontFamily;
+
+    // Editor 생성
+    let toastEditor;
+    document.addEventListener('DOMContentLoaded', function () {
+      toastEditor = new toastui.Editor({
+        el: document.querySelector('#editor'),
+        height: '400px',
+        initialEditType: 'wysiwyg',
+        previewStyle: 'vertical',
+        language: 'ko',
+        toolbarItems: [
+          ['heading', 'bold', 'italic', 'underline', 'strike', 'divider'],
+          ['fontSize', 'fontFamily', 'divider'],
+          ['colorSyntax', 'colorSyntax:background', 'divider'],
+          ['ul', 'ol', 'task', 'divider'],
+          ['table', 'link', 'image', 'code', 'codeblock']
+        ],
+        plugins: [
+          toastuiEditorPluginColorSyntax,
+          toastuiEditorPluginFontSize,
+          toastuiEditorPluginFontFamily
+        ]
+      });
+    });
+
+    // 폼 submit
+    document.getElementById('notice-form').onsubmit = async function (e) {
+      e.preventDefault();
+      const category = document.getElementById('category').value;
+      const title = document.getElementById('title').value.trim();
+      const content = toastEditor.getHTML();
+      const image = document.getElementById('input-img').files[0];
+      const file = document.getElementById('input-file').files[0];
+      if (!category || !title || !content) {
+        alert('카테고리, 제목, 내용을 모두 입력하세요.');
+        return;
+      }
+      alert('[테스트] 내용 제출됨!\n\n카테고리: ' + category + '\n제목: ' + title + '\n내용(HTML): ' + content.slice(0, 30) + '...');
+      // 실제 서버 연동은 아래 주석 해제 후 사용
+      /*
+      const fd = new FormData();
+      fd.append('category', category);
+      fd.append('title', title);
+      fd.append('content', content);
+      if(image) fd.append('image', image);
+      if(file) fd.append('file', file);
+
+      const res = await fetch('/api/notices', {method:'POST', body: fd, credentials:'include'});
+      const data = await res.json();
+      if(data.msg === '공지 등록 성공') {
+        location.href = '/index.html'; // 등록 후 목록으로 이동
+      } else alert('등록 실패: '+data.msg);
+      */
+    };
+  </script>
+</body>
+</html>
