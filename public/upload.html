@@ -396,6 +396,13 @@ th {
   background-color: #222;
 }
 
+.card.status-producing {
+  /* 기본 노란 그림자 덮어쓰기 */
+  box-shadow:
+    0 6px 12px rgba(0, 0, 0, 0.05)
+    0 0 8px  rgba(0, 0, 0, 0.03) !important;
+}
+
 .card.status-completed {
   /* 아주 옅은 초록빛 그림자 */
   box-shadow:
@@ -633,10 +640,9 @@ async function loadMyUploads() {
         } else if (status === '제작중') {
           icon = 'working.gif';
           cls  = 'status-working';
-          text = `시험지 제작중<span class="dots">
-                    <span>.</span><span>.</span><span>.</span>
-                    <span>.</span><span>.</span><span>.</span>
-                  </span>`;
+          text = `시험지 제작중<span class="dots">……</span>`;
+          // ↓ 이 한 줄만 추가
+          card.classList.add('status-producing');
 
         } else if (status === '완료') {
           icon = 'done.gif';
