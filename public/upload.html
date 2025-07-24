@@ -333,17 +333,26 @@ th {
   margin: 0;
 }
 
-.btn-admin {
-  background: #6c757d;       /* 회색 계열 */
+/* 삭제하기 & 요청 확인 공통 버튼 스타일 */
+.btn-delete {
+  background-color: #000;
   color: #fff;
-  padding: 6px 12px;
   border: none;
-  border-radius: 4px;
+  padding: 8px 14px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.95rem;
+  margin-left: 6px;            /* 앞 버튼과의 간격 */
 }
-.btn-admin:hover {
-  background: #5a6268;
+
+.btn-delete:disabled {
+  opacity: 0.6;                /* 비활성화 시 살짝 투명 */
+  cursor: not-allowed;
+}
+
+/* 필요시 hover 효과도 동일하게 */
+.btn-delete:hover:enabled {
+  background-color: #222;
 }
 
 
@@ -381,10 +390,27 @@ th {
   <div class="right-panel">
   <div class="status-section">
     <div class="section-header">
-      <h3 class="section-title">업로드 파일</h3>
-      <button id="admin-move-btn" style="display:none; margin-right:4px;">요청 확인</button>
-      <button id="delete-btn" disabled>삭제하기</button>
-    </div>
+      <div class="section-header">
+  <h3 class="section-title">업로드 파일</h3>
+
+  <!-- 요청 확인 -->
+  <button
+    id="admin-move-btn"
+    class="btn-delete"
+    style="display:none;"
+  >
+    요청 확인
+  </button>
+
+  <!-- 삭제하기 -->
+  <button
+    id="delete-btn"
+    class="btn-delete"
+    disabled
+  >
+    삭제하기
+  </button>
+</div>
     <div class="card-container" id="upload-card-container"></div>
   </div>
     <div class="completed-section">
@@ -528,42 +554,61 @@ async function loadMyUploads() {
   try {
     const res  = await fetch('/api/my-uploads', { credentials: 'include' });
     const data = await res.json();
+    // 비우기
     uploadCardContainer.innerHTML     = '';
     completedCardContainer.innerHTML = '';
     rejectedBody.innerHTML           = '';
     selectedIds = [];
     deleteBtn.disabled = true;
 
-    data.forEach(item => {
-      const { id, filename, status, completed_at } = item;
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.dataset.id = id;
+    data.forEach((item, idx) => {
+      const { id, filename, status, completed_at, reject_reason } = item;
 
-      // “확인중”만 클릭 가능 → toggleSelection으로 토글
-      if (status === '확인중') {
-        card.addEventListener('click', () => toggleSelection(card, id));
+      if (status === '반려') {
+        // 반려 테이블에 추가
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td>${filename}</td>
+          <td>${reject_reason}</td>
+        `;
+        rejectedBody.appendChild(tr);
+
       } else {
-        card.classList.add('disabled');
-      }
+        // 카드 만들기
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.id = id;
+        // 상태별 텍스트·아이콘·클래스
+        let text, icon, cls;
+        if (status === '확인중') {
+          text = `시험지 확인중<span class="dots"><span>.</span><span>.</span><span>.</span></span>`;
+          icon = 'pending.gif';
+          cls  = 'status-working';
+          // 선택 가능
+          card.addEventListener('click', () => toggleSelection(card, id));
+        } else if (status === '제작중') {
+          text = `시험지 제작중<span class="dots"><span>.</span><span>.</span><span>.</span></span>`;
+          icon = 'pending.gif';
+          cls  = 'status-working';
+        } else /* 완료 */ {
+          text = `시험지 완료 🎉`;
+          icon = 'complete.png';
+          cls  = 'status-completed';
+        }
 
-      // 카드 내부 내용 (기존과 동일하게)
-      card.innerHTML = `
-        <div class="card-label" data-fullname="${filename}">${filename}</div>
-        <img src="${status === '완료' ? 'complete.png' : 'pending.gif'}" alt="${status}">
-        <div class="card-status ${status==='완료'?'status-completed':''}">
-          ${
-            status === '완료'
-              ? new Date(completed_at).toLocaleDateString()
-              : `시험지 확인중<span class="dots"><span>.</span><span>.</span><span>.</span></span>`
-          }
-        </div>`;
+        card.innerHTML = `
+          <div class="card-label" data-fullname="${filename}">${filename}</div>
+          <img src="${icon}" alt="${status}">
+          <div class="card-status ${cls}">${text}</div>
+        `;
 
-      // 위치 분기
-      if (status === '완료') {
-        completedCardContainer.appendChild(card);
-      } else {
-        uploadCardContainer.appendChild(card);
+        // 위치 분기
+        if (status === '완료') {
+          completedCardContainer.appendChild(card);
+        } else {
+          uploadCardContainer.appendChild(card);
+        }
       }
     });
   } catch (e) {
