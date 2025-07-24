@@ -573,13 +573,8 @@ toastEditor = new toastui.Editor({
   const fabAddBtn = document.getElementById('fab-add');
   if (IS_ADMIN) {
     fabAddBtn.style.display = 'flex';
-    fabAddBtn.onclick = () => {
+    fabAddBtn.onclick = function() {
       document.getElementById('notice-modal-bg').classList.add('show');
-      document.getElementById('input-title').value = '';
-      toastEditor.setHTML('');
-      document.getElementById('input-img').value = '';
-      document.getElementById('input-file').value = '';
-      document.getElementById('input-title').focus();
     };
   } else {
     fabAddBtn.style.display = 'none';
