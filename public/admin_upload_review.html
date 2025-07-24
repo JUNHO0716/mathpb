@@ -39,6 +39,26 @@
     .actions { text-align:right; margin-top:12px; }
     .actions button { margin-left:8px; }
 
+    /* 1) 테이블 고정 레이아웃 */
+    #admin-table {
+      table-layout: fixed;
+      width: 100%;
+    }
+
+    /* 2) 셀 텍스트 넘치면 … 처리 */
+    #admin-table th,
+    #admin-table td {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    /* 3) 3열(파일명)만 40% 폭 지정 */
+    #admin-table th:nth-child(3),
+    #admin-table td:nth-child(3) {
+      width: 40%;
+    }
+
     
   </style>
 </head>
@@ -123,22 +143,19 @@ function renderUploads() {
     .filter(u => currentFilter === 'all' || u.status === currentFilter)
     .forEach(u => {
       const tr = document.createElement('tr');
-
-      // ID, 업로더, 파일명 셀
       tr.innerHTML = `
         <td>${u.id}</td>
         <td>${u.user_id}</td>
         <td>${u.filename}</td>
       `;
 
-      // ▶ 다운로드 셀: 실제 파일 다운로드 링크
+      // 다운로드 셀
       const tdDownload = document.createElement('td');
       const a = document.createElement('a');
-      a.href     = `/api/admin/uploads/${u.id}/download`;  // ② 백엔드 엔드포인트
-      a.download = u.filename;                             // 다운로드될 때 파일명 지정
+      a.href = `/api/admin/uploads/${u.id}/download`;
+      a.download = u.filename;
       a.textContent = '다운로드';
-      // 스타일은 취향대로
-      a.style = 'display:inline-block;padding:4px 8px;background:#007bff;color:#fff;border-radius:4px;text-decoration:none;';
+      a.style = '…';
       tdDownload.appendChild(a);
       tr.appendChild(tdDownload);
 
@@ -147,10 +164,26 @@ function renderUploads() {
       tdStatus.textContent = u.status;
       tr.appendChild(tdStatus);
 
-      // 작업 버튼 그룹 셀 (기존 로직 유지)
+      // 작업 버튼 셀
       const tdAct = document.createElement('td');
       tdAct.className = 'btn-group';
-      // …(확인중/제작중용 버튼 추가)
+
+      if (u.status === '확인중') {
+        tdAct.append(
+          createButton('제작 진행', 'btn-progress', () =>
+            openConfirmModal('제작을 진행하시겠습니까?', () => handleChangeStatus(u.id, 'in_progress'))
+          ),
+          createButton('반려', 'btn-reject', () =>
+            openRejectModal(u.id)
+          )
+        );
+      } else if (u.status === '제작중') {
+        tdAct.append(
+          createButton('작업 완료', 'btn-complete', () =>
+            openConfirmModal('작업을 완료하시겠습니까?', () => handleChangeStatus(u.id, 'completed'))
+          )
+        );
+      }
       tr.appendChild(tdAct);
 
       tbody.appendChild(tr);

@@ -1003,15 +1003,35 @@ app.post('/api/save-academy-address', async (req, res) => {
 });
 
 
+// server.js (Express)
 app.get(
   '/api/admin/uploads/:id/download',
-  isLoggedIn,         // 로그인 검사
-  isAdmin,            // 관리자 검사
+  isLoggedIn, isAdmin,
   async (req, res, next) => {
-    // 내부적으로는 기존 일반 다운로드 엔드포인트로 리다이렉트
-    const { id } = req.params;
-    // PDF 타입으로 내려받게
-    return res.redirect(`/api/download/${id}?type=pdf`);
+    try {
+      // uploads 테이블에서 꺼내기
+      const [[row]] = await db.query(
+        'SELECT s3_key, filename FROM uploads WHERE id = ?',
+        [req.params.id]
+      );
+      if (!row) return res.status(404).send('업로드 없음');
+
+      const key = row.s3_key;        // S3 저장 키
+      const origName = row.filename; // 사용자가 업로드한 원본 파일명
+
+      // S3로부터 signed URL 생성
+      const signedUrl = s3.getSignedUrl('getObject', {
+        Bucket: process.env.AWS_S3_BUCKET,
+        Key: key,
+        Expires: 60,
+        ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(origName)}`
+      });
+
+      return res.redirect(signedUrl);
+    } catch (err) {
+      console.error(err);
+      next(err);
+    }
   }
 );
 
