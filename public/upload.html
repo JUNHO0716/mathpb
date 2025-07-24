@@ -390,27 +390,17 @@ th {
   <div class="right-panel">
   <div class="status-section">
     <div class="section-header">
-      <div class="section-header">
-  <h3 class="section-title">업로드 파일</h3>
+      <h3 class="section-title">업로드 파일</h3>
+      <!-- 관리자 전용 요청 확인 버튼 -->
+      <button id="admin-move-btn" class="btn-delete" style="display:none;">
+        요청 확인
+      </button>
+      <!-- 삭제하기 버튼 -->
+      <button id="delete-btn" class="btn-delete" disabled>
+        삭제하기
+      </button>
+    </div>
 
-  <!-- 요청 확인 -->
-  <button
-    id="admin-move-btn"
-    class="btn-delete"
-    style="display:none;"
-  >
-    요청 확인
-  </button>
-
-  <!-- 삭제하기 -->
-  <button
-    id="delete-btn"
-    class="btn-delete"
-    disabled
-  >
-    삭제하기
-  </button>
-</div>
     <div class="card-container" id="upload-card-container"></div>
   </div>
     <div class="completed-section">
