@@ -533,24 +533,6 @@ if (!row) {
 let toastEditor;  // 에디터 인스턴스
 
 document.addEventListener('DOMContentLoaded', async function() {
-  await checkAuth();   // 👈 반드시 여기에 추가!!
-
-  const fabAddBtn = document.getElementById('fab-add');
-  if (IS_ADMIN) {
-    fabAddBtn.style.display = 'flex';
-    fabAddBtn.onclick = () => {
-      document.getElementById('notice-modal-bg').classList.add('show');
-      document.getElementById('input-title').value = '';
-      toastEditor.setHTML('');
-      document.getElementById('input-img').value = '';
-      document.getElementById('input-file').value = '';
-      document.getElementById('input-title').focus();
-    };
-  } else {
-    fabAddBtn.style.display = 'none';
-    fabAddBtn.onclick = null;
-  }
-  
  // 1) Editor 인스턴스 (툴바·플러그인 완전 교체)
 toastEditor = new toastui.Editor({
   el: document.querySelector('#editor'),
@@ -585,6 +567,25 @@ toastEditor = new toastui.Editor({
   }
 });
 
+
+  await checkAuth();   // 👈 반드시 여기에 추가!!
+
+  const fabAddBtn = document.getElementById('fab-add');
+  if (IS_ADMIN) {
+    fabAddBtn.style.display = 'flex';
+    fabAddBtn.onclick = () => {
+      document.getElementById('notice-modal-bg').classList.add('show');
+      document.getElementById('input-title').value = '';
+      toastEditor.setHTML('');
+      document.getElementById('input-img').value = '';
+      document.getElementById('input-file').value = '';
+      document.getElementById('input-title').focus();
+    };
+  } else {
+    fabAddBtn.style.display = 'none';
+    fabAddBtn.onclick = null;
+  }
+  
    const modalBg  = document.getElementById('notice-modal-bg');
   const btnClose = document.getElementById('notice-modal-close');
   btnClose.onclick = () => modalBg.classList.remove('show');
