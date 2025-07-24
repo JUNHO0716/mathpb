@@ -457,7 +457,14 @@
   display:flex;flex-direction:column;
 }
 .mysheet-requests-header {
-  font-size:1.09em;font-weight:900;color:#222;margin-bottom:12px;display:flex;align-items:center;
+  font-size:1.09em;
+  font-weight:900;
+  color:#222;
+  margin-bottom:12px;
+  display:flex;
+  align-items:center;
+  position:relative;    /* 🔥 버튼이 항상 오른쪽에 보이게 */
+  min-height:32px;      /* 버튼이 잘리지 않게 */
 }
 .mysheet-table {
   width:100%;border-collapse:collapse;font-size:.97em;
@@ -466,7 +473,11 @@
   border-bottom:1px solid #eee;padding:8px 8px;text-align:left;
   font-weight:500;
 }
-.mysheet-table th {background:#f7f7f7;color:#555;}
+.mysheet-table th {
+  background:#f7f7f7;
+  color:#555;
+  text-align:center !important;   /* 🔥 가운데 정렬 */
+}
 .mysheet-table td.status-working { color: #e7a400; }     /* 노랑: 확인중 */
 .mysheet-table td.status-producing { color: #219e30; }   /* 초록: 제작중 */
 .mysheet-table td.status-completed { color: #007bff; }   /* 파랑: 완료 */
@@ -495,6 +506,10 @@
 .mysheet-scroll-wrap::-webkit-scrollbar-thumb {
   background: #eee;
   border-radius: 5px;
+}
+
+.downloads-card .rf-header {
+  position: relative;   /* + 버튼이 rf-header 오른쪽에 고정 */
 }
 
 .fa-hourglass-half.ani-wave {
@@ -589,7 +604,7 @@
     <div class="mysheet-requests-header">
       <i class="fas fa-file-circle-question" style="color:#222; font-size:1.25em; margin-right:8px;"></i>
       시험지 요청
-        <button class="btn-plus" title="더보기" onclick="goToSheetRequestPage()">
+      <button class="btn-plus" title="더보기" onclick="goToSheetRequestPage()">
         <i class="fas fa-plus"></i>
       </button>
     </div>
@@ -615,10 +630,11 @@
 
   <!-- 왼쪽 2/3 │ 최근 다운로드 -->
     <div class="downloads-card">
-      <div class="rf-header"><i class="fas fa-download"></i>최근 다운로드
-          <button class="btn-plus" title="더보기" onclick="goToNaesinPage()">
-      <i class="fas fa-plus"></i>
-    </button>
+      <div class="rf-header">
+        <i class="fas fa-download"></i>최근 다운로드
+        <button class="btn-plus" title="더보기" onclick="goToNaesinPage()">
+          <i class="fas fa-plus"></i>
+        </button>
       </div>
       <div class="rf-table-wrap">
         <table class="rf-table">
