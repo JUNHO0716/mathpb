@@ -126,10 +126,11 @@ th {
   padding: 12px;
   text-align: center;
   font-size: 0.9rem;
-  background-color: #f7f7f7;   
-  box-shadow: 0 4px 8px rgba(243, 194, 75, 0.25);
+  background-color: #eeeeee; 
+  box-shadow:
+    0 6px 12px rgba(243, 194, 75, 0.35),
+    0 0 8px rgba(243, 194, 75, 0.2);
 }
-
 .card img {
   width: 50px;
   margin: 10px 0;
@@ -656,7 +657,7 @@ confirmDelete.addEventListener('click', async () => {
 
 const adminMoveBtn = document.getElementById('admin-move-btn');
 adminMoveBtn.addEventListener('click', () => {
-  window.location.href = '/admin_upload.html';
+  window.location.href = '/admin_upload_review.html';
 });
 fetch('/check-auth', { credentials: 'include' })
   .then(res => res.json())
