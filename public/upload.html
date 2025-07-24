@@ -612,16 +612,15 @@ async function loadMyUploads() {
     uploads.forEach(item => {
       const { id, filename, status, completed_at, reject_reason } = item;
 
-      if (status === '반려') {
-        // 반려: 테이블에 번호 없이 파일명, 사유만
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${filename}</td>
-          <td>${reject_reason}</td>
-        `;
-        rejectedBody.appendChild(tr);
-
-      } else {
+    if (status === '반려') {
+      // 반려: 파일명 빨간색 스타일 추가!
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="color:#dc3545;font-weight:bold;">${filename}</td>
+        <td>${reject_reason}</td>
+      `;
+      rejectedBody.appendChild(tr);
+    } else {
         // 확인중 / 제작중 / 완료용 카드
         const card = document.createElement('div');
         card.className = 'card';
@@ -631,19 +630,20 @@ async function loadMyUploads() {
         if (status === '확인중') {
           icon = 'pending.gif';
           cls  = 'status-working';
+          // 점( . ) 사이 공백 없이, span으로 각각 감싸기!
           text = `시험지 확인중<span class="dots">
-                    <span>.</span><span>.</span><span>.</span>
-                    <span>.</span><span>.</span><span>.</span>
-                  </span>`;
+            <span>.</span><span>.</span><span>.</span><span>.</span><span>.</span><span>.</span>
+          </span>`;
           card.addEventListener('click', () => toggleSelection(card, id));
 
         } else if (status === '제작중') {
           icon = 'working.gif';
           cls  = 'status-working';
-          text = `시험지 제작중<span class="dots">……</span>`;
-          // ↓ 이 한 줄만 추가
+          // 점( . ) 여섯개, span 각각으로!
+          text = `시험지 제작중<span class="dots">
+            <span>.</span><span>.</span><span>.</span><span>.</span><span>.</span><span>.</span>
+          </span>`;
           card.classList.add('status-producing');
-
         } else if (status === '완료') {
           icon = 'done.gif';
           cls  = 'status-completed';

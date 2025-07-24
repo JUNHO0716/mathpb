@@ -439,6 +439,32 @@
   background: #d9a90f;
 }
 
+.mysheet-split {
+  display: flex; gap: 24px; margin-top:10px;
+}
+.mysheet-left { flex:1; }
+.mysheet-right {
+  flex:1.4; min-width:280px;
+  background:#fff;border-radius:18px;box-shadow:0 4px 12px rgba(0,0,0,.04);
+  border:1px solid #eee; padding:20px 12px;
+  display:flex;flex-direction:column;
+}
+.mysheet-requests-header {
+  font-size:1.09em;font-weight:900;color:#222;margin-bottom:12px;display:flex;align-items:center;
+}
+.mysheet-table {
+  width:100%;border-collapse:collapse;font-size:.97em;
+}
+.mysheet-table th, .mysheet-table td {
+  border-bottom:1px solid #eee;padding:8px 8px;text-align:left;
+  font-weight:500;
+}
+.mysheet-table th {background:#f7f7f7;color:#555;}
+.mysheet-table td.status-working { color: #e7a400; }     /* 노랑: 확인중 */
+.mysheet-table td.status-producing { color: #219e30; }   /* 초록: 제작중 */
+.mysheet-table td.status-completed { color: #007bff; }   /* 파랑: 완료 */
+.mysheet-table td.status-rejected { color: #dc3545; font-weight:700; }  /* 빨강: 반려 */
+
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
 <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
@@ -513,7 +539,30 @@
     <!-- (오른쪽) 내 문제지 -->
     <div class="mysheet-board">
       <h2>내 문제지</h2>
-      <!-- ★ 내용은 추후 삽입 -->
+      <div class="mysheet-split">
+  <div class="mysheet-left">
+    <!-- (원하는 컨텐츠 있으면 추가, 없으면 이대로 비워둠) -->
+  </div>
+  <div class="mysheet-right">
+    <div class="mysheet-requests-header">
+      <i class="fas fa-file-circle-question" style="color:#fdc512; font-size:1.25em; margin-right:8px;"></i>
+      시험지 요청
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="mysheet-table">
+        <thead>
+          <tr>
+            <th style="width:70%;">파일명</th>
+            <th style="width:30%;">작업 현황</th>
+          </tr>
+        </thead>
+        <tbody id="mysheetRequestTbody">
+          <tr><td colspan="2" style="text-align:center;color:#aaa;">불러오는 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
     </div>
 
 <!-- ▣ 최근 다운로드 / 업로드 ▣ -->
@@ -864,7 +913,7 @@ async function loadRecentDownloads() {
     const tbody = document.getElementById('recentDownloadsTbody');
     if (!tbody) return;
     if (!Array.isArray(data) || data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#aaa;">최근 다운로드 내역이 없습니다.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;color:#aaa;">요청한 시험지가 없습니다.</td></tr>`;
       return;
     }
     tbody.innerHTML = data.map(row => `
@@ -889,6 +938,58 @@ async function loadRecentDownloads() {
     console.error(e);
   }
 }
+
+async function loadMySheetRequests() {
+  try {
+    const res = await fetch('/api/my-uploads', { credentials: 'include' });
+    const data = await res.json();
+    const tbody = document.getElementById('mysheetRequestTbody');
+    if (!tbody) return;
+    if (!Array.isArray(data) || data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;color:#aaa;">요청한 시험지가 없습니다.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.slice(0, 15).map(row => {
+      let statusText = '';
+      let statusClass = '';
+      let icon = '';
+      if(row.status === '확인중') {
+        statusText = '시험지 확인중';
+        icon = '<i class="fas fa-hourglass-half" style="color:#e7a400;"></i>';
+        statusClass = 'status-working'; // 노랑
+      } else if(row.status === '제작중') {
+        statusText = '시험지 제작중';
+        icon = '<i class="fas fa-spinner fa-spin" style="color:#219e30;"></i>';
+        statusClass = 'status-producing'; // 초록
+      } else if(row.status === '완료') {
+        statusText = '시험지 작업 완료';
+        icon = '<i class="fas fa-circle-check" style="color:#007bff;"></i>';
+        statusClass = 'status-completed'; // 파랑
+      } else if(row.status === '반려' || row.status === '거절' || row.status === '반려됨') {
+        statusText = '반려됨';
+        icon = '<i class="fas fa-ban" style="color:#dc3545;"></i>';
+        statusClass = 'status-rejected'; // 빨강
+      } else {
+        statusText = row.status;
+        icon = '';
+        statusClass = '';
+      }
+      return `<tr>
+        <td class="title">${row.filename || row.file_name || '-'}</td>
+        <td class="${statusClass}">${icon} <span>${statusText}</span></td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    const tbody = document.getElementById('mysheetRequestTbody');
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;color:red;">요청 목록을 불러오지 못했습니다.</td></tr>`;
+    }
+    console.error(e);
+  }
+}
+
+// 페이지 진입시 호출(최초 1회)
+document.addEventListener('DOMContentLoaded', loadMySheetRequests);
 
 // 파일 다운로드 버튼 동작 예시
 function downloadFile(fileId, type) {
