@@ -104,8 +104,8 @@
           </tr>
         </thead>
           <tbody id="sidebarDownloadTbody">
-            <tr><td colspan="2" style="text-align: center; color: #aaa;">불러오는 중...</td></tr>
-          </tbody>
+          <tr><td colspan="3" style="text-align: center; color: #aaa;">불러오는 중...</td></tr>
+        </tbody>
         </table>
       </div>
     <div class="spacer"></div>
@@ -173,21 +173,31 @@ async function loadRecentDownloads() {
       if (!Array.isArray(data) || data.length === 0) {
         sideTbody.innerHTML = `<tr><td colspan="2" style="text-align:center;color:#aaa;">없음</td></tr>`;
       } else {
-        sideTbody.innerHTML = data.slice(0, 5).map(row => `
-        <tr>
-          <td style="width: 50%; padding: 6px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-          ${row.name || '-'}
-        </td>
-          <td style="width: 23%; padding: 6px 10px; text-align: center;">
-            ${formatDate(row.date)}
-          </td>
-          <td style="width: 27%; padding: 6px 10px; text-align: center;">
-            <a href="/download/${row.filename}" download title="다운로드" style="color: #444;">
-              <i class="fas fa-download"></i>
-            </a>
-          </td>
-        </tr>
-      `).join('');
+        sideTbody.innerHTML = data.slice(0, 5).map(row => {
+        const fileExt = row.filename?.split('.').pop()?.toLowerCase();
+        let icon = '';
+        if (fileExt === 'pdf') {
+          icon = '/icons/icon-pdf.png';   // PDF 아이콘 경로 (예: public/icons/icon-pdf.png)
+        } else if (fileExt === 'hwp') {
+          icon = '/icons/icon-hwp.png';   // HWP 아이콘 경로 (예: public/icons/icon-hwp.png)
+        } 
+
+        return `
+          <tr>
+            <td style="width: 55%; padding: 6px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${row.name}">
+              ${row.name || '-'}
+            </td>
+            <td style="width: 20%; padding: 6px 10px; text-align: center;">
+              ${formatDate(row.date)}
+            </td>
+            <td style="width: 25%; padding: 6px 10px; text-align: center;">
+              <a href="/download/${row.filename}" download title="다운로드">
+                <img src="${icon}" alt="${fileExt}" style="height: 22px;" />
+              </a>
+            </td>
+          </tr>
+        `;
+      }).join('');
       }
     }
   } catch (e) {
