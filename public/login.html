@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <title>로그인창 | 수학지니</title>
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:400,700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0; padding: 0;
+      min-height: 100vh;
+      background: #f5f5f5;
+      font-family: 'Noto Sans KR', Arial, sans-serif;
+      display: flex; 
+      align-items: stretch; 
+      justify-content: flex-end;
+      height: 100vh;
+    }
+    .main-container {
+      margin-left: 280px;  /* left-bg 만큼 띄우기 */
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* 왼쪽 배경 (지도 느낌 SVG or PNG로 대체) */
+    .left-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 280px; /* 원하는 너비로 고정 */
+      height: 100%;
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      z-index: 1;
+    }
+
+    /* 오른쪽 카드 (오버랩) */
+    .login-card {
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 7px 24px 0 rgba(30,40,90,0.2), 0 1px 3px rgba(30,30,30,0.04);
+      width: 500px;
+      max-width: 94vw;
+      height: 750px;
+      min-height: 630px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 0;
+      position: static; /* absolute 제거 */
+    }
+    /* 로그인 패널에 로고+회사명 */
+    .login-logo-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;   /* 세로로! */
+      align-items: center;      /* 가운데! */
+      justify-content: center;
+      gap: 8px;                 /* 로고와 글씨 사이 간격 */
+      padding: 40px 0 14px 0;   /* 위, 아래 간격 조절 */
+      box-sizing: border-box;
+    }
+    .login-logo-wrap img {
+      width: 54px; height: 54px;
+      border-radius: 13px;
+      object-fit: contain;
+    }
+    .login-logo-wrap span {
+      margin-top: 3px;
+      font-size: 1.32rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      color: #23232b;
+      text-align: center;
+    }
+
+    /* 입력폼 영역 */
+    .login-form-wrap {
+      width: 100%;
+      padding: 44px 34px 12px 34px;
+      display: flex; flex-direction: column; align-items: center;
+      margin: 0; background: none;
+    }
+    .login-form {
+      width: 100%; max-width: 370px;
+      margin: 0 auto; margin-bottom: 4px; margin-top: 0;
+      background: none;
+    }
+    .login-form input[type="text"],
+    .login-form input[type="password"] {
+      width: 100%;
+      margin-bottom: 24px;
+      padding: 11px 0;
+      border: none;
+      border-bottom: 1.4px solid #d7d7d7;
+      border-radius: 0;
+      font-size: 1rem;
+      background: transparent;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    .login-form input:focus {
+      border-bottom: 1.8px solid #111;
+      background: transparent;
+    }
+    .checkbox-area { display: flex; align-items: center; margin-bottom: 14px; font-size: 0.98em; }
+    .checkbox-area input[type="checkbox"] {
+      margin-right: 7px; accent-color: #222; width: 16px; height: 16px;
+    }
+    .login-form button {
+      width: 100%;
+      background: #23232b;
+      color: #fff;
+      font-size: 1.13rem; font-weight: 700;
+      border: none; border-radius: 8px;
+      padding: 13px; margin-top: 3px;
+      box-shadow: 0 2px 10px 0 rgba(40,30,80,0.08);
+      transition: background 0.17s;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+    }
+    .login-form button:hover {
+      background: #4f5365;
+    }
+    .login-result { display:none; margin:10px auto 0; text-align:center; font-size:0.92rem;}
+    .login-result.error { color:#d9534f; font-weight:300; }
+
+    .links-area {
+      display: flex; justify-content: center; align-items: center;
+      margin: 12px 0 2px 0; color: #8d98a7; font-size: 0.99em;
+    }
+    .links-area span {
+      margin: 0 10px; color: #d4dbe2; font-size: 1.1em; font-weight: 300;
+    }
+    .links-area a {
+      color: #222; text-decoration: none; transition: color 0.2s; font-weight: 500;
+    }
+    .links-area a:hover { color: #444; text-decoration: underline; }
+    /* 소셜 로그인 */
+    .social-divider-box {
+      margin: 22px 0 13px 0;
+      display: flex; align-items: center; justify-content: center; gap: 18px; width: 100%;
+    }
+    .divider-line { flex: 1; height: 1px; background: #ccc; max-width: 160px;}
+    .divider-text { color: #999; font-size: 0.95em; font-weight: 500;}
+    .social-login-box {
+      display: flex; gap: 20px; justify-content: center; width: 100%; max-width: 320px; margin-bottom: 8px;
+    }
+    .social-btn {
+      border-radius: 50%; width: 50px; height: 50px;
+      display: flex; align-items: center; justify-content: center;
+      border: none; background: #f2f2f2; margin: 0 5px;
+      box-shadow: 0 1px 6px rgba(40,60,100,0.07);
+      transition: box-shadow 0.12s, border 0.16s;
+      padding: 0;
+    }
+      .social-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(243, 247, 241, 1);
+      }
+    
+    .social-btn img { width: 44px; height: 44px; }
+    .social-btn.naver-btn { background: #13c300; }
+    .social-btn.kakao-btn { background: #fee500; }
+    .social-btn.google-btn { background: #fff; }
+    .social-btn.apple-btn { background: #ffffff; }
+
+.corner-box {
+  position: static;
+  width: 100%;
+  height: 130px;
+  background: #111;
+  border-radius: 15px 15px 0 60px;
+  z-index: 10;
+
+  display: flex;
+  align-items: center; /* 수직 중앙 */
+  justify-content: center; /* 수평 중앙 */
+}
+.corner-img {
+  width: 80px;
+  height: auto;
+  object-fit: contain;
+}
+
+.left-deco {
+  position: fixed;
+  top: 30px;
+  left: 30px;
+  display: flex;
+  flex-direction: row; /* 가로로 배치 */
+  align-items: center;
+  gap: 12px;
+  z-index: 1000;
+}
+
+.logo-img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+.logo-text {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #ffd400;
+  letter-spacing: 0.5px;
+}
+
+.yellow-box {
+  position: absolute;
+  top: 25%;
+  right: 20px; /* left 대신 right 사용해서 안쪽에 고정 */
+  transform: translateY(-50%);
+  width: 65px;
+  height: 65px;
+  background: #ffd400;
+  border-radius: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.sns-links {
+  position: fixed; /* 기존 absolute → fixed */
+  left: 15px;
+  display: flex;
+  gap: 40px;
+  bottom: 60px;
+  z-index: 20;
+}
+
+.sns-links a img {
+  width: 23px;
+  height: px;
+  object-fit: contain;
+  transition: transform 0.2s;
+}
+
+.sns-links a img:hover {
+  transform: scale(1.15);
+}
+
+.left-text-box {
+  background: #ffd400;
+  width: 300px;
+  height: 100px;       /* ← 고정된 높이 */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;  /* 왼쪽 정렬 */
+  padding: 0px 0 25px 30px;    /* 좌우 여백 늘림 */
+  justify-content: center; /* 중앙 정렬 */
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+  text-align: center;
+  margin: 150px auto 0 auto;
+}
+
+.left-text h2 {
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+  text-align: left;         /* 텍스트 왼쪽 정렬 */
+  color: #111;
+}
+.left-text p {
+  font-size: 0.9rem;
+  text-align: left;         /* 텍스트 왼쪽 정렬 */
+  color: #111;
+  margin: 0;
+}
+    
+  @media (max-width: 970px) {
+    .main-container {
+      flex-direction: row; /* row 고정 */
+    }
+    .login-card {
+      position: absolute; /* 고정 유지 */
+      right: 800px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  }
+
+/* ===================== */
+/* 1. left-bg 왼쪽에서 슬라이드 */
+/* ===================== */
+.left-bg {
+  animation: slideInLeft 1.0s ease forwards;
+}
+
+/* ===================== */
+/* 2. left-text-box 약간 delay 후 등장 */
+/* ===================== */
+.left-text-box {
+  opacity: 0;
+  transform: translateX(-40px);
+  animation: fadeSlideLeft 0.8s ease forwards;
+  animation-delay: 1.3s; /* left-bg 후 등장 */
+}
+
+/* ===================== */
+/* 3. left-text 내부 글자 더 늦게 fadeInUp */
+.left-text h2, .left-text p {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.6s ease forwards;
+}
+.left-text h2 {
+  animation-delay: 1.8s;
+}
+.left-text p {
+  animation-delay: 2.1s;
+}
+
+/* ===================== */
+/* 4. logo 위에서 내려오기 */
+/* ===================== */
+.left-deco {
+  opacity: 0;
+  transform: translateY(-30px);
+  animation: fadeSlideDown 0.8s ease forwards;
+  animation-delay: 0.6s;
+}
+
+/* ===================== */
+/* 5. sns-links 아래에서 올라오기 */
+.sns-links {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeSlideUp 0.8s ease forwards;
+  animation-delay: 2.3s;
+}
+
+/* ===================== */
+/* 6. login-card 자연스럽게 fadeUp */
+.login-card {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeSlideUp 1.0s ease forwards;
+  animation-delay: 2.8s;
+}
+
+/* --------------------- */
+/* keyframes 정의 */
+/* --------------------- */
+@keyframes slideInLeft {
+  from { transform: translateX(-500px); }
+  to { transform: translateX(0); }
+}
+
+@keyframes fadeSlideLeft {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+  </style>
+</head>
+<body>
+    <div class="left-deco">
+      <img src="logo_m.png" class="logo-img" alt="로고">
+      <div class="logo-text">M.class</div>
+    </div>
+
+    </div>
+      <div class="main-container">
+            <!-- 오른쪽 오버랩 카드 (폼/소셜/링크 모두 기존 그대로) -->
+    <div class="login-card">
+      <div class="corner-box">
+        <img src="login.png" alt="코너 이미지" class="corner-img">
+      </div>
+      <div class="login-logo-wrap">
+      <img src="logo_b.png" alt="로고">
+      <span>수학지니</span>
+    </div>
+      <div class="login-form-wrap">
+        <form class="login-form" id="loginForm">
+          <input type="text" id="login_email" placeholder="아이디를 입력하세요." required autocomplete="username">
+          <input type="password" id="login_password" placeholder="비밀번호를 입력하세요." required autocomplete="current-password">
+          <div class="checkbox-area">
+            <input type="checkbox" id="save_id">
+            <label for="save_id">아이디 저장</label>
+          </div>
+          <button type="submit">로그인</button>
+          <div id="loginResult" class="login-result" style="display:none;"></div>
+        </form>
+        <div class="links-area gray-links">
+          <a href="signup.html">회원가입</a>
+          <span>|</span>
+          <a href="resetpw.html">비밀번호 찾기</a>
+        </div>
+        <div class="social-divider-box">
+          <div class="divider-line"></div>
+          <div class="divider-text">or with</div>
+          <div class="divider-line"></div>
+        </div>
+        <div class="social-login-box">
+          <a href="/auth/google" class="social-btn google-btn" title="Google 로그인">
+            <img src="google_icon.png" alt="Google">
+          </a>
+          <a href="/auth/naver" class="social-btn naver-btn" title="Naver 로그인">
+            <img src="naver_icon.png" alt="Naver">
+          </a>
+          <a href="/auth/kakao" class="social-btn kakao-btn" title="Kakao 로그인">
+            <img src="kakao_icon.png" alt="Kakao">
+          </a>
+          <a href="/auth/apple" class="social-btn apple-btn" title="Apple 로그인">
+            <img src="apple_icon.png" alt="Apple">
+          </a>
+        </div>
+      </div>
+      </div>
+    </div>
+    <!-- 왼쪽 지도 배경 영역 -->
+    <div class="left-bg">
+        <div class="left-text-box">
+        <div class="left-text">
+        <h2>Welcome to, 수학 문제은행</h2>
+        <p>여기에 짧은 설명이나 캐치프레이즈를 넣으세요.</p>
+      </div>
+      </div>
+        <div class="sns-links">
+    <a href="https://yourblog.com" target="_blank"><img src="blog_icon.png" alt="블로그"></a>
+    <a href="https://instagram.com/youraccount" target="_blank"><img src="insta_icon.png" alt="인스타그램"></a>
+    <a href="https://pf.kakao.com/_xxxxxx" target="_blank"><img src="kakaoch_icon.png" alt="카카오채널"></a>
+    <a href="https://youtube.com/yourchannel" target="_blank"><img src="youtube_icon.png" alt="유튜브"></a>
+  </div>
+    </div>
+
+  </div>
+  <script>
+   
+    // 아이디 저장 기능 (로컬스토리지 사용)
+    window.onload = function() {
+      const saved = localStorage.getItem('saved_id');
+      if(saved) {
+        document.getElementById('login_email').value = saved;
+        document.getElementById('save_id').checked = true;
+      }
+    };
+    document.getElementById('save_id').addEventListener('change', function() {
+      const email = document.getElementById('login_email').value;
+      if(this.checked && email) {
+        localStorage.setItem('saved_id', email);
+      } else {
+        localStorage.removeItem('saved_id');
+      }
+    });
+    document.getElementById('login_email').addEventListener('input', function() {
+      if(document.getElementById('save_id').checked) {
+        localStorage.setItem('saved_id', this.value);
+      }
+    });
+    // 실제 서버 연동 로그인 (Node.js + MySQL)
+      document.getElementById('loginForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('login_email').value.trim(); // email → id
+        const password = document.getElementById('login_password').value;
+        const box = document.getElementById('loginResult');
+        try {
+          const res = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, password }) // email → id
+          });
+          const data = await res.json();
+          if (res.ok) {
+            localStorage.setItem('userId', id);
+            window.location.href = '/index.html'; // 이동 경로 index.html
+          } else {
+            box.className = 'login-result error';
+            box.textContent = data.msg || '아이디 또는 비밀번호가 올바르지 않습니다.';
+            box.style.display = 'block';
+          }
+        } catch (err) {
+          box.className = 'login-result error';
+          box.textContent = '서버 연결 오류';
+          box.style.display = 'block';
+        }
+      };
+    
+
+  </script>
+</body>
+</html>

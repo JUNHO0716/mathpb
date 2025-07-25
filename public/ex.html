@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>선→점→선 와이어 큐브 애니메이션</title>
+  <style>
+    html, body { margin:0; padding:0; background: #191c23; width:100vw; height:100vh;}
+    body { display:flex; justify-content: center; align-items: center; height:100vh; }
+    canvas { background: #191c23; }
+  </style>
+</head>
+<body>
+<canvas id="cubeCanvas" width="400" height="400"></canvas>
+<script>
+// 설정값
+const canvas = document.getElementById('cubeCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+// "여백의 미"를 위한 선 선택: 바둑판 패턴
+const ROWS = 11;
+const COLS = 11;
+const LINES = [];
+for(let row=0; row<ROWS; row++) {
+  for(let col=0; col<COLS; col++) {
+    if((row+col)%2===0) LINES.push([row, col]);
+  }
+}
+const SPACING = 26;
+const LINE_LENGTH = 62;
+const DOT_RADIUS = 2; // 점의 반지름
+
+// 자연스러운 EASING
+function easeInOut(t) {
+  return t<0.5 ? 2*t*t : 1-2*(1-t)*(1-t);
+}
+function lerp(a, b, t) { return a + (b-a)*t; }
+
+// 컬러 그라데이션 함수 (중앙은 푸른빛, 바깥은 흰색)
+function lineColor(row, col) {
+  const c = (row+col)/((ROWS+COLS)/1.7);
+  const hue = lerp(212, 190, c/ROWS);
+  return `hsl(${hue}, 45%, 96%)`;
+}
+
+// 3D isometric 투영
+function project([x, y, z], size=1) {
+  const px = W/2 + (x-z) * size * Math.SQRT1_2;
+  const py = H/2 + (x+z) * size * 0.30 + y * size;
+  return [px, py];
+}
+
+// 선-점-선 길이, 0~1 구간(t)
+function lineLengthRatio(tt) {
+  // 0~0.5: 선에서 점으로 줄어듦
+  // 0.5~1: 점에서 선으로 늘어남 (양쪽 대칭)
+  // 0:선, 0.5:점, 1:선
+  return 1 - 2 * Math.abs(tt - 0.5);
+}
+
+function draw(frameT) {
+  ctx.clearRect(0,0,W,H);
+
+  // 자연스러운 왕복 + Easing
+  let t = Math.abs(Math.sin(frameT * Math.PI));
+  t = easeInOut(t);
+
+  for(let idx=0; idx<LINES.length; idx++) {
+    const [row, col] = LINES[idx];
+
+    // 큐브 상태
+    let gridX = (col - (COLS-1)/2);
+    let gridY = (row - (ROWS-1)/2);
+    let gridZ = ((col+row)%2==0 ? -1 : 1) * 2.2;
+    let cubePos = [gridX * 0.78, gridY * 0.78, gridZ];
+    // 펼친 상태(2D 격자)
+    let gridPos = [gridX, gridY, 0];
+
+    // 보간
+    let pos = [
+      lerp(cubePos[0], gridPos[0], t),
+      lerp(cubePos[1], gridPos[1], t),
+      lerp(cubePos[2], gridPos[2], t)
+    ];
+
+    // 각 선의 회전(큐브면 45도, 펼침 0도)
+    let angle = lerp(Math.PI/4, 0, t);
+
+    // 선 → 점 → 선 (중앙에서는 점, 양끝에서 선)
+    let lratio = lineLengthRatio(t);
+    let linelen = Math.max(0, LINE_LENGTH * lratio);
+
+    ctx.save();
+    const [cx, cy] = project(pos, SPACING);
+    ctx.translate(cx, cy);
+    ctx.rotate(angle);
+
+    ctx.strokeStyle = lineColor(row, col);
+    ctx.lineWidth = 2.7;
+    ctx.shadowColor = "#d9f3ff";
+    ctx.shadowBlur = 13;
+    ctx.globalAlpha = 0.93;
+
+    if (lratio > 0.05) {
+      // 선으로 그리기
+      ctx.beginPath();
+      ctx.moveTo(-linelen/2, 0);
+      ctx.lineTo(linelen/2, 0);
+      ctx.stroke();
+    } else {
+      // 점(원)으로 그리기 (중앙)
+      ctx.beginPath();
+      ctx.arc(0, 0, DOT_RADIUS, 0, Math.PI*2);
+      ctx.fillStyle = lineColor(row, col);
+      ctx.shadowColor = "#d9f3ff";
+      ctx.shadowBlur = 10;
+      ctx.globalAlpha = 0.94;
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+function animate() {
+  // 2.7초 한 번 반복 (더 여유롭게)
+  let period = 5000;
+  let t = ((performance.now() % period) / period);
+  draw(t);
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>

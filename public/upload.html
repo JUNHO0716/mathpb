@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>시험지 업로드</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/common.css">
+<style>
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  margin: 0;
+  background: #fff;
+}
+.page-banner {
+  background: #ffffff;
+  border-bottom: 1px solid #000;
+  padding: 70px 0;
+  text-align: center;
+}
+.page-banner h2 {
+  font-size: 2.4rem;
+  font-weight: 900;
+  margin-bottom: 14px;
+}
+.page-banner p {
+  font-size: 1rem;
+  opacity: .85;
+  margin: 0;
+}
+.main-wrapper {
+  display: flex;
+  width: 100%;
+  /* 아래로 충분히 길어지도록, 뷰포트 높이 최소 보장 */
+  min-height: 100vh;
+}
+.left-panel {
+  width: 20%;
+  background: #f9f9f9;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px;
+  /* 화면 상단부터 아래로 쭉 100% 뷰포트 높이 */
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  box-sizing: border-box;
+}
+.left-panel h3 {
+  font-size: 1.2rem;
+  margin-bottom: 16px;
+}
+.upload-box {
+  border: 2px dashed #bcbcbc;
+  padding: 40px 20px;
+  width: 100%;
+  background-color: #ffffff;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.upload-box:hover {
+  background: #f0f0f0;
+}
+.upload-box input[type="file"] {
+  display: none;
+}
+.upload-box label {
+  display: block;
+  cursor: pointer;
+}
+.right-panel {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 20px;
+  box-sizing: border-box;
+}
+.status-section, .completed-section, .rejected-section {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+}
+.section-title {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+th, td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+th {
+  background: #f0f0f0;
+}
+.status-working {
+  color: orange;
+}
+.status-completed {
+  color: green;
+  font-weight: bold;
+}
+.status-rejected {
+  color: red;
+}
+
+.card-status,
+.status-working,
+.status-completed,
+.status-rejected {
+  color: #000 !important;
+}
+
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.card {
+  display: flex;               /* 이 줄 추가 */
+  flex-direction: column;      /* 이 줄도 추가해야 위/아래로 분리됩니다 */
+  width: 160px;
+  border: none; 
+  justify-content: space-between; /* 위와 아래로 요소를 분리 */
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  font-size: 0.9rem;
+  background-color: #f7f7f7;
+  box-shadow:
+    0 6px 12px rgba(243, 194, 75, 0.35),
+    0 0 8px rgba(243, 194, 75, 0.2);
+}
+.card img {
+  width: 50px;
+  margin: 10px 0;
+}
+
+.card-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;      /* ::after 툴팁용 */
+}
+
+/* 툴팁용 ::after */
+.card-label::after {
+  content: attr(data-fullname);
+  position: absolute;
+  left: 0; bottom: calc(100% + 6px);
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease-in .8s;   /* 0.8초 딜레이 후 fade-in */
+  z-index: 10;
+}
+
+.card img {
+  display: block;
+  margin: 12px auto;     /* 위아래 12px, 좌우 자동 */
+  width: 80px;           /* 원하는 크기로 조절 */
+}
+
+
+.card-label:hover::after {
+  opacity: 1;
+}
+
+.card-status {
+  margin-top: 8px; /* 위 텍스트와 간격 */
+  text-align: left;
+}
+
+.dots {
+  display: inline-block;
+}
+
+.dots span {
+  animation: wave 1.2s infinite;
+  display: inline-block;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+.dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+.dots span:nth-child(4) { animation-delay: 0.6s; }
+.dots span:nth-child(5) { animation-delay: 0.8s; }
+.dots span:nth-child(6) { animation-delay: 1s; }
+
+/* HEAD style 안에 추가! */
+.preview-item {
+  width: 100%;
+  min-height: 40px;         /* 높이 더 낮게 */
+  border: 1.5px solid #eee;
+  border-radius: 8px;       /* 더 작은 radius */
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+  background: #fff;
+  box-shadow: 0.5px 0.5px 3px rgba(0,0,0,0.04);
+  padding: 5px 10px 5px 8px;   /* 여백도 줄임 */
+}
+.preview-item img {
+  width: 22px;              /* 아이콘 더 작게 */
+  margin-right: 10px;
+}
+.preview-item .filename {
+  flex: 1;
+  text-align: left;
+  font-size: 0.8em;         /* 글씨도 약간 작게 */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+.preview-item .remove-btn {
+  cursor: pointer;
+  color: #111;
+  font-size: 1.05em;
+  margin-left: 12px;
+}
+
+.preview-bottom-btns {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 12px;
+  position: absolute;     /* 왼쪽 패널 하단에 고정 */
+  left: 0;
+  bottom: 30px;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+#upload-btn,
+#add-file-btn {
+  width: 100%;
+  padding: 8px 0;
+  font-size: 1.04rem;
+  border-radius: 7px;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#upload-btn { background: #ffcb2c; color: #222; }
+#add-file-btn { background: #e0e7ef; color: #333; }
+
+#preview-card-container {
+  margin: 0;
+  padding: 0;
+}
+
+#upload-head-area {
+  margin-top: 130px;  /* 원하는 만큼 조정 (예: 120px) */
+}
+
+/* 선택된 카드 강조 */
+.card.selected {
+  border-color: #f44 !important;
+  box-shadow: 0 0 8px rgba(244,0,0,0.4);
+}
+/* 제작중 카드 비활성화 */
+.card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+@keyframes wave {
+  0% { transform: translateY(0); }
+  30% { transform: translateY(-4px); }
+  60% { transform: translateY(0); }
+  100% { transform: translateY(0); }
+}
+
+/* 삭제하기 버튼 스타일 */
+#delete-btn {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* 모달 안의 버튼 스타일 */
+#confirm-delete, #cancel-delete {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 0 6px;
+}
+#confirm-delete {
+  background-color: #000;
+  color: #fff;
+}
+#cancel-delete {
+  background-color: #e0e0e0;
+  color: #000;
+}
+
+/* 1) 헤더 안에서 제목과 버튼을 좌우로 정렬 */
+.status-section .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 2) 삭제 버튼 기본 스타일 (검정 바탕 + 흰 글씨) */
+#delete-btn {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  /* float 제거하고 마진 초기화 */
+  float: none;
+  margin: 0;
+}
+
+/* 삭제하기 & 요청 확인 공통 버튼 스타일 */
+.btn-delete {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  margin-left: 0;            /* 앞 버튼과의 간격 */
+}
+
+.btn-delete:disabled {
+  opacity: 0.6;                /* 비활성화 시 살짝 투명 */
+  cursor: not-allowed;
+}
+
+/* 필요시 hover 효과도 동일하게 */
+.btn-delete:hover:enabled {
+  background-color: #222;
+}
+
+.status-section .section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;       /* 버튼들 사이 간격 */
+}
+
+/* 삭제하기 & 요청 확인 공통 버튼 스타일 */
+.btn-delete {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  /* margin-left 제거 */
+}
+
+.btn-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-delete:hover:enabled {
+  background-color: #222;
+}
+
+.card.status-producing {
+  /* 쉼표(,) 꼭 찍어주셔야 합니다! */
+  box-shadow: 
+    0 6px 12px rgba(0, 200, 0, 0.2),
+    0 0 8px rgba(0, 200, 0, 0.1) !important;
+}
+
+.card.status-completed {
+  /* 아주 옅은 초록빛 그림자 */
+  box-shadow:
+    0 6px 12px rgba(75, 192, 192, 0.2),
+    0 0 8px rgba(75, 192, 192, 0.1) !important;
+}
+
+
+</style>
+</head>
+<body>
+<section class="page-banner">
+  <div class="inner">
+    <h2>시험지 업로드</h2>
+    <p>시험지 PDF 파일을 업로드하면, 순서대로 작업됩니다.</p>
+  </div>
+</section>
+<div class="main-wrapper">
+<div class="left-panel">
+  <div id="upload-head-area">
+    <h3>Upload Files</h3>
+    <form class="upload-box" id="uploadForm" enctype="multipart/form-data" onsubmit="return false;">
+      <div id="drag-area">
+        <label for="fileInput">
+          <i class="fas fa-cloud-upload-alt fa-2x" style="margin-bottom:10px;"></i><br>
+          Drag and drop files<br>
+          <span style="font-size:0.85rem;color:#777;">or click to choose files (PDF, Max: 1GB, 최대 10개)</span>
+        </label>
+        <input type="file" id="fileInput" name="fileInput" multiple accept="application/pdf" style="display:none;"/>
+      </div>
+    </form>
+  </div>
+  <div id="preview-card-container"></div>
+  <!-- 버튼을 여기로 이동! -->
+  <div class="preview-bottom-btns">
+    <button id="upload-btn" type="button">파일 업로드</button>
+    <button id="add-file-btn" type="button" style="display:none;">파일 추가</button>
+  </div>
+</div>
+  <div class="right-panel">
+  <div class="status-section">
+    <div class="section-header">
+      <h3 class="section-title">업로드 파일</h3>
+      <!-- 관리자 전용 요청 확인 버튼 -->
+      <button id="admin-move-btn" class="btn-delete" style="display:none;">
+        요청 확인
+      </button>
+      <!-- 삭제하기 버튼 -->
+      <button id="delete-btn" class="btn-delete" disabled>
+        삭제하기
+      </button>
+    </div>
+
+    <div class="card-container" id="upload-card-container"></div>
+  </div>
+    <div class="completed-section">
+      <h3 class="section-title">완료 파일</h3>
+      <div class="card-container" id="completed-card-container"></div>
+    </div>
+    <div class="rejected-section">
+      <h3 class="section-title">반려 파일</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>파일명</th>
+            <th>반려 사유</th>
+          </tr>
+        </thead>
+        <tbody id="rejected-body">
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<!-- 삭제 확인 모달 (body 끝 바로 위) -->
+<div id="delete-modal" style="
+     display:none; position:fixed; top:0; left:0;
+     width:100%; height:100%; background:rgba(0,0,0,0.4);
+     align-items:center; justify-content:center;
+">
+  <div style="
+       background:#fff; padding:20px; border-radius:8px;
+       text-align:center; min-width:240px;
+  ">
+    <p>정말 선택한 파일을 삭제하시겠습니까?</p>
+    <button id="confirm-delete">삭제</button>
+    <button id="cancel-delete">취소</button>
+  </div>
+</div>
+</body>
+<script>
+let selectedFiles = [];
+
+const deleteBtn     = document.getElementById('delete-btn');
+const deleteModal   = document.getElementById('delete-modal');
+const confirmDelete = document.getElementById('confirm-delete');
+const cancelDelete  = document.getElementById('cancel-delete');
+let selectedIds = [];
+const fileInput = document.getElementById('fileInput');
+const previewCardContainer = document.getElementById('preview-card-container');
+const uploadBtn = document.getElementById('upload-btn');
+const addFileBtn = document.getElementById('add-file-btn');
+const dragArea = document.getElementById('drag-area');
+const uploadHeadArea = document.getElementById('upload-head-area');
+const leftPanel = document.querySelector('.left-panel');
+const uploadCardContainer = document.getElementById('upload-card-container');
+const rejectedBody       = document.getElementById('rejected-body');
+const completedCardContainer = document.getElementById('completed-card-container');
+
+// 1) 파일 처리 로직을 분리
+function handleFileSelection(files) {
+  // PDF만, 최대 10개
+  const pdfs = files.filter(f => f.type === 'application/pdf');
+  if (selectedFiles.length + pdfs.length > 10) {
+    alert('최대 10개까지 업로드할 수 있습니다.');
+    return;
+  }
+  pdfs.forEach(file => {
+    if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+      selectedFiles.push(file);
+    }
+  });
+
+  // 업로드 헤더 숨김/추가 버튼 노출
+  if (selectedFiles.length > 0) {
+    uploadHeadArea.style.display = 'none';
+    addFileBtn.style.display     = 'block';
+  } else {
+    uploadHeadArea.style.display = '';
+    addFileBtn.style.display = 'none';
+  }
+
+  renderPreviewCards();
+}
+
+// 2) file input change 시에도 같은 함수 호출
+fileInput.addEventListener('change', function (e) {
+  handleFileSelection(Array.from(e.target.files));
+  fileInput.value = '';
+});
+
+// 파일 추가 버튼
+addFileBtn.addEventListener('click', () => fileInput.click());
+
+// 3) 드래그 앤 드롭 이벤트를 left-panel 전체에 바인딩
+['dragenter', 'dragover'].forEach(evt =>
+  leftPanel.addEventListener(evt, e => {
+    e.preventDefault();
+    leftPanel.classList.add('dragover');
+  })
+);
+['dragleave', 'drop'].forEach(evt =>
+  leftPanel.addEventListener(evt, e => {
+    e.preventDefault();
+    leftPanel.classList.remove('dragover');
+  })
+);
+leftPanel.addEventListener('drop', e => {
+  handleFileSelection(Array.from(e.dataTransfer.files));
+});
+
+dragArea.addEventListener('click', () => fileInput.click());
+
+// 기존 렌더링 함수 등은 그대로 유지
+function renderPreviewCards() {
+  previewCardContainer.innerHTML = '';
+  [...selectedFiles].slice().reverse().forEach((file, idx) => {
+    const realIdx = selectedFiles.length - 1 - idx;
+    const item = document.createElement('div');
+    item.className = 'preview-item';
+    item.innerHTML = `
+      <img src="pdf_icon.png" alt="PDF Icon">
+      <div class="filename" title="${file.name}">${file.name}</div>
+      <div style="color:#666;font-size:0.9em;margin-left:10px;">${(file.size/1024/1024).toFixed(2)} MB</div>
+      <span class="remove-btn" data-idx="${realIdx}" title="삭제"><i class="fas fa-times"></i></span>
+    `;
+    previewCardContainer.appendChild(item);
+  });
+  previewCardContainer.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.onclick = () => {
+      selectedFiles.splice(+btn.dataset.idx, 1);
+      if (selectedFiles.length === 0) {
+        uploadHeadArea.style.display = '';
+        addFileBtn.style.display = 'none';
+      }
+      renderPreviewCards();
+    };
+  });
+}
+
+// ▶ 추가: 내 업로드 현황 불러오기
+async function loadMyUploads() {
+  try {
+    // 1) API 호출
+    const res = await fetch('/api/my-uploads', { credentials: 'include' });
+    // 2) JSON 결과를 uploads 변수에 담아주세요
+    const uploads = await res.json();
+
+    // 3) 기존 화면 초기화
+    uploadCardContainer.innerHTML     = '';
+    completedCardContainer.innerHTML  = '';
+    rejectedBody.innerHTML            = '';
+    selectedIds = [];
+    deleteBtn.disabled = true;
+
+    // 4) 각 항목 렌더링
+    uploads.forEach(item => {
+      const { id, filename, status, completed_at, reject_reason } = item;
+
+    if (status === '반려') {
+      // 반려: 파일명 빨간색 스타일 추가!
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="color:#dc3545;font-weight:bold;">${filename}</td>
+        <td>${reject_reason}</td>
+      `;
+      rejectedBody.appendChild(tr);
+    } else {
+        // 확인중 / 제작중 / 완료용 카드
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.id = id;
+
+        let text, icon, cls;
+        if (status === '확인중') {
+          icon = 'pending.gif';
+          cls  = 'status-working';
+          // 점( . ) 사이 공백 없이, span으로 각각 감싸기!
+          text = `시험지 확인중<span class="dots">
+            <span>.</span><span>.</span><span>.</span><span>.</span><span>.</span><span>.</span>
+          </span>`;
+          card.addEventListener('click', () => toggleSelection(card, id));
+
+        } else if (status === '제작중') {
+          icon = 'working.gif';
+          cls  = 'status-working';
+          // 점( . ) 여섯개, span 각각으로!
+          text = `시험지 제작중<span class="dots">
+            <span>.</span><span>.</span><span>.</span><span>.</span><span>.</span><span>.</span>
+          </span>`;
+          card.classList.add('status-producing');
+        } else if (status === '완료') {
+          icon = 'done.gif';
+          cls  = 'status-completed';
+          text = `시험지 작업 완료 🎉`;
+          // 카드 DOM에 상태 클래스도 붙여야 CSS가 적용됩니다
+          card.classList.add('status-completed');
+        }
+
+        card.innerHTML = `
+          <div class="card-label" data-fullname="${filename}">${filename}</div>
+          <img src="${icon}" alt="${status}">
+          <div class="card-status ${cls}">${text}</div>
+        `;
+
+        // 업로드 / 완료 영역에 분기
+        if (status === '완료') {
+          completedCardContainer.appendChild(card);
+        } else {
+          uploadCardContainer.appendChild(card);
+        }
+      }
+    });
+
+  } catch (e) {
+    console.error('업로드 현황 로드 실패:', e);
+  }
+}
+
+// 업로드 버튼 클릭 로직도 그대로
+uploadBtn.addEventListener('click', async () => {
+  if (!selectedFiles.length) {
+    alert('업로드할 파일을 선택하세요!');
+    return;
+  }
+
+    // ───────────────────────────────────
+   // (1) 확인/취소 모달
+  if (!confirm('파일을 정말 업로드하시겠습니까?')) {
+    return;
+  }
+
+  uploadBtn.disabled = true;
+  uploadBtn.innerText = '업로드 중...';
+
+  const formData = new FormData();
+  selectedFiles.forEach(file => formData.append('fileInput', file));
+  const res = await fetch('/api/user-upload', {
+    method: 'POST',
+    credentials: 'include',
+    body: formData
+  });
+
+  if (res.ok) {
+    selectedFiles = [];
+    renderPreviewCards();
+    // 업로드 후에도 헤더는 숨긴 채로
+    uploadHeadArea.style.display = 'none';
+    addFileBtn.style.display = 'none';
+    uploadBtn.disabled = false;
+    uploadBtn.innerText = '파일 업로드';
+    loadMyUploads();
+
+    // ───────────────────────────────────
+    // (2) 업로드 완료 알림
+    alert('업로드가 완료되었습니다!');
+  } else {
+    alert('업로드 실패');
+    uploadBtn.disabled = false;
+    uploadBtn.innerText = '파일 업로드';
+  }
+});
+
+function toggleSelection(card, id) {
+  if (card.classList.contains('selected')) {
+    card.classList.remove('selected');
+    selectedIds = selectedIds.filter(x => x !== id);
+  } else {
+    card.classList.add('selected');
+    selectedIds.push(id);
+  }
+  deleteBtn.disabled = selectedIds.length === 0;
+}
+
+// “삭제하기” 버튼 클릭 → 모달 열기
+deleteBtn.addEventListener('click', () => {
+  deleteModal.style.display = 'flex';
+});
+
+// 모달 취소
+cancelDelete.addEventListener('click', () => {
+  deleteModal.style.display = 'none';
+});
+
+// 모달에서 삭제 확정
+confirmDelete.addEventListener('click', async () => {
+  // 모달 닫기
+  deleteModal.style.display = 'none';
+
+  // 선택된 ID들에 대해 DELETE 요청
+  await Promise.all(selectedIds.map(id =>
+    fetch(`/api/uploads/${id}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    })
+  ));
+
+  // 삭제 후 목록 갱신 및 선택 초기화
+  loadMyUploads();
+  selectedIds = [];
+  deleteBtn.disabled = true;
+});
+
+const adminMoveBtn = document.getElementById('admin-move-btn');
+adminMoveBtn.addEventListener('click', () => {
+  window.location.href = '/admin_upload_review.html';
+});
+fetch('/check-auth', { credentials: 'include' })
+  .then(res => res.json())
+  .then(data => {
+    if (data.isLoggedIn && data.user.role === 'admin') {
+      adminMoveBtn.style.display = 'inline-block';
+    }
+  })
+  .catch(console.error);
+
+// 초기화
+document.addEventListener('DOMContentLoaded', () => {
+  renderPreviewCards();
+  loadMyUploads();
+  // ▶ 추가: 5초마다 업로드 현황 갱신
+  setInterval(loadMyUploads, 5000);
+});
+</script>
+</html>
