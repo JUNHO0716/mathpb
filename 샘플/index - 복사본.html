@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>글쓰기 - Quill</title>
+    
+    <!-- Quill CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 0;
+            overflow: hidden;
+        }
+
+        .header {
+            background: #fff;
+            border-bottom: 1px solid #e9ecef;
+            padding: 30px 40px;
+        }
+
+        .blog-header .blog-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .title-input {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-bottom: 2px solid #e9ecef;
+            font-size: 20px;
+            outline: none;
+            background: #fff;
+            transition: border-color 0.2s;
+            font-family: 'Malgun Gothic', sans-serif;
+        }
+
+        .title-input:focus {
+            border-bottom-color: #03c75a;
+        }
+
+        .title-input::placeholder {
+            color: #999;
+        }
+
+        .editor-wrapper {
+            background: #fff;
+        }
+
+        /* Quill 에디터 커스터마이징 */
+        .ql-toolbar {
+            border: none !important;
+            border-bottom: 1px solid #e9ecef !important;
+            padding: 20px 20px !important;
+            background: #fff;
+            font-family: 'Malgun Gothic', sans-serif;
+        }
+
+        .ql-container {
+            border: none !important;
+            font-family: 'Malgun Gothic', sans-serif;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .ql-editor {
+            min-height: 500px;
+            padding: 20px;
+            color: #333;
+        }
+
+        .ql-editor.ql-blank::before {
+            content: '내용을 입력하세요...';
+            color: #999;
+            font-style: normal;
+            font-size: 16px;
+        }
+
+        /* 툴바 버튼 스타일링 */
+        .ql-toolbar .ql-formats {
+            margin-right: 15px;
+        }
+
+        .ql-toolbar button,
+        .ql-toolbar .ql-picker {
+            margin-right: 5px;
+        }
+
+        .ql-toolbar button:hover,
+        .ql-toolbar button.ql-active {
+            color: #03c75a !important;
+        }
+
+        .ql-toolbar .ql-stroke {
+            stroke: #666;
+        }
+
+        .ql-toolbar button:hover .ql-stroke,
+        .ql-toolbar button.ql-active .ql-stroke {
+            stroke: #03c75a !important;
+        }
+
+        .ql-toolbar .ql-fill {
+            fill: #666;
+        }
+
+        .ql-toolbar button:hover .ql-fill,
+        .ql-toolbar button.ql-active .ql-fill {
+            fill: #03c75a !important;
+        }
+
+        /* 이미지 스타일링 */
+        .ql-editor img {
+            max-width: 100%;
+            height: auto;
+            margin: 10px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .ql-editor img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .submit-area {
+            text-align: right;
+            padding: 20px;
+            background: #fff;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .submit-btn {
+            background: #03c75a;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 15px;
+            box-shadow: 0 2px 4px rgba(3, 199, 90, 0.3);
+        }
+
+        .submit-btn:hover {
+            background: #45a049;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(3, 199, 90, 0.4);
+        }
+
+        .cancel-btn {
+            background: #6c757d;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 15px;
+        }
+
+        .cancel-btn:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .preview-btn {
+            background: #17a2b8;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preview-btn:hover {
+            background: #138496;
+            transform: translateY(-1px);
+        }
+
+        /* 미리보기 모달 */
+        .preview-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .preview-content {
+            background-color: #fefefe;
+            margin: 2% auto;
+            padding: 40px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 90%;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .preview-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #333;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 15px;
+        }
+
+        .preview-content-area {
+            line-height: 1.8;
+            color: #333;
+        }
+
+        /* 색상 팔레트 커스터마이징 */
+        .ql-color .ql-picker-options,
+        .ql-background .ql-picker-options {
+            width: 252px;
+        }
+
+        /* 이모지 패널 스타일링 */
+        .emoji-panel {
+            display: none;
+            position: fixed;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            max-width: 320px;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .emoji-panel.show {
+            display: grid;
+        }
+
+        .emoji-btn {
+            padding: 8px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 20px;
+            border-radius: 4px;
+            transition: background 0.2s;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emoji-btn:hover {
+            background: #f8f9fa;
+            transform: scale(1.1);
+        }
+
+        /* 일러스트 패널 스타일링 */
+        .illustration-panel {
+            display: none;
+            position: fixed;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            max-width: 400px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .illustration-panel.show {
+            display: grid;
+        }
+
+        .illustration-item {
+            padding: 8px;
+            border: 2px solid #e9ecef;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            overflow: hidden;
+        }
+
+        .illustration-item:hover {
+            border-color: #17a2b8;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
+        }
+
+        .illustration-item img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+
+        /* 커스텀 이모지 버튼 컨테이너 */
+        .custom-toolbar {
+            padding: 10px 20px;
+            background: #fff;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: flex-end;
+            position: relative;
+        }
+
+        .emoji-toggle-btn {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .emoji-toggle-btn:hover {
+            background: #e9ecef;
+            border-color: #03c75a;
+            transform: translateY(-1px);
+        }
+
+        .emoji-toggle-btn.active {
+            background: #03c75a;
+            color: white;
+            border-color: #03c75a;
+        }
+
+        /* 일러스트 버튼 스타일링 */
+        .illustration-toggle-btn {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 10px;
+        }
+
+        .illustration-toggle-btn:hover {
+            background: #e9ecef;
+            border-color: #17a2b8;
+            transform: translateY(-1px);
+        }
+
+        .illustration-toggle-btn.active {
+            background: #17a2b8;
+            color: white;
+            border-color: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <input type="text" id="titleInput" class="title-input" placeholder="제목">
+
+        <div class="editor-wrapper">
+            <div id="editor"></div>
+            
+            <!-- 커스텀 이모지 툴바 -->
+            <div class="custom-toolbar">
+                <button class="emoji-toggle-btn" id="emojiToggle" onclick="toggleEmojiPanel()">
+                    😊 <span>이모지</span>
+                </button>
+                <button class="illustration-toggle-btn" id="illustrationToggle" onclick="toggleIllustrationPanel()">
+                    🎨 <span>일러스트</span>
+                </button>
+            </div>
+            
+            <!-- 이모지 패널 -->
+            <div class="emoji-panel" id="emojiPanel">
+                <!-- 이모지들이 여기에 동적으로 추가됩니다 -->
+            </div>
+            
+            <!-- 일러스트 패널 -->
+            <div class="illustration-panel" id="illustrationPanel">
+                <!-- 일러스트들이 여기에 동적으로 추가됩니다 -->
+            </div>
+        </div>
+
+        <div class="submit-area">
+            <button class="submit-btn" onclick="submitPost()">등록</button>
+        </div>
+    </div>
+
+    <!-- 미리보기 모달 -->
+    <div id="previewModal" class="preview-modal">
+        <div class="preview-content">
+            <span class="close" onclick="closePreview()">&times;</span>
+            <div id="previewTitle" class="preview-title"></div>
+            <div id="previewContent" class="preview-content-area"></div>
+        </div>
+    </div>
+
+    <!-- Quill JS -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    
+    <script>
+        // 커스텀 색상 팔레트
+        const colors = [
+            '#000000', '#e60000', '#ff9900', '#ffff00', '#008a00', '#0066cc', '#9933ff',
+            '#ffffff', '#facccc', '#ffebcc', '#ffffcc', '#cce8cc', '#cce0f5', '#ebd6ff',
+            '#bbbbbb', '#f06666', '#ffc266', '#ffff66', '#66b266', '#66a3e0', '#c285ff',
+            '#888888', '#a10000', '#b26b00', '#b2b200', '#006100', '#0047b2', '#6b24b2',
+            '#444444', '#5c0000', '#663d00', '#666600', '#003700', '#002966', '#3d1466',
+            '#f7f7f7', '#ff4d4d', '#ff8533', '#ffff33', '#00b300', '#3385ff', '#b366ff',
+            '#dddddd', '#cc0000', '#e67300', '#cccc00', '#009900', '#0066ff', '#8c1aff',
+            '#aaaaaa', '#990000', '#b35900', '#999900', '#007700', '#004d99', '#6600cc'
+        ];
+
+        // Quill 에디터 초기화
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            placeholder: '내용을 입력하세요...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                    [{ 'font': [] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': colors }, { 'background': colors }],
+                    [{ 'script': 'sub'}, { 'script': 'super' }],
+                    [{ 'align': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'indent': '-1'}, { 'indent': '+1' }],
+                    ['blockquote', 'code-block'],
+                    ['link', 'image', 'video'],
+                    ['clean']
+                ]
+            }
+        });
+
+        // 이미지 업로드 핸들러 커스터마이징
+        const toolbar = quill.getModule('toolbar');
+        toolbar.addHandler('image', imageHandler);
+
+        function imageHandler() {
+            const input = document.createElement('input');
+            input.setAttribute('type', 'file');
+            input.setAttribute('accept', 'image/*');
+            input.click();
+
+            input.onchange = function() {
+                const file = input.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const range = quill.getSelection();
+                        quill.insertEmbed(range.index, 'image', e.target.result);
+                        
+                        // 이미지 삽입 후 커서를 다음 줄로 이동
+                        quill.setSelection(range.index + 1);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+        }
+
+        // 이모지 패널 토글
+        function toggleEmojiPanel() {
+            const panel = document.getElementById('emojiPanel');
+            const button = document.getElementById('emojiToggle');
+            
+            // 다른 패널 닫기
+            const illustrationPanel = document.getElementById('illustrationPanel');
+            const illustrationButton = document.getElementById('illustrationToggle');
+            illustrationPanel.classList.remove('show');
+            illustrationButton.classList.remove('active');
+            
+            if (panel.classList.contains('show')) {
+                panel.classList.remove('show');
+                button.classList.remove('active');
+            } else {
+                panel.classList.add('show');
+                button.classList.add('active');
+                if (panel.children.length === 0) {
+                    loadEmojis();
+                }
+            }
+        }
+
+        // 이모지 로드
+        function loadEmojis() {
+            const emojis = [
+                '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣',
+                '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰',
+                '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜',
+                '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏',
+                '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
+                '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠',
+                '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨',
+                '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤐',
+                '🥴', '😵', '🤢', '🤮', '🤧', '😷', '🤒', '🤕',
+                '👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙',
+                '👏', '🙌', '👐', '🤲', '🙏', '✍️', '💪', '🦵',
+                '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍',
+                '💯', '💫', '⭐', '🌟', '✨', '⚡', '💥', '🔥',
+                '🎉', '🎊', '🎈', '🎁', '🏆', '🥇', '🥈', '🥉'
+            ];
+
+            const panel = document.getElementById('emojiPanel');
+            emojis.forEach(emoji => {
+                const btn = document.createElement('button');
+                btn.className = 'emoji-btn';
+                btn.textContent = emoji;
+                btn.onclick = function() {
+                    insertEmoji(emoji);
+                };
+                panel.appendChild(btn);
+            });
+        }
+
+        // 이모지 삽입 (Quill 방식)
+        function insertEmoji(emoji) {
+            const range = quill.getSelection();
+            if (range) {
+                quill.insertText(range.index, emoji);
+                quill.setSelection(range.index + emoji.length);
+            } else {
+                quill.insertText(quill.getLength() - 1, emoji);
+            }
+            
+            // 패널 닫기 및 버튼 상태 해제
+            const panel = document.getElementById('emojiPanel');
+            const button = document.getElementById('emojiToggle');
+            panel.classList.remove('show');
+            button.classList.remove('active');
+            quill.focus();
+        }
+
+        // 일러스트 패널 토글
+        function toggleIllustrationPanel() {
+            const panel = document.getElementById('illustrationPanel');
+            const button = document.getElementById('illustrationToggle');
+            
+            // 다른 패널 닫기
+            const emojiPanel = document.getElementById('emojiPanel');
+            const emojiButton = document.getElementById('emojiToggle');
+            emojiPanel.classList.remove('show');
+            emojiButton.classList.remove('active');
+            
+            if (panel.classList.contains('show')) {
+                panel.classList.remove('show');
+                button.classList.remove('active');
+            } else {
+                panel.classList.add('show');
+                button.classList.add('active');
+                if (panel.children.length === 0) {
+                    loadIllustrations();
+                }
+            }
+        }
+
+        // 일러스트 로드
+        function loadIllustrations() {
+            const illustrations = [
+                'img/emoji_1.png',
+                'img/emoji_2.png',
+                'img/emoji_3.png'
+                // 필요에 따라 이미지 추가
+            ];
+
+            const panel = document.getElementById('illustrationPanel');
+            illustrations.forEach(imagePath => {
+                const item = document.createElement('div');
+                item.className = 'illustration-item';
+                item.onclick = function() {
+                    insertIllustration(imagePath);
+                };
+                
+                const img = document.createElement('img');
+                img.src = imagePath;
+                img.alt = '일러스트';
+                img.onerror = function() {
+                    // 이미지 로드 실패 시 아이템 숨기기
+                    item.style.display = 'none';
+                };
+                
+                item.appendChild(img);
+                panel.appendChild(item);
+            });
+        }
+
+        // 일러스트 삽입 (Quill 방식)
+        function insertIllustration(imagePath) {
+            const range = quill.getSelection() || { index: quill.getLength() - 1 };
+            
+            // 이미지를 Base64로 변환하여 삽입
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                
+                try {
+                    const dataURL = canvas.toDataURL('image/png');
+                    quill.insertEmbed(range.index, 'image', dataURL);
+                    quill.setSelection(range.index + 1);
+                } catch (error) {
+                    // CORS 오류 시 직접 경로 사용
+                    quill.insertEmbed(range.index, 'image', imagePath);
+                    quill.setSelection(range.index + 1);
+                }
+                
+            };
+            
+            img.onerror = function() {
+                // 이미지 로드 실패 시 직접 경로 사용
+                quill.insertEmbed(range.index, 'image', imagePath);
+                quill.setSelection(range.index + 1);
+            };
+            
+            img.src = imagePath;
+            
+            // 패널 닫기 및 버튼 상태 해제
+            const panel = document.getElementById('illustrationPanel');
+            const button = document.getElementById('illustrationToggle');
+            panel.classList.remove('show');
+            button.classList.remove('active');
+            quill.focus();
+        }
+
+        // 글 등록
+        function submitPost() {
+            const title = document.getElementById('titleInput').value;
+            const content = quill.root.innerHTML;
+            
+            if (!title.trim()) {
+                alert('제목을 입력해주세요.');
+                document.getElementById('titleInput').focus();
+                return;
+            }
+            
+            if (!quill.getText().trim()) {
+                alert('내용을 입력해주세요.');
+                quill.focus();
+                return;
+            }
+
+            alert('글이 등록되었습니다! 🎉');
+        }
+
+        // 취소
+        function cancelPost() {
+            if (confirm('작성 중인 내용이 사라집니다. 정말 취소하시겠습니까?')) {
+                document.getElementById('titleInput').value = '';
+                quill.setContents([]);
+            }
+        }
+
+        // 미리보기
+        function previewPost() {
+            const title = document.getElementById('titleInput').value || '제목 없음';
+            const content = quill.root.innerHTML;
+            
+            document.getElementById('previewTitle').textContent = title;
+            document.getElementById('previewContent').innerHTML = content;
+            document.getElementById('previewModal').style.display = 'block';
+        }
+
+        // 미리보기 닫기
+        function closePreview() {
+            document.getElementById('previewModal').style.display = 'none';
+        }
+
+        // 모달 외부 클릭 시 닫기 & 이모지 패널 닫기
+        window.onclick = function(event) {
+            const modal = document.getElementById('previewModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // 패널 외부 클릭 시 닫기 (이모지 + 일러스트)
+        document.addEventListener('click', function(e) {
+            const emojiPanel = document.getElementById('emojiPanel');
+            const emojiButton = document.getElementById('emojiToggle');
+            const illustrationPanel = document.getElementById('illustrationPanel');
+            const illustrationButton = document.getElementById('illustrationToggle');
+            
+            const emojiBtn = e.target.closest('.emoji-toggle-btn');
+            const illustrationBtn = e.target.closest('.illustration-toggle-btn');
+            
+            // 이모지 패널 처리
+            if (!emojiPanel.contains(e.target) && !emojiBtn) {
+                emojiPanel.classList.remove('show');
+                emojiButton.classList.remove('active');
+            }
+            
+            // 일러스트 패널 처리
+            if (!illustrationPanel.contains(e.target) && !illustrationBtn) {
+                illustrationPanel.classList.remove('show');
+                illustrationButton.classList.remove('active');
+            }
+        });
+
+        // 키보드 단축키
+        document.addEventListener('keydown', function(e) {
+            // Ctrl + Enter: 글 등록
+            if (e.ctrlKey && e.key === 'Enter') {
+                submitPost();
+            }
+            // Ctrl + P: 미리보기 (기본 인쇄 방지)
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                previewPost();
+            }
+            // ESC: 미리보기 닫기
+            if (e.key === 'Escape') {
+                closePreview();
+            }
+        });
+    </script>
+</body>
+</html> 

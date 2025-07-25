@@ -700,25 +700,44 @@
         fileData = await res.json();
         renderTable(fileData);
       }
-      function renderTable(list){
-        const tbody = document.getElementById('file-list');
-        if(!list.length){
-          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#bbb;">자료가 없습니다</td></tr>`;
-          return;
-        }
-        tbody.innerHTML = list.map(row=>`
-          <tr>
-            <td>${row.region}</td>
-            <td>${row.district}</td>
-            <td>${row.school}</td>
-            <td>${row.grade}</td>
-            <td>${row.year}</td>
-            <td>${row.semester}</td>
-            <td>${row.title}</td>
-            <td><a href="/download/${row.id}" class="download-btn">다운로드</a></td>
-          </tr>
-        `).join('');
-      }
+function renderTable(list) {
+  const tb = document.getElementById('file-list');
+  if (!list.length) {
+    tb.innerHTML = '<tr><td colspan="8" style="padding:20px;color:#9ba4b0;">자료가 없습니다</td></tr>';
+    return;
+  }
+  tb.innerHTML = list.map(row => {
+    let btns = '';
+    if (row.files?.pdf) {
+      btns += `<button class="download-btn" title="PDF 다운로드" onclick="downloadFile('${row.id}','pdf')"
+          style="background:none;border:none;cursor:pointer;">
+          <img src="/pdf_download.png" alt="PDF 다운로드" style="width:32px;height:32px;">
+        </button>`;
+    }
+    if (row.files?.hwp) {
+      btns += `<button class="download-btn" title="HWP 다운로드" onclick="downloadFile('${row.id}','hwp')"
+          style="background:none;border:none;cursor:pointer;">
+          <img src="/hwp_download.png" alt="HWP 다운로드" style="width:32px;height:32px;">
+        </button>`;
+    }
+    return `
+      <tr>
+        <td>${row.region || ''}</td>
+        <td>${row.district || ''}</td>
+        <td>${row.school || ''}</td>
+        <td>${row.grade || ''}</td>
+        <td>${row.year || ''}</td>
+        <td>${row.semester || ''}</td>
+        <td>${row.title || ''}</td>
+        <td>${btns}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function downloadFile(id, type) {
+  window.location.href = `/api/download/${id}?type=${type}`;
+}
       function searchFiles(){
         fetchFiles();
       }
