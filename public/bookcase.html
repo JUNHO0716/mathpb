@@ -177,9 +177,9 @@ async function loadRecentDownloads() {
           const fileExt = row.filename?.split('.').pop()?.toLowerCase();
           let icon = '';
           if (fileExt === 'pdf') {
-            icon = 'pdf_download.png';
+            icon = './pdf_download.png';
           } else if (fileExt === 'hwp') {
-            icon = 'hwp_download.png';
+            icon = './hwp_download.png';
           }
 
           return `
