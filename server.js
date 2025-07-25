@@ -29,6 +29,10 @@ import express from 'express';
 import session from 'express-session';
 import iconv from 'iconv-lite';
 
+// ─── ES 모듈에서 require() 쓰도록 ───────────────────
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
 // AWS S3 연결
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
