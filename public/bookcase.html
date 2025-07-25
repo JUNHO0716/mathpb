@@ -134,6 +134,18 @@
       }
     }
 
+    async function getUserEmail() {
+  try {
+    const res = await fetch('/check-auth', { credentials: 'include' });
+    const data = await res.json();
+    if (data.isLoggedIn && data.user && data.user.email) {
+      return data.user.email;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
 
 
 function formatDate(dateStr) {
@@ -142,8 +154,18 @@ function formatDate(dateStr) {
 }
 
 async function loadRecentDownloads() {
+  const userEmail = await getUserEmail();
+  if (!userEmail) {
+    // 로그인 전이면 아무것도 안 함
+    const sideTbody = document.getElementById('sidebarDownloadTbody');
+    if (sideTbody) {
+      sideTbody.innerHTML = `<tr><td colspan="2" style="text-align:center;color:#aaa;">로그인 필요</td></tr>`;
+    }
+    return;
+  }
+
   try {
-    const res = await fetch('/api/downloads/recent', { credentials: 'include' });
+    const res = await fetch('/api/downloads/recent?email=' + encodeURIComponent(userEmail), { credentials: 'include' });
     const data = await res.json();
 
     const sideTbody = document.getElementById('sidebarDownloadTbody');

@@ -494,12 +494,13 @@
 
 /* 파일명 ... 처리 (mysheet-table) */
 .mysheet-table .title {
-  max-width: 230px;     /* 적당히 조절 */
+  max-width: 350px;     /* ← 원하는 값으로 조절 (기존 230) */
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   display: inline-block;
   vertical-align: middle;
+  cursor: pointer;
 }
 
 /* 표 wrapper에 스크롤 적용 */
@@ -529,6 +530,27 @@
   35%  { transform: rotate(10deg)  scale(1.08);}
   75%  { transform: rotate(-8deg) scale(0.96);}
   100% { transform: rotate(0deg)  scale(1);}
+}
+
+.downloads-card .rf-table td.title {
+  max-width: 310px;      /* 원하는 값으로! */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+
+.uploads-card .rf-table td.title {
+  max-width: 240px;    /* 더 넓게 원하면 조절 */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: inline-block;
+  vertical-align: middle;
+  cursor: pointer;
 }
 
 </style>
@@ -939,7 +961,7 @@ async function loadRecentUploads() {
     }
     tbody.innerHTML = data.map(file => `
       <tr>
-        <td class="title">${file.name}</td>
+        <td class="title" title="${(file.name || '-').replace(/"/g, '&quot;')}">${file.name}</td>
         <td>${file.date}</td>
       </tr>
     `).join('');
@@ -985,7 +1007,7 @@ async function loadRecentDownloads() {
     }
     tbody.innerHTML = data.map(row => `
       <tr>
-        <td style="text-align:left;" class="title">${row.name || row.file_name || '-'}</td>
+        <td style="text-align:left;" class="title" title="${(row.name || row.file_name || '-').replace(/"/g, '&quot;')}">${row.name || row.file_name || '-'}</td>
         <td style="text-align:center;">${formatDate(row.date)}</td>
         <td style="text-align:center;">
           <img src="hwp_download.png" alt="HWP" title="한글 다운로드"
@@ -1042,7 +1064,7 @@ async function loadMySheetRequests() {
         statusClass = '';
       }
       return `<tr>
-        <td class="title">${row.filename || row.file_name || '-'}</td>
+        <td class="title" title="${(row.filename || row.file_name || '-').replace(/"/g, '&quot;')}">${row.filename || row.file_name || '-'}</td>
         <td class="${statusClass}">${icon} <span>${statusText}</span></td>
       </tr>`;
     }).join('');
