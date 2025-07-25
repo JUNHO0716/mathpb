@@ -173,7 +173,7 @@ async function loadRecentDownloads() {
     } else {
       sideTbody.innerHTML = data.slice(0, 5).map(row => {
         const fileId = row.id;
-        const name = row.name || '-';
+        const name = row.name || '';
         const date = formatDate(row.date);
 
         // **업로드된 png 경로 수정**
