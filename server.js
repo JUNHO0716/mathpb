@@ -1035,8 +1035,6 @@ app.get(
   }
 );
 
-const router = require('./RouterFix');
-app.use('/', router);
 
 // 서버 실행
 const PORT = process.env.PORT || 3001;
