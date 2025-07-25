@@ -1035,7 +1035,7 @@ app.get(
   }
 );
 
-const router = require('./router');
+const router = require('./RouterFix');
 app.use('/', router);
 
 // 서버 실행
