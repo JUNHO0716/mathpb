@@ -1035,6 +1035,8 @@ app.get(
   }
 );
 
+const router = require('./router');
+app.use('/', router);
 
 // 서버 실행
 const PORT = process.env.PORT || 3001;
@@ -1042,3 +1044,4 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`서버 실행 http://localhost:${PORT}`);
 });
+
