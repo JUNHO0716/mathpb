@@ -483,6 +483,15 @@
 .mysheet-table td.status-completed { color: #007bff; }   /* 파랑: 완료 */
 .mysheet-table td.status-rejected { color: #dc3545; font-weight:700; }
 
+.mysheet-table td,
+.mysheet-table td.status-working,
+.mysheet-table td.status-producing,
+.mysheet-table td.status-completed,
+.mysheet-table td.status-rejected {
+  text-align: center !important;  /* ← 추가 */
+  vertical-align: middle;
+}
+
 /* 파일명 ... 처리 (mysheet-table) */
 .mysheet-table .title {
   max-width: 230px;     /* 적당히 조절 */
@@ -603,11 +612,7 @@
   <div class="mysheet-right">
         <div class="mysheet-requests-header">
       <i class="fas fa-file-circle-question" style="color:#222; font-size:1.25em; margin-right:8px;"></i>
-      시험지 요청
-      <button class="btn-plus" title="더보기" onclick="goToSheetRequestPage()">
-        <i class="fas fa-plus"></i>
-      </button>
-    </div>
+      시험지 요청</div>
     <div class="mysheet-scroll-wrap">
       <table class="mysheet-table">
         <thead>
@@ -632,9 +637,6 @@
     <div class="downloads-card">
       <div class="rf-header">
   <i class="fas fa-download"></i>최근 다운로드
-  <button class="btn-plus" title="더보기" onclick="goToNaesinPage()">
-    <i class="fas fa-plus"></i>
-  </button>
 </div>
       <div class="rf-table-wrap">
         <table class="rf-table">
