@@ -208,9 +208,11 @@ async function loadRecentDownloads() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  loadRecentDownloads(); // ✅ 페이지 로딩 후 자동 실행
-});
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('sidebar').classList.remove('collapsed');
+    loadRecentDownloads();
+  });
+
 
   </script>
 </body>
