@@ -155,11 +155,10 @@ function formatDate(dateStr) {
 
 async function loadRecentDownloads() {
   const userEmail = await getUserEmail();
+  const sideTbody = document.getElementById('sidebarDownloadTbody');
   if (!userEmail) {
-    // 로그인 전이면 아무것도 안 함
-    const sideTbody = document.getElementById('sidebarDownloadTbody');
     if (sideTbody) {
-      sideTbody.innerHTML = `<tr><td colspan="2" style="text-align:center;color:#aaa;">로그인 필요</td></tr>`;
+      sideTbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#aaa;">로그인 필요</td></tr>`;
     }
     return;
   }
@@ -168,43 +167,43 @@ async function loadRecentDownloads() {
     const res = await fetch('/api/downloads/recent?email=' + encodeURIComponent(userEmail), { credentials: 'include' });
     const data = await res.json();
 
-    const sideTbody = document.getElementById('sidebarDownloadTbody');
-    if (sideTbody) {
-      if (!Array.isArray(data) || data.length === 0) {
-        sideTbody.innerHTML = `<tr><td colspan="2" style="text-align:center;color:#aaa;">없음</td></tr>`;
-      } else {
-        sideTbody.innerHTML = data.slice(0, 5).map(row => {
-          const fileExt = row.filename?.split('.').pop()?.toLowerCase();
-          let icon = '';
-          if (fileExt === 'pdf') {
-            icon = './pdf_download.png';
-          } else if (fileExt === 'hwp') {
-            icon = './hwp_download.png';
-          }
+    if (!sideTbody) return;
+    if (!Array.isArray(data) || data.length === 0) {
+      sideTbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#aaa;">없음</td></tr>`;
+    } else {
+      sideTbody.innerHTML = data.slice(0, 5).map(row => {
+        const fileId = row.id;
+        const name = row.name || '-';
+        const date = formatDate(row.date);
 
-          return `
-            <tr>
-              <td style="width: 60%; padding: 6px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${row.name}">
-                ${row.name || '-'}
-              </td>
-              <td style="width: 20%; padding: 6px 10px; text-align: center;">
-                ${formatDate(row.date)}
-              </td>
-              <td style="width: 20%; padding: 6px 10px; text-align: center;">
-                <a href="/download/${row.filename}" download title="다운로드">
-                  <img src="${icon}" alt="${fileExt}" style="height: 22px;" />
-                </a>
-              </td>
-            </tr>
-          `;
-        }).join('');
-      }
+        // **업로드된 png 경로 수정**
+        // hwp: '/hwp_download.png', pdf: '/pdf_download.png'
+        // 반드시 public/ 폴더에 있어야 하고, src는 /로 시작해야 함!
+
+        return `
+          <tr>
+            <td style="width: 50%; padding: 6px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${name}">
+              ${name}
+            </td>
+            <td style="width: 23%; padding: 6px 10px; text-align: center;">
+              ${date}
+            </td>
+            <td style="width: 27%; padding: 6px 10px; text-align: center;">
+              <a href="/api/download/${fileId}?type=hwp" title="한글 다운로드">
+                <img src="/hwp_download.png" alt="HWP" style="height:22px;vertical-align:middle;margin-right:5px;" />
+              </a>
+              <a href="/api/download/${fileId}?type=pdf" title="PDF 다운로드">
+                <img src="/pdf_download.png" alt="PDF" style="height:22px;vertical-align:middle;" />
+              </a>
+            </td>
+          </tr>
+        `;
+      }).join('');
     }
   } catch (e) {
     console.error(e);
-    const sideTbody = document.getElementById('sidebarDownloadTbody');
     if (sideTbody) {
-      sideTbody.innerHTML = `<tr><td colspan="2" style="text-align:center;color:red;">불러오기 실패</td></tr>`;
+      sideTbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:red;">불러오기 실패</td></tr>`;
     }
   }
 }
