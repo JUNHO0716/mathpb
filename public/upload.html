@@ -137,22 +137,14 @@ th {
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  width: 440px;
   height: 150px;
-  min-width: 460px;
-  max-width: 460px;
+  flex: 0 0 calc((100% - 40px) / 3); /* gap×2=40px */
+  max-width: calc((100% - 40px) / 3);
   margin-bottom: 20px;
   padding: 0 0 0 0;
   overflow: hidden;
   border: none;
   position: relative;
-}
-@media (max-width: 2200px) {
-  .card-container { justify-content: flex-start; }
-  .card-statusbox { width: 19.3vw; min-width: 340px; max-width: 420px; }
-}
-@media (max-width: 1400px) {
-  .card-statusbox { width: 47vw; min-width: 270px; max-width: 380px; }
 }
 
 .card-left {
@@ -381,44 +373,56 @@ th {
 
 
 
-/* 1번 노랑불(확인중) */
-.card-statusbox[data-status="확인중"] .progress-step:nth-child(1) .progress-num {
-  background: #FFD54F; color: #222;
-  border: 2.5px solid #FFD54F;
+/* 1) 카드 그림자: 확인중=노랑, 제작중=초록, 완료=하늘 */
+.card-statusbox[data-status="확인중"] {
+  box-shadow: 0 4px 12px rgba(255,213,79,0.4);
 }
-.card-statusbox[data-status="확인중"] .progress-step:nth-child(1) .progress-text {
-  color: #222; font-weight: 900;
-}
-.card-statusbox[data-status="확인중"] .progress-step:nth-child(2) .progress-num,
-.card-statusbox[data-status="확인중"] .progress-step:nth-child(3) .progress-num { background: #f5f5f5; color: #bbb; border: none; }
-.card-statusbox[data-status="확인중"] .progress-step:nth-child(2) .progress-text,
-.card-statusbox[data-status="확인중"] .progress-step:nth-child(3) .progress-text { color: #bbb; }
 
-/* 2번 노랑불(제작중) */
-.card-statusbox[data-status="제작중"] .progress-step:nth-child(2) .progress-num {
-  background: #cbea7a; color: #1d5011;
-  border: 2.5px solid #cbea7a;
+/* 2) 단계 불(원) 색: 활성 단계는 무조건 노란(#FFD54F), 나머지는 회색 */
+.card-statusbox[data-status="확인중"]  .progress-step:nth-child(1) .progress-num,
+.card-statusbox[data-status="제작중"] .progress-step:nth-child(2) .progress-num,
+.card-statusbox[data-status="완료"]   .progress-step:nth-child(3) .progress-num {
+  background: #FFD54F;
+  border-color: #FFD54F;
+  color: #222;
 }
-.card-statusbox[data-status="제작중"] .progress-step:nth-child(2) .progress-text {
-  color: #2b461a; font-weight: 700;
-}
+.card-statusbox[data-status="확인중"]  .progress-step:nth-child(n+2) .progress-num,
 .card-statusbox[data-status="제작중"] .progress-step:nth-child(1) .progress-num,
-.card-statusbox[data-status="제작중"] .progress-step:nth-child(3) .progress-num { background: #f5f5f5; color: #bbb; border: none; }
-.card-statusbox[data-status="제작중"] .progress-step:nth-child(1) .progress-text,
-.card-statusbox[data-status="제작중"] .progress-step:nth-child(3) .progress-text { color: #bbb; }
+.card-statusbox[data-status="제작중"] .progress-step:nth-child(3) .progress-num,
+.card-statusbox[data-status="완료"]   .progress-step:nth-child(-n+2) .progress-num {
+  background: #f5f5f5;
+  border: none;
+  color: #bbb;
+}
 
-/* 3번 검정불(완료) */
-.card-statusbox[data-status="완료"] .progress-step:nth-child(3) .progress-num {
-  background: #222; color: #fff;
-  border: 2.5px solid #222;
+/* 3) 텍스트 색상: 활성 단계만 검정(#111), 나머지는 회색(#bbb) */
+.card-statusbox[data-status="확인중"]  .progress-step:nth-child(1) .progress-title,
+.card-statusbox[data-status="확인중"]  .progress-step:nth-child(1) .progress-subtext,
+.card-statusbox[data-status="제작중"] .progress-step:nth-child(2) .progress-title,
+.card-statusbox[data-status="제작중"] .progress-step:nth-child(2) .progress-subtext,
+.card-statusbox[data-status="완료"]   .progress-step:nth-child(3) .progress-title,
+.card-statusbox[data-status="완료"]   .progress-step:nth-child(3) .progress-subtext {
+  color: #111;
+  font-weight: 700;
 }
-.card-statusbox[data-status="완료"] .progress-step:nth-child(3) .progress-text {
-  color: #222; font-weight: 900;
+.card-statusbox[data-status="확인중"]  .progress-step:nth-child(n+2) .progress-title,
+.card-statusbox[data-status="확인중"]  .progress-step:nth-child(n+2) .progress-subtext,
+.card-statusbox[data-status="제작중"] .progress-step:nth-child(1) .progress-title,
+.card-statusbox[data-status="제작중"] .progress-step:nth-child(1) .progress-subtext,
+.card-statusbox[data-status="제작중"] .progress-step:nth-child(3) .progress-title,
+.card-statusbox[data-status="제작중"] .progress-step:nth-child(3) .progress-subtext,
+.card-statusbox[data-status="완료"]   .progress-step:nth-child(-n+2) .progress-title,
+.card-statusbox[data-status="완료"]   .progress-step:nth-child(-n+2) .progress-subtext {
+  color: #bbb;
+  font-weight: 400;
 }
-.card-statusbox[data-status="완료"] .progress-step:nth-child(1) .progress-num,
-.card-statusbox[data-status="완료"] .progress-step:nth-child(2) .progress-num { background: #f5f5f5; color: #bbb; border: none; }
-.card-statusbox[data-status="완료"] .progress-step:nth-child(1) .progress-text,
-.card-statusbox[data-status="완료"] .progress-step:nth-child(2) .progress-text { color: #bbb; }
+
+.card-statusbox[data-status="제작중"] {
+  box-shadow: 0 4px 12px rgba(229,247,212,0.4);
+}
+.card-statusbox[data-status="완료"] {
+  box-shadow: 0 4px 12px rgba(194,228,251,0.4);
+}
 
 
 /* HEAD style 안에 추가! */
