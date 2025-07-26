@@ -646,9 +646,14 @@ th {
   font-weight: 600;
 }
 
-/* 1) 카드 오른쪽 영역 padding-left를 줄여서 안쪽 여백을 좁힙니다 */
 .card-statusbox .card-right {
-  padding: 15px 0 0 12px; /* 기존 25px → 12px */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 15px 12px 0 0;   /* 기존: 15px 0 0 12px → 상 15 / 우 12 / 하 0 / 좌 0 */
+  min-width: 0;
+  justify-content: center;
+  align-items: flex-end;     /* 타임라인을 오른쪽 끝으로 정렬 */
 }
 
 /* 진행 단계 동그라미(번호) 연결선 */
