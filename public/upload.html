@@ -156,32 +156,35 @@ th {
 }
 
 .card-left {
-  flex: 0 0 195px;
+  flex: 0 0 110px;   /* 카드 폭 줄임 */
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;    /* 위로 붙임 */
   justify-content: flex-start;
   border-right: 1.5px solid #f0f0f0;
   background: none;
-  padding: 0 0 0 36px;
+  padding: 8px 0 0 16px;     /* 상단, 좌측 여백만 살짝 */
   height: 100%;
   position: relative;
 }
 
 .card-icon-wrap {
-  width: 84px;
-  height: 84px;
-  border: 3.3px solid #ffe063;
-  border-radius: 22px;
-  background: #fff8d3;
+  width: 60px;
+  height: 60px;
+  border: 2.5px solid #ffe063;   /* 노란 테두리만! */
+  border-radius: 14px;
+  /* background: #fff8d3; */      /* <-- 이거 삭제 */
+  background: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 15px;
+  margin-right: 12px;
+  margin-top: 2px;               /* 살짝 위로 */
 }
 
 .card-icon-wrap img {
-  width: 44px; height: 44px;
+  width: 28px;   /* 아이콘 사이즈 줄이기 */
+  height: 28px;
   display: block;
 }
 
