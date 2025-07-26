@@ -182,8 +182,8 @@ th {
 }
 
 .card-icon-wrap img {
-  width: 32px;   /* 아이콘 사이즈 줄이기 */
-  height: 32px;
+  width: 34px;   /* 아이콘 사이즈 줄이기 */
+  height: 34px;
   display: block;
 }
 
@@ -207,8 +207,6 @@ th {
   justify-content: center;
   margin-bottom: 6px;
 }
-.card-statusbox[data-status="제작중"] .card-icon-area { border: 3px solid #e5f7d4; }
-.card-statusbox[data-status="완료"] .card-icon-area { border: 3px solid #c2e4fb; }
 
 .card-icon-area img { width: 54px; height: 54px; }
 
@@ -282,22 +280,23 @@ th {
   margin-top: 4px;
   margin-bottom: 20px;
   font-size: 0.93rem;
-  color: #bdbdbd;
+  color: #111;               /* 날짜를 검정으로 */
   white-space: nowrap;
-  font-weight: 400;
-  opacity: 1;
-  text-align: left;
-  padding-left: 0;
-  margin-left: 0;            /* ✅ 추가 */
-  align-self: flex-start;    /* ✅ 추가 */
-  letter-spacing: -1px;
-  transform: translateX(-60px);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  /* 아래 세 줄을 제거하거나 주석 처리하세요 */
+  /* margin-left: 0; */
+  /* align-self: flex-start; */
+  /* transform: translateX(-60px); */
 }
 
 .card-upload-date {
   display: flex;
   align-items: center;
   gap: 6px;             /* 간격 조정 */
+  transform: none !important;
 }
 
 .upload-date {
@@ -417,13 +416,22 @@ th {
   font-weight: 400;
 }
 
+/* ── 그림자 진하게 & icon-wrap 테두리 색상 변경 ── */
+/* 제작중: 연초록 → 진한 초록 그림자, 테두리 */
 .card-statusbox[data-status="제작중"] {
-  box-shadow: 0 4px 12px rgba(229,247,212,0.4);
+  box-shadow: 0 4px 12px rgba(100, 200, 100, 0.5); /* 진한 초록 그림자 */
 }
-.card-statusbox[data-status="완료"] {
-  box-shadow: 0 4px 12px rgba(194,228,251,0.4);
+.card-statusbox[data-status="제작중"] .card-icon-wrap {
+  border-color: #4CAF50; /* 진한 초록 테두리 */
 }
 
+/* 완료: 연하늘 → 진한 하늘 그림자, 테두리 */
+.card-statusbox[data-status="완료"] {
+  box-shadow: 0 4px 12px rgba(30, 144, 255, 0.5); /* 진한 하늘 그림자 */
+}
+.card-statusbox[data-status="완료"] .card-icon-wrap {
+  border-color: #2196F3; /* 진한 하늘 테두리 */
+}
 
 /* HEAD style 안에 추가! */
 .preview-item {
@@ -874,13 +882,18 @@ async function loadMyUploads() {
     deleteBtn.disabled = true;
 
         // 4) 각 항목 렌더링
-    uploads.forEach(item => {
-      const { id, filename, status, completed_at, created_at, reject_reason } = item;
+      uploads.forEach(item => {
+      const { id, filename, status, created_at, reject_reason } = item;
 
-      // 반려 카드 예외 처리
+      // ◀ 반려 처리 블록 채우기
       if (status === '반려') {
-        // ... (생략: 기존 반려 처리 코드)
-        return;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td title="${filename}">${filename.length > 20 ? filename.slice(0,20) + '…' : filename}</td>
+          <td>${reject_reason || '사유 없음'}</td>
+        `;
+        rejectedBody.appendChild(tr);
+        return;  // 다른 카드 렌더링은 건너뜁니다.
       }
 
       // 1. 상태별 뱃지 & 색상
