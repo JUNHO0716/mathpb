@@ -280,14 +280,15 @@ th {
   margin-top: 4px;
   margin-bottom: 20px;
   font-size: 0.93rem;
-  color: #111;               /* 날짜를 검정으로 */
+  color: #bdbdbd;
   white-space: nowrap;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: 0;
-  align-self: flex-start;
+  font-weight: 400;
+  opacity: 1;
+  text-align: left;
+  padding-left: 0;
+  margin-left: 0;            /* ✅ 추가 */
+  align-self: flex-start;    /* ✅ 추가 */
+  letter-spacing: -1px;
   transform: translateX(-60px);
 }
 
@@ -295,7 +296,6 @@ th {
   display: flex;
   align-items: center;
   gap: 6px;             /* 간격 조정 */
-  transform: none !important;
 }
 
 .upload-date {
