@@ -132,17 +132,19 @@ th {
 
 .card-statusbox {
   background: #fff;
-  border-radius: 28px;
-  box-shadow: 0 2px 16px rgba(33, 37, 41, 0.06);
+  border-radius: 30px;
+  box-shadow: 0 2px 18px rgba(33,37,41,.08);
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  width: 425px;
-  height: 180px;
-  min-width: 425px;
-  max-width: 425px;
-  margin-bottom: 16px;
+  width: 460px;
+  height: 175px;
+  min-width: 460px;
+  max-width: 460px;
+  margin-bottom: 20px;
+  padding: 0 0 0 0;
   overflow: hidden;
+  border: none;
   position: relative;
 }
 @media (max-width: 2200px) {
@@ -154,14 +156,41 @@ th {
 }
 
 .card-left {
-  flex: 0 0 180px;
+  flex: 0 0 195px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   border-right: 1.5px solid #f0f0f0;
   background: none;
-  padding: 0 16px;
+  padding: 0 0 0 36px;
+  height: 100%;
+  position: relative;
+}
+
+.card-icon-wrap {
+  width: 84px;
+  height: 84px;
+  border: 3.3px solid #ffe063;
+  border-radius: 22px;
+  background: #fff8d3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+}
+
+.card-icon-wrap img {
+  width: 44px; height: 44px;
+  display: block;
+}
+
+.card-badge-group {
+  display: flex;
+  flex-direction: row;
+  gap: 7px;
+  margin-bottom: 4px;
+  align-items: center;
 }
 
 .card-icon-area {
@@ -196,32 +225,54 @@ th {
   padding: 3.5px 15px 4.5px 15px;
   font-weight: 600;
 }
-.card-badge.req { background: #111; color: #fff; }
-.card-badge.check { background: #FFD54F; color: #111; }
+.card-badge.req {
+  background: #111;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 17px;
+  font-size: 1.11rem;
+  padding: 4.5px 19px 4.5px 19px;
+  letter-spacing: -1px;
+}
+.card-badge.check {
+  background: #FFD54F;
+  color: #111;
+  font-weight: 700;
+  border-radius: 17px;
+  font-size: 1.11rem;
+  padding: 4.5px 19px 4.5px 19px;
+  margin-left: -1px;
+}
+.card-meta-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 .card-badge.make { background: #e8f4e5; color: #45593e; }
 .card-badge.done { background: #e5f4fa; color: #1d5b84; }
 
 /* ---- 파일명 (부제목.pdf) ---- */
 .card-filename {
-  font-size: 2.5rem;
+  font-size: 2.3rem;
   font-weight: 900;
   color: #111;
-  margin-bottom: 16px;
-  width: 170px;
-  overflow: hidden;
+  margin-bottom: 3px;
+  width: 195px;
+  max-width: 195px;
   white-space: nowrap;
+  overflow: hidden;
   text-overflow: ellipsis;
   text-align: left;
 }
 @media (max-width: 1300px) { .card-filename { font-size: 1.4rem; width: 100px; } }
 
 .card-upload-date {
-  font-size: 1.45rem;
-  color: #222;
-  opacity: 0.95;
-  margin-top: auto;
-  margin-bottom: 8px;
-  text-align: left;
+  font-size: 1.25rem;
+  color: #bdbdbd;
+  opacity: 1;
+  margin: 0 0 0 3px;
+  font-weight: 400;
 }
 
 /* ---- 오른쪽 단계(Progress) ---- */
@@ -229,27 +280,28 @@ th {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 22px 0 0 30px;
+  padding: 32px 0 0 37px;
   min-width: 0;
   justify-content: center;
 }
 .progress-step {
   display: flex;
   align-items: center;
-  margin-bottom: 13px;
+  margin-bottom: 12px;
 }
 .progress-num {
-  width: 32px; height: 32px;
+  width: 33px; height: 33px;
   border-radius: 50%;
   font-size: 1.22rem;
-  font-weight: 700;
+  font-weight: 800;
   display: flex; align-items: center; justify-content: center;
-  margin-right: 10px;
+  margin-right: 12px;
   background: #f5f5f5;
-  color: #999;
+  color: #bbb;
   flex-shrink: 0;
+  letter-spacing: -1px;
 }
-.progress-text { font-size: 1.1rem; font-weight: 700; color: #bbb; }
+.progress-text { font-size: 1.09rem; font-weight: 800; color: #bbb; }
 
 /* 1번 노랑불(확인중) */
 .card-statusbox[data-status="확인중"] .progress-step:nth-child(1) .progress-num {
@@ -257,7 +309,7 @@ th {
   border: 2.5px solid #FFD54F;
 }
 .card-statusbox[data-status="확인중"] .progress-step:nth-child(1) .progress-text {
-  color: #222; font-weight: 700;
+  color: #222; font-weight: 900;
 }
 .card-statusbox[data-status="확인중"] .progress-step:nth-child(2) .progress-num,
 .card-statusbox[data-status="확인중"] .progress-step:nth-child(3) .progress-num { background: #f5f5f5; color: #bbb; border: none; }
@@ -289,23 +341,6 @@ th {
 .card-statusbox[data-status="완료"] .progress-step:nth-child(2) .progress-num { background: #f5f5f5; color: #bbb; border: none; }
 .card-statusbox[data-status="완료"] .progress-step:nth-child(1) .progress-text,
 .card-statusbox[data-status="완료"] .progress-step:nth-child(2) .progress-text { color: #bbb; }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /* HEAD style 안에 추가! */
@@ -739,39 +774,39 @@ async function loadMyUploads() {
       card.dataset.id = id;
 
       // 카드 HTML
-      card.innerHTML = `
-        <div class="card-left">
-          <div class="card-icon-area">
-            <img src="${iconImg}" alt="아이콘">
-          </div>
-          <div class="card-label-top">
-            <span class="card-badge req">시험지 요청</span>
-            <span class="card-badge ${badgeClass}">${badgeText}</span>
-          </div>
-          <div class="card-filename" title="${filename}">${filename}</div>
-          <div class="card-upload-date">${dateStr} <span style="color:#eee;">· 요청일</span></div>
+    card.innerHTML = `
+      <div class="card-left">
+      <div class="card-icon-wrap"><img src="${iconImg}" alt=""></div>
+      <div class="card-meta-box">
+        <div class="card-badge-group">
+          <span class="card-badge req">시험지 요청</span>
+          <span class="card-badge ${badgeClass}">${badgeText}</span>
         </div>
-        <div class="card-right">
-          <div class="progress-step">
-            <span class="progress-num">1</span>
-            <span class="progress-text">시험지 확인중<span style="font-weight:400;">……</span><br>
-              <span style="font-size:0.97rem; font-weight:400;">요청하신 시험지 작업이 가능한지 확인중입니다.</span>
-            </span>
-          </div>
-          <div class="progress-step">
-            <span class="progress-num">2</span>
-            <span class="progress-text">시험지 제작중<span style="font-weight:400;">……</span><br>
-              <span style="font-size:0.97rem; font-weight:400;">요청하신 시험지를 한글화 작업이 진행중입니다.</span>
-            </span>
-          </div>
-          <div class="progress-step">
-            <span class="progress-num">3</span>
-            <span class="progress-text">시험지 제작 완료<br>
-              <span style="font-size:0.97rem; font-weight:400;">시험지 문제 업로드 완료</span>
-            </span>
-          </div>
+        <div class="card-filename" title="${filename}">${filename}</div>
+        <div class="card-upload-date">${dateStr} · 요청일</div>
+      </div>
+    </div>
+      <div class="card-right">
+        <div class="progress-step">
+          <span class="progress-num">1</span>
+          <span class="progress-text">시험지 확인중<span style="font-weight:400;">……</span><br>
+            <span style="font-size:0.97rem; font-weight:400;">요청하신 시험지 작업이 가능한지 확인중입니다.</span>
+          </span>
         </div>
-      `;
+        <div class="progress-step">
+          <span class="progress-num">2</span>
+          <span class="progress-text">시험지 제작중<span style="font-weight:400;">……</span><br>
+            <span style="font-size:0.97rem; font-weight:400;">요청하신 시험지를 한글화 작업이 진행중입니다.</span>
+          </span>
+        </div>
+        <div class="progress-step">
+          <span class="progress-num">3</span>
+          <span class="progress-text">시험지 제작 완료<br>
+            <span style="font-size:0.97rem; font-weight:400;">시험지 문제 업로드 완료</span>
+          </span>
+        </div>
+      </div>
+    `;
 
       // 카드 배치
       if (status === '완료') completedCardContainer.appendChild(card);
