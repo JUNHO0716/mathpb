@@ -29,6 +29,10 @@ import express from 'express';
 import session from 'express-session';
 import iconv from 'iconv-lite';
 
+// ─── ES 모듈에서 require() 쓰도록 ───────────────────
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
 // AWS S3 연결
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
@@ -557,7 +561,12 @@ app.post('/api/board',  fileUpload.array('fileInput', 10), async (req, res) => {
 app.get('/api/my-uploads', isLoggedIn, async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT id, filename, status, reject_reason, uploaded_at, completed_at
+       SELECT id,
+        filename,
+        status,
+        reject_reason,
+        uploaded_at    AS created_at,
+        completed_at
       FROM uploads
       WHERE user_id = ?
       ORDER BY uploaded_at DESC
@@ -1034,8 +1043,6 @@ app.get(
     }
   }
 );
-
-
 // 서버 실행
 const PORT = process.env.PORT || 3001;
 
