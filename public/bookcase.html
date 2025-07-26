@@ -208,8 +208,8 @@ async function loadRecentDownloads() {
   }
 }
 
-  document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('sidebar').classList.remove('collapsed');
+    document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('sidebar').classList.add('collapsed');
     loadRecentDownloads();
   });
 
