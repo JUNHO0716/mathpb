@@ -374,7 +374,7 @@ th {
 
 /* 1) 카드 그림자: 확인중=노랑, 제작중=초록, 완료=하늘 */
 .card-statusbox[data-status="확인중"] {
-  box-shadow: 0 4px 12px rgba(255,213,79,0.4);
+  box-shadow: 0 4px 12px rgba(255,213,79,0.5);
 }
 
 /* 2) 단계 불(원) 색: 활성 단계는 무조건 노란(#FFD54F), 나머지는 회색 */
@@ -883,7 +883,7 @@ async function loadMyUploads() {
 
         // 4) 각 항목 렌더링
       uploads.forEach(item => {
-      const { id, filename, status, created_at, reject_reason } = item;
+      const { id, filename, status, reject_reason, created_at } = item;
 
       // ◀ 반려 처리 블록 채우기
       if (status === '반려') {
