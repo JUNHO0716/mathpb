@@ -390,38 +390,53 @@ document.querySelectorAll('.topSwiper .swiper-slide img').forEach(img => {
   }
 });
 
-async function setProfileInfo () {
+async function setProfileInfo() {
   try {
+    // 0) /check-auth 호출
     const res = await fetch('/check-auth?ts=' + Date.now(), {
       credentials: 'include',
       cache: 'no-store'
     });
     const d = await res.json();
-    if (!d.isLoggedIn) return;            // 로그인 안 돼 있으면 그대로 둠
+    if (!d.isLoggedIn) return;
 
     const u = d.user || {};
-    const displayId = u.email ? u.email.split('@')[0] : (u.name || 'User');
 
-    /* 좌측 프로필 카드 */
+    // 1) ID 입력란에 무조건 값 채우기
+    const idInput = document.getElementById('mem-id-input');
+    if (idInput) {
+      idInput.value = u.id || '';
+    }
+
+    // 2) 좌측 프로필 카드 이름/이메일 세팅
+    const displayId = u.email ? u.email.split('@')[0] : (u.name || 'User');
     document.getElementById('profileName').textContent  = displayId;
     document.getElementById('profileEmail').textContent = u.email || '-';
 
+    // 3) 아바타 기본 세팅
     const defaultImg = '/icon_my_b.png';
     const av = document.getElementById('profileAvatar');
     av.alt = displayId;
-    av.src = defaultImg;                 // 기본 이미지를 먼저 보여줌
-    av.style.visibility = 'visible';     // 즉시 표시
+    av.src = defaultImg;
+    av.style.visibility = 'visible';
 
-    if (u.avatarUrl && u.avatarUrl !== defaultImg) {
-      const preload = new Image();       // 실제 사진을 백그라운드 로드
-      preload.onload = () => { av.src = u.avatarUrl; };
-      preload.src = u.avatarUrl;
-      
-    document.getElementById('mem-id-input').value = u.id || '';
-    document.getElementById('mem-academy-address').textContent = u.academyAddress || '-';
+    // 4) 아바타 새로 로드 → fade-in
+    const preloadAvatar = new Image();
+    preloadAvatar.onload = () => {
+      av.src = preloadAvatar.src;
+      fadeInAvatar();
+    };
+    preloadAvatar.src = (u.avatarUrl && u.avatarUrl !== defaultImg)
+                        ? u.avatarUrl
+                        : defaultImg;
 
+    // 5) 우측 정보 카드 세팅
+    document.getElementById('mem-email').textContent = u.email || '-';
+    document.getElementById('mem-phone').textContent = u.phone || '-';
+
+    // 6) 구독 상태
     const subLabel = document.getElementById('mem-subscription');
-    const subBtn = document.getElementById('subscribeBtn');
+    const subBtn   = document.getElementById('subscribeBtn');
     if (u.hasPaid) {
       subLabel.textContent = '구독중';
       subBtn.style.display = 'none';
@@ -431,31 +446,19 @@ async function setProfileInfo () {
       subBtn.onclick = () => location.href = '/subscribe';
     }
 
+    // 7) 학원 주소 등 기타 필드
+    document.getElementById('mem-academy-address')
+            .textContent = u.academyAddress || '-';
 
-
-    }
-
-    /* 우측 정보 카드 */
-    document.getElementById('mem-email').textContent = u.email || '-';
-    document.getElementById('mem-phone').textContent = u.phone || '-';
-
-    /* 등급(옵션) */
-    const gradeSpan = document.getElementById('mem-grade');
-    let label = '-', cls = '';
-    switch ((u.grade || '').toLowerCase()) {
-      case 'gold':   label = '골드';   cls = 'grade-gold';   break;
-      case 'silver': label = '실버';   cls = 'grade-silver'; break;
-      case 'bronze': label = '브론즈'; cls = 'grade-bronze'; break;
-    }
-    gradeSpan.textContent = label;
-    gradeSpan.className   = 'grade-label ' + cls;
-
+    // 8) 로딩 스피너 제거
     document.querySelector('.info').classList.remove('loading');
     document.querySelector('.member-info').classList.remove('loading');
+
   } catch (e) {
     console.error(e);
   }
 }
+
 setProfileInfo();
 
 
