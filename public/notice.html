@@ -367,6 +367,7 @@
 
 document.addEventListener('DOMContentLoaded', async function() {
   await checkAuth();
+  loadNotices(); 
   const fabAddBtn = document.getElementById('fab-add');
   if (IS_ADMIN) {
     fabAddBtn.style.display = 'flex';
@@ -404,8 +405,8 @@ function renderNoticeList(data){
     tr.setAttribute('data-id', item.id); // ★ 추가
 
     // **여기를 아래처럼 수정!**
-    tr.onclick   = ()=> openNoticeDetail(item.id);  // ★★★
-    tr.onkeydown = e => { if (e.key === 'Enter') openNoticeDetail(item.id); }; // ★★★
+     tr.onclick   = ()=> toggleDetail(tr, item.id);
+     tr.onkeydown = e => { if (e.key === 'Enter') toggleDetail(tr, item.id); };
 
     // ... 이하 동일 ...
     // (아래는 건드리지 말고 그대로 두세요)
@@ -445,10 +446,11 @@ function openNoticeDetail(noticeId) {
 }
 
 async function loadNotices(){
-  page=1;
-  const res=await fetch('/api/notices');
-  const data=await res.json();
-  renderNoticeList(data); // 여기
+  page = 1;
+  // selectedType 변수를 이용해서 타입별 요청
+  const res = await fetch(`/api/notices?type=${encodeURIComponent(selectedType)}`, { credentials: 'include' });
+  const data = await res.json();
+  renderNoticeList(data);
   renderPagination();
 }
 
