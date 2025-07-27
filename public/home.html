@@ -478,9 +478,9 @@
   color:#555;
   text-align:center !important;   /* 🔥 가운데 정렬 */
 }
-.mysheet-table td.status-working { color: #e7a400; }     /* 노랑: 확인중 */
-.mysheet-table td.status-producing { color: #219e30; }   /* 초록: 제작중 */
-.mysheet-table td.status-completed { color: #007bff; }   /* 파랑: 완료 */
+.mysheet-table td.status-working { color: #FDC512; }     /* 노랑: 확인중 */
+.mysheet-table td.status-producing { color: #00C273; }   /* 초록: 제작중 */
+.mysheet-table td.status-completed { color: #1ECBE1; }   /* 파랑: 완료 */
 .mysheet-table td.status-rejected { color: #dc3545; font-weight:700; }
 
 .mysheet-table td,
@@ -1044,15 +1044,15 @@ async function loadMySheetRequests() {
       let icon = '';
       if(row.status === '확인중') {
         statusText = '시험지 확인중';
-        icon = '<i class="fas fa-hourglass-half ani-wave" style="color:#e7a400;"></i>';
+        icon = '<i class="fas fa-hourglass-half ani-wave" style="color:#FDC512;"></i>';
         statusClass = 'status-working'; // 노랑
       } else if(row.status === '제작중') {
         statusText = '시험지 제작중';
-        icon = '<i class="fas fa-spinner fa-spin" style="color:#219e30;"></i>';
+        icon = '<i class="fas fa-spinner fa-spin" style="color:#00C273;"></i>';
         statusClass = 'status-producing'; // 초록
       } else if(row.status === '완료') {
         statusText = '시험지 작업 완료';
-        icon = '<i class="fas fa-circle-check" style="color:#007bff;"></i>';
+        icon = '<i class="fas fa-circle-check" style="color:#1ECBE1;"></i>';
         statusClass = 'status-completed'; // 파랑
       } else if(row.status === '반려' || row.status === '거절' || row.status === '반려됨') {
         statusText = '반려됨';
