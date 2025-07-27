@@ -274,17 +274,16 @@
         padding: 30px 50px 18px 50px;         /* 기존 패딩 유지 */
       }
 
-      .notice-table th:nth-child(2),
-      .notice-table td:nth-child(2) {
-        text-align: left !important;     /* 왼쪽 정렬 강제 */
-        padding-left: 12px;              /* 칸 경계에서 글자까지의 여백 */
+     .notice-table thead th:nth-child(2) {
+        text-align: center !important;
+        padding-left: 0 !important;
       }
 
-      .notice-table th,
-      .notice-table td {
-        padding: 14px 8px !important;
+      /* 2) 본문 셀(제목 열)만 왼쪽 정렬 + 들여쓰기 */
+      .notice-table tbody td:nth-child(2) {
+        text-align: left !important;
+        padding-left: 16px !important;  /* 필요에 따라 px 값 조절 */
       }
-
 
   </style>
 </head>
