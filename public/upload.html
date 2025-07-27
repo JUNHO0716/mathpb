@@ -369,7 +369,11 @@ th {
   font-weight: 400;
 }
 
-
+.status-section .card-container,
+.completed-section .card-container {
+  max-height: calc(150px * 3 + 20px * 2); /* 3줄 높이 + row-gap 두 번 */
+  overflow-y: auto;
+}
 
 /* 1) 카드 그림자: 확인중=노랑, 제작중=초록, 완료=하늘 */
 .card-statusbox[data-status="확인중"] {
