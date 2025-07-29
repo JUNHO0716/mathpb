@@ -662,12 +662,20 @@ document.getElementById('pw-check-btn').onclick = async function() {
   });
   const d = await res.json();
   if (d.success) {
-    // 기존 입력칸 숨기고, 새 비밀번호 칸 보이기
-    document.getElementById('pw-check-box').style.display = 'none';
-    document.getElementById('pw-change-box').style.display = 'flex';
+    // ✅ 모달 띄우기
+    document.getElementById('pw-modal').style.display = 'flex';
+    // 기존 입력칸 숨기고, 새 비밀번호 칸 보이기는 모달 닫을 때 처리
   } else {
     alert(d.msg || '비밀번호가 일치하지 않습니다.');
   }
+};
+
+// 모달 "확인" 버튼 클릭시 모달 닫고 다음단계 진행
+document.getElementById('pw-modal-btn').onclick = function() {
+  document.getElementById('pw-modal').style.display = 'none';
+  // 기존 입력칸 숨기고, 새 비밀번호 칸 보이기
+  document.getElementById('pw-check-box').style.display = 'none';
+  document.getElementById('pw-change-box').style.display = 'flex';
 };
 
 // 비밀번호 변경 버튼 이벤트
@@ -699,5 +707,13 @@ document.getElementById('pw-change-btn').onclick = async function() {
 
 });
 </script>
+
+<!-- [비밀번호 확인] 결과 알림 모달 -->
+<div id="pw-modal" style="display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:1000;background:rgba(0,0,0,0.35);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:36px 28px 22px 28px;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,.11);text-align:center;">
+    <div id="pw-modal-msg" style="font-size:1.13rem;line-height:1.8;margin-bottom:22px;">비밀번호가 확인되었습니다.</div>
+    <button id="pw-modal-btn" style="padding:8px 28px;border:none;background:#6366f1;color:#fff;font-weight:600;font-size:1.05rem;border-radius:8px;cursor:pointer;">확인</button>
+  </div>
+</div>
 </body>
 </html>
