@@ -356,6 +356,7 @@ input:focus {
     <input id="mem-biz-input" type="text" placeholder="사업자/휴대폰번호" style="width:160px;padding:4px 8px;border:1px solid #ccc;border-radius:7px;font-size:0.95rem;">
     <button id="mem-biz-save">저장</button>
     <span id="mem-biz-view" style="margin-left:10px;color:#218155;font-weight:700;display:none;"></span>
+    <button id="mem-biz-edit" style="margin-left:8px; display:none;">변경</button>
   </div>
   <div style="margin-top:18px;"><b>학원 명</b> : 
     <input id="mem-academy-name" type="text" style="width:200px;padding:4px 8px;" placeholder="학원명">
@@ -470,6 +471,17 @@ async function setProfileInfo() {
   } catch (e) {
     console.error(e);
   }
+
+  // setProfileInfo 함수 마지막에 추가 (초기 상태에 따라 제어)
+  if (u.bizNum) {
+    showBizNum(u.bizNum);
+  } else {
+    document.getElementById('mem-biz-input').style.display = 'inline-block';
+    document.getElementById('mem-biz-save').style.display = 'inline-block';
+    document.getElementById('mem-biz-view').style.display = 'none';
+    document.getElementById('mem-biz-edit').style.display = 'none';
+  }
+
 }
 
 setProfileInfo();
