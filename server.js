@@ -557,63 +557,6 @@ app.post('/api/board',  fileUpload.array('fileInput', 10), async (req, res) => {
   }
 });
 
-// ➊ 현재 비밀번호 확인용 ─ POST /api/check-password
-app.post(
-  '/api/check-password',
-  isLoggedIn,
-  express.json(),
-  async (req, res) => {
-    const { oldPassword } = req.body;
-    if (!oldPassword) {
-      return res.status(400).json({ success: false, msg: '현재 비밀번호를 입력해주세요.' });
-    }
-    try {
-      const userId = req.session.user.id;
-      const [[user]] = await db.query(
-        'SELECT password FROM users WHERE id = ?',
-        [userId]
-      );
-      if (!user) {
-        return res.status(404).json({ success: false, msg: '사용자를 찾을 수 없습니다.' });
-      }
-      const valid = await bcrypt.compare(oldPassword, user.password);
-      if (!valid) {
-        return res.status(401).json({ success: false, msg: '비밀번호가 일치하지 않습니다.' });
-      }
-      return res.json({ success: true });
-    } catch (err) {
-      console.error('비밀번호 확인 오류:', err);
-      return res.status(500).json({ success: false, msg: '서버 오류' });
-    }
-  }
-);
-
-// ➋ 새 비밀번호만 처리하도록 변경 ─ POST /api/change-password
-app.post(
-  '/api/change-password',
-  isLoggedIn,
-  express.json(),
-  async (req, res) => {
-    const { newPassword } = req.body;
-    if (!newPassword) {
-      return res.status(400).json({ msg: '새 비밀번호를 입력해주세요.' });
-    }
-    try {
-      const userId = req.session.user.id;
-      const hash = await bcrypt.hash(newPassword, 10);
-      await db.query(
-        'UPDATE users SET password = ? WHERE id = ?',
-        [hash, userId]
-      );
-      res.json({ msg: '비밀번호 변경 성공' });
-    } catch (err) {
-      console.error('비밀번호 변경 오류:', err);
-      res.status(500).json({ msg: '서버 오류' });
-    }
-  }
-);
-
-
 
 app.get('/api/my-uploads', isLoggedIn, async (req, res) => {
   try {
@@ -1106,5 +1049,4 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`서버 실행 http://localhost:${PORT}`);
 });
-
 
