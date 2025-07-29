@@ -632,13 +632,6 @@ function fadeInAvatar() {
 const av = document.getElementById('profileAvatar');
 av.onload = fadeInAvatar;                // ⭐ 이미지가 로드될 때마다 실행
 
-/* (2) 서버에서 실제 사진을 가져올 때 */
-preload.onload = () => { av.src = u.avatarUrl; }   // 기존 코드 OK – onload가 자동 호출되어 페이드-인
-
-/* (3) 파일 선택(미리보기) */
-reader.onload = function(evt){
-  av.src = evt.target.result;            // onload 이벤트가 또 발생 → 페이드-인
-};
 
 /* (4) 기본 이미지로 되돌릴 때 */
 document.getElementById('deletePhotoBtn').addEventListener('click', async()=>{
