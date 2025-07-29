@@ -135,6 +135,18 @@ app.post('/check-id', async (req, res) => {
   }
 });
 
+app.post('/api/update-biznum', isLoggedIn, async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const { bizNum } = req.body;
+    if (!bizNum) return res.json({ success: false });
+    await db.query('UPDATE users SET bizNum = ? WHERE id = ?', [bizNum, userId]);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 // [1] passport 초기화 및 세션 연결
 app.use(passport.initialize());
 app.use(passport.session());
