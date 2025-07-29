@@ -557,6 +557,49 @@ app.post('/api/board',  fileUpload.array('fileInput', 10), async (req, res) => {
   }
 });
 
+// 비밀번호 변경 (로그인된 사용자용) ─ POST /api/change-password
+app.post('/api/change-password',
+  isLoggedIn,
+  express.json(),
+  async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ msg: '모든 필드를 입력해주세요.' });
+    }
+
+    try {
+      // 1) 세션에서 사용자 아이디
+      const userId = req.session.user.id;
+      // 2) DB에서 현재 해시된 비밀번호 조회
+      const [[user]] = await db.query(
+        'SELECT password FROM users WHERE id = ?',
+        [userId]
+      );
+      if (!user) {
+        return res.status(404).json({ msg: '사용자를 찾을 수 없습니다.' });
+      }
+
+      // 3) 기존 비밀번호 검증
+      const valid = await bcrypt.compare(oldPassword, user.password);
+      if (!valid) {
+        return res.status(401).json({ msg: '기존 비밀번호가 올바르지 않습니다.' });
+      }
+
+      // 4) 새 비밀번호 해시 후 업데이트
+      const hash = await bcrypt.hash(newPassword, 10);
+      await db.query(
+        'UPDATE users SET password = ? WHERE id = ?',
+        [hash, userId]
+      );
+
+      res.json({ msg: '비밀번호 변경 성공' });
+    } catch (err) {
+      console.error('비밀번호 변경 오류:', err);
+      res.status(500).json({ msg: '서버 오류' });
+    }
+  }
+);
+
 
 app.get('/api/my-uploads', isLoggedIn, async (req, res) => {
   try {
