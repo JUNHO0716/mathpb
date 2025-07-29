@@ -327,13 +327,48 @@ input:focus {
     style="flex:1; padding:8px; border:1px solid #ddd; border-radius:6px; background:#f7f7f9;"
   />
 </div>
-  <div><b>비밀번호 변경</b></div>
-  <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
-    <input type="password" id="current-password" placeholder="현재 비밀번호" style="flex:1;" />
-    <input type="password" id="new-password"     placeholder="새 비밀번호"     style="flex:1;" />
-    <input type="password" id="confirm-password" placeholder="비밀번호 확인" style="flex:1;" />
-    <button id="pw-change-btn" style="padding:10px 18px;border-radius:8px;background:#6366f1;color:#fff;border:none;">변경</button>
-  </div>
+<div><b>비밀번호 변경</b></div>
+
+<!-- 1) 현재 비밀번호 확인 섹션 -->
+<div id="pw-verify-section" style="display:flex; gap:12px; margin-bottom:14px;">
+  <input
+    type="password"
+    id="current-password"
+    placeholder="현재 비밀번호"
+    style="flex:1; padding:8px; border:1px solid #ddd; border-radius:6px;"
+  />
+  <button
+    id="pw-verify-btn"
+    style="padding:10px 18px; border-radius:8px; background:#6366f1; color:#fff; border:none;"
+  >
+    확인
+  </button>
+</div>
+
+<!-- 2) 비밀번호 변경 섹션 (초기 숨김) -->
+<div
+  id="pw-change-section"
+  style="display:none; flex-direction:column; gap:12px; margin-bottom:14px;"
+>
+  <input
+    type="password"
+    id="new-password"
+    placeholder="새 비밀번호"
+    style="padding:8px; border:1px solid #ddd; border-radius:6px;"
+  />
+  <input
+    type="password"
+    id="confirm-password"
+    placeholder="비밀번호 확인"
+    style="padding:8px; border:1px solid #ddd; border-radius:6px;"
+  />
+  <button
+    id="pw-change-btn"
+    style="padding:10px 18px; border-radius:8px; background:#6366f1; color:#fff; border:none;"
+  >
+    변경
+  </button>
+</div>
   <div><b>이메일</b> : <span id="mem-email">-</span></div>
   <div><b>휴대폰 번호</b> : <span id="mem-phone">-</span></div>
   <div><b>구독</b> : 
@@ -643,16 +678,42 @@ document.getElementById('academy-address-save').onclick = async () => {
   }
 };
 
+// 1) '확인' 버튼: 현재 비밀번호만 검증
+document.getElementById('pw-verify-btn').addEventListener('click', async () => {
+  const oldPw = document.getElementById('current-password').value.trim();
+  if (!oldPw) return alert('현재 비밀번호를 입력해주세요.');
+
+  try {
+    const res = await fetch('/api/check-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ oldPassword: oldPw })
+    });
+    const d = await res.json();
+
+    if (res.ok && d.success) {
+      // 검증 성공 시: 확인 섹션 숨기고, 변경 섹션 보이기
+      document.getElementById('pw-verify-section').style.display = 'none';
+      document.getElementById('pw-change-section').style.display = 'flex';
+    } else {
+      alert(d.msg || '비밀번호가 올바르지 않습니다.');
+    }
+  } catch (e) {
+    alert('오류 발생: ' + e.message);
+  }
+});
+
+// 2) '변경' 버튼: 새 비밀번호만 처리
 document.getElementById('pw-change-btn').addEventListener('click', async () => {
-  const oldPw     = document.getElementById('current-password').value.trim();
   const newPw     = document.getElementById('new-password').value.trim();
   const confirmPw = document.getElementById('confirm-password').value.trim();
 
-  if (!oldPw || !newPw || !confirmPw) {
-    return alert('모든 비밀번호 칸을 입력해주세요.');
+  if (!newPw || !confirmPw) {
+    return alert('새 비밀번호와 확인을 입력해주세요.');
   }
   if (newPw !== confirmPw) {
-    return alert('새 비밀번호와 확인이 일치하지 않습니다.');
+    return alert('비밀번호가 일치하지 않습니다.');
   }
 
   try {
@@ -660,14 +721,13 @@ document.getElementById('pw-change-btn').addEventListener('click', async () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ oldPassword: oldPw, newPassword: newPw })
+      body: JSON.stringify({ newPassword: newPw })
     });
     const d = await res.json();
+
     if (res.ok) {
       alert('비밀번호가 성공적으로 변경되었습니다.');
-      document.getElementById('current-password').value = '';
-      document.getElementById('new-password').value     = '';
-      document.getElementById('confirm-password').value = '';
+      // 필요시 초기화
     } else {
       alert('변경 실패: ' + d.msg);
     }
