@@ -327,37 +327,11 @@ input:focus {
     style="flex:1; padding:8px; border:1px solid #ddd; border-radius:6px; background:#f7f7f9;"
   />
 </div>
-  <!-- 비밀번호 2단계 컨테이너 -->
-  <div id="pw-container" style="margin-bottom:14px; display:flex; flex-direction:column; gap:12px;">
-
-    <!-- 1) 현재 비밀번호 확인 -->
-    <div id="pw-verify-section" style="display:flex; gap:12px;">
-      <input type="password"
-             id="current-password"
-             placeholder="현재 비밀번호"
-             style="flex:1; padding:8px 6px; border:1px solid #ddd; border-radius:6px;" />
-      <button id="pw-verify-btn"
-              style="padding:10px 18px; border-radius:8px; background:#6366f1; color:#fff; border:none;">
-        확인
-      </button>
-    </div>
-
-    <!-- 2) 새 비밀번호 입력 (초기 숨김) -->
-    <div id="pw-change-section" style="display:none; flex-direction:column; gap:12px;">
-      <input type="password"
-            id="new-password"
-             placeholder="새 비밀번호"
-             style="padding:8px; border:1px solid #ddd; border-radius:6px;" />
-      <input type="password"
-             id="confirm-password"
-             placeholder="비밀번호 확인"
-             style="padding:8px; border:1px solid #ddd; border-radius:6px;" />
-      <button id="pw-change-btn"
-              style="padding:10px 18px; border-radius:8px; background:#6366f1; color:#fff; border:none;">
-        변경
-      </button>
-    </div>
-
+  <div><b>비밀번호 변경</b></div>
+  <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
+    <input type="password" id="new-password" placeholder="새 비밀번호" style="flex:1;">
+    <input type="password" id="confirm-password" placeholder="비밀번호 확인" style="flex:1;">
+    <button id="pw-change-btn" style="padding:10px 18px;border-radius:8px;background:#6366f1;color:#fff;border:none;">변경</button>
   </div>
   <div><b>이메일</b> : <span id="mem-email">-</span></div>
   <div><b>휴대폰 번호</b> : <span id="mem-phone">-</span></div>
@@ -632,6 +606,13 @@ function fadeInAvatar() {
 const av = document.getElementById('profileAvatar');
 av.onload = fadeInAvatar;                // ⭐ 이미지가 로드될 때마다 실행
 
+/* (2) 서버에서 실제 사진을 가져올 때 */
+preload.onload = () => { av.src = u.avatarUrl; }   // 기존 코드 OK – onload가 자동 호출되어 페이드-인
+
+/* (3) 파일 선택(미리보기) */
+reader.onload = function(evt){
+  av.src = evt.target.result;            // onload 이벤트가 또 발생 → 페이드-인
+};
 
 /* (4) 기본 이미지로 되돌릴 때 */
 document.getElementById('deletePhotoBtn').addEventListener('click', async()=>{
@@ -661,87 +642,6 @@ document.getElementById('academy-address-save').onclick = async () => {
   }
 };
 
-document.getElementById('pw-change-btn').addEventListener('click', async () => {
-  const oldPw     = document.getElementById('current-password').value.trim();
-  const newPw     = document.getElementById('new-password').value.trim();
-  const confirmPw = document.getElementById('confirm-password').value.trim();
-
-  if (!oldPw || !newPw || !confirmPw) {
-    return alert('모든 비밀번호 칸을 입력해주세요.');
-  }
-  if (newPw !== confirmPw) {
-    return alert('새 비밀번호와 확인이 일치하지 않습니다.');
-  }
-
-  try {
-    const res = await fetch('/api/change-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ oldPassword: oldPw, newPassword: newPw })
-    });
-    const d = await res.json();
-    if (res.ok) {
-      alert('비밀번호가 성공적으로 변경되었습니다.');
-      document.getElementById('current-password').value = '';
-      document.getElementById('new-password').value     = '';
-      document.getElementById('confirm-password').value = '';
-    } else {
-      alert('변경 실패: ' + d.msg);
-    }
-  } catch (e) {
-    alert('오류 발생: ' + e.message);
-  }
-});
-
-
-// 1) '확인' 버튼: 현재 비밀번호 검증
-document.getElementById('pw-verify-btn').addEventListener('click', async () => {
-  const oldPw = document.getElementById('current-password').value.trim();
-  if (!oldPw) return alert('현재 비밀번호를 입력해주세요.');
-
-  const res = await fetch('/api/check-password', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    credentials: 'include',
-    body: JSON.stringify({ oldPassword: oldPw })
-  });
-  const d = await res.json();
-  if (res.ok && d.success) {
-    // ① 확인 UI 숨기고 ② 변경 UI 보여주기
-    document.getElementById('pw-verify-section').style.display   = 'none';
-    document.getElementById('pw-change-section').style.display   = 'flex';
-  } else {
-    alert(d.msg || '비밀번호가 올바르지 않습니다.');
-  }
-});
-
-// 2) '변경' 버튼: 새 비밀번호만 처리
-document.getElementById('pw-change-btn').addEventListener('click', async () => {
-  const newPw     = document.getElementById('new-password').value.trim();
-  const confirmPw = document.getElementById('confirm-password').value.trim();
-
-  if (!newPw || !confirmPw) {
-    return alert('새 비밀번호와 확인을 입력해주세요.');
-  }
-  if (newPw !== confirmPw) {
-    return alert('비밀번호가 일치하지 않습니다.');
-  }
-
-  const res = await fetch('/api/change-password', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    credentials: 'include',
-    body: JSON.stringify({ newPassword: newPw })
-  });
-  if (res.ok) {
-    alert('비밀번호가 성공적으로 변경되었습니다.');
-    // 필요시 초기화
-  } else {
-    const { msg } = await res.json();
-    alert('변경 실패: ' + (msg || '알 수 없는 오류'));
-  }
-});
 
 </script>
 </body>
