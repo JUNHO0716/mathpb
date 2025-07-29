@@ -714,20 +714,19 @@ app.get('/', (req, res) => {
 // 로그인 상태 확인 API
 app.get('/check-auth', async (req, res) => {
   if (req.session.user) {
-// /check-auth 부분
     const [rows] = await db.query(
-      'SELECT avatarUrl, hasPaid, phone FROM users WHERE id = ?',
+      'SELECT avatarUrl, hasPaid, phone, bizNum FROM users WHERE id = ?',
       [req.session.user.id]
     );
-
     const avatarUrl = rows.length && rows[0].avatarUrl ? rows[0].avatarUrl : '/icon_my_b.png';
-    const hasPaid = (req.session.user.role === 'admin') || (rows.length && rows[0].hasPaid);
-    const phone = rows.length && rows[0].phone ? rows[0].phone : '-';
+    const hasPaid   = (req.session.user.role === 'admin') || (rows.length && rows[0].hasPaid);
+    const phone     = rows.length && rows[0].phone ? rows[0].phone : '-';
+    const bizNum    = rows.length && rows[0].bizNum ? rows[0].bizNum : '';
 
-    // 세션에도 업데이트
     req.session.user.avatarUrl = avatarUrl;
-    req.session.user.hasPaid = hasPaid;
-    req.session.user.phone = phone;
+    req.session.user.hasPaid   = hasPaid;
+    req.session.user.phone     = phone;
+    req.session.user.bizNum    = bizNum;
 
     return res.json({
       isLoggedIn: true,
@@ -735,11 +734,11 @@ app.get('/check-auth', async (req, res) => {
         ...req.session.user,
         avatarUrl,
         hasPaid,
-        phone         // <- 추가
+        phone,
+        bizNum      // ⭐ 이 부분 추가!
       }
     });
   }
-
   res.json({ isLoggedIn: false });
 });
 
