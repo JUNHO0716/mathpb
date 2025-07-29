@@ -331,7 +331,13 @@ input:focus {
   <div id="pw-box">
     <div><b>비밀번호 변경</b></div>
     <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px;" id="pw-check-box">
-      <input type="password" id="current-password" placeholder="기존 비밀번호 입력" style="flex:1;">
+      <input 
+  type="password"
+  id="current-password"
+  placeholder="기존 비밀번호 입력"
+  autocomplete="new-password"
+  style="flex:1;"
+>
       <button id="pw-check-btn">비밀번호 확인</button>
     </div>
     <div style="display:none; gap:12px; flex-wrap:wrap; margin-bottom:14px;" id="pw-change-box">
@@ -372,7 +378,7 @@ input:focus {
 <!-- Swiper JS (광고배너용) -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
 <script>
-
+document.addEventListener('DOMContentLoaded', function() {
 const topSwiper = new Swiper('.topSwiper', {
   loop: true,
   autoplay: { delay: 4000 },
@@ -698,7 +704,7 @@ document.getElementById('pw-change-btn').onclick = async function() {
   }
 };
 
-
+});
 </script>
 </body>
 </html>
