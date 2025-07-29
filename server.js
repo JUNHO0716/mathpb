@@ -702,25 +702,28 @@ app.get('/', (req, res) => {
 // 로그인 상태 확인 API
 app.get('/check-auth', async (req, res) => {
   if (req.session.user) {
-    // DB에서 아바타와 결제 여부를 함께 조회
+// /check-auth 부분
     const [rows] = await db.query(
-      'SELECT avatarUrl, hasPaid FROM users WHERE id = ?',
+      'SELECT avatarUrl, hasPaid, phone FROM users WHERE id = ?',
       [req.session.user.id]
     );
 
     const avatarUrl = rows.length && rows[0].avatarUrl ? rows[0].avatarUrl : '/icon_my_b.png';
     const hasPaid = (req.session.user.role === 'admin') || (rows.length && rows[0].hasPaid);
+    const phone = rows.length && rows[0].phone ? rows[0].phone : '-';
 
     // 세션에도 업데이트
     req.session.user.avatarUrl = avatarUrl;
     req.session.user.hasPaid = hasPaid;
+    req.session.user.phone = phone;
 
     return res.json({
       isLoggedIn: true,
       user: {
         ...req.session.user,
         avatarUrl,
-        hasPaid             // ✅ 이 줄이 중요
+        hasPaid,
+        phone         // <- 추가
       }
     });
   }
@@ -1009,6 +1012,35 @@ app.post('/api/save-academy-address', async (req, res) => {
 
   await db.execute('UPDATE users SET academyAddress = ? WHERE id = ?', [address, userId]);
   res.json({ success: true });
+});
+
+// 비밀번호 확인 API
+app.post('/api/check-password', isLoggedIn, async (req, res) => {
+  const { password } = req.body;
+  if (!password) return res.json({ success: false, msg: '비밀번호를 입력하세요.' });
+  try {
+    const [rows] = await db.query('SELECT password FROM users WHERE id=?', [req.session.user.id]);
+    if (!rows.length) return res.json({ success: false, msg: '사용자 정보 없음' });
+
+    const valid = await bcrypt.compare(password, rows[0].password);
+    if (valid) return res.json({ success: true });
+    return res.json({ success: false, msg: '비밀번호가 일치하지 않습니다.' });
+  } catch (e) {
+    res.json({ success: false, msg: '서버 오류' });
+  }
+});
+
+// 비밀번호 변경 API
+app.post('/api/change-password', isLoggedIn, async (req, res) => {
+  const { password } = req.body;
+  if (!password) return res.json({ success: false, msg: '새 비밀번호를 입력하세요.' });
+  try {
+    const hash = await bcrypt.hash(password, 10);
+    await db.query('UPDATE users SET password=? WHERE id=?', [hash, req.session.user.id]);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: '비밀번호 변경 오류' });
+  }
 });
 
 
