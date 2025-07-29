@@ -329,8 +329,9 @@ input:focus {
 </div>
   <div><b>비밀번호 변경</b></div>
   <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
-    <input type="password" id="new-password" placeholder="새 비밀번호" style="flex:1;">
-    <input type="password" id="confirm-password" placeholder="비밀번호 확인" style="flex:1;">
+    <input type="password" id="current-password" placeholder="현재 비밀번호" style="flex:1;" />
+    <input type="password" id="new-password"     placeholder="새 비밀번호"     style="flex:1;" />
+    <input type="password" id="confirm-password" placeholder="비밀번호 확인" style="flex:1;" />
     <button id="pw-change-btn" style="padding:10px 18px;border-radius:8px;background:#6366f1;color:#fff;border:none;">변경</button>
   </div>
   <div><b>이메일</b> : <span id="mem-email">-</span></div>
@@ -641,6 +642,39 @@ document.getElementById('academy-address-save').onclick = async () => {
     alert('오류 발생');
   }
 };
+
+document.getElementById('pw-change-btn').addEventListener('click', async () => {
+  const oldPw     = document.getElementById('current-password').value.trim();
+  const newPw     = document.getElementById('new-password').value.trim();
+  const confirmPw = document.getElementById('confirm-password').value.trim();
+
+  if (!oldPw || !newPw || !confirmPw) {
+    return alert('모든 비밀번호 칸을 입력해주세요.');
+  }
+  if (newPw !== confirmPw) {
+    return alert('새 비밀번호와 확인이 일치하지 않습니다.');
+  }
+
+  try {
+    const res = await fetch('/api/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ oldPassword: oldPw, newPassword: newPw })
+    });
+    const d = await res.json();
+    if (res.ok) {
+      alert('비밀번호가 성공적으로 변경되었습니다.');
+      document.getElementById('current-password').value = '';
+      document.getElementById('new-password').value     = '';
+      document.getElementById('confirm-password').value = '';
+    } else {
+      alert('변경 실패: ' + d.msg);
+    }
+  } catch (e) {
+    alert('오류 발생: ' + e.message);
+  }
+});
 
 
 </script>
