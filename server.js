@@ -557,7 +557,7 @@ app.post('/api/board',  fileUpload.array('fileInput', 10), async (req, res) => {
   }
 });
 
-// ➊ 현재 비밀번호 확인용 엔드포인트 ─ POST /api/check-password
+// ➊ 현재 비밀번호 확인용 ─ POST /api/check-password
 app.post(
   '/api/check-password',
   isLoggedIn,
@@ -580,10 +580,10 @@ app.post(
       if (!valid) {
         return res.status(401).json({ success: false, msg: '비밀번호가 일치하지 않습니다.' });
       }
-      res.json({ success: true });
+      return res.json({ success: true });
     } catch (err) {
       console.error('비밀번호 확인 오류:', err);
-      res.status(500).json({ success: false, msg: '서버 오류' });
+      return res.status(500).json({ success: false, msg: '서버 오류' });
     }
   }
 );
@@ -1106,4 +1106,5 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`서버 실행 http://localhost:${PORT}`);
 });
+
 
