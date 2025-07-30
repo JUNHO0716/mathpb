@@ -318,14 +318,8 @@ input:focus {
     <h2 style="font-size:1.25rem;font-weight:900;margin-bottom:22px;">회원 정보</h2>
 <div class="member-info">
   <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
-  <label for="mem-id-input" style="width:120px; font-weight:600;">ID</label>
-  <input 
-    type="text" 
-    id="mem-id-input" 
-    value="-" 
-    disabled 
-    style="flex:1; padding:8px; border:1px solid #ddd; border-radius:6px; background:#f7f7f9;"
-  />
+  <label for="mem-id" style="width:120px; font-weight:600;">아이디</label>
+  <span id="mem-id" style="font-size:1rem; color:#333;">-</span>
 </div>
   <!-- 회원 정보 영역에 아래처럼 수정 -->
   <div id="pw-box">
@@ -417,10 +411,10 @@ async function setProfileInfo() {
     const u = d.user || {};
 
     // 1) ID 입력란에 무조건 값 채우기
-    const idInput = document.getElementById('mem-id-input');
-    if (idInput) {
-      idInput.value = u.id || '';
-    }
+    const idSpan = document.getElementById('mem-id');
+      if (idSpan) {
+        idSpan.textContent = u.id || '-';
+      }
 
     // 2) 좌측 프로필 카드 이름/이메일 세팅
     const displayId = u.email ? u.email.split('@')[0] : (u.name || 'User');
