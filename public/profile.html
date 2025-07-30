@@ -327,11 +327,24 @@ input:focus {
     style="flex:1; padding:8px; border:1px solid #ddd; border-radius:6px; background:#f7f7f9;"
   />
 </div>
-  <div><b>비밀번호 변경</b></div>
-  <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
-    <input type="password" id="new-password" placeholder="새 비밀번호" style="flex:1;">
-    <input type="password" id="confirm-password" placeholder="비밀번호 확인" style="flex:1;">
-    <button id="pw-change-btn" style="padding:10px 18px;border-radius:8px;background:#6366f1;color:#fff;border:none;">변경</button>
+  <!-- 회원 정보 영역에 아래처럼 수정 -->
+  <div id="pw-box">
+    <div><b>비밀번호 변경</b></div>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px;" id="pw-check-box">
+      <input 
+  type="password"
+  id="current-password"
+  placeholder="기존 비밀번호 입력"
+  autocomplete="new-password"
+  style="flex:1;"
+>
+      <button id="pw-check-btn">비밀번호 확인</button>
+    </div>
+    <div style="display:none; gap:12px; flex-wrap:wrap; margin-bottom:14px;" id="pw-change-box">
+      <input type="password" id="new-password" placeholder="새 비밀번호" style="flex:1;">
+      <input type="password" id="confirm-password" placeholder="비밀번호 확인" style="flex:1;">
+      <button id="pw-change-btn">변경</button>
+    </div>
   </div>
   <div><b>이메일</b> : <span id="mem-email">-</span></div>
   <div><b>휴대폰 번호</b> : <span id="mem-phone">-</span></div>
@@ -343,6 +356,7 @@ input:focus {
     <input id="mem-biz-input" type="text" placeholder="사업자/휴대폰번호" style="width:160px;padding:4px 8px;border:1px solid #ccc;border-radius:7px;font-size:0.95rem;">
     <button id="mem-biz-save">저장</button>
     <span id="mem-biz-view" style="margin-left:10px;color:#218155;font-weight:700;display:none;"></span>
+    <button id="mem-biz-edit" style="margin-left:8px; display:none;">변경</button>
   </div>
   <div style="margin-top:18px;"><b>학원 명</b> : 
     <input id="mem-academy-name" type="text" style="width:200px;padding:4px 8px;" placeholder="학원명">
@@ -365,7 +379,7 @@ input:focus {
 <!-- Swiper JS (광고배너용) -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
 <script>
-
+document.addEventListener('DOMContentLoaded', function() {
 const topSwiper = new Swiper('.topSwiper', {
   loop: true,
   autoplay: { delay: 4000 },
@@ -457,6 +471,17 @@ async function setProfileInfo() {
   } catch (e) {
     console.error(e);
   }
+
+  // setProfileInfo 함수 마지막에 추가 (초기 상태에 따라 제어)
+  if (u.bizNum) {
+    showBizNum(u.bizNum);
+  } else {
+    document.getElementById('mem-biz-input').style.display = 'inline-block';
+    document.getElementById('mem-biz-save').style.display = 'inline-block';
+    document.getElementById('mem-biz-view').style.display = 'none';
+    document.getElementById('mem-biz-edit').style.display = 'none';
+  }
+
 }
 
 setProfileInfo();
@@ -606,13 +631,6 @@ function fadeInAvatar() {
 const av = document.getElementById('profileAvatar');
 av.onload = fadeInAvatar;                // ⭐ 이미지가 로드될 때마다 실행
 
-/* (2) 서버에서 실제 사진을 가져올 때 */
-preload.onload = () => { av.src = u.avatarUrl; }   // 기존 코드 OK – onload가 자동 호출되어 페이드-인
-
-/* (3) 파일 선택(미리보기) */
-reader.onload = function(evt){
-  av.src = evt.target.result;            // onload 이벤트가 또 발생 → 페이드-인
-};
 
 /* (4) 기본 이미지로 되돌릴 때 */
 document.getElementById('deletePhotoBtn').addEventListener('click', async()=>{
@@ -642,7 +660,72 @@ document.getElementById('academy-address-save').onclick = async () => {
   }
 };
 
+// 비밀번호 확인 버튼 이벤트
+document.getElementById('pw-check-btn').onclick = async function() {
+  const curPw = document.getElementById('current-password').value;
+  if (!curPw) return alert('기존 비밀번호를 입력하세요.');
 
+  // 서버에 본인 비밀번호 확인 요청
+  const res = await fetch('/api/check-password', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    credentials: 'include',
+    body: JSON.stringify({ password: curPw })
+  });
+  const d = await res.json();
+  if (d.success) {
+    // ✅ 모달 띄우기
+    document.getElementById('pw-modal').style.display = 'flex';
+    // 기존 입력칸 숨기고, 새 비밀번호 칸 보이기는 모달 닫을 때 처리
+  } else {
+    alert(d.msg || '비밀번호가 일치하지 않습니다.');
+  }
+};
+
+// 모달 "확인" 버튼 클릭시 모달 닫고 다음단계 진행
+document.getElementById('pw-modal-btn').onclick = function() {
+  document.getElementById('pw-modal').style.display = 'none';
+  // 기존 입력칸 숨기고, 새 비밀번호 칸 보이기
+  document.getElementById('pw-check-box').style.display = 'none';
+  document.getElementById('pw-change-box').style.display = 'flex';
+};
+
+// 비밀번호 변경 버튼 이벤트
+document.getElementById('pw-change-btn').onclick = async function() {
+  const newPw = document.getElementById('new-password').value;
+  const newPw2 = document.getElementById('confirm-password').value;
+  if (!newPw || !newPw2) return alert('새 비밀번호를 입력하세요.');
+  if (newPw !== newPw2) return alert('비밀번호가 일치하지 않습니다.');
+
+  const res = await fetch('/api/change-password', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    credentials: 'include',
+    body: JSON.stringify({ password: newPw })
+  });
+  const d = await res.json();
+  if (d.success) {
+    alert('비밀번호가 변경되었습니다!');
+    // 새 입력창 닫기, 입력값 초기화
+    document.getElementById('pw-change-box').style.display = 'none';
+    document.getElementById('pw-check-box').style.display = 'flex';
+    document.getElementById('current-password').value = '';
+    document.getElementById('new-password').value = '';
+    document.getElementById('confirm-password').value = '';
+  } else {
+    alert(d.msg || '비밀번호 변경 실패');
+  }
+};
+
+});
 </script>
+
+<!-- [비밀번호 확인] 결과 알림 모달 -->
+<div id="pw-modal" style="display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:1000;background:rgba(0,0,0,0.35);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:36px 28px 22px 28px;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,.11);text-align:center;">
+    <div id="pw-modal-msg" style="font-size:1.13rem;line-height:1.8;margin-bottom:22px;">비밀번호가 확인되었습니다.</div>
+    <button id="pw-modal-btn" style="padding:8px 28px;border:none;background:#6366f1;color:#fff;font-weight:600;font-size:1.05rem;border-radius:8px;cursor:pointer;">확인</button>
+  </div>
+</div>
 </body>
 </html>
