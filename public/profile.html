@@ -270,6 +270,132 @@ input:focus {
   outline: none;
 }
 
+    .member-info-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .member-info-label {
+      width: 120px;
+      font-weight: 600;
+      font-size: 1rem;
+      color: #111;
+    }
+    .member-info-input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: #f7f7f9;
+      font-size: 1rem;
+    }
+    .member-info-value {
+      flex: 1;
+      font-size: 1rem;
+      color: #333;
+    }
+    /* ── 비밀번호 확인/변경 버튼 ── */
+    .pw-btn {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 6px;
+      background: #6366f1;
+      color: #fff;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .pw-btn:hover {
+      background: #4f46e5;
+    }
+
+    /* ID input만 좁게 */
+#mem-id-input {
+  /* 원하는 가로 넓이(px 단위) */
+  width: 320px;    
+  /* 높이도 조절 가능 */
+  height: 28px;    
+  /* padding-top/bottom을 줄이면 높이가 더 작아집니다 */
+  padding: 4px 8px; 
+  /* 필요하면 font-size도 조절 */
+  font-size: 0.95rem;
+  
+  /* flex:1 대신 none으로 해제하면 고정폭이 정확히 적용됩니다 */
+  flex: none;      
+}
+
+#current-password,
+#new-password,
+#confirm-password {
+  width: 249px;       /* 원하는 너비(px) */
+  height: 28px;       /* 원하는 높이(px) */
+  padding: 4px 8px;   /* 상하/좌우 여백 */
+  font-size: 0.95rem; /* 폰트 크기 */
+  flex: none;         /* flex-grow 비활성화해서 고정폭 적용 */
+}
+
+
+
+:root {
+  /* 버튼용 커스텀 프로퍼티 */
+  --btn-bg:       #6366f1;
+  --btn-bg-hover: #4f46e5;
+  --btn-color:    #fff;
+  --btn-radius:   6px;
+  --btn-padding:  6px 16px;
+  --btn-font:     0.95rem 'Noto Sans KR', sans-serif;
+  --btn-shadow:   0 2px 6px rgba(0,0,0,0.15);
+}
+
+.pw-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--btn-padding);
+  background-color: var(--btn-bg);
+  color: var(--btn-color);
+  font: var(--btn-font);
+  border: none;
+  border-radius: var(--btn-radius);
+  box-shadow: var(--btn-shadow);
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform        0.1s ease;
+}
+
+.pw-btn:hover {
+  background-color: var(--btn-bg-hover);
+}
+
+.pw-btn:active {
+  transform: scale(0.97);
+}
+
+/* 레이블 뒤에 콜론 추가 + 간격 통일 */
+.member-info-label::after {
+  content: ":";
+  margin-right: 8px;
+}
+
+/* .member-info-row 에 이미 align-items:center; 가 있으니 그대로 사용 */
+
+/* grade-label (구독 상태) 높이, 패딩 조정해서 다른 항목과 맞추기 */
+.member-info-value.grade-label {
+  display: inline-flex;       /* flex 자식처럼 취급 */
+  align-items: center;
+  height: 32px;               /* input 높이와 동일하게 */
+  padding: 0 12px;            /* 좌우 패딩 */
+  font-size: 1rem;            /* 다른 값과 통일 */
+  margin-right: 0;            /* 불필요한 여백 제거 */
+}
+
+/* 버튼을 오른쪽 끝으로 붙이기 */
+.member-info-row .pw-btn,
+.member-info-row .subscribe-btn {
+  margin-left: auto;
+}
 
   </style>
 </head>
@@ -314,44 +440,75 @@ input:focus {
   </div>
   
   <!-- (오른쪽) 내 문제지 카드 -->
-  <div class="mysheet-board" style="flex:1 1 420px; background:#fff;border:1px solid #e9e9e9;border-radius:22px;box-shadow:0 4px 12px rgba(0,0,0,.04);padding:28px;min-height:420px;">
-    <h2 style="font-size:1.25rem;font-weight:900;margin-bottom:22px;">회원 정보</h2>
-<div class="member-info">
-  <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
-  <label for="mem-id-input" style="width:120px; font-weight:600;">ID</label>
-  <input 
-    type="text" 
-    id="mem-id-input" 
-    value="-" 
-    disabled 
-    style="flex:1; padding:8px; border:1px solid #ddd; border-radius:6px; background:#f7f7f9;"
-  />
+  <div class="mysheet-board">
+    <h2>회원 정보</h2>
+    <div class="member-info">
+      
+      <!-- 아이디 -->
+      <div class="member-info-row">
+        <label for="mem-id-input" class="member-info-label">ID</label>
+        <input
+          type="text"
+          id="mem-id-input"
+          value="-"
+          disabled
+          class="member-info-input"
+        />
+      </div>
+
+      <!-- 비밀번호 확인 -->
+      <div id="pw-box">
+        <div class="member-info-row" id="pw-check-box">
+          <label class="member-info-label">비밀번호 확인</label>
+          <input
+            type="password"
+            id="current-password"
+            placeholder="기존 비밀번호 입력"
+            autocomplete="new-password"
+            class="member-info-input"
+          />
+          <button id="pw-check-btn" class="pw-btn">확인</button>
+        </div>
+        <div class="member-info-row" id="pw-change-box" style="display:none;">
+          <label class="member-info-label">새 비밀번호</label>
+          <input
+            type="password"
+            id="new-password"
+            placeholder="새 비밀번호"
+            class="member-info-input"
+          />
+          <input
+            type="password"
+            id="confirm-password"
+            placeholder="비밀번호 확인"
+            class="member-info-input"
+          />
+          <button id="pw-change-btn" class="pw-btn">변경</button>
+        </div>
+      </div>
+
+      <!-- 이메일 -->
+      <div class="member-info-row">
+        <label class="member-info-label">이메일</label>
+        <span id="mem-email" class="member-info-value">-</span>
+      </div>
+
+      <!-- 휴대폰 번호 -->
+      <div class="member-info-row">
+        <label class="member-info-label">휴대폰 번호</label>
+        <span id="mem-phone" class="member-info-value">-</span>
+      </div>
+
+      <div class="member-info-row">
+  <label class="member-info-label">구독</label>
+  <!-- 상태 레이블 -->
+  <span id="mem-subscription" class="member-info-value grade-label">-</span>
+  <!-- 버튼 -->
+  <button id="subscribeBtn" class="pw-btn subscribe-btn" style="display:none;">
+    구독하기
+  </button>
 </div>
-  <!-- 회원 정보 영역에 아래처럼 수정 -->
-  <div id="pw-box">
-    <div><b>비밀번호 변경</b></div>
-    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px;" id="pw-check-box">
-      <input 
-  type="password"
-  id="current-password"
-  placeholder="기존 비밀번호 입력"
-  autocomplete="new-password"
-  style="flex:1;"
->
-      <button id="pw-check-btn">비밀번호 확인</button>
-    </div>
-    <div style="display:none; gap:12px; flex-wrap:wrap; margin-bottom:14px;" id="pw-change-box">
-      <input type="password" id="new-password" placeholder="새 비밀번호" style="flex:1;">
-      <input type="password" id="confirm-password" placeholder="비밀번호 확인" style="flex:1;">
-      <button id="pw-change-btn">변경</button>
-    </div>
-  </div>
-  <div><b>이메일</b> : <span id="mem-email">-</span></div>
-  <div><b>휴대폰 번호</b> : <span id="mem-phone">-</span></div>
-  <div><b>구독</b> : 
-    <span id="mem-subscription" class="grade-label">-</span>
-    <button id="subscribeBtn" style="margin-left:10px;display:none;padding:4px 10px;font-size:0.85rem;border-radius:6px;border:none;background:#FDC512;color:#111;cursor:pointer;">구독하기</button>
-  </div>
+
   <div style="margin-top:18px;"><b>현금영수증 발급 번호</b> :
     <input id="mem-biz-input" type="text" placeholder="사업자/휴대폰번호" style="width:160px;padding:4px 8px;border:1px solid #ccc;border-radius:7px;font-size:0.95rem;">
     <button id="mem-biz-save">저장</button>
