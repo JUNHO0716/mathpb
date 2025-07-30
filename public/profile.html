@@ -391,10 +391,12 @@ input:focus {
   margin-right: 0;            /* 불필요한 여백 제거 */
 }
 
-/* 버튼을 오른쪽 끝으로 붙이기 */
- .member-info-row .subscribe-btn {
-   margin-left: auto;
- }
+
+ .subscription-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px; /* ← 여기서 간격 조절 가능 (예: 4px, 8px, 12px 등) */
+}
 
   </style>
 </head>
@@ -497,15 +499,14 @@ input:focus {
         <label class="member-info-label">휴대폰 번호</label>
         <span id="mem-phone" class="member-info-value">-</span>
       </div>
-
-      <div class="member-info-row">
+      
   <label class="member-info-label">구독</label>
-  <!-- 상태 레이블 -->
-  <span id="mem-subscription" class="member-info-value grade-label">-</span>
-  <!-- 버튼 -->
-  <button id="subscribeBtn" class="pw-btn subscribe-btn" style="display:none;">
-    구독하기
-  </button>
+  <div class="subscription-inline">
+    <span id="mem-subscription" class="member-info-value grade-label">미구독</span>
+    <button id="subscribeBtn" class="pw-btn subscribe-btn" style="display:none;">
+      구독하기
+    </button>
+  </div>
 </div>
 
   <div style="margin-top:18px;"><b>현금영수증 발급 번호</b> :
