@@ -324,15 +324,20 @@ input:focus {
   <!-- 회원 정보 영역에 아래처럼 수정 -->
   <div id="pw-box">
     <div><b>비밀번호 변경</b></div>
-    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:14px;" id="pw-check-box">
+    <div id="pw-check-box" style="display:flex; flex-wrap:wrap; margin-bottom:14px; justify-content:space-between; align-items:center;">
       <input 
-  type="password"
-  id="current-password"
-  placeholder="기존 비밀번호 입력"
-  autocomplete="new-password"
-  style="flex:1;"
->
-      <button id="pw-check-btn">비밀번호 확인</button>
+        type="password"
+        id="current-password"
+        placeholder="기존 비밀번호 입력"
+        autocomplete="new-password"
+        style="width: 260px; padding: 10px 14px; font-size: 0.95rem; margin-right: 12px;"
+      >
+      <button 
+        id="pw-check-btn" 
+        style="padding: 10px 16px; font-size: 0.95rem; height: 42px; white-space: nowrap;"
+      >
+        비밀번호 확인
+      </button>
     </div>
     <div style="display:none; gap:12px; flex-wrap:wrap; margin-bottom:14px;" id="pw-change-box">
       <input type="password" id="new-password" placeholder="새 비밀번호" style="flex:1;">
