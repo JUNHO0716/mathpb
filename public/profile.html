@@ -318,23 +318,23 @@ input:focus {
     <h2 style="font-size:1.25rem;font-weight:900;margin-bottom:22px;">회원 정보</h2>
 <div class="member-info">
   <div style="display:flex; align-items:center; margin-bottom:14px;">
-  <label style="width:140px; font-weight:600;">아이디 :</label>
+  <label style="width:140px; font-weight:600; flex-shrink:0;">아이디 :</label>
   <span id="mem-id" style="font-size:1rem; color:#111;">-</span>
 </div>
   <!-- 회원 정보 영역에 아래처럼 수정 -->
   <div id="pw-box">
     <div><b>비밀번호 변경</b></div>
-    <div id="pw-check-box" style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+    <div id="pw-check-box" style="display: flex; align-items: center; margin-bottom: 14px;">
+      <label style="width: 140px; font-weight: 600;">비밀번호 변경 :</label>
       <input 
         type="password"
         id="current-password"
         placeholder="기존 비밀번호 입력"
-        autocomplete="new-password"
-        style="height: 42px; width: 260px; padding: 0 14px; font-size: 0.95rem; border-radius: 8px; border: 1px solid #ddd;"
+        style="height: 38px; width: 260px; padding: 0 12px; font-size: 0.95rem; border: 1px solid #ccc; border-radius: 6px; margin-right: 10px;"
       >
       <button 
         id="pw-check-btn"
-        style="height: 42px; padding: 0 20px; font-size: 0.95rem; border-radius: 8px;"
+        style="height: 38px; padding: 0 18px; font-size: 0.95rem; border-radius: 6px;"
       >
         비밀번호 확인
       </button>
