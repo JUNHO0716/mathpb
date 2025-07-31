@@ -412,6 +412,41 @@ input:focus {
   margin-left: -15px;  /* 예: 24px 만큼 오른쪽으로 이동 */
 }
 
+.member-info-container {
+  display: flex;
+  gap: 40px;
+}
+.member-info-col {
+  flex: 1;
+}
+
+.member-info-container {
+  position: relative;
+}
+
+.member-info-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(47% - 20px);  /* 원하는 위치로 조정 */
+  border-left: 1px dashed #9c9c9c;
+}
+
+/* ───── 회원 정보 컬럼 전체를 flex-column + gap 적용 ───── */
+.member-info-container .member-info-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* 맨 위 고정 */
+  gap: 20px;                   /* 줄 간격 조절 (원하는 값으로 변경) */
+}
+
+/* ───── 오른쪽 컬럼 첫 번째 div(현금영수증 래퍼)의 inline margin-top 제거 ───── */
+/* inline style="margin-top:18px;" 을 덮어씁니다 */
+.member-info-container .member-info-col:nth-child(2) > div {
+  margin-top: 0 !important;
+}
+
   </style>
 </head>
 <body>
@@ -454,94 +489,95 @@ input:focus {
     </div>
   </div>
   
-  <!-- (오른쪽) 내 문제지 카드 -->
-  <div class="mysheet-board">
-    <h2>회원 정보</h2>
-    <div class="member-info">
+ <div class="mysheet-board">
+  <h2>회원 정보</h2>
+  <div class="member-info">
+
+    <!-- ★ 여기에만 추가 -->
+    <div class="member-info-container">
       
-      <!-- 아이디 -->
-      <div class="member-info-row">
-        <label for="mem-id-input" class="member-info-label">ID</label>
-        <input
-          type="text"
-          id="mem-id-input"
-          value="-"
-          disabled
-          class="member-info-input"
-        />
-      </div>
-
-      <!-- 비밀번호 확인 -->
-      <div id="pw-box">
-        <div class="member-info-row" id="pw-check-box">
-          <label class="member-info-label">비밀번호 확인</label>
-          <input
-            type="password"
-            id="current-password"
-            placeholder="기존 비밀번호 입력"
-            autocomplete="new-password"
-            class="member-info-input"
-          />
-          <button id="pw-check-btn" class="pw-btn">확인</button>
-        </div>
-        <div class="member-info-row" id="pw-change-box" style="display:none;">
-          <label class="member-info-label">새 비밀번호</label>
-          <input
-            type="password"
-            id="new-password"
-            placeholder="새 비밀번호"
-            class="member-info-input"
-          />
-          <input
-            type="password"
-            id="confirm-password"
-            placeholder="비밀번호 확인"
-            class="member-info-input"
-          />
-          <button id="pw-change-btn" class="pw-btn">변경</button>
-        </div>
-      </div>
-
-      <!-- 이메일 -->
-      <div class="member-info-row">
-        <label class="member-info-label">이메일</label>
-        <span id="mem-email" class="member-info-value">-</span>
-      </div>
-
-      <!-- 휴대폰 번호 -->
-      <div class="member-info-row">
-        <label class="member-info-label">휴대폰 번호</label>
-        <span id="mem-phone" class="member-info-value">-</span>
-      </div>
-      
+      <!-- 왼쪽 컬럼: 기존 첫번째~구독까지 -->
+      <div class="member-info-col">
+        <!-- 아이디 -->
         <div class="member-info-row">
-        <label class="member-info-label">구독</label>
-        <span id="mem-subscription" class="member-info-value grade-label">미구독</span>
-        <button id="subscribeBtn" class="pw-btn subscribe-btn">구독하기</button>
+          <label for="mem-id-input" class="member-info-label">ID</label>
+          <input type="text" id="mem-id-input" value="-" disabled class="member-info-input"/>
+        </div>
+
+        <!-- 비밀번호 확인 -->
+        <div id="pw-box">
+          <div class="member-info-row" id="pw-check-box">
+            <label class="member-info-label">비밀번호 확인</label>
+            <input type="password" id="current-password" placeholder="기존 비밀번호 입력"
+                   autocomplete="new-password" class="member-info-input"/>
+            <button id="pw-check-btn" class="pw-btn">확인</button>
+          </div>
+          <div class="member-info-row" id="pw-change-box" style="display:none;">
+            <label class="member-info-label">새 비밀번호</label>
+            <input type="password" id="new-password" placeholder="새 비밀번호" class="member-info-input"/>
+            <input type="password" id="confirm-password" placeholder="비밀번호 확인" class="member-info-input"/>
+            <button id="pw-change-btn" class="pw-btn">변경</button>
+          </div>
+        </div>
+
+        <!-- 이메일 -->
+        <div class="member-info-row">
+          <label class="member-info-label">이메일</label>
+          <span id="mem-email" class="member-info-value">-</span>
+        </div>
+
+        <!-- 휴대폰 번호 -->
+        <div class="member-info-row">
+          <label class="member-info-label">휴대폰 번호</label>
+          <span id="mem-phone" class="member-info-value">-</span>
+        </div>
+
+        <!-- 구독 -->
+        <div class="member-info-row">
+          <label class="member-info-label">구독</label>
+          <span id="mem-subscription" class="member-info-value grade-label">미구독</span>
+          <button id="subscribeBtn" class="pw-btn subscribe-btn">구독하기</button>
+        </div>
       </div>
 
-  <div style="margin-top:18px;"><b>현금영수증 발급 번호</b> :
-    <input id="mem-biz-input" type="text" placeholder="사업자/휴대폰번호" style="width:160px;padding:4px 8px;border:1px solid #ccc;border-radius:7px;font-size:0.95rem;">
-    <button id="mem-biz-save">저장</button>
-    <span id="mem-biz-view" style="margin-left:10px;color:#218155;font-weight:700;display:none;"></span>
-    <button id="mem-biz-edit" style="margin-left:8px; display:none;">변경</button>
+      <!-- 오른쪽 컬럼: 기존 현금영수증~학원정보 저장까지 -->
+      <div class="member-info-col">
+        <div style="margin-top:18px;">
+          <b>현금영수증 발급 번호</b> :
+          <input id="mem-biz-input" type="text" placeholder="사업자/휴대폰번호"
+                 style="width:160px;padding:4px 8px;border:1px solid #ccc;border-radius:7px;font-size:0.95rem;">
+          <button id="mem-biz-save">저장</button>
+          <span id="mem-biz-view" style="margin-left:10px;color:#218155;font-weight:700;display:none;"></span>
+          <button id="mem-biz-edit" style="margin-left:8px;display:none;">변경</button>
+        </div>
+        <div style="margin-top:18px;">
+          <b>학원 명</b> :
+          <input id="mem-academy-name" type="text" style="width:200px;padding:4px 8px;" placeholder="학원명">
+        </div>
+        <div style="margin-top:16px;"><b>학원 주소</b> :</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px;">
+          <input id="mem-academy-address-input" type="text" placeholder="학원 주소 입력"
+                 style="flex:1; padding:10px; border:1px solid #ccc; border-radius:8px;">
+          <button id="academy-address-save" style="padding:10px 18px;border-radius:8px;background:#6366f1;color:#fff;border:none;">
+            변경
+          </button>
+        </div>
+        <span id="mem-academy-address" style="display:block; color:#333; font-weight:500;">-</span>
+        <div>
+          <b>학원 번호</b> :
+          <input id="mem-academy-phone" type="text" style="width:160px;padding:4px 8px;" placeholder="전화번호">
+        </div>
+        <button id="academy-save-btn"
+                style="margin-top:10px;padding:5px 12px;font-size:0.95rem;border-radius:7px;background:#218155;color:#fff;border:none;cursor:pointer;">
+          학원 정보 저장
+        </button>
+      </div>
+
+    </div>
+    <!-- ★ 추가 끝 -->
+
   </div>
-  <div style="margin-top:18px;"><b>학원 명</b> : 
-    <input id="mem-academy-name" type="text" style="width:200px;padding:4px 8px;" placeholder="학원명">
-  </div>
-<div style="margin-top:16px;"><b>학원 주소</b> : </div>
-<div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px;">
-  <input id="mem-academy-address-input" type="text" placeholder="학원 주소 입력" style="flex:1; padding:10px; border:1px solid #ccc; border-radius:8px;">
-  <button id="academy-address-save" style="padding:10px 18px;border-radius:8px;background:#6366f1;color:#fff;border:none;">변경</button>
 </div>
-<span id="mem-academy-address" style="display:block; color:#333; font-weight:500;">-</span>
-  <div><b>학원 번호</b> : 
-    <input id="mem-academy-phone" type="text" style="width:160px;padding:4px 8px;" placeholder="전화번호">
-  </div>
-  <button id="academy-save-btn" style="margin-top:10px;padding:5px 12px;font-size:0.95rem;border-radius:7px;background:#218155;color:#fff;border:none;cursor:pointer;">학원 정보 저장</button>
-</div>
-    <!-- 원하는 내용 추가 -->
-  </div>
 
 
 <!-- Swiper JS (광고배너용) -->
@@ -574,126 +610,103 @@ document.querySelectorAll('.topSwiper .swiper-slide img').forEach(img => {
 
 async function setProfileInfo() {
   try {
-    // 0) /check-auth 호출
-    const res = await fetch('/check-auth?ts=' + Date.now(), {
-      credentials: 'include',
-      cache: 'no-store'
+    const res = await fetch('/check-auth?ts='+Date.now(), {
+      credentials: 'include', cache:'no-store'
     });
     const d = await res.json();
     if (!d.isLoggedIn) return;
+    const u = d.user;
 
-    const u = d.user || {};
+    // 1) ID, 프로필, 이메일, 구독 등 기존 세팅 생략…
 
-    // 1) ID 입력란에 무조건 값 채우기
-    const idInput = document.getElementById('mem-id-input');
-    if (idInput) {
-      idInput.value = u.id || '';
+    // 2) 현금영수증 초기화
+    if (u.bizNum) showBizNum(u.bizNum);
+    else {
+      document.getElementById('mem-biz-input').style.display = 'inline-block';
+      document.getElementById('mem-biz-save').style.display  = 'inline-block';
+      document.getElementById('mem-biz-view').style.display  = 'none';
+      document.getElementById('mem-biz-edit').style.display  = 'none';
     }
 
-    // 2) 좌측 프로필 카드 이름/이메일 세팅
-    const displayId = u.email ? u.email.split('@')[0] : (u.name || 'User');
-    document.getElementById('profileName').textContent  = displayId;
-    document.getElementById('profileEmail').textContent = u.email || '-';
+    // 3) 학원 명/번호 초기화
+    const nameIn  = document.getElementById('mem-academy-name');
+    const phoneIn = document.getElementById('mem-academy-phone');
+    const btn     = document.getElementById('academy-save-btn');
 
-    // 3) 아바타 기본 세팅
-    const defaultImg = '/icon_my_b.png';
-    const av = document.getElementById('profileAvatar');
-    av.alt = displayId;
-    av.src = defaultImg;
-    av.style.visibility = 'visible';
-
-    // 4) 아바타 새로 로드 → fade-in
-    const preloadAvatar = new Image();
-    preloadAvatar.onload = () => {
-      av.src = preloadAvatar.src;
-      fadeInAvatar();
-    };
-    preloadAvatar.src = (u.avatarUrl && u.avatarUrl !== defaultImg)
-                        ? u.avatarUrl
-                        : defaultImg;
-
-    // 5) 우측 정보 카드 세팅
-    document.getElementById('mem-email').textContent = u.email || '-';
-    document.getElementById('mem-phone').textContent = u.phone || '-';
-
-    // 6) 구독 상태
-    const subLabel = document.getElementById('mem-subscription');
-    const subBtn   = document.getElementById('subscribeBtn');
-    if (u.hasPaid) {
-      subLabel.textContent = '구독중';
-      subBtn.style.display = 'none';
+    if (u.academyName) {
+      nameIn.value    = u.academyName;
+      phoneIn.value   = u.academyPhone || '';
+      nameIn.disabled = phoneIn.disabled = true;
+      btn.textContent = '변경';
     } else {
-      subLabel.textContent = '미구독';
-      subBtn.style.display = 'inline-block';
-      subBtn.onclick = () => location.href = '/subscribe';
+      nameIn.value    = '';
+      phoneIn.value   = '';
+      nameIn.disabled = phoneIn.disabled = false;
+      btn.textContent = '저장';
     }
 
-    // 7) 학원 주소 등 기타 필드
-    document.getElementById('mem-academy-address')
-            .textContent = u.academyAddress || '-';
+    // 4) 학원 주소, 로딩 해제 등 기존 로직 생략…
 
-    // 8) 로딩 스피너 제거
-    document.querySelector('.info').classList.remove('loading');
-    document.querySelector('.member-info').classList.remove('loading');
-
-  } catch (e) {
+  } catch(e) {
     console.error(e);
   }
-
-  // setProfileInfo 함수 마지막에 추가 (초기 상태에 따라 제어)
-  if (u.bizNum) {
-    showBizNum(u.bizNum);
-  } else {
-    document.getElementById('mem-biz-input').style.display = 'inline-block';
-    document.getElementById('mem-biz-save').style.display = 'inline-block';
-    document.getElementById('mem-biz-view').style.display = 'none';
-    document.getElementById('mem-biz-edit').style.display = 'none';
-  }
-
 }
-
 setProfileInfo();
 
-
-document.getElementById('mem-biz-save').onclick = async function() {
-  const value = document.getElementById('mem-biz-input').value.trim();
-  if(!value) return alert('번호를 입력하세요');
-  try {
-    const res = await fetch('/api/update-biznum', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      credentials: 'include',
-      body: JSON.stringify({ bizNum: value })
-    });
-    const d = await res.json();
-    if(d.success){
-      showBizNum(value);
-      alert('저장되었습니다!');
-    } else {
-      alert('저장 실패!');
-    }
-  } catch(e){
-    alert('오류 발생');
-  }
+// ─── 현금영수증 보기/저장/변경 ───
+function showBizNum(bizNum) {
+  document.getElementById('mem-biz-input').style.display = 'none';
+  document.getElementById('mem-biz-save').style.display  = 'none';
+  const v = document.getElementById('mem-biz-view');
+  v.textContent = bizNum; v.style.display = 'inline-block';
+  document.getElementById('mem-biz-edit').style.display = 'inline-block';
+}
+document.getElementById('mem-biz-save').onclick = async () => {
+  const val = document.getElementById('mem-biz-input').value.trim();
+  if (!val) return alert('번호를 입력하세요');
+  const res = await fetch('/api/update-biznum', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    credentials:'include', body:JSON.stringify({ bizNum:val })
+  });
+  const d = await res.json();
+  if (d.success) { showBizNum(val); alert('저장되었습니다!'); }
+  else alert('저장 실패');
+};
+document.getElementById('mem-biz-edit').onclick = () => {
+  document.getElementById('mem-biz-input').style.display = 'inline-block';
+  document.getElementById('mem-biz-save').style.display  = 'inline-block';
+  document.getElementById('mem-biz-view').style.display  = 'none';
+  document.getElementById('mem-biz-edit').style.display = 'none';
 };
 
-document.getElementById('academy-save-btn').onclick = async () => {
-  const name = document.getElementById('mem-academy-name').value.trim();
-  const phone = document.getElementById('mem-academy-phone').value.trim();
-  try {
+// ─── 학원 명/번호 저장 & 변경 토글 ───
+document.getElementById('academy-save-btn').onclick = async function() {
+  const nameIn  = document.getElementById('mem-academy-name');
+  const phoneIn = document.getElementById('mem-academy-phone');
+  const btn     = this;
+
+  if (btn.textContent === '저장') {
+    const name  = nameIn.value.trim();
+    const phone = phoneIn.value.trim();
+    if (!name) return alert('학원명을 입력하세요');
     const res = await fetch('/api/save-academy', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ name, phone })
+      method:'POST', headers:{'Content-Type':'application/json'},
+      credentials:'include', body:JSON.stringify({ name, phone })
     });
     const d = await res.json();
-    if (d.success) alert('저장 완료!');
-    else alert('저장 실패');
-  } catch (e) {
-    alert('오류 발생');
+    if (d.success) {
+      nameIn.disabled = phoneIn.disabled = true;
+      btn.textContent = '변경';
+      alert('학원 정보가 저장되었습니다!');
+    } else {
+      alert(d.msg || '저장 실패');
+    }
+  } else {
+    nameIn.disabled = phoneIn.disabled = false;
+    btn.textContent = '저장';
   }
 };
+
 
 function showBizNum(bizNum) {
   document.getElementById('mem-biz-input').style.display = 'none';
