@@ -398,6 +398,20 @@ input:focus {
   gap: 8px; /* ← 여기서 간격 조절 가능 (예: 4px, 8px, 12px 등) */
 }
 
+/* 구독 줄의 span이 flex-grow 하지 않도록 막기 */
+#mem-subscription {
+  flex: none;
+}
+
+/* 버튼을 텍스트 바로 옆으로 당기기 */
+#subscribeBtn {
+  margin-left: 0px;  /* 원하시면 px 값을 더 작게(예: 6px, 4px) 조정 */
+}
+
+#mem-subscription {
+  margin-left: -15px;  /* 예: 24px 만큼 오른쪽으로 이동 */
+}
+
   </style>
 </head>
 <body>
@@ -500,14 +514,11 @@ input:focus {
         <span id="mem-phone" class="member-info-value">-</span>
       </div>
       
-  <label class="member-info-label">구독</label>
-  <div class="subscription-inline">
-    <span id="mem-subscription" class="member-info-value grade-label">미구독</span>
-    <button id="subscribeBtn" class="pw-btn subscribe-btn" style="display:none;">
-      구독하기
-    </button>
-  </div>
-</div>
+        <div class="member-info-row">
+        <label class="member-info-label">구독</label>
+        <span id="mem-subscription" class="member-info-value grade-label">미구독</span>
+        <button id="subscribeBtn" class="pw-btn subscribe-btn">구독하기</button>
+      </div>
 
   <div style="margin-top:18px;"><b>현금영수증 발급 번호</b> :
     <input id="mem-biz-input" type="text" placeholder="사업자/휴대폰번호" style="width:160px;padding:4px 8px;border:1px solid #ccc;border-radius:7px;font-size:0.95rem;">
