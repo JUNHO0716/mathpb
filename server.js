@@ -423,6 +423,67 @@ app.delete('/api/uploads/:id', isLoggedIn, async (req, res) => {
 });
 
 
+// [bizNum 업데이트 바로 아래쯤에]
+app.post('/api/save-academy', isLoggedIn, async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const { name, phone } = req.body;
+    if (!name) return res.json({ success: false, msg: '학원명을 입력하세요.' });
+
+    // users 테이블에 academyName, academyPhone 업데이트
+    await db.query(
+      'UPDATE users SET academyName = ?, academyPhone = ? WHERE id = ?',
+      [name, phone || '', userId]
+    );
+
+    // 세션에도 반영
+    req.session.user.academyName  = name;
+    req.session.user.academyPhone = phone || '';
+    req.session.save(err => {
+      if (err) console.error('세션 저장 오류:', err);
+    });
+
+    res.json({ success: true });
+  } catch (e) {
+    console.error('/api/save-academy error:', e);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// ▶ /check-auth 핸들러 수정
+app.get('/check-auth', async (req, res) => {
+  if (req.session.user) {
+    const [rows] = await db.query(
+      'SELECT avatarUrl, hasPaid, phone, bizNum, academyName, academyPhone FROM users WHERE id = ?',
+      [req.session.user.id]
+    );
+    const u = rows[0] || {};
+    const avatarUrl    = u.avatarUrl    || '/icon_my_b.png';
+    const hasPaid      = req.session.user.role === 'admin' || !!u.hasPaid;
+    const phone        = u.phone        || '-';
+    const bizNum       = u.bizNum       || '';
+    const academyName  = u.academyName  || '';
+    const academyPhone = u.academyPhone || '';
+
+    // 세션 동기화
+    Object.assign(req.session.user, { avatarUrl, hasPaid, phone, bizNum, academyName, academyPhone });
+
+    return res.json({
+      isLoggedIn: true,
+      user: {
+        ...req.session.user,
+        avatarUrl,
+        hasPaid,
+        phone,
+        bizNum,
+        academyName,
+        academyPhone
+      }
+    });
+  }
+  res.json({ isLoggedIn: false });
+});
+
 
     // 파일 목록(필터/검색)
     app.get('/api/files', async (req, res) => {
