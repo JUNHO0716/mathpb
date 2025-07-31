@@ -776,32 +776,39 @@ app.get('/', (req, res) => {
 app.get('/check-auth', async (req, res) => {
   if (req.session.user) {
     const [rows] = await db.query(
-      'SELECT avatarUrl, hasPaid, phone, bizNum FROM users WHERE id = ?',
+      `SELECT avatarUrl, hasPaid, phone, bizNum,
+              academyName, academyPhone
+         FROM users
+       WHERE id = ?`,
       [req.session.user.id]
     );
-    const avatarUrl = rows.length && rows[0].avatarUrl ? rows[0].avatarUrl : '/icon_my_b.png';
-    const hasPaid   = (req.session.user.role === 'admin') || (rows.length && rows[0].hasPaid);
-    const phone     = rows.length && rows[0].phone ? rows[0].phone : '-';
-    const bizNum    = rows.length && rows[0].bizNum ? rows[0].bizNum : '';
+    const u = rows[0] || {};
+    const avatarUrl    = u.avatarUrl    || '/icon_my_b.png';
+    const hasPaid      = req.session.user.role === 'admin' || !!u.hasPaid;
+    const phone        = u.phone        || '-';
+    const bizNum       = u.bizNum       || '';
+    const academyName  = u.academyName  || '';
+    const academyPhone = u.academyPhone || '';
 
-    req.session.user.avatarUrl = avatarUrl;
-    req.session.user.hasPaid   = hasPaid;
-    req.session.user.phone     = phone;
-    req.session.user.bizNum    = bizNum;
+    // 세션 동기화
+    Object.assign(req.session.user, {
+      avatarUrl, hasPaid, phone, bizNum,
+      academyName, academyPhone
+    });
+    req.session.save(() => {});
 
     return res.json({
       isLoggedIn: true,
       user: {
         ...req.session.user,
-        avatarUrl,
-        hasPaid,
-        phone,
-        bizNum      // ⭐ 이 부분 추가!
+        avatarUrl, hasPaid, phone, bizNum,
+        academyName, academyPhone
       }
     });
   }
   res.json({ isLoggedIn: false });
 });
+
 
 // 로그아웃 API
 app.get('/logout', (req, res) => {
