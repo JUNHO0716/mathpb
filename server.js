@@ -454,7 +454,7 @@ app.post('/api/save-academy', isLoggedIn, async (req, res) => {
 app.get('/check-auth', async (req, res) => {
   if (req.session.user) {
     const [rows] = await db.query(
-      'SELECT avatarUrl, hasPaid, phone, bizNum, academyName, academyPhone FROM users WHERE id = ?',
+      'SELECT avatarUrl, hasPaid, phone, bizNum, email, academyName, academyPhone FROM users WHERE id = ?',
       [req.session.user.id]
     );
     const u = rows[0] || {};
@@ -464,9 +464,10 @@ app.get('/check-auth', async (req, res) => {
     const bizNum       = u.bizNum       || '';
     const academyName  = u.academyName  || '';
     const academyPhone = u.academyPhone || '';
+    const email        = u.email        || req.session.user.email || '-'; // email 필드 보장
 
     // 세션 동기화
-    Object.assign(req.session.user, { avatarUrl, hasPaid, phone, bizNum, academyName, academyPhone });
+    Object.assign(req.session.user, { avatarUrl, hasPaid, phone, bizNum, academyName, academyPhone, email });
 
     return res.json({
       isLoggedIn: true,
@@ -477,13 +478,13 @@ app.get('/check-auth', async (req, res) => {
         phone,
         bizNum,
         academyName,
-        academyPhone
+        academyPhone,
+        email    // 프론트에서도 이 키 써야 함!
       }
     });
   }
   res.json({ isLoggedIn: false });
 });
-
 
     // 파일 목록(필터/검색)
     app.get('/api/files', async (req, res) => {
