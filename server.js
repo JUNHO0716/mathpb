@@ -61,7 +61,7 @@ const avatarUpload = multer({
     contentType: multerS3.AUTO_CONTENT_TYPE, // ★ 올바른 MIME 설정
     key: (req,file,cb)=> {
       const ext=file.originalname.split('.').pop();
-      cb(null,profile/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext});
+      cb(null,`profile/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`);
     }
   })
 });
@@ -71,7 +71,7 @@ const fileUpload = multer({
     key: (req,file,cb)=> {
       const today=new Date().toISOString().slice(0,10);
       const ext=file.originalname.split('.').pop();
-      cb(null,files/${today}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext});
+      cb(null,`files/${today}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`);
     }
   })
 });
@@ -207,7 +207,7 @@ passport.deserializeUser((obj, done) => {
 app.get('/ping-db', async (req, res) => {
   try {
     const [rows] = await db.query('SELECT NOW() AS now');
-    res.send(✅ DB 연결 성공! 현재 시간: ${rows[0].now});
+    res.send(`✅ DB 연결 성공! 현재 시간: ${rows[0].now}`);
   } catch (e) {
     console.error('❌ DB 연결 실패:', e);
     res.status(500).send('DB 연결 실패');
@@ -389,9 +389,9 @@ for (const f of files) {
 }
 
         await db.query(
-          INSERT INTO files 
+          `INSERT INTO files 
             (region, district, school, grade, year, semester, title, hwp_filename, pdf_filename, level)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?),
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [region, district, school, grade, year, semester, title, hwpKey, pdfKey, level]
         );
         res.json({ message: '업로드 성공' });
@@ -550,12 +550,12 @@ app.get('/api/download/:id', async (req, res) => {
 
     if (!filename) return res.status(404).send('해당 형식 파일 없음');
 
-    const downloadFileName = ${title}${ext};
+    const downloadFileName = `${title}${ext}`;
     const signed = s3.getSignedUrl('getObject', {
       Bucket: process.env.AWS_S3_BUCKET,
       Key: filename,
       Expires: 60,
-      ResponseContentDisposition: attachment; filename*=UTF-8''${encodeURIComponent(downloadFileName)}
+      ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(downloadFileName)}`
     });
 
     return res.redirect(signed);
@@ -573,9 +573,9 @@ app.get('/api/download/:id', async (req, res) => {
       const files = req.files || [];
       // 첨부파일 없이 메타데이터만 수정할 때
       if (!files.length) {
-        await db.query(
+        await db.query(`
           UPDATE files SET region=?, district=?, school=?, grade=?, year=?,
-            semester=?, title=?, level=? WHERE id=?,
+            semester=?, title=?, level=? WHERE id=?`,
           [region, district, school, grade, year, semester, title, level, req.params.id]
         );
         return res.json({ message: '수정 완료(파일 변경 없음)' });
@@ -601,10 +601,10 @@ app.get('/api/download/:id', async (req, res) => {
         }
 
         await db.query(
-          UPDATE files SET
+          `UPDATE files SET
             region=?, district=?, school=?, grade=?, year=?, semester=?, title=?, level=?,
             hwp_filename=?, pdf_filename=?
-          WHERE id=?,
+          WHERE id=?`,
           [region, district, school, grade, year, semester, title, level, newHwp, newPdf, req.params.id]
         );
         res.json({ message: '수정 완료' });
@@ -633,7 +633,7 @@ app.post('/api/board',  fileUpload.array('fileInput', 10), async (req, res) => {
 
 app.get('/api/my-uploads', isLoggedIn, async (req, res) => {
   try {
-    const [rows] = await db.query(
+    const [rows] = await db.query(`
        SELECT id,
         filename,
         status,
@@ -643,7 +643,7 @@ app.get('/api/my-uploads', isLoggedIn, async (req, res) => {
       FROM uploads
       WHERE user_id = ?
       ORDER BY uploaded_at DESC
-    , [req.session.user.id]);
+    `, [req.session.user.id]);
 
     // 새로 업로드된 이름은 이미 UTF-8로 잘 저장돼 있으므로 바로 내려줍니다.
     res.json(rows);
@@ -686,9 +686,9 @@ app.get(
   async (req, res) => {
     try {
       const [rows] = await db.query(
-        SELECT id, user_id, filename, status, reject_reason, uploaded_at, completed_at
+        `SELECT id, user_id, filename, status, reject_reason, uploaded_at, completed_at
          FROM uploads
-         ORDER BY uploaded_at DESC
+         ORDER BY uploaded_at DESC`
       );
       res.json(rows);
     } catch (e) {
@@ -776,32 +776,39 @@ app.get('/', (req, res) => {
 app.get('/check-auth', async (req, res) => {
   if (req.session.user) {
     const [rows] = await db.query(
-      'SELECT avatarUrl, hasPaid, phone, bizNum FROM users WHERE id = ?',
+      `SELECT avatarUrl, hasPaid, phone, bizNum,
+              academyName, academyPhone
+         FROM users
+       WHERE id = ?`,
       [req.session.user.id]
     );
-    const avatarUrl = rows.length && rows[0].avatarUrl ? rows[0].avatarUrl : '/icon_my_b.png';
-    const hasPaid   = (req.session.user.role === 'admin') || (rows.length && rows[0].hasPaid);
-    const phone     = rows.length && rows[0].phone ? rows[0].phone : '-';
-    const bizNum    = rows.length && rows[0].bizNum ? rows[0].bizNum : '';
+    const u = rows[0] || {};
+    const avatarUrl    = u.avatarUrl    || '/icon_my_b.png';
+    const hasPaid      = req.session.user.role === 'admin' || !!u.hasPaid;
+    const phone        = u.phone        || '-';
+    const bizNum       = u.bizNum       || '';
+    const academyName  = u.academyName  || '';
+    const academyPhone = u.academyPhone || '';
 
-    req.session.user.avatarUrl = avatarUrl;
-    req.session.user.hasPaid   = hasPaid;
-    req.session.user.phone     = phone;
-    req.session.user.bizNum    = bizNum;
+    // 세션 동기화
+    Object.assign(req.session.user, {
+      avatarUrl, hasPaid, phone, bizNum,
+      academyName, academyPhone
+    });
+    req.session.save(() => {});
 
     return res.json({
       isLoggedIn: true,
       user: {
         ...req.session.user,
-        avatarUrl,
-        hasPaid,
-        phone,
-        bizNum      // ⭐ 이 부분 추가!
+        avatarUrl, hasPaid, phone, bizNum,
+        academyName, academyPhone
       }
     });
   }
   res.json({ isLoggedIn: false });
 });
+
 
 // 로그아웃 API
 app.get('/logout', (req, res) => {
@@ -865,10 +872,10 @@ app.post('/api/download-log', async (req, res) => {
     const [file] = await conn.query('SELECT title FROM files WHERE id = ?', [fileId]);
     const title = file[0]?.title || '제목없음';
 
-    await conn.query(
+    await conn.query(`
       INSERT INTO downloads_log (file_id, file_name, type, user_email, downloaded_at)
       VALUES (?, ?, ?, ?, NOW())
-    , [fileId, title, type, userEmail]);
+    `, [fileId, title, type, userEmail]);
 
     res.json({ success: true });
   } catch (e) {
@@ -885,7 +892,7 @@ app.get('/api/downloads/recent', async (req, res) => {
     if (!userEmail) return res.status(400).json({ error: '이메일 누락' });
 
     // db로 수정!
-      const [rows] = await db.query(
+      const [rows] = await db.query(`
         SELECT f.id, l.file_name AS name, COUNT(*) AS count, MAX(l.downloaded_at) AS date
         FROM downloads_log l
         JOIN files f ON f.title = l.file_name
@@ -893,7 +900,7 @@ app.get('/api/downloads/recent', async (req, res) => {
         GROUP BY f.id, l.file_name
         ORDER BY date DESC
         LIMIT 5
-      , [userEmail]);
+      `, [userEmail]);
 
     res.json(rows); // 이 rows가 프론트에서 map 가능한 배열
   } catch (e) {
@@ -1066,10 +1073,10 @@ app.get('/api/uploads/recent', async (req, res) => {
   try {
     // files 테이블에서 최신 10개의 파일명(title), 업로드일(uploaded_at)만 뽑기
     const [rows] = await db.query(
-      SELECT title AS name, DATE_FORMAT(uploaded_at, '%Y-%m-%d') AS date
+      `SELECT title AS name, DATE_FORMAT(uploaded_at, '%Y-%m-%d') AS date
        FROM files
        ORDER BY uploaded_at DESC
-       LIMIT 10
+       LIMIT 10`
     );
     res.json(rows);
   } catch (e) {
@@ -1137,7 +1144,7 @@ app.get(
         Bucket: process.env.AWS_S3_BUCKET,
         Key: key,
         Expires: 60,
-        ResponseContentDisposition: attachment; filename*=UTF-8''${encodeURIComponent(origName)}
+        ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(origName)}`
       });
 
       return res.redirect(signedUrl);
@@ -1151,5 +1158,6 @@ app.get(
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
-  console.log(서버 실행 http://localhost:${PORT});
+  console.log(`서버 실행 http://localhost:${PORT}`);
 });
+
