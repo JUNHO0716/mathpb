@@ -485,8 +485,6 @@ input:focus {
          <h3 id="profileName">UserName</h3>
          <!-- 프로필 카드 하단에 ID 추가 -->
          <div class="role" id="profileId">-</div>
-         <!-- 프로필 카드 하단에 이메일 -->
-         <div class="role" id="profileEmail">user@example.com</div>
         </div>
       </div>
     </div>
@@ -622,8 +620,7 @@ async function setProfileInfo() {
 
     // 프로필 카드 하단 ID/이메일 설정
     document.getElementById('profileId').textContent    = u.id;
-    document.getElementById('profileEmail').textContent = u.email;
-
+    
     document.querySelector('.info').classList.remove('loading');
 
      // ▷ 사용자 정보 화면에 반영
@@ -633,7 +630,7 @@ async function setProfileInfo() {
      document.getElementById('profileAvatar').src       = u.avatarUrl;
      document.getElementById('profileName').textContent = u.name;
      // 3) 이메일
-     document.getElementById('profileEmail').textContent = u.email;
+     document.getElementById('mem-email').textContent = u.email;
      // 4) 휴대폰 번호
      document.getElementById('mem-phone').textContent    = u.phone;
      // 5) 구독 상태
