@@ -624,6 +624,8 @@ async function setProfileInfo() {
     document.getElementById('profileId').textContent    = u.id;
     document.getElementById('profileEmail').textContent = u.email;
 
+    document.querySelector('.info').classList.remove('loading');
+
      // ▷ 사용자 정보 화면에 반영
      // 1) ID
      document.getElementById('mem-id-input').value = u.id;
