@@ -617,7 +617,27 @@ async function setProfileInfo() {
     if (!d.isLoggedIn) return;
     const u = d.user;
 
-    // 1) ID, 프로필, 이메일, 구독 등 기존 세팅 생략…
+     // ▷ 사용자 정보 화면에 반영
+     // 1) ID
+     document.getElementById('mem-id-input').value = u.id;
+     // 2) 프로필 사진 & 이름
+     document.getElementById('profileAvatar').src       = u.avatarUrl;
+     document.getElementById('profileName').textContent = u.name;
+     // 3) 이메일
+     document.getElementById('profileEmail').textContent = u.email;
+     // 4) 휴대폰 번호
+     document.getElementById('mem-phone').textContent    = u.phone;
+     // 5) 구독 상태
+     const subLabel = document.getElementById('mem-subscription');
+     const subBtn   = document.getElementById('subscribeBtn');
+     if (u.hasPaid) {
+       subLabel.textContent = '구독중';
+       subBtn.style.display  = 'none';
+     } else {
+       subLabel.textContent = '미구독';
+       subBtn.style.display  = 'inline-block';
+     }
+
 
     // 2) 현금영수증 초기화
     if (u.bizNum) showBizNum(u.bizNum);
