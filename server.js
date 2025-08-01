@@ -772,42 +772,6 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-// 로그인 상태 확인 API
-app.get('/check-auth', async (req, res) => {
-  if (req.session.user) {
-    const [rows] = await db.query(
-      `SELECT avatarUrl, hasPaid, phone, bizNum,
-              academyName, academyPhone
-         FROM users
-       WHERE id = ?`,
-      [req.session.user.id]
-    );
-    const u = rows[0] || {};
-    const avatarUrl    = u.avatarUrl    || '/icon_my_b.png';
-    const hasPaid      = req.session.user.role === 'admin' || !!u.hasPaid;
-    const phone        = u.phone        || '-';
-    const bizNum       = u.bizNum       || '';
-    const academyName  = u.academyName  || '';
-    const academyPhone = u.academyPhone || '';
-
-    // 세션 동기화
-    Object.assign(req.session.user, {
-      avatarUrl, hasPaid, phone, bizNum,
-      academyName, academyPhone
-    });
-    req.session.save(() => {});
-
-    return res.json({
-      isLoggedIn: true,
-      user: {
-        ...req.session.user,
-        avatarUrl, hasPaid, phone, bizNum,
-        academyName, academyPhone
-      }
-    });
-  }
-  res.json({ isLoggedIn: false });
-});
 
 
 // 로그아웃 API
