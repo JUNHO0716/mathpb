@@ -447,6 +447,39 @@ input:focus {
   margin-top: 0 !important;
 }
 
+.member-info-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.member-info-label {
+  width: 120px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #111;
+}
+
+.member-info-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #f7f7f9;
+  font-size: 1rem;
+}
+
+.pw-btn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 6px;
+  background: #6366f1;
+  color: #fff;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
   </style>
 </head>
 <body>
@@ -544,37 +577,65 @@ input:focus {
       <!-- 오른쪽 컬럼: 기존 현금영수증~학원정보 저장까지 -->
       <div class="member-info-col">
         <div style="margin-top:18px;">
-          <b>현금영수증 발급 번호</b> :
-          <input id="mem-biz-input" type="text" placeholder="사업자/휴대폰번호"
-                 style="width:160px;padding:4px 8px;border:1px solid #ccc;border-radius:7px;font-size:0.95rem;">
-          <button id="mem-biz-save">저장</button>
-          <span id="mem-biz-view" style="margin-left:10px;color:#218155;font-weight:700;display:none;"></span>
-          <button id="mem-biz-edit" style="margin-left:8px;display:none;">변경</button>
-        </div>
-        <div style="margin-top:18px;">
-          <b>학원 명</b> :
-          <input id="mem-academy-name" type="text" style="width:200px;padding:4px 8px;" placeholder="학원명">
-        </div>
-        <div style="margin-top:16px;"><b>학원 주소</b> :</div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px;">
-          <input id="mem-academy-address-input" type="text" placeholder="학원 주소 입력"
-                 style="flex:1; padding:10px; border:1px solid #ccc; border-radius:8px;">
-          <button id="academy-address-save" style="padding:10px 18px;border-radius:8px;background:#6366f1;color:#fff;border:none;">
-            변경
-          </button>
-        </div>
-        <span id="mem-academy-address" style="display:block; color:#333; font-weight:500;">-</span>
-        <div>
-          <b>학원 번호</b> :
-          <input id="mem-academy-phone" type="text" style="width:160px;padding:4px 8px;" placeholder="전화번호">
-        </div>
-        <button id="academy-save-btn"
-                style="margin-top:10px;padding:5px 12px;font-size:0.95rem;border-radius:7px;background:#218155;color:#fff;border:none;cursor:pointer;">
-          학원 정보 저장
-        </button>
-      </div>
+  <b>현금영수증 발급 번호</b> :
+  <input id="mem-biz-input" …>
+  <button id="mem-biz-save">저장</button>
+  …
+</div>
 
-    </div>
+<!-- ▶ 수정 후: -->
+<div class="member-info-col">
+  <!-- 현금영수증 -->
+  <div class="member-info-row">
+    <label class="member-info-label">현금영수증 발급 번호</label>
+    <input id="mem-biz-input"
+           type="text"
+           placeholder="사업자/휴대폰번호"
+           class="member-info-input"
+           style="width:160px;" />
+    <button id="mem-biz-save" class="pw-btn">저장</button>
+    <button id="mem-biz-edit" class="pw-btn" style="display:none;">변경</button>
+  </div>
+
+  <!-- 학원 명 -->
+  <div class="member-info-row">
+    <label class="member-info-label">학원 명</label>
+    <input id="mem-academy-name"
+           type="text"
+           placeholder="학원명"
+           class="member-info-input"
+           style="width:200px;" />
+  </div>
+
+  <!-- 학원 주소 -->
+  <div class="member-info-row">
+    <label class="member-info-label">학원 주소</label>
+    <input id="mem-academy-address-input"
+           type="text"
+           placeholder="학원 주소 입력"
+           class="member-info-input"
+           style="flex:1;" />
+    <button id="academy-address-save" class="pw-btn">변경</button>
+  </div>
+
+  <!-- 학원 번호 -->
+  <div class="member-info-row">
+    <label class="member-info-label">학원 번호</label>
+    <input id="mem-academy-phone"
+           type="text"
+           placeholder="전화번호"
+           class="member-info-input"
+           style="width:160px;" />
+  </div>
+
+  <!-- 학원 정보 저장 버튼 (풀너비로 놓고 싶다면 flex:1 주시면 됩니다) -->
+  <div class="member-info-row">
+    <label class="member-info-label">&nbsp;</label>
+    <button id="academy-save-btn"
+            class="pw-btn"
+            style="flex:1;">학원 정보 저장</button>
+  </div>
+</div>
     <!-- ★ 추가 끝 -->
 
   </div>
