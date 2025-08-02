@@ -758,10 +758,8 @@ document.getElementById('mem-biz-save').onclick = async () => {
   const val = document.getElementById('mem-biz-input').value.trim();
   if (!val) return alert('번호를 입력하세요');
   const res = await fetch('/api/update-biznum', {
-    method: 'POST',
-    credentials: 'include',           // ← 이 한 줄만 추가!
-    headers: { 'Content-Type':'application/json' },
-    body: JSON.stringify({ bizNum: val })
+    method:'POST', headers:{'Content-Type':'application/json'},
+    credentials:'include', body:JSON.stringify({ bizNum:val })
   });
   const d = await res.json();
   if (d.success) { showBizNum(val); alert('저장되었습니다!'); }
