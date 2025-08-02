@@ -583,14 +583,30 @@ input:focus {
 <div class="member-info-col">
   <!-- 1) 현금영수증 -->
   <div class="member-info-row">
-    <label class="member-info-label">현금영수증 발급 번호</label>
-    <input id="mem-biz-input"
-           type="text"
-           placeholder="사업자/휴대폰번호"
-           class="member-info-input"
-           style="width:160px;" />
-    <button id="mem-biz-save" class="pw-btn">저장</button>
-  </div>
+  <label class="member-info-label">현금영수증 발급 번호</label>
+
+  <!-- ① 입력창 -->
+  <input id="mem-biz-input"
+         type="text"
+         placeholder="사업자/휴대폰번호"
+         class="member-info-input"
+         style="width:160px;" />
+
+  <!-- ② 저장 버튼 -->
+  <button id="mem-biz-save" class="pw-btn">저장</button>
+
+  <!-- ③ 저장 후 보여줄 span -->
+  <span id="mem-biz-view"
+        style="display:none; margin-left:10px; color:#218155; font-weight:700;">
+  </span>
+
+  <!-- ④ 변경 버튼 -->
+  <button id="mem-biz-edit"
+          class="pw-btn"
+          style="display:none; margin-left:8px;">
+    변경
+  </button>
+</div>
 
   <!-- 2) 학원 명 -->
   <div class="member-info-row">
@@ -976,6 +992,11 @@ document.getElementById('pw-change-btn').onclick = async function() {
     <div id="pw-modal-msg" style="font-size:1.13rem;line-height:1.8;margin-bottom:22px;">비밀번호가 확인되었습니다.</div>
     <button id="pw-modal-btn" style="padding:8px 28px;border:none;background:#6366f1;color:#fff;font-weight:600;font-size:1.05rem;border-radius:8px;cursor:pointer;">확인</button>
   </div>
+</div>
+</div>
+</div>
+</div>
+</div>
 </div>
 </body>
 </html>
