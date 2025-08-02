@@ -480,6 +480,11 @@ input:focus {
   cursor: pointer;
 }
 
+/* no-colon 클래스 달린 label은 ::after 콜론이 없게 */
+.member-info-label.no-colon::after {
+  content: "";
+}
+
   </style>
 </head>
 <body>
@@ -574,9 +579,9 @@ input:focus {
         </div>
       </div>
 
-<!-- ▶ 수정 후: -->
+<!-- 오른쪽 컬럼 -->
 <div class="member-info-col">
-  <!-- 현금영수증 -->
+  <!-- 1) 현금영수증 -->
   <div class="member-info-row">
     <label class="member-info-label">현금영수증 발급 번호</label>
     <input id="mem-biz-input"
@@ -585,10 +590,9 @@ input:focus {
            class="member-info-input"
            style="width:160px;" />
     <button id="mem-biz-save" class="pw-btn">저장</button>
-    <button id="mem-biz-edit" class="pw-btn" style="display:none;">변경</button>
   </div>
 
-  <!-- 학원 명 -->
+  <!-- 2) 학원 명 -->
   <div class="member-info-row">
     <label class="member-info-label">학원 명</label>
     <input id="mem-academy-name"
@@ -598,7 +602,7 @@ input:focus {
            style="width:200px;" />
   </div>
 
-  <!-- 학원 주소 -->
+  <!-- 3) 학원 주소 -->
   <div class="member-info-row">
     <label class="member-info-label">학원 주소</label>
     <input id="mem-academy-address-input"
@@ -609,7 +613,7 @@ input:focus {
     <button id="academy-address-save" class="pw-btn">변경</button>
   </div>
 
-  <!-- 학원 번호 -->
+  <!-- 4) 학원 번호 -->
   <div class="member-info-row">
     <label class="member-info-label">학원 번호</label>
     <input id="mem-academy-phone"
@@ -619,19 +623,14 @@ input:focus {
            style="width:160px;" />
   </div>
 
-  <!-- 학원 정보 저장 버튼 (풀너비로 놓고 싶다면 flex:1 주시면 됩니다) -->
+  <!-- 5) 저장 버튼 (no-colon으로 콜론 제거) -->
   <div class="member-info-row">
-    <label class="member-info-label">&nbsp;</label>
+    <label class="member-info-label no-colon"></label>
     <button id="academy-save-btn"
             class="pw-btn"
             style="flex:1;">학원 정보 저장</button>
   </div>
 </div>
-    <!-- ★ 추가 끝 -->
-
-  </div>
-</div>
-
 
 <!-- Swiper JS (광고배너용) -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
