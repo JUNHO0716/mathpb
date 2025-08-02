@@ -2,38 +2,287 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>타이핑 이벤트</title>
+  <title>배너 위 이미지 박스</title>
   <style>
-    body {
+    .banner {
+      position: relative;
+      background: url('background.jpg') center/cover no-repeat;
+      padding: 20px 20px 250px;  /* 500px 스트라이프 높이 + 20px 여유 */
+      color: #000;
       font-family: 'Noto Sans KR', sans-serif;
-      margin: 0;
-      background: #111;
-      color: white;
-      text-align: center;
-      padding: 40px 20px;
     }
-    img {
+
+    /* ↓ 콘텐츠(텍스트+이미지 뒤)만 가로 꽉 채우는 스트라이프 배경 추가 */
+    .banner::before {
+      content: "";
+      position: absolute;
+      top: 20px;
+      left: 0;
       width: 100%;
-      max-width: 520px;
+      height: 500px;           /* ↓ 텍스트+이미지 영역 높이에 맞춰 조정 */
+      background: #F9F6EA;     /* ↓ 원하는 색으로 변경 */
+      z-index: 0;
+    }
+
+    .banner .inner {
+      position: relative;      /* ↓ ::before 위에 올라오도록 */
+      z-index: 1;              
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;                /* grid → flex */
+      justify-content: flex-start;
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+      gap: 40px;
+    }
+
+    .banner .text {
+      margin-top: -10px;
+      margin-left: -150px;
+    }
+
+    .banner h2 {
+      font-size: 2.5rem;
+      line-height: 1.3;
+      font-weight: 900;
+    }
+    .banner h2 .highlight {
+      color: #2196F3;
+    }
+
+    .banner .image-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 50px;
+      left: 80px; /* 원하는 만큼 */
+      position: relative;
+      margin-top: 20px;
+      justify-self: end;
+      margin-left: auto;
+    }
+
+    .image-box {
+      background: #fff;
       border-radius: 12px;
-      margin-bottom: 20px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+      height: 200px;
+      width: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    h1 {
-      font-size: 1.8rem;
-      color: #FDC512;
+    .image-box img {
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
     }
-    p {
-      font-size: 1rem;
-      line-height: 1.6;
+
+    @media (max-width: 768px) {
+      .banner .inner {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .banner .image-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .banner .text {
+        margin: 0;
+      }
     }
+
+/* ── 여기에 추가 ── */
+.info-banner .inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;  /* space-between → flex-start */
+  gap: 20px;
+  padding: 60px 20px;
+}
+.info-banner .text-block {
+  margin-top: -10px;    /* 위쪽 살짝 올리기 */
+  margin-left: -150px;  /* 왼쪽으로 당기기 */
+  flex: none;           /* flex:1 대신 고정 너비를 원하면 none */
+}
+.info-banner .text-block h2 {
+  font-size: 2.5rem;    /* 위 배너 h2와 같은 크기 */
+  line-height: 1.3;
+  font-weight: 900;
+}
+.info-banner .text-block .highlight {
+  color: #2196F3;
+}
+.info-banner .text-block p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+.info-banner .image-block {
+  flex: 1;
+  position: relative;  /* 반드시 있어야 left가 작동합니다 */
+  left: -210px;         /* 왼쪽으로 80px 이동, 값은 원하는 만큼 조절 */
+  text-align: right;
+}
+.info-banner .image-block img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+}
+@media (max-width: 768px) {
+  .info-banner .inner {
+    flex-direction: column;
+    text-align: center;
+  }
+  .info-banner .image-block {
+    margin-top: 20px;
+  }
+}
+/* ───────────────────── */
+
+/* ── style 태그 안, 기존 info-banner 스타일 아래에 붙이기 ── */
+.info-banner-alt {
+  margin-top: 80px; /* 위 섹션과 간격 */
+}
+.info-banner-alt .inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 20px;
+  padding: 60px 20px;
+}
+.info-banner-alt .image-block {
+  flex: 1;
+  text-align: left;
+  position: relative;
+  left: 180px;   /* 왼쪽으로 80px 이동 */
+}
+.info-banner-alt .image-block img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+}
+.info-banner-alt .text-block {
+  flex: none;
+  margin-top: 100px;
+  margin-right: 20px; /* 왼쪽 .banner 텍스트와 맞춘 위치 */
+}
+.info-banner-alt .text-block h2 {
+  font-size: 2.5rem;
+  line-height: 1.3;
+  font-weight: 900;
+}
+.info-banner-alt .text-block .highlight {
+  color: #2196F3;
+}
+.info-banner-alt .text-block p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+/* 모바일 대응 */
+@media (max-width: 768px) {
+  .info-banner-alt .inner {
+    flex-direction: column;
+    text-align: center;
+  }
+  .info-banner-alt .text-block {
+    margin: 0; /* 네거티브 마진 해제 */
+  }
+  .info-banner-alt .image-block {
+    margin-bottom: 20px;
+  }
+}
+
   </style>
 </head>
 <body>
-  <img src="/event/event-image1.png" alt="이벤트 배너">
-  <h1>타이핑본 업로드 특별 이벤트</h1>
-  <p>
-    수학비서 DB 8만 돌파 &<br>문제 20만 개 돌파 기념!<br><br>
-    지금 타이핑본 업로드 시<br><strong>최대 5배 포인트 지급!</strong>
-  </p>
+  <section class="banner">
+    <div class="inner">
+      <div class="text">
+        <h2>
+          다양한 유형의 <span class="highlight">기출 문제</span>가<br>
+          업데이트가 되고 있습니다.
+        </h2>
+      </div>
+      <div class="image-grid">
+        <div class="image-box">
+          <img src="thumb1.jpg" alt="문제 예시 1">
+        </div>
+        <div class="image-box">
+          <img src="thumb2.jpg" alt="문제 예시 2">
+        </div>
+        <div class="image-box">
+          <img src="thumb3.jpg" alt="문제 예시 3">
+        </div>
+        <div class="image-box">
+          <img src="thumb4.jpg" alt="문제 예시 4">
+        </div>
+      </div>
+    </div>
+  </section>
+
+<!-- ↓ 여기에 새 섹션 추가 -->
+<section class="info-banner">
+  <div class="inner">
+    <div class="text-block">
+      <h2>
+        맞춤형 <span class="highlight">학습 콘텐츠</span><br>
+        지금 바로 확인해 보세요!
+      </h2>
+      <p>
+        • 75만 문제 수록된 방대한 문제은행<br>
+        • 단원·난이도별 맞춤 출제 기능<br>
+        • 클릭 한 번으로 HWP 시험지 생성
+      </p>
+    </div>
+    <div class="image-block">
+      <img src="large-illustration.jpg" alt="맞춤학습 예시">
+    </div>
+  </div>
+</section>
+
+<!-- ↓ 기존 info-banner 끝난 바로 아래에 붙여넣기 -->
+<section class="info-banner-alt">
+  <div class="inner">
+    <div class="image-block">
+      <img src="another-illustration.jpg" alt="새로운 기능 예시">
+    </div>
+    <div class="text-block">
+      <h2>
+        새로운 <span class="highlight">기능 소개</span><br>
+        확인해 보세요!
+      </h2>
+      <p>
+        • AI 추천 출제 기능으로<br>
+          자동으로 맞춤 문제 제공<br>
+        • 원하는 형식으로 PDF/ HWP 다운로드<br>
+        • 학습 이력 기반 통계 리포트
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="info-banner">
+  <div class="inner">
+    <div class="text-block">
+      <h2>
+        또 다른 <span class="highlight">맞춤학습</span> 소개<br>
+        지금 확인해 보세요!
+      </h2>
+      <p>
+        • 80만 개 이상의 문제 제공<br>
+        • 키워드 검색으로 즉시 출제<br>
+        • 모바일·데스크톱 완벽 지원
+      </p>
+    </div>
+    <div class="image-block">
+      <img src="large-illustration2.jpg" alt="맞춤학습 예시 2">
+    </div>
+  </div>
+</section>
+
 </body>
 </html>
