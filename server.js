@@ -95,7 +95,11 @@ app.use(session({
   secret: process.env.SESSION_SECRET,     // 나중에 .env로 숨겨도 됨
   resave: false,
   saveUninitialized: true,
-  cookie: { maxAge: 1000 * 60 * 60 * 2 }  // 2시간 유지
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 2,
+    secure: process.env.NODE_ENV === 'production', // HTTPS 환경에서만
+    sameSite: 'none'                               // cross-site 요청에도 쿠키 허용
+ }
 }));
 app.use(express.json());
 
