@@ -125,8 +125,25 @@
   /* ▣ 모달 */
   .modal{position:fixed;inset:0;display:none;align-items:center;
         justify-content:center;background:rgba(0,0,0,.55);z-index:100;}
-  .modal-content{max-width:580px;width:90%;background:#fff;border-radius:12px;
-                padding:32px 28px;text-align:center;position:relative;}
+.modal-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* 폭은 화면 90%로 줄이고 */
+  width: 80vw !important;
+  max-width: none !important;  /* 기존 max-width 무시 */
+  height: auto;                /* 세로는 auto */
+  max-height: 90vh;            /* 높이는 90vh 이하 */
+  margin: 0 !important;
+  padding: 16px;               
+  box-sizing: border-box;
+  overflow-x: hidden;          /* 가로 스크롤 없애고 */
+  overflow-y: auto;            /* 세로만 스크롤 */
+  border-radius: 12px;         
+  background: #fff;
+  overflow: hidden !important;
+}
   .modal-content img{max-width:100%;height:auto;border-radius:10px;}
   .modal-content p{margin-top:18px;font-size:1.05rem;line-height:1.6;}
   .modal-close{position:absolute;right:18px;top:14px;font-size:1.8rem;
@@ -160,12 +177,12 @@
       font-weight:700;color:#333;
     }
     .my-desc{ display:none; }
-    .modal-content iframe{
-      width:100%;
-      height:70vh;           /* 원하는 높이 비율 */
-      border:0;
-      border-radius:12px;
-    }
+    .modal-content iframe {
+  width: 100% !important;
+  height: calc(90vh - 32px) !important; /* padding(16px*2)만큼 빼고 */
+  border: 0;
+  border-radius: 12px;
+}
     .dashboard-body{
       display:flex;
       flex-wrap:wrap;          /* ← wrap 허용 → 두 번째 줄로 내려감 */
