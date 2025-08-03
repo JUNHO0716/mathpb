@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>준비중입니다</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="https://fonts.googleapis.com/css2?family=Gmarket+Sans:wght@700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #f8fafc 0%, #e3e7ef 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Noto Sans KR', 'Gmarket Sans', sans-serif;
+    }
+    .ready-container {
+      text-align: center;
+      background: #fff;
+      padding: 54px 60px 48px;
+      border-radius: 28px;
+      box-shadow: 0 6px 36px 0 rgba(120,145,181,.12);
+      max-width: 340px;
+      width: 90vw;
+      position: relative;
+      border: 1px solid #eee;
+    }
+    .ready-emoji {
+      font-size: 4.2rem;
+      margin-bottom: 8px;
+      animation: bounce 1.6s infinite;
+      display: inline-block;
+    }
+    @keyframes bounce {
+      0%,100% { transform: translateY(0); }
+      20%     { transform: translateY(-18px); }
+      40%     { transform: translateY(0); }
+      60%     { transform: translateY(-8px);}
+      80%     { transform: translateY(0);}
+    }
+    .ready-title {
+      font-size: 1.45rem;
+      font-weight: 900;
+      color: #285dc4;
+      margin-bottom: 16px;
+      letter-spacing: -1px;
+    }
+    .ready-desc {
+      font-size: 1.08rem;
+      color: #444;
+      line-height: 1.7;
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+    .ready-tips {
+      font-size: 1.03rem;
+      color: #7b7b7b;
+      margin-top: 8px;
+    }
+    .ready-footer {
+      margin-top: 26px;
+      font-size: 0.98rem;
+      color: #aaa;
+    }
+    .gear {
+      font-size: 1.2em;
+      animation: spin 2.2s linear infinite;
+      display: inline-block;
+      vertical-align: -4px;
+      margin: 0 2px;
+    }
+    @keyframes spin {
+      0%   { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+
+    
+  </style>
+</head>
+<body>
+  <div class="ready-container">
+    <div class="ready-emoji">🚧</div>
+    <div class="ready-title">
+      페이지 준비중입니다
+    </div>
+    <div class="ready-desc">
+      <span class="gear">⚙️</span>
+      곧 멋지게 오픈할 예정이에요.<br>
+      조금만 기다려 주세요!
+    </div>
+    <div class="ready-tips">
+      최근 다운로드 목록은 왼쪽 사이드바 메뉴를 확인해주세요.<br>
+      <span style="font-size:1.05em;">😊</span>
+    </div>
+    <div class="ready-footer">
+      Mathbee &nbsp;|&nbsp; 2025
+    </div>
+  </div>
+</body>
+</html>

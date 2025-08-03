@@ -85,6 +85,20 @@
   </style>
 </head>
 <body>
+  <iframe
+  src="/ready.html"
+  id="mainIframe"
+  frameborder="0"
+  style="
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: calc(100vw - 550px);  /* 처음엔 550px 기준 */
+    height: 100vh;
+    border: none;
+    background: #fff;
+    z-index: 1;">
+</iframe>
   <div class="sidebar fade-in-left collapsed" id="sidebar">
     <!-- ✅ 아이콘 버튼 -->
     <button class="menu-button" id="toggleBtn" onclick="toggleSidebarAnim()" aria-label="사이드바 열기/닫기">
@@ -110,30 +124,38 @@
       </div>
     <div class="spacer"></div>
   </div>
+  
   <script>
     function toggleSidebarAnim() {
-      const sb = document.getElementById('sidebar');
-      const btn = document.getElementById('toggleBtn');
-      const icon = document.getElementById('menuIcon');
+  const sb = document.getElementById('sidebar');
+  const btn = document.getElementById('toggleBtn');
+  const icon = document.getElementById('menuIcon');
+  const iframe = document.getElementById('mainIframe');
 
-      const isCollapsed = sb.classList.contains('collapsed');
-      sb.classList.toggle('collapsed');
-      btn.classList.toggle('active');
-      sb.classList.remove('expanded');
-      if (!isCollapsed) {
-        setTimeout(() => sb.classList.add('expanded'), 300);
-      }
+  const isCollapsed = sb.classList.contains('collapsed');
+  sb.classList.toggle('collapsed');
+  btn.classList.toggle('active');
+  sb.classList.remove('expanded');
+  if (!isCollapsed) {
+    setTimeout(() => sb.classList.add('expanded'), 300);
+  }
 
-      // 아이콘 전환: 다운로드 ↔ X
-      if (isCollapsed) {
-        icon.classList.remove('fa-download');
-        icon.classList.add('fa-xmark');
-      } else {
-        icon.classList.remove('fa-xmark');
-        icon.classList.add('fa-download');
-      }
-    }
+  // 아이콘 전환: 다운로드 ↔ X
+  if (isCollapsed) {
+    icon.classList.remove('fa-download');
+    icon.classList.add('fa-xmark');
+  } else {
+    icon.classList.remove('fa-xmark');
+    icon.classList.add('fa-download');
+  }
 
+  // ⭐️ iframe width 자동 조정!
+  if (iframe) {
+    iframe.style.width = sb.classList.contains('collapsed')
+      ? 'calc(100vw - 80px)'
+      : 'calc(100vw - 550px)';
+  }
+}
     async function getUserEmail() {
   try {
     const res = await fetch('/check-auth', { credentials: 'include' });
@@ -208,11 +230,14 @@ async function loadRecentDownloads() {
   }
 }
 
-    document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('sidebar').classList.add('collapsed');
-    loadRecentDownloads();
-  });
-
+  document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('sidebar').classList.add('collapsed');
+  loadRecentDownloads();
+  
+ // ⭐️ 추가: 처음에도 iframe width 세팅
+  const iframe = document.getElementById('mainIframe');
+  if (iframe) iframe.style.width = 'calc(100vw - 80px)';
+});
 
   </script>
 </body>
