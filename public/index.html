@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>매쓰비</title>
+  <title>대시보드</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="/favicon.png" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -82,8 +82,8 @@
     .logo-text {
       font-size: 20px;
       font-weight: bold;
-      color: #FFD400;
       transition: opacity 0.3s;
+      color: #FFD400;
       opacity: 1;
     }
 
@@ -124,7 +124,7 @@
       bottom: 3px;
       background: #fff;
       border-radius: 10px;
-      box-shadow: 0 2px 12px #0002;
+      box-shadow: 0 2px 12px rgba(248, 246, 246, 0.133);
       z-index: 0;
       opacity: 0;     /* 기본 투명 */
       transition: opacity 0.18s;
@@ -250,6 +250,7 @@
     .menu-item.active i {
       color: #4b39ef;
     }
+    
 
     .menu-icon {
       width: 20px;
@@ -263,7 +264,7 @@
     .help-container{position:fixed;bottom:24px;right:24px;z-index:999}
     .help-fab{width:46px;height:46px;border-radius:50%;border:none;background:#f8c900;color:#111;font-size:24px;cursor:pointer;box-shadow:0 8px 16px rgba(0,0,0,.2);transition:transform .15s}
     .help-fab:hover{transform:scale(1.06)}
-    .help-menu{list-style:none;margin:0;padding:0;position:absolute;bottom:72px;right:0;background:#000000;width:280px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.18);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(10px);transition:all .25s}
+    .help-menu{list-style:none;margin:0;padding:0;position:absolute;bottom:72px;right:0;background:#ffffff;width:280px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.18);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(10px);transition:all .25s}
     .help-menu.show{opacity:1;pointer-events:auto;transform:translateY(0)}
     .help-menu li{padding:14px 20px;font-size:14px;cursor:pointer;display:flex;gap:8px;align-items:center;transition:background .15s}
     .help-menu li:not(:last-child){border-bottom:1px solid #f0f0f0}
@@ -385,8 +386,8 @@
 
   <div class="sidebar fade-in-left" id="sidebar">
     <div class="logo">
-      <span class="logo-text">Mathbee</span>
-      <img src="logo_m.png" alt="로고" class="logo-img">
+      <span class="logo-text">수학지니</span>
+      <img src="logo.png" alt="로고" class="logo-img">
     </div>
     <button class="menu-button" id="toggleBtn" onclick="toggleSidebarAnim()" aria-label="사이드바 열기/닫기">
       <span></span>
@@ -772,10 +773,9 @@ window.addEventListener('DOMContentLoaded', () => {
       <div class="help-container" id="helpContainer">
         <ul class="help-menu" id="helpMenu">
           <li data-url="https://pf.kakao.com/_xyzxyz"><span class="badge">1</span>카카오 문의하기</li>
-          <li><span class="badge">2</span>내 문제지 만들기</li>
-          <li><span class="badge">3</span>문제지 랜덤 출제</li>
-          <li><span class="badge">4</span>학교 시험지로 문제지 만들기</li>
-          <li><span class="badge">5</span>개인 자료 DB화해서 문제지 만들기</li>
+          <li><span class="badge">2</span>문의 게시판</li>
+          <li><span class="badge">3</span>시험지 요청하기</li>
+          <li><span class="badge">4</span>시험지 출제하기(준비중)</li>
         </ul>
         <button class="help-fab" id="helpFab" aria-label="도움말">?</button>
       </div>
