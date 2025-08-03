@@ -196,6 +196,22 @@
   }
 }
 
+section { margin-bottom: 150px; }
+section:last-of-type { margin-bottom: 0; }
+
+.fade-in-section {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity .8s cubic-bezier(.22,.61,.36,1), transform .8s cubic-bezier(.22,.61,.36,1);
+  will-change: opacity, transform;
+}
+.fade-in-section.visible {
+  opacity: 1;
+  transform: none;
+}
+
+
+
   </style>
 </head>
 <body>
@@ -225,7 +241,7 @@
   </section>
 
 <!-- ↓ 여기에 새 섹션 추가 -->
-<section class="info-banner">
+<section class="info-banner fade-in-section">
   <div class="inner">
     <div class="text-block">
       <h2>
@@ -245,7 +261,7 @@
 </section>
 
 <!-- ↓ 기존 info-banner 끝난 바로 아래에 붙여넣기 -->
-<section class="info-banner-alt">
+<section class="info-banner-alt fade-in-section">
   <div class="inner">
     <div class="image-block">
       <img src="another-illustration.jpg" alt="새로운 기능 예시">
@@ -265,7 +281,7 @@
   </div>
 </section>
 
-<section class="info-banner">
+<section class="info-banner fade-in-section">
   <div class="inner">
     <div class="text-block">
       <h2>
@@ -283,6 +299,18 @@
     </div>
   </div>
 </section>
-
+<script>
+function onScrollFadeIn() {
+  document.querySelectorAll('.fade-in-section').forEach(sec => {
+    const rect = sec.getBoundingClientRect();
+    if(rect.top < window.innerHeight * 0.95) {
+      sec.classList.add('visible');
+    }
+  });
+}
+window.addEventListener('scroll', onScrollFadeIn);
+window.addEventListener('resize', onScrollFadeIn);
+window.addEventListener('DOMContentLoaded', onScrollFadeIn);
+</script>
 </body>
 </html>
