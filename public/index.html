@@ -514,6 +514,7 @@
         <div class="dropdown" id="dropdownMenu">
           <a href="profile.html">내 프로필</a>
           <a href="#" id="logoutBtn">로그아웃</a>
+          <a href="admin.html" id="goAdminPage" style="display:none;">관리자페이지</a>
         </div>
       </div>
     </div>
@@ -559,11 +560,16 @@
           avatarEl.alt = displayId;
 
           document.getElementById('userBox').classList.remove('loading');
-        }catch(e){
-          console.error(e);
-        }
-      }
-
+        // **여기 추가!**
+    if (u.isAdmin) {
+      document.getElementById('goAdminPage').style.display = 'block';
+    } else {
+      document.getElementById('goAdminPage').style.display = 'none';
+    }
+  }catch(e){
+    console.error(e);
+  }
+}
 
      // 프로필 드롭다운
     function initDropdown(){
