@@ -379,6 +379,55 @@
       overflow: hidden !important;
     }
 
+.modal-overlay {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.38);
+  justify-content: center;
+  align-items: center;
+}
+.modal-overlay.show {
+  display: flex;
+}
+.modal-content {
+  position: relative;
+  width: 500px;
+  max-width: 95vw;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 8px 40px rgba(30,30,30,0.18);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: hidden;
+  min-height: 580px;
+}
+.close-modal {
+  position: absolute;
+  right: 16px;
+  top: 10px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #bbb;
+  z-index: 2;
+  cursor: pointer;
+  transition: color .2s;
+}
+.close-modal:hover { color: #111; }
+#paymentIframe {
+  width: 100%;
+  height: 730px;
+  border: none;
+  background: #fafbfc;
+  border-radius: 0 0 18px 18px;
+}
+
+
+
   </style>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
@@ -559,7 +608,36 @@
       if(sidebarLogout) sidebarLogout.addEventListener('click', logout);
       if(dropdownLogout) dropdownLogout.addEventListener('click', logout);
 
+ // 결제 모달 관련
+  const payBtn = document.querySelector('.action-btn[href="payment.html"]');
+  const paymentModal = document.getElementById('paymentModal');
+  const paymentIframe = document.getElementById('paymentIframe');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  if (payBtn) {
+    payBtn.addEventListener('click', function(e){
+      e.preventDefault();
+      paymentModal.classList.add('show');
+      paymentIframe.src = "payment.html";
+      // 페이지 스크롤 막기 (선택)
+      document.body.style.overflow = "hidden";
     });
+  }
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', function(){
+      paymentModal.classList.remove('show');
+      paymentIframe.src = "";
+      document.body.style.overflow = "";
+    });
+  }
+  // 모달 바깥 클릭 시 닫기
+  paymentModal.addEventListener('click', function(e){
+    if (e.target === paymentModal) {
+      paymentModal.classList.remove('show');
+      paymentIframe.src = "";
+      document.body.style.overflow = "";
+    }
+  });
+});
     
     window.addEventListener('message', function(event) {
       if (event.data && event.data.type === 'goNotice') {
@@ -809,5 +887,13 @@ window.addEventListener('DOMContentLoaded', () => {
         });
 
 </script>
+<!-- 결제 모달 -->
+<div id="paymentModal" class="modal-overlay">
+  <div class="modal-content">
+    <button class="close-modal" id="closeModalBtn">&times;</button>
+    <iframe id="paymentIframe" src="" frameborder="0"></iframe>
+  </div>
+</div>
+
 </body>
 </html>

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>결제 | 구독하기</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #fff;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+    .charge-container {
+      max-width: 430px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 0 8px #eee;
+      padding: 28px 24px 16px 24px;
+    }
+    .title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: #111;
+    }
+    .bank-section {
+      margin-bottom: 24px;
+      background: #F6F8FF;
+      border-radius: 14px;
+      padding: 18px 20px 12px 20px;
+    }
+    .bank-label {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 7px;
+      color: #3743A1;
+    }
+    .bank-info {
+      font-size: 1.12rem;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      margin-bottom: 7px;
+    }
+    .bank-acct {
+      font-size: 1.18rem;
+      font-weight: 700;
+      color: #1B2473;
+      margin-bottom: 7px;
+    }
+    .bank-owner {
+      font-size: 1.01rem;
+      color: #4c4c4c;
+      margin-bottom: 0;
+    }
+    .form-section {
+      margin-bottom: 18px;
+    }
+    label {
+      display: block;
+      font-size: 1.04rem;
+      font-weight: 500;
+      margin-bottom: 5px;
+      margin-top: 10px;
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      height: 42px;
+      border-radius: 9px;
+      border: 1px solid #ddd;
+      font-size: 1.04rem;
+      padding: 0 12px;
+      margin-bottom: 5px;
+      box-sizing: border-box;
+    }
+    textarea {
+      width: 100%;
+      min-height: 38px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 1.02rem;
+      padding: 8px 12px;
+      resize: vertical;
+    }
+    .agreement-section {
+      margin: 22px 0 8px 0;
+      font-size: 0.7rem;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .agreement-section input[type="checkbox"] {
+      width: 17px; height: 17px;
+      margin: 0;   /* 기본 여백 제거 */
+      vertical-align: middle;
+    }
+    .agreement-section label {
+      font-size: 0.98rem;
+      margin: 0;
+      vertical-align: middle;
+      font-weight: 400;
+      display: inline;
+    }
+    .info-notes {
+      margin: 10px 0 18px 0;
+      font-size: 0.65rem;
+      color: #b00;
+    }
+    .info-notes .gray {
+      color: #555;
+      display: block;
+      margin-top: 3px;
+    }
+.btn-row {
+  display: flex;
+  justify-content: center; /* 버튼을 가운데 정렬 */
+  margin-top: 22px;
+}
+.btn {
+  font-size: 1.08rem;
+  padding: 12px 48px; /* 버튼을 좀 더 넓게 */
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  transition: background 0.15s;
+  background: #5E70E7;
+  color: #fff;
+}
+.btn:disabled {
+  background: #d5dbf6;
+  color: #aaa;
+  cursor: not-allowed;
+}
+  </style>
+</head>
+<body>
+  <div class="charge-container">
+    <div class="title">구독</div>
+
+    <!-- 은행정보 -->
+    <div class="bank-section">
+      <div class="bank-label">은행명</div>
+      <div class="bank-info" id="bankName">IBK 기업은행</div>
+      <div class="bank-label" style="margin-top:13px;">계좌번호</div>
+      <div class="bank-acct" id="bankAccount">000-000000-00-000</div>
+      <div class="bank-label" style="margin-top:13px;">예금주</div>
+      <div class="bank-owner" id="bankOwner">M.class</div>
+    </div>
+
+    <!-- 입금자명/금액/요청사항 -->
+    <form id="chargeForm" autocomplete="off">
+      <div class="form-section">
+        <label for="payer">입금자명 *</label>
+        <input type="text" id="payer" name="payer" maxlength="20" required placeholder="입금자명을 입력해 주세요.">
+      </div>
+      <div class="form-section">
+        <label for="amount">입금 금액 (만원) *</label>
+        <input type="number" id="amount" name="amount" required min="1" step="1" placeholder="만원 단위로 입력 (예: 10)">
+      </div>
+      <div class="form-section">
+        <label for="note">요청사항</label>
+        <textarea id="note" name="note" maxlength="200" placeholder="요청사항을 입력하세요 (선택)"></textarea>
+      </div>
+      <div class="agreement-section">
+        <input type="checkbox" id="agree" required>
+        <label for="agree">[필수] 개인정보 수집 및 이용 동의</label>
+      </div>
+
+      <!-- 안내문구 -->
+      <div class="info-notes">
+        <span style="color:#b00;font-weight:400;">현금영수증 발급시 발급번호 등록.</span>
+                <span class="gray">현금영수증·지출 증빙은 결제 금액 기준 발행</span>
+        <span class="gray">포인트 문의는 카카오톡 <a href="#" style="color:#3d55c8;text-decoration:underline;">“Mathbee”</a> 채널 문의(영업일 기준 2~3일 소요)</span>
+      </div>
+
+      <div class="btn-row">
+      <button type="submit" class="btn btn-confirm" id="submitBtn" disabled>확인</button>
+    </div>
+    </form>
+  </div>
+
+  <script>
+    // 폼 제출 시 관리자에게 정보 전달 (예: AJAX)
+    document.getElementById('chargeForm').onsubmit = function(e) {
+      e.preventDefault();
+      const payer = document.getElementById('payer').value.trim();
+      const amount = document.getElementById('amount').value.trim();
+      const note = document.getElementById('note').value.trim();
+      const agree = document.getElementById('agree').checked;
+
+      // 간단 유효성 체크
+      if (!payer || !amount || !agree) {
+        alert('필수 입력 항목을 모두 입력해 주세요.');
+        return;
+      }
+
+      // 실제로는 서버/관리자에게 아래 데이터로 AJAX POST
+      fetch('/api/payment-request', {
+  method: 'POST',
+  headers: {'Content-Type': 'application/json'},
+  body: JSON.stringify({ payer, amount, note })
+}).then(res => {
+        if (res.ok) {
+          alert('충전 신청이 접수되었습니다.');
+          // 부모 창에 알리고 창 닫기
+          window.parent.postMessage('closeChargeModal', '*');
+        } else {
+          alert('오류가 발생했습니다. 다시 시도해 주세요.');
+        }
+      }).catch(() => {
+        alert('네트워크 오류입니다. 다시 시도해 주세요.');
+      });
+    };
+
+// 체크박스 변화 시 버튼 활성/비활성
+  document.getElementById('agree').addEventListener('change', function() {
+    document.getElementById('submitBtn').disabled = !this.checked;
+  });
+
+  // 폼 제출 시 관리자에게 정보 전달 (예: AJAX)
+  document.getElementById('chargeForm').onsubmit = function(e) {
+    e.preventDefault();
+    const payer = document.getElementById('payer').value.trim();
+    const amount = document.getElementById('amount').value.trim();
+    const note = document.getElementById('note').value.trim();
+    const agree = document.getElementById('agree').checked;
+
+    if (!payer || !amount || !agree) {
+      alert('필수 입력 항목을 모두 입력해 주세요.');
+      return;
+    }
+    fetch('/api/payment-request', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ payer, amount, note })
+    }).then(res => {
+      if (res.ok) {
+        alert('충전 신청이 접수되었습니다.');
+        window.parent.postMessage('closeChargeModal', '*');
+      } else {
+        alert('오류가 발생했습니다. 다시 시도해 주세요.');
+      }
+    }).catch(() => {
+      alert('네트워크 오류입니다. 다시 시도해 주세요.');
+    });
+  };
+
+  </script>
+</body>
+</html>
