@@ -824,6 +824,7 @@ app.get('/admin_files.html',  isLoggedIn, isAdmin, (req, res) => {
      }
    })
  );
+ 
 
  // 파일 다운로드 log
 app.post('/api/download-log', async (req, res) => {
@@ -1084,6 +1085,50 @@ app.post('/api/change-password', isLoggedIn, async (req, res) => {
     res.json({ success: true });
   } catch (e) {
     res.json({ success: false, msg: '비밀번호 변경 오류' });
+  }
+});
+
+app.post('/api/payment-request', isLoggedIn, async (req, res) => {
+  try {
+    const { payer, amount, note } = req.body;
+    await db.query(
+      'INSERT INTO point_payments (user_id, payer, amount, note, status) VALUES (?, ?, ?, ?, "대기중")',
+      [req.session.user.id, payer, amount, note]
+    );
+    // 100개 초과시 오래된 것 삭제
+    await db.query(`
+      DELETE FROM point_payments
+      WHERE id NOT IN (SELECT id FROM (SELECT id FROM point_payments ORDER BY requested_at DESC LIMIT 100) tmp)
+    `);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+
+app.get('/api/admin/payment-list', isLoggedIn, isAdmin, async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT p.id, u.name AS user_name, p.payer, p.amount, p.note, p.status, p.requested_at
+       FROM point_payments p
+       JOIN users u ON p.user_id = u.id
+       ORDER BY p.requested_at DESC
+       LIMIT 100`
+    );
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ msg: '조회 오류', error: e.message });
+  }
+});
+
+app.post('/api/admin/payment-complete', isLoggedIn, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.body;
+    await db.query('UPDATE point_payments SET status="완료" WHERE id=?', [id]);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
   }
 });
 
