@@ -561,12 +561,12 @@
 
         document.getElementById('userBox').classList.remove('loading');
         // **여기 추가!**
-        if (u.isAdmin) {
-          document.getElementById('goAdminPage').style.display = 'block';
-        } else {
-          document.getElementById('goAdminPage').style.display = 'none';
-        }
-      }catch(e){
+        if (u.role === 'admin') {
+        document.getElementById('goAdminPage').style.display = 'block';
+      } else {
+        document.getElementById('goAdminPage').style.display = 'none';
+      }
+      }catch(e){  
         console.error(e);
       }
     }
