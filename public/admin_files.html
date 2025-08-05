@@ -5,31 +5,197 @@
   <title>자료 관리(관리자)</title>
   <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:700,400&display=swap" rel="stylesheet">
   <style>
-    body { background:#f6faf6; font-family:'Noto Sans KR',Arial,sans-serif;}
-    .admin-table-box{max-width:1050px;margin:60px auto 0;background:#fff;border-radius:14px;box-shadow:0 6px 32px #22b66111;padding:32px 26px;}
-    h2{margin-bottom:20px;text-align:center;}
-    .search-bar{display:flex;gap:7px;margin-bottom:10px;justify-content:flex-end;}
-    table{width:100%;border-collapse:collapse;}
-    th,td{padding:10px;border-bottom:1px solid #eee;text-align:center;font-size:1rem;}
-    th{background:#e8fbe9;color:#1fa266;}
-    tr:last-child td{border-bottom:none;}
-    .delete-btn,.edit-btn{
-      background:#f45a6a;color:#fff;border:none;border-radius:5px;
-      padding:6px 14px;cursor:pointer;font-size:.98rem;margin:0 2px;transition:background .13s;}
-    .delete-btn:disabled,.edit-btn:disabled{opacity:0.55;cursor:not-allowed;}
-    .delete-btn:hover:not(:disabled){background:#c8303d;}
-    .edit-btn{background:#3fa0ed;}
-    .edit-btn:hover:not(:disabled){background:#217ac4;}
-    .preview-btn{background:#32bb8d;color:#fff;border:none;border-radius:5px;padding:4px 10px;cursor:pointer;margin-left:4px;}
-    .preview-btn:hover{background:#258768;}
-    .msg{text-align:center;margin-top:10px;font-size:1rem;}
-    #edit-bg{display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;background:#0008;
-             z-index:1000;align-items:center;justify-content:center;}
-    #edit-bg .modal-box{background:#fff;padding:26px 24px;border-radius:12px;width:350px;box-shadow:0 10px 40px #0003;}
-    #edit-bg select,#edit-bg input{width:100%;margin-bottom:10px;padding:8px;border:1.5px solid #a7eac2;border-radius:8px;font-size:.95rem;}
-    .preview-bg{position:fixed;left:0;top:0;width:100vw;height:100vh;background:#0007;z-index:1500;display:none;align-items:center;justify-content:center;}
-    .preview-content{background:#fff;border-radius:10px;padding:18px;max-width:80vw;max-height:80vh;overflow:auto;}
-    .preview-content iframe,.preview-content img{max-width:74vw;max-height:70vh;}
+    body { background: #f5f5f7; font-family: 'Noto Sans KR', Arial, sans-serif; }
+    .admin-table-box {
+      max-width: 1120px;
+      margin: 58px auto 0;
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 4px 32px #0001;
+      padding: 38px 36px 40px 36px;
+    }
+    h2 {
+      margin-bottom: 30px;
+      text-align: left;
+      font-size: 1.65rem;
+      font-weight: 900;
+      color: #181818;
+      letter-spacing: -2px;
+      position: relative;
+    }
+    /* 노란줄 삭제! */
+
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 22px;
+      justify-content: flex-end;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .search-bar select,
+    .search-bar input {
+      background: #fafafc;
+      border: 1.5px solid #d3d4da;
+      border-radius: 8px;
+      padding: 9px 10px;
+      font-size: 1rem;
+      color: #222;
+      outline: none;
+      transition: border 0.13s;
+      min-width: 86px;
+      margin-bottom: 3px;
+    }
+    .search-bar input[type="number"] {
+      width: 70px;
+      min-width: 60px;
+    }
+    .search-bar select:focus, .search-bar input:focus {
+      border-color: #ffc400;
+      background: #fffbe9;
+    }
+    .search-bar button {
+      background: #ffc400;
+      color: #181818;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 20px;
+      font-size: 1.07rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 3px;
+      box-shadow: 0 2px 7px #ffc40011;
+      letter-spacing: 0.03em;
+      transition: background 0.16s;
+    }
+    .search-bar button:last-child {
+      background: #ececec;
+      color: #222;
+      margin-left: 4px;
+      border: 1px solid #dedede;
+      font-weight: 500;
+    }
+    .search-bar button:active { background: #ffd54f; }
+    .msg { text-align: center; margin-top: 8px; font-size: 1rem; color: #181818; }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 10px;
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+      font-size: 1rem;
+    }
+    th, td {
+      padding: 11px 8px;
+      text-align: center;
+      font-size: 1.03rem;
+      border-bottom: 1.2px solid #f1f1f3;
+    }
+    th {
+      background: #181818;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.07rem;
+      letter-spacing: 0.02em;
+      border-bottom: 2.2px solid #ffc400;
+    }
+    tr:last-child td { border-bottom: none; }
+    td {
+      color: #212327;
+      background: #fff;
+      transition: background 0.14s;
+      vertical-align: middle;
+    }
+    /* hover: 연노랑 or 라이트그레이 */
+    tr:hover td {
+      background: #fffbe8 !important; /* 연노랑 */
+      /* background: #f7f8fa !important;  // 라이트그레이로 하고 싶으면 이거 사용 */
+      transition: background 0.16s;
+    }
+    /* 아이콘형 칼럼 스타일 */
+    .file-icon {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 7px;
+      font-size: 0.99rem;
+      font-weight: 700;
+      margin: 0 2px;
+      letter-spacing: 0.01em;
+      vertical-align: middle;
+    }
+    .file-icon-hwp {
+      background: #e7eaf2;
+      color: #5771bc;
+      border: 1.2px solid #b6c6e6;
+    }
+    .file-icon-pdf {
+      background: #fffbe8;
+      color: #ffc400;
+      border: 1.2px solid #ffe4a3;
+    }
+
+    /* 버튼(다운, 미리보기, 수정, 삭제) */
+    .delete-btn, .edit-btn {
+      background: #181818;
+      color: #ffc400;
+      border: none;
+      border-radius: 7px;
+      padding: 6px 16px;
+      cursor: pointer;
+      font-size: .97rem;
+      font-weight: bold;
+      margin: 0 1.5px;
+      transition: background .12s, color .12s;
+      letter-spacing: 0.02em;
+    }
+    .edit-btn { background: #ffc400; color: #181818; }
+    .edit-btn:hover { background: #ffe46e; }
+    .delete-btn:hover { background: #2d2d2d; color: #ff5353; }
+    .delete-btn:disabled, .edit-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .preview-btn, .download-btn {
+      background: #fffbe8;
+      color: #ffa900;
+      border: 1.5px solid #ffd54f;
+      border-radius: 6px;
+      padding: 5px 12px;
+      cursor: pointer;
+      margin-left: 4px;
+      font-size: .96rem;
+      font-weight: bold;
+      transition: background 0.12s, color 0.12s, border 0.12s;
+      vertical-align: middle;
+    }
+    .preview-btn:hover, .download-btn:hover {
+      background: #fffde2;
+      color: #181818;
+      border-color: #ffc400;
+    }
+    .download-btn { margin-left: 0; }
+
+    /* 모달 스타일(기존 유지) */
+    #edit-bg {
+      display: none; position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; background: #18181899;
+      z-index: 1000; align-items: center; justify-content: center;
+    }
+    #edit-bg .modal-box {
+      background: #fff; padding: 28px 24px; border-radius: 14px; width: 370px; box-shadow: 0 10px 40px #0003;
+    }
+    #edit-bg select, #edit-bg input {
+      width: 100%; margin-bottom: 10px; padding: 9px; border: 1.5px solid #ffc400;
+      border-radius: 8px; font-size: .97rem;
+    }
+    .preview-bg { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; background: #0007; z-index: 1500; display: none; align-items: center; justify-content: center; }
+    .preview-content { background: #fff; border-radius: 12px; padding: 18px; max-width: 80vw; max-height: 80vh; overflow: auto; }
+    .preview-content iframe, .preview-content img { max-width: 74vw; max-height: 70vh; }
+    @media (max-width: 900px) {
+      .admin-table-box { padding: 17px 2vw 22px 2vw; }
+      .search-bar { flex-direction: column; gap: 4px; align-items: stretch; }
+      table, th, td { font-size: 0.94rem; }
+      th, td { padding: 7px 2px; }
+    }
   </style>
 </head>
 <body>
@@ -57,6 +223,7 @@
       <tbody id="file-list"><!-- JS로 채움 --></tbody>
     </table>
   </div>
+  <!-- 이하 기존 모달/미리보기/JS 100% 유지 -->
   <div id="edit-bg">
     <div class="modal-box">
       <h3 style="margin-top:0">자료 정보 수정</h3>
@@ -113,10 +280,9 @@
     </div>
   </div>
   <script>
+    // JS는 기존 그대로! 단, 아이콘/버튼 HTML만 컬러화 적용
     let fileListOrigin = [];
     let editTargetId   = null;
-
-    // ----------- 자료 목록 불러오기 -----------
     async function fetchFiles(){
       const res  = await fetch('/api/files',{credentials:'include'});
       if(res.status===401){
@@ -126,8 +292,6 @@
       fileListOrigin = list;
       renderTable(list);
     }
-
-    // ----------- 표 렌더 -----------
     function renderTable(list){
       const tbody = document.getElementById('file-list');
       if(!list.length){
@@ -147,13 +311,15 @@
           <td>${r.title}</td>
           <td>
             ${r.hwp_filename ? `
-              <a href="/download/${r.id}?type=hwp" class="preview-btn" target="_blank">다운로드</a>
+              <span class="file-icon file-icon-hwp">HWP</span>
+              <a href="/download/${r.id}?type=hwp" class="download-btn" target="_blank">다운로드</a>
               <button class="preview-btn" onclick="previewFile('${r.hwp_filename}')">미리보기</button>
             ` : '-'}
           </td>
           <td>
             ${r.pdf_filename ? `
-              <a href="/download/${r.id}?type=pdf" class="preview-btn" target="_blank">다운로드</a>
+              <span class="file-icon file-icon-pdf">PDF</span>
+              <a href="/download/${r.id}?type=pdf" class="download-btn" target="_blank">다운로드</a>
               <button class="preview-btn" onclick="previewFile('${r.pdf_filename}')">미리보기</button>
             ` : '-'}
           </td>
@@ -164,7 +330,6 @@
         </tr>
       `).join('');
     }
-
     function doSearch(){
       let level = document.getElementById('search-level').value;
       let region= document.getElementById('search-region').value;
@@ -188,8 +353,6 @@
       document.getElementById('search-year').value = '';
       renderTable(fileListOrigin);
     }
-
-    // ----------- 삭제 -----------
     async function deleteFile(id,btn){
       if(!confirm('정말 삭제하시겠습니까?')) return;
       btn.disabled = true;
@@ -204,8 +367,6 @@
       }
       btn.disabled = false;
     }
-
-    // ----------- 수정 모달 열기 -----------
     function editFile(id){
       editTargetId = id;
       const row    = fileListOrigin.find(r=>r.id===id);
@@ -225,8 +386,6 @@
       document.getElementById('edit-bg').style.display='none';
       document.getElementById('edit-form').reset();
     }
-
-    // ----------- 수정 (파일 교체) -----------
     document.getElementById('edit-form').onsubmit = async function(e){
       e.preventDefault();
       const btn = document.getElementById('edit-save-btn');
@@ -243,8 +402,6 @@
       closeEdit();
       fetchFiles();
     }
-
-    // ----------- 미리보기 (PDF만 가능, 한글/hwpx는 안내) -----------
     function previewFile(filename){
       const ext = filename.split('.').pop().toLowerCase();
       document.getElementById('preview-bg').style.display='flex';
@@ -264,8 +421,6 @@
       document.getElementById('preview-bg').style.display='none';
       document.getElementById('preview-body').innerHTML='';
     }
-
-    // ----------- 실행 -----------
     fetchFiles();
   </script>
 </body>
