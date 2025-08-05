@@ -687,6 +687,8 @@ async function setProfileInfo() {
     const d = await res.json();
     if (!d.isLoggedIn) return;
     const u = d.user;
+
+    console.log('[u 객체]', u);
  
     document.querySelector('.info').classList.remove('loading');
 
