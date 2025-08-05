@@ -694,15 +694,14 @@ async function setProfileInfo() {
 
      // ▷ 사용자 정보 화면에 반영
      // 1) ID
-      let displayId = u.id;
-      if (
-        u.loginType === 'google' || u.loginType === 'naver' || u.loginType === 'kakao'
-        || (u.email && u.id && u.id === u.email)
-      ) {
-        displayId = u.email.split('@')[0];
-      }
-      document.getElementById('profileId').textContent = displayId;
-      document.getElementById('mem-id-input').value    = displayId;
+        let displayId = u.id;
+        if (
+          /^[0-9]{10,21}$/.test(u.id) && u.email && u.email.includes('@')
+        ) {
+          displayId = u.email.split('@')[0];
+        }
+        document.getElementById('profileId').textContent = displayId;
+        document.getElementById('mem-id-input').value    = displayId;
      // 2) 프로필 사진 & 이름
      document.getElementById('profileAvatar').src       = u.avatarUrl;
      document.getElementById('profileName').textContent = u.name;
