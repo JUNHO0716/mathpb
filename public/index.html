@@ -751,7 +751,10 @@ if (menuId === 'menu5') {
           iconColor: '#FDC512'
         }).then(() => {
           // 홈으로 이동 및 초기화
-          document.getElementById('contentFrame').src = 'home.html';
+           const frame = document.getElementById('contentFrame');
+            frame.src = 'home.html';
+            frame.style.height = "100%";                // ← 이 줄 추가!
+            document.getElementById('mainContent').style.height = "100%"; // ← 이 줄도 추가!
           document.querySelectorAll('.menu-item').forEach(i => {
             i.classList.remove('active');
             const icon = i.querySelector('.menu-icon');
