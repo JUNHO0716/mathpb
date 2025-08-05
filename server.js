@@ -497,10 +497,10 @@ app.post('/api/save-academy', isLoggedIn, async (req, res) => {
 // ▶ /check-auth 핸들러 수정
 app.get('/check-auth', async (req, res) => {
   if (req.session.user) {
-    const [rows] = await db.query(
-      'SELECT avatarUrl, hasPaid, phone, bizNum, email, academyName, academyPhone FROM users WHERE id = ?',
-      [req.session.user.id]
-    );
+   const [rows] = await db.query(
+     'SELECT avatarUrl, is_subscribed, phone, bizNum, email, academyName, academyPhone FROM users WHERE id = ?',
+     [req.session.user.id]
+   );
     const u = rows[0] || {};
     const avatarUrl    = u.avatarUrl    || '/icon_my_b.png';
     const hasPaid       = req.session.user.role === 'admin' || u.is_subscribed == 1;
