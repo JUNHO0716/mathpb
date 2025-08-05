@@ -565,14 +565,15 @@ app.get('/check-auth', async (req, res) => {
     });
 
     // 파일 다운로드
-    // /download/:id?hwp OR ?pdf
 app.get('/api/download/:id', async (req, res) => {
-  const user = req.session.user;
+const user = req.session.user;
+if (!user) return res.status(403).send('권한이 없습니다.');
 
-  // ✅ 로그인 & 결제 확인
-  if (!user || !user.hasPaid) {
-    return res.status(403).send('권한이 없습니다.');
-  }
+// ⭐ DB에서 is_subscribed와 role을 즉시 체크
+const [[dbUser]] = await db.query('SELECT is_subscribed, role FROM users WHERE id=?', [user.id]);
+if (!(dbUser.role === 'admin' || dbUser.is_subscribed == 1)) {
+  return res.status(403).send('권한이 없습니다.');
+}
 
   try {
     const [rows] = await db.query(
