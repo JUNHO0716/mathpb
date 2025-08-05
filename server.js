@@ -503,7 +503,7 @@ app.get('/check-auth', async (req, res) => {
     );
     const u = rows[0] || {};
     const avatarUrl    = u.avatarUrl    || '/icon_my_b.png';
-    const hasPaid      = req.session.user.role === 'admin' || !!u.hasPaid;
+    const hasPaid       = req.session.user.role === 'admin' || u.is_subscribed == 1;
     const phone        = u.phone        || '-';
     const bizNum       = u.bizNum       || '';
     const academyName  = u.academyName  || '';
