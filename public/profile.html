@@ -687,15 +687,20 @@ async function setProfileInfo() {
     const d = await res.json();
     if (!d.isLoggedIn) return;
     const u = d.user;
-
-    // 프로필 카드 하단 ID/이메일 설정
-    document.getElementById('profileId').textContent    = u.id;
-    
+ 
     document.querySelector('.info').classList.remove('loading');
 
      // ▷ 사용자 정보 화면에 반영
      // 1) ID
-     document.getElementById('mem-id-input').value = u.id;
+      let displayId = u.id;
+      if (
+        u.loginType === 'google' || u.loginType === 'naver' || u.loginType === 'kakao'
+        || (u.email && u.id && u.id === u.email)
+      ) {
+        displayId = u.email.split('@')[0];
+      }
+      document.getElementById('profileId').textContent = displayId;
+      document.getElementById('mem-id-input').value    = displayId;
      // 2) 프로필 사진 & 이름
      document.getElementById('profileAvatar').src       = u.avatarUrl;
      document.getElementById('profileName').textContent = u.name;
