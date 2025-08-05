@@ -749,9 +749,9 @@ if (menuId === 'menu5') {
         background: '#1a1a1a',
         color: '#fff',
         iconColor: '#FDC512'
-      }).then(() => {
-        setTimeout(() => {
-          // 홈으로 이동 및 초기화
+      }).then((result) => {
+        // 이 부분이 반드시 사용자가 모달을 닫은 "후"에만 실행
+        if (result.isConfirmed) {
           const frame = document.getElementById('contentFrame');
           frame.src = 'home.html';
           frame.style.height = "100%";
@@ -767,7 +767,7 @@ if (menuId === 'menu5') {
           if (firstIcon) firstIcon.src = firstIcon.dataset.iconBlack;
           const pageTitle = document.getElementById('pageTitle');
           if (pageTitle) pageTitle.innerHTML = `<span class="highlight">Ma</span>in home`;
-        }, 400);  // 400ms 후에 실행
+        }
       });
       }
     })
