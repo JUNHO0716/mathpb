@@ -740,21 +740,22 @@ if (menuId === 'menu5') {
         // ✅ 관리자도 허용
         document.getElementById('contentFrame').src = url;
       } else {
-        Swal.fire({
-          icon: 'warning',
-          title: '이용 불가',
-          text: '해당 서비스는 결제한 사용자만 이용할 수 있습니다.',
-          confirmButtonText: '확인',
-          confirmButtonColor: '#FDC512',
-          background: '#1a1a1a',
-          color: '#fff',
-          iconColor: '#FDC512'
-        }).then(() => {
+      Swal.fire({
+        icon: 'warning',
+        title: '이용 불가',
+        text: '해당 서비스는 결제한 사용자만 이용할 수 있습니다.',
+        confirmButtonText: '확인',
+        confirmButtonColor: '#FDC512',
+        background: '#1a1a1a',
+        color: '#fff',
+        iconColor: '#FDC512'
+      }).then(() => {
+        setTimeout(() => {
           // 홈으로 이동 및 초기화
-           const frame = document.getElementById('contentFrame');
-            frame.src = 'home.html';
-            frame.style.height = "100%";                // ← 이 줄 추가!
-            document.getElementById('mainContent').style.height = "100%"; // ← 이 줄도 추가!
+          const frame = document.getElementById('contentFrame');
+          frame.src = 'home.html';
+          frame.style.height = "100%";
+          document.getElementById('mainContent').style.height = "100%";
           document.querySelectorAll('.menu-item').forEach(i => {
             i.classList.remove('active');
             const icon = i.querySelector('.menu-icon');
@@ -766,7 +767,8 @@ if (menuId === 'menu5') {
           if (firstIcon) firstIcon.src = firstIcon.dataset.iconBlack;
           const pageTitle = document.getElementById('pageTitle');
           if (pageTitle) pageTitle.innerHTML = `<span class="highlight">Ma</span>in home`;
-        });
+        }, 400);  // 400ms 후에 실행
+      });
       }
     })
     .catch(err => {
