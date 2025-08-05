@@ -147,6 +147,50 @@ app.post('/api/update-biznum', isLoggedIn, async (req, res) => {
   }
 });
 
+app.get('/api/admin/users', isLoggedIn, isAdmin, async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT id, email, name, created_at, is_subscribed, subscription_start, subscription_end
+      FROM users
+      ORDER BY created_at DESC
+    `);
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ message: '회원 목록 조회 오류', error: e.message });
+  }
+});
+
+app.post('/api/update-subscription', isLoggedIn, isAdmin, async (req, res) => {
+  const { userId, action } = req.body;
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  const endDate = new Date();
+  endDate.setDate(today.getDate() + 30);
+  const endDateStr = endDate.toISOString().split('T')[0];
+
+  try {
+    if (action === 'extend') {
+      await db.execute(`
+        UPDATE users SET is_subscribed = 1, subscription_start = ?, subscription_end = ?
+        WHERE id = ?
+      `, [todayStr, endDateStr, userId]);
+      res.json({ success: true, message: '✅ 구독이 연장되었습니다.' });
+    } else if (action === 'cancel') {
+      await db.execute(`
+        UPDATE users SET is_subscribed = 0, subscription_end = ?
+        WHERE id = ?
+      `, [todayStr, userId]);
+      res.json({ success: true, message: '❌ 구독이 해지되었습니다.' });
+    } else {
+      res.status(400).json({ success: false, message: '올바른 action 아님' });
+    }
+  } catch (e) {
+    res.status(500).json({ success: false, message: '서버 오류', error: e.message });
+  }
+});
+
+
+
 // [1] passport 초기화 및 세션 연결
 app.use(passport.initialize());
 app.use(passport.session());
