@@ -811,21 +811,6 @@ app.get('/admin_files.html',  isLoggedIn, isAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin_files.html'));
 });
 
- app.use(
-   express.static(path.join(__dirname, 'public'), {
-     setHeaders: (res, filePath) => {
-       if (filePath.endsWith('.html')) {
-         res.setHeader('Content-Type', 'text/html; charset=UTF-8');
-       } else if (filePath.endsWith('.js')) {
-         res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
-       } else if (filePath.endsWith('.css')) {
-         res.setHeader('Content-Type', 'text/css; charset=UTF-8');
-       }
-     }
-   })
- );
- 
-
  // 파일 다운로드 log
 app.post('/api/download-log', async (req, res) => {
   const { fileId, type, userEmail } = req.body;
@@ -1164,6 +1149,22 @@ app.get(
     }
   }
 );
+
+ app.use(
+   express.static(path.join(__dirname, 'public'), {
+     setHeaders: (res, filePath) => {
+       if (filePath.endsWith('.html')) {
+         res.setHeader('Content-Type', 'text/html; charset=UTF-8');
+       } else if (filePath.endsWith('.js')) {
+         res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
+       } else if (filePath.endsWith('.css')) {
+         res.setHeader('Content-Type', 'text/css; charset=UTF-8');
+       }
+     }
+   })
+ );
+ 
+
 // 서버 실행
 const PORT = process.env.PORT || 3001;
 
