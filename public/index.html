@@ -537,39 +537,39 @@
     
     /* 로그인·프로필 바인딩 + 관리자 판별 */
     let IS_ADMIN=false;
-      async function bindUser(){
-        try{
-          const res = await fetch('/check-auth?ts=' + Date.now(), {
-            credentials: 'include', cache: 'no-store'
-          });
-          const d = await res.json();
-          if(!d.isLoggedIn) return;
+    async function bindUser(){
+      try{
+        const res = await fetch('/check-auth?ts=' + Date.now(), {
+          credentials: 'include', cache: 'no-store'
+        });
+        const d = await res.json();
+        if(!d.isLoggedIn) return;
 
-          const u = d.user || {};
-          currentUser = u; // ✅ 이 줄 추가!!! (딱 이거!)
-          const displayId = u.email ? u.email.split('@')[0] : (u.name || 'Guest');
+        const u = d.user || {};
+        currentUser = u; // ✅ 이 줄 추가!!! (딱 이거!)
+        const displayId = u.email ? u.email.split('@')[0] : (u.name || 'Guest');
 
-          document.getElementById('profileName').textContent = displayId;
+        document.getElementById('profileName').textContent = displayId;
 
-          const avatarEl = document.getElementById('avatar');
-          if (u.avatarUrl && u.avatarUrl.trim() !== "") {
-            avatarEl.src = u.avatarUrl;
-          } else {
-            avatarEl.src = 'icon_my_b.png';
-          }
-          avatarEl.alt = displayId;
+        const avatarEl = document.getElementById('avatar');
+        if (u.avatarUrl && u.avatarUrl.trim() !== "") {
+          avatarEl.src = u.avatarUrl;
+        } else {
+          avatarEl.src = 'icon_my_b.png';
+        }
+        avatarEl.alt = displayId;
 
-          document.getElementById('userBox').classList.remove('loading');
+        document.getElementById('userBox').classList.remove('loading');
         // **여기 추가!**
-    if (u.isAdmin) {
-      document.getElementById('goAdminPage').style.display = 'block';
-    } else {
-      document.getElementById('goAdminPage').style.display = 'none';
+        if (u.isAdmin) {
+          document.getElementById('goAdminPage').style.display = 'block';
+        } else {
+          document.getElementById('goAdminPage').style.display = 'none';
+        }
+      }catch(e){
+        console.error(e);
+      }
     }
-  }catch(e){
-    console.error(e);
-  }
-}
 
      // 프로필 드롭다운
     function initDropdown(){
