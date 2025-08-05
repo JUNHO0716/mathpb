@@ -411,7 +411,7 @@ async function downloadFile(id, type) {
       iconColor: '#FDC512'
     }).then((result) => {
       if (result.isConfirmed) {
-        location.href = '/pay.html';
+        openPayModal(); // ✅ payment.html 모달로 띄우기
       }
     });
     return;
@@ -484,6 +484,15 @@ async function showAdminButtons(){
   }
 }
 
+function openPayModal() {
+  document.getElementById('pay-modal').style.display = 'flex';
+  document.getElementById('pay-iframe').src = '/payment.html';
+}
+function closePayModal() {
+  document.getElementById('pay-modal').style.display = 'none';
+  document.getElementById('pay-iframe').src = '';
+}
+
 /* ===== 시작 ===== */
 window.onload=()=>{
   showAdminButtons();
@@ -511,5 +520,16 @@ document.getElementById('levelToggle').addEventListener('click', function(){
     <div class="copyright">© 2025 Mathbee All rights reserved.</div>
   </div>
 </footer>
+<!-- [결제 모달] -->
+<div id="pay-modal" style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;
+    background:rgba(0,0,0,0.45);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:20px;box-shadow:0 6px 40px rgba(0,0,0,0.25);padding:0;max-width:480px;width:97vw;">
+    <div style="padding:12px 20px 7px 20px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-weight:900;font-size:1.13rem;color:#222;">구독 결제</span>
+      <button onclick="closePayModal()" style="border:none;background:none;font-size:1.9rem;color:#888;cursor:pointer;">&times;</button>
+    </div>
+    <iframe id="pay-iframe" src="" style="width:100%;height:640px;border:0;border-radius:0 0 20px 20px;"></iframe>
+  </div>
+</div>
 </body>
 </html>
