@@ -167,6 +167,100 @@
       table, th, td { font-size: 0.89rem; }
       th, td { padding: 4px 1px; }
     }
+#edit-bg {
+  display: none;
+  position: fixed;
+  left: 0; top: 0; width: 100vw; height: 100vh;
+  background: #18181899;
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+#edit-bg .modal-box {
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 10px 40px #2222;
+  width: 420px;
+  max-width: 96vw;
+  padding: 34px 30px 26px 30px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+#edit-bg .modal-box h3 {
+  margin: 0 0 26px 0;
+  text-align: center;
+  font-size: 1.17rem;
+  font-weight: 900;
+  color: #181818;
+  letter-spacing: -1.5px;
+}
+#edit-bg .modal-box form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+#edit-bg .modal-box select,
+#edit-bg .modal-box input[type="text"],
+#edit-bg .modal-box input[type="number"] {
+  border: 1.5px solid #ffe08a;
+  background: #f9f9fa;
+  border-radius: 9px;
+  padding: 11px 13px;
+  font-size: 1.03rem;
+  outline: none;
+  transition: border 0.16s, background 0.14s;
+}
+#edit-bg .modal-box select:focus,
+#edit-bg .modal-box input:focus {
+  border: 1.5px solid #ffc400;
+  background: #fffbe8;
+}
+#edit-bg .modal-box input[type="file"] {
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 1rem;
+}
+#edit-bg .modal-box > div[style*="font-size:.9rem"] {
+  font-size: 0.97rem !important;
+  color: #555;
+  margin-bottom: 3px;
+}
+#edit-bg .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+#edit-bg .modal-box button {
+  border: none;
+  border-radius: 8px;
+  font-size: 1.01rem;
+  padding: 9px 22px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.16s, color 0.13s;
+}
+#edit-bg .modal-box button[type="button"] {
+  background: #ececec;
+  color: #444;
+}
+#edit-bg .modal-box button[type="button"]:hover {
+  background: #e2e2e2;
+  color: #222;
+}
+#edit-bg .modal-box button[type="submit"] {
+  background: #21b661;
+  color: #fff;
+}
+#edit-bg .modal-box button[type="submit"]:hover {
+  background: #199b50;
+}
+
+
+
   </style>
 </head>
 <body>
@@ -244,9 +338,9 @@
         <input name="title"     placeholder="제목"          required />
         <div style="font-size:.9rem;margin:4px 0 2px;">파일 교체(선택)</div>
         <input name="files" type="file" multiple />
-        <div style="text-align:right;margin-top:12px;">
-          <button type="button" onclick="closeEdit()" style="margin-right:6px;">취소</button>
-          <button type="submit" id="edit-save-btn" style="background:#28b663;color:#fff;border:none;padding:6px 14px;border-radius:6px;">저장</button>
+        <div class="modal-actions">
+          <button type="button" onclick="closeEdit()">취소</button>
+          <button type="submit" id="edit-save-btn">저장</button>
         </div>
       </form>
     </div>
