@@ -7,8 +7,8 @@
   <style>
     body { background: #f5f5f7; font-family: 'Noto Sans KR', Arial, sans-serif; }
     .admin-table-box {
-      max-width: 1120px;
-      margin: 58px auto 0;
+      max-width: 1480px;   /* ✅ 더 넓게 */
+      margin: 50px auto 0;
       background: #fff;
       border-radius: 22px;
       box-shadow: 0 4px 32px #0001;
@@ -17,18 +17,15 @@
     h2 {
       margin-bottom: 30px;
       text-align: left;
-      font-size: 1.65rem;
+      font-size: 1.48rem;  /* 글씨 약간 축소 */
       font-weight: 900;
       color: #181818;
       letter-spacing: -2px;
-      position: relative;
     }
-    /* 노란줄 삭제! */
-
     .search-bar {
       display: flex;
       gap: 10px;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
       justify-content: flex-end;
       align-items: center;
       flex-wrap: wrap;
@@ -38,12 +35,12 @@
       background: #fafafc;
       border: 1.5px solid #d3d4da;
       border-radius: 8px;
-      padding: 9px 10px;
-      font-size: 1rem;
+      padding: 8px 10px;
+      font-size: 0.95rem;   /* 글씨 약간 축소 */
       color: #222;
       outline: none;
       transition: border 0.13s;
-      min-width: 86px;
+      min-width: 82px;
       margin-bottom: 3px;
     }
     .search-bar input[type="number"] {
@@ -59,8 +56,8 @@
       color: #181818;
       border: none;
       border-radius: 8px;
-      padding: 9px 20px;
-      font-size: 1.07rem;
+      padding: 8px 20px;
+      font-size: 0.96rem;
       font-weight: bold;
       cursor: pointer;
       margin-bottom: 3px;
@@ -76,7 +73,7 @@
       font-weight: 500;
     }
     .search-bar button:active { background: #ffd54f; }
-    .msg { text-align: center; margin-top: 8px; font-size: 1rem; color: #181818; }
+    .msg { text-align: center; margin-top: 8px; font-size: 0.98rem; color: #181818; }
 
     table {
       width: 100%;
@@ -86,20 +83,26 @@
       background: #fff;
       border-radius: 14px;
       overflow: hidden;
-      font-size: 1rem;
+      font-size: 0.97rem;   /* 글씨 약간 축소 */
+      table-layout: fixed;
+      word-break: keep-all;
     }
     th, td {
-      padding: 11px 8px;
+      padding: 8px 7px;
       text-align: center;
-      font-size: 1.03rem;
-      border-bottom: 1.2px solid #f1f1f3;
+      font-size: 0.97rem;    /* 글씨 약간 축소 */
+      border-bottom: 1.1px solid #f1f1f3;
+      word-break: keep-all;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     th {
       background: #181818;
       color: #fff;
       font-weight: 800;
-      font-size: 1.07rem;
-      letter-spacing: 0.02em;
+      font-size: 1rem;
+      letter-spacing: 0.01em;
       border-bottom: 2.2px solid #ffc400;
     }
     tr:last-child td { border-bottom: none; }
@@ -109,92 +112,60 @@
       transition: background 0.14s;
       vertical-align: middle;
     }
-    /* hover: 연노랑 or 라이트그레이 */
     tr:hover td {
-      background: #fffbe8 !important; /* 연노랑 */
-      /* background: #f7f8fa !important;  // 라이트그레이로 하고 싶으면 이거 사용 */
+      background: #fffbe8 !important;
       transition: background 0.16s;
     }
-    /* 아이콘형 칼럼 스타일 */
-    .file-icon {
-      display: inline-block;
-      padding: 2px 9px;
-      border-radius: 7px;
-      font-size: 0.99rem;
-      font-weight: 700;
-      margin: 0 2px;
-      letter-spacing: 0.01em;
-      vertical-align: middle;
-    }
-    .file-icon-hwp {
-      background: #e7eaf2;
-      color: #5771bc;
-      border: 1.2px solid #b6c6e6;
-    }
-    .file-icon-pdf {
+    /* 다운로드 버튼만 남기고, 노란색 */
+    .download-btn {
       background: #fffbe8;
-      color: #ffc400;
-      border: 1.2px solid #ffe4a3;
+      color: #ffa900;
+      border: 1.5px solid #ffd54f;
+      border-radius: 6px;
+      padding: 5px 14px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: bold;
+      transition: background 0.12s, color 0.12s, border 0.12s;
+      vertical-align: middle;
+      margin: 0 2px;
+      min-width: 72px;
     }
-
-    /* 버튼(다운, 미리보기, 수정, 삭제) */
+    .download-btn:hover {
+      background: #fffde2;
+      color: #181818;
+      border-color: #ffc400;
+    }
+    /* 관리 버튼 */
     .delete-btn, .edit-btn {
       background: #181818;
       color: #ffc400;
       border: none;
       border-radius: 7px;
-      padding: 6px 16px;
+      padding: 5px 13px;
       cursor: pointer;
-      font-size: .97rem;
+      font-size: 0.92rem;
       font-weight: bold;
       margin: 0 1.5px;
       transition: background .12s, color .12s;
       letter-spacing: 0.02em;
+      min-width: 50px;
     }
     .edit-btn { background: #ffc400; color: #181818; }
     .edit-btn:hover { background: #ffe46e; }
     .delete-btn:hover { background: #2d2d2d; color: #ff5353; }
     .delete-btn:disabled, .edit-btn:disabled { opacity: 0.55; cursor: not-allowed; }
-    .preview-btn, .download-btn {
-      background: #fffbe8;
-      color: #ffa900;
-      border: 1.5px solid #ffd54f;
-      border-radius: 6px;
-      padding: 5px 12px;
-      cursor: pointer;
-      margin-left: 4px;
-      font-size: .96rem;
-      font-weight: bold;
-      transition: background 0.12s, color 0.12s, border 0.12s;
-      vertical-align: middle;
+    /* 반응형 */
+    @media (max-width: 1200px) {
+      .admin-table-box { max-width: 99vw; padding: 14px 2vw 16px 2vw; }
+      table, th, td { font-size: 0.93rem; }
+      th, td { padding: 6px 2px; }
     }
-    .preview-btn:hover, .download-btn:hover {
-      background: #fffde2;
-      color: #181818;
-      border-color: #ffc400;
-    }
-    .download-btn { margin-left: 0; }
-
-    /* 모달 스타일(기존 유지) */
-    #edit-bg {
-      display: none; position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; background: #18181899;
-      z-index: 1000; align-items: center; justify-content: center;
-    }
-    #edit-bg .modal-box {
-      background: #fff; padding: 28px 24px; border-radius: 14px; width: 370px; box-shadow: 0 10px 40px #0003;
-    }
-    #edit-bg select, #edit-bg input {
-      width: 100%; margin-bottom: 10px; padding: 9px; border: 1.5px solid #ffc400;
-      border-radius: 8px; font-size: .97rem;
-    }
-    .preview-bg { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; background: #0007; z-index: 1500; display: none; align-items: center; justify-content: center; }
-    .preview-content { background: #fff; border-radius: 12px; padding: 18px; max-width: 80vw; max-height: 80vh; overflow: auto; }
-    .preview-content iframe, .preview-content img { max-width: 74vw; max-height: 70vh; }
-    @media (max-width: 900px) {
-      .admin-table-box { padding: 17px 2vw 22px 2vw; }
+    @media (max-width: 950px) {
+      .admin-table-box { padding: 8px 1vw 10px 1vw; }
       .search-bar { flex-direction: column; gap: 4px; align-items: stretch; }
-      table, th, td { font-size: 0.94rem; }
-      th, td { padding: 7px 2px; }
+      table, th, td { font-size: 0.89rem; }
+      th, td { padding: 4px 1px; }
     }
   </style>
 </head>
@@ -204,9 +175,9 @@
     <div class="search-bar">
       <select id="search-level"><option value="">관 전체</option><option>중등</option><option>고등</option></select>
       <select id="search-region"><option value="">지역 전체</option><option>서울</option><option>경기</option><option>인천</option><option>부산</option><option>대구</option><option>광주</option><option>대전</option><option>기타</option></select>
-      <input id="search-school" placeholder="학교명" style="width:80px;" />
-      <input id="search-title"  placeholder="자료명" style="width:80px;" />
-      <input id="search-year"   placeholder="연도"   style="width:60px;" type="number"/>
+      <input id="search-school" placeholder="학교명" style="width:95px;" />
+      <input id="search-title"  placeholder="자료명" style="width:95px;" />
+      <input id="search-year"   placeholder="연도"   style="width:70px;" type="number"/>
       <button onclick="doSearch()">검색</button>
       <button onclick="resetSearch()" style="margin-left:2px;">초기화</button>
     </div>
@@ -214,16 +185,23 @@
     <table>
       <thead>
         <tr>
-          <th>ID</th><th>관</th><th>지역</th><th>구/군</th><th>학교</th>
-          <th>학년</th><th>연도</th><th>학기</th><th>제목</th>
-          <th>한글</th><th>PDF</th>
-          <th>관리</th>
+          <th style="width: 55px;">ID</th>
+          <th style="width: 65px;">관</th>
+          <th style="width: 75px;">지역</th>
+          <th style="width: 85px;">구/군</th>
+          <th style="width: 155px;">학교</th>
+          <th style="width: 65px;">학년</th>
+          <th style="width: 70px;">연도</th>
+          <th style="width: 95px;">학기</th>
+          <th style="width: 260px;">제목</th>
+          <th style="width: 105px;">한글</th>
+          <th style="width: 105px;">PDF</th>
+          <th style="width: 98px;">관리</th>
         </tr>
       </thead>
       <tbody id="file-list"><!-- JS로 채움 --></tbody>
     </table>
   </div>
-  <!-- 이하 기존 모달/미리보기/JS 100% 유지 -->
   <div id="edit-bg">
     <div class="modal-box">
       <h3 style="margin-top:0">자료 정보 수정</h3>
@@ -280,7 +258,7 @@
     </div>
   </div>
   <script>
-    // JS는 기존 그대로! 단, 아이콘/버튼 HTML만 컬러화 적용
+    // JS는 100% 그대로, 버튼만 수정
     let fileListOrigin = [];
     let editTargetId   = null;
     async function fetchFiles(){
@@ -311,16 +289,12 @@
           <td>${r.title}</td>
           <td>
             ${r.hwp_filename ? `
-              <span class="file-icon file-icon-hwp">HWP</span>
               <a href="/download/${r.id}?type=hwp" class="download-btn" target="_blank">다운로드</a>
-              <button class="preview-btn" onclick="previewFile('${r.hwp_filename}')">미리보기</button>
             ` : '-'}
           </td>
           <td>
             ${r.pdf_filename ? `
-              <span class="file-icon file-icon-pdf">PDF</span>
               <a href="/download/${r.id}?type=pdf" class="download-btn" target="_blank">다운로드</a>
-              <button class="preview-btn" onclick="previewFile('${r.pdf_filename}')">미리보기</button>
             ` : '-'}
           </td>
           <td>
@@ -403,19 +377,7 @@
       fetchFiles();
     }
     function previewFile(filename){
-      const ext = filename.split('.').pop().toLowerCase();
-      document.getElementById('preview-bg').style.display='flex';
-      const body = document.getElementById('preview-body');
-      if(ext==='pdf'){
-        body.innerHTML = `<iframe src="/uploads/${filename}" style="width:60vw;height:60vh;" frameborder="0"></iframe>`;
-      }else if(ext==='jpg'||ext==='jpeg'||ext==='png'){
-        body.innerHTML = `<img src="/uploads/${filename}" alt="미리보기" />`;
-      }else{
-        body.innerHTML = `<div style="padding:50px 0;text-align:center;color:#888;font-size:1.1rem;">
-          미리보기는 PDF/이미지 파일만 지원합니다.<br>
-          <span style="color:#bbb;">(${filename})</span>
-        </div>`;
-      }
+      // 이 함수는 더 이상 호출되지 않으나 미리보기 삭제 요청에 따라 내용 그대로 둡니다.
     }
     function closePreview(){
       document.getElementById('preview-bg').style.display='none';
