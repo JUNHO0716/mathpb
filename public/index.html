@@ -426,6 +426,45 @@
   border-radius: 0 0 18px 18px;
 }
 
+/* ===== 안내 모달 (Intro Modal) ===== */
+.intro-overlay{position:fixed;inset:0;background:rgba(0,0,0,.38);display:none;align-items:center;justify-content:center;z-index:10000}
+.intro-overlay.show{display:flex}
+.intro-modal{width:min(760px,92vw);background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.22);overflow:hidden;transform:translateY(8px);opacity:0;animation:introPop .28s ease-out .02s forwards}
+@keyframes introPop{to{opacity:1;transform:translateY(0)}}
+
+.intro-head{display:flex;gap:14px;align-items:center;padding:22px 24px;border-bottom:1px solid var(--border-light)}
+.intro-badge{width:34px;height:34px;border-radius:10px;background:var(--btn-bg);display:flex;align-items:center;justify-content:center;font-weight:900;color:#111}
+.intro-title{font-size:1.22rem;font-weight:900;color:#111;letter-spacing:-.2px}
+.intro-sub{font-size:.92rem;color:#5f5f5f;margin-top:2px}
+
+.intro-body{padding:18px 22px 8px}
+
+.intro-callout{
+  background:#fff8d8;border:1px dashed #f0cc4b;color:#6a5512;
+  padding:10px 12px;border-radius:10px;font-size:.92rem;line-height:1.5;margin-bottom:12px
+}
+
+.intro-grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:820px){.intro-grid{grid-template-columns:1fr 1fr}}
+
+.intro-card{
+  border:1px solid var(--border-light);border-radius:14px;background:#fff;padding:16px 16px 14px
+}
+.intro-card h4{margin:0 0 8px;font-size:1rem;color:#111}
+.intro-card p{margin:0;font-size:.93rem;color:#555;line-height:1.55}
+.intro-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#FDC512;margin-right:8px;vertical-align:middle}
+
+.intro-list{margin:8px 0 0;padding-left:0;list-style:none}
+.intro-list li{margin:6px 0;color:#444;font-size:.93rem}
+.intro-strong{font-weight:800;color:#111}
+
+.intro-footer{display:flex;gap:10px;justify-content:flex-end;padding:14px 16px;border-top:1px solid var(--border-light);background:#fafafa}
+.btn-ghost{background:#fff;border:1px solid #e8e8e8;border-radius:9999px;padding:9px 16px;font-weight:700;color:#333;cursor:pointer}
+.btn-ghost:hover{background:#f7f7f7}
+.btn-primary{background:var(--btn-bg);border:none;border-radius:9999px;padding:9px 18px;font-weight:800;color:#111;cursor:pointer}
+.btn-primary:hover{background:var(--btn-bg-hov)}
+.intro-close{position:absolute;top:10px;right:12px;border:none;background:none;font-size:1.6rem;color:#bbb;cursor:pointer}
+.intro-close:hover{color:#111}
 
 
   </style>
@@ -897,6 +936,48 @@ window.addEventListener('DOMContentLoaded', () => {
           });
         });
 
+/* ===== 안내 모달 로직 ===== */
+(function(){
+  const KEY = 'mathbee_intro_dismissed_v1';
+
+  const $overlay = document.getElementById('introOverlay');
+  const $btnClose = document.getElementById('introCloseBtn');
+  const $btnOk = document.getElementById('introOkBtn');
+  const $btnNever = document.getElementById('introNeverBtn');
+
+  function openIntro(){
+    if(!$overlay) return;
+    $overlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    $overlay.setAttribute('aria-hidden','false');
+  }
+  function closeIntro(opts={remember:false}){
+    if(!$overlay) return;
+    $overlay.classList.remove('show');
+    document.body.style.overflow = '';
+    $overlay.setAttribute('aria-hidden','true');
+    if(opts.remember){
+      try{ localStorage.setItem(KEY,'1'); }catch(e){}
+    }
+  }
+
+  // 이벤트
+  $btnClose?.addEventListener('click', ()=>closeIntro());
+  $btnOk?.addEventListener('click', ()=>closeIntro());
+  $btnNever?.addEventListener('click', ()=>closeIntro({remember:true}));
+  $overlay?.addEventListener('click', (e)=>{
+    if(e.target === $overlay) closeIntro();
+  });
+
+  // 페이지가 "완전히" 그려진 뒤 살짝 지연해 노출
+  window.addEventListener('load', ()=>{
+    const dismissed = localStorage.getItem(KEY) === '1';
+    if(!dismissed){
+      setTimeout(openIntro, 800); // 0.8s 후 오픈
+    }
+  });
+})();
+
 </script>
 <!-- 결제 모달 -->
 <div id="paymentModal" class="modal-overlay">
@@ -906,5 +987,76 @@ window.addEventListener('DOMContentLoaded', () => {
   </div>
 </div>
 
+<!-- 안내 모달 -->
+<div id="introOverlay" class="intro-overlay" aria-hidden="true">
+  <div class="intro-modal" role="dialog" aria-modal="true" aria-labelledby="introTitle">
+    <button class="intro-close" id="introCloseBtn" aria-label="닫기">&times;</button>
+
+    <div class="intro-head">
+      <div class="intro-badge">MB</div>
+      <div>
+        <div id="introTitle" class="intro-title">Mathbee 이용 안내</div>
+        <div class="intro-sub">선생님의 시간을 아끼는 도구가 되겠습니다.</div>
+      </div>
+    </div>
+
+    <div class="intro-body">
+      <div class="intro-callout">
+        선생님들의 구독료는 <span class="intro-strong">디자인·사용자 편의·핵심 기능 개발</span>에 투명하게 재투자됩니다.
+        현장에서 필요한 기능을 빠르게 반영하고, <span class="intro-strong">업무 시간을 줄여드리는 것</span>을 최우선으로 하겠습니다.
+      </div>
+
+      <div class="intro-grid">
+        <!-- 1) 현재 제공 기능 -->
+        <div class="intro-card">
+          <h4><span class="intro-dot"></span>1) 현재 제공 기능</h4>
+          <ul class="intro-list">
+            <li><span class="intro-strong">시험지 요청 서비스</span> — 선생님께서 <b>직접 올려주신 파일</b>을 바탕으로
+                <b>해설·미주가 포함된 한글(HWP)</b>로 제작합니다. <b>추가 비용 없이 구독만으로 이용</b>하실 수 있습니다.</li>
+            <li><span class="intro-strong">기출문제 다운로드</span> — 다양한 기출을 <b>PDF·HWP</b>로 내려받기</li>
+            <li>현재는 핵심 기능 위주로 운영 중이라 <b>구독료를 할인</b>하여 제공하고 있습니다.</li>
+          </ul>
+        </div>
+
+        <!-- 2) 문제은행(제작 중) -->
+        <div class="intro-card">
+          <h4><span class="intro-dot"></span>2) 문제은행 (제작 중)</h4>
+          <p>
+            단원·유형·난이도 등 원하는 조건으로 문제를 조합해 시험지를 만들 수 있도록 준비 중입니다.
+            <b>AI 기반 유사문항 추천</b>과 <b>개념 추가</b> 기능을 포함하며, 결과물은 모두 <b>한글(HWP) 다운로드</b>를 지원합니다.
+          </p>
+        </div>
+
+        <!-- 3) 내 책장 확장 -->
+        <div class="intro-card">
+          <h4><span class="intro-dot"></span>3) 내 책장 기능 확장</h4>
+          <ul class="intro-list">
+            <li><b>내가 직접 제작한 시험지</b> 저장·관리</li>
+            <li><b>학년·단원·유형별 폴더</b>를 만들어 여러 시험지를 체계적으로 정리</li>
+            <li>문제은행에서 고른 문제에 <b>개념을 추가</b>해 만드는 <b>맞춤형 교재</b> 관리</li>
+            <li>AI 편집으로 <b>디자인·레이아웃</b>을 원하는 형태로 조정 가능한
+                <b>교재 제작 전용 공간</b> 제공 예정</li>
+          </ul>
+        </div>
+
+        <!-- 4) 약속 -->
+        <div class="intro-card">
+          <h4><span class="intro-dot"></span>Mathbee의 약속</h4>
+          <p>
+            선생님의 구독에 책임 있게 보답하겠습니다. 매달 현장에 꼭 필요한 개선을 반영하고,
+            <b>“선생님의 시간을 아껴주는 파트너”</b>가 되겠습니다.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="intro-footer">
+      <button class="btn-ghost" id="introNeverBtn">다시 보지 않기</button>
+      <button class="btn-primary" id="introOkBtn">확인</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
+
