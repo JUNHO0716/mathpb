@@ -446,7 +446,11 @@
 
   </div>
   <script>
-   
+  // 🔔 안내 팝업 (페이지 로드 시 자동 실행)
+  window.addEventListener("DOMContentLoaded", function() {
+    alert("안내문\n\n현재 홈페이지는 단계별 제작 진행 중입니다.\n현재는 직접 회원가입이나 Google 로그인만 가능합니다.\nNaver, Kakao, Apple 로그인은 아직 준비 중입니다.\n지속적으로 업로드 중이니 조금만 기다려 주세요!");
+  });   
+
     // 아이디 저장 기능 (로컬스토리지 사용)
     window.onload = function() {
       const saved = localStorage.getItem('saved_id');
