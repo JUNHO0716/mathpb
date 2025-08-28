@@ -510,6 +510,38 @@ async function downloadFile(id, type) {
   window.location.href = url;
 }
 
+async function safeDownload(fileId, type) {
+  try {
+    const res = await fetch(`/api/download/${fileId}?type=${encodeURIComponent(type)}`, {
+      credentials: 'include'
+    });
+    if (!res.ok) {
+      let msg = '다운로드 실패';
+      try {
+        const err = await res.json();
+        msg = err.detail || err.error || msg;
+      } catch {}
+      alert(msg);
+      return;
+    }
+    const data = await res.json();
+    if (!data.url) {
+      alert('서명 URL 생성 실패');
+      return;
+    }
+    // 실제 다운로드 트리거
+    const a = document.createElement('a');
+    a.href = data.url;
+    a.download = '';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch (e) {
+    console.error(e);
+    alert('네트워크 오류로 다운로드 실패');
+  }
+}
+
 </script>
 <footer class="site-footer">
   <div class="footer-inner">
