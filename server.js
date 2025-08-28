@@ -104,20 +104,38 @@ app.use(commonLimiter);
 const ALLOWED_ORIGINS = new Set([
   'https://mathpb.com',
   'http://mathpb.com',
+  'https://www.mathpb.com',
+  'http://www.mathpb.com',
   'http://localhost:3000',
   'http://localhost:5173'
 ]);
 
+function isAllowed(urlStr) {
+  try {
+    const url = new URL(urlStr);
+    return ALLOWED_ORIGINS.has(url.origin);
+  } catch {
+    return false;
+  }
+}
+
 function verifyOrigin(req, res, next) {
-  const origin  = req.get('Origin');
-  const referer = req.get('Referer');
+  const origin  = req.get('Origin');   // ex) https://mathpb.com
+  const referer = req.get('Referer');  // ex) https://mathpb.com/index.html
+  const host    = req.get('Host');     // ex) mathpb.com
 
-  // 개발/도메인에서 오는 요청만 허용
-  const ok =
-    (origin  && Array.from(ALLOWED_ORIGINS).some(o => origin.startsWith(o))) ||
-    (referer && Array.from(ALLOWED_ORIGINS).some(o => referer.startsWith(o)));
+  // ✅ 동일 도메인인데 Origin이 비어있을 때 허용
+  const sameHost =
+    referer && (referer.startsWith(`https://${host}`) || referer.startsWith(`http://${host}`));
 
-  if (!ok) return res.status(403).send('출처 검증 실패');
+  const allowed =
+    (origin && isAllowed(origin)) ||
+    (referer && isAllowed(referer)) ||
+    sameHost;
+
+  if (!allowed) {
+    return res.status(403).json({ error: 'FORBIDDEN_ORIGIN', detail: '출처 검증 실패' });
+  }
   next();
 }
 
