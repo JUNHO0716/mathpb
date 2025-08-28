@@ -28,6 +28,8 @@ import multerS3 from 'multer-s3';
 import express from 'express';
 import session from 'express-session';
 import iconv from 'iconv-lite';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 
 // ─── ES 모듈에서 require() 쓰도록 ───────────────────
 import { createRequire } from 'module';
@@ -77,6 +79,48 @@ const fileUpload = multer({
 });
 
 const app = express();
+// ✅ Render 등 프록시 뒤에 있을 때 IP/HTTPS 인식 정확히 하려면 필수
+app.set('trust proxy', 1);
+
+// ✅ 기본 보안 헤더
+app.use(helmet({
+  // 현재 인라인 스크립트/스타일이 많을 수 있어 CSP는 당장 끔 (추후 4단계에서 엄격 적용 예정)
+  contentSecurityPolicy: false,
+  // S3/CloudFront 등 외부 리소스 로딩을 고려해 교차 출처 리소스 정책은 완화
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
+
+// ✅ 전역 레이트 리밋(완만하게). 15분에 1000회
+//  → 로그인/다운로드는 5단계에서 개별 제한 더 빡세게 추가할 것
+const commonLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 1000,                 // v7 옵션명: limit
+  standardHeaders: 'draft-7',  // 응답헤더에 속도제한 정보 노출(표준)
+  legacyHeaders: false,
+});
+app.use(commonLimiter);
+
+// ✅ 허용 도메인만 통과
+const ALLOWED_ORIGINS = new Set([
+  'https://mathpb.com',
+  'http://mathpb.com',
+  'http://localhost:3000',
+  'http://localhost:5173'
+]);
+
+function verifyOrigin(req, res, next) {
+  const origin  = req.get('Origin');
+  const referer = req.get('Referer');
+
+  // 개발/도메인에서 오는 요청만 허용
+  const ok =
+    (origin  && Array.from(ALLOWED_ORIGINS).some(o => origin.startsWith(o))) ||
+    (referer && Array.from(ALLOWED_ORIGINS).some(o => referer.startsWith(o)));
+
+  if (!ok) return res.status(403).send('출처 검증 실패');
+  next();
+}
+
 app.use(cors({
   origin: [
     'https://mathpb.com',      // 실제 서비스 도메인
@@ -92,10 +136,15 @@ app.use(cors({
 // 프리플라이트(OPTIONS) 요청까지 허용
 app.options('*', cors());
 app.use(session({
-  secret: process.env.SESSION_SECRET,     // 나중에 .env로 숨겨도 됨
+  secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: true,
-  cookie: { maxAge: 1000 * 60 * 60 * 2 }  // 2시간 유지
+  saveUninitialized: false,   // ✅ 로그인 전에는 세션 안 만듦
+  cookie: {
+    httpOnly: true,           // ✅ JS로 쿠키 접근 차단
+    sameSite: 'lax',          // ✅ 다른 사이트에서 함부로 요청 못함 (CSRF 완화)
+    secure: process.env.NODE_ENV === 'production', // ✅ HTTPS에서만 전송
+    maxAge: 1000 * 60 * 60 * 2 // 2시간
+  }
 }));
 app.use(express.json());
 
@@ -418,7 +467,10 @@ app.delete('/api/notices/:id',
 });
 
     // 업로드 API (관리자용)
-    app.post('/api/upload', isLoggedIn, isAdmin, fileUpload.array('files'), async (req,res)=> {
+    app.post('/api/upload',
+  isLoggedIn, isAdmin, verifyOrigin,  // 여기 추가!
+  fileUpload.array('files'),
+  async (req, res) => {
       try {
         const { region, district, school, grade, year, semester, title, level } = req.body;
         const files = req.files;
@@ -565,7 +617,7 @@ app.get('/check-auth', async (req, res) => {
     });
 
     // 파일 다운로드
-app.get('/api/download/:id', async (req, res) => {
+app.get('/api/download/:id', isLoggedIn, verifyOrigin, async (req, res) => {
 const user = req.session.user;
 if (!user) return res.status(403).send('권한이 없습니다.');
 
@@ -857,21 +909,19 @@ app.get('/admin_files.html',  isLoggedIn, isAdmin, (req, res) => {
 });
 
  // 파일 다운로드 log
-app.post('/api/download-log', async (req, res) => {
-  const { fileId, type, userEmail } = req.body;
-  if (!fileId || !type || !userEmail) {
-    return res.status(400).json({ error: '데이터 누락' });
-  }
+app.post('/api/download-log', isLoggedIn, verifyOrigin, async (req, res) => {
+  const { fileId, type } = req.body;
+  if (!fileId || !type) return res.status(400).json({ error: '데이터 누락' });
 
   const conn = await db.getConnection();
   try {
-    const [file] = await conn.query('SELECT title FROM files WHERE id = ?', [fileId]);
-    const title = file[0]?.title || '제목없음';
+    const [[file]] = await conn.query('SELECT title FROM files WHERE id = ?', [fileId]);
+    const title = file?.title || '제목없음';
 
     await conn.query(`
       INSERT INTO downloads_log (file_id, file_name, type, user_email, downloaded_at)
       VALUES (?, ?, ?, ?, NOW())
-    `, [fileId, title, type, userEmail]);
+    `, [fileId, title, type, req.session.user.email]);
 
     res.json({ success: true });
   } catch (e) {
@@ -882,23 +932,20 @@ app.post('/api/download-log', async (req, res) => {
   }
 });
 
-app.get('/api/downloads/recent', async (req, res) => {
+app.get('/api/downloads/recent', isLoggedIn, verifyOrigin, async (req, res) => {
   try {
-    const userEmail = req.query.email;
-    if (!userEmail) return res.status(400).json({ error: '이메일 누락' });
+    const sessionEmail = req.session.user.email;  // ✅ 세션 기준
+    const [rows] = await db.query(`
+      SELECT f.id, l.file_name AS name, COUNT(*) AS count, MAX(l.downloaded_at) AS date
+      FROM downloads_log l
+      JOIN files f ON f.title = l.file_name
+      WHERE l.user_email = ?
+      GROUP BY f.id, l.file_name
+      ORDER BY date DESC
+      LIMIT 5
+    `, [sessionEmail]);
 
-    // db로 수정!
-      const [rows] = await db.query(`
-        SELECT f.id, l.file_name AS name, COUNT(*) AS count, MAX(l.downloaded_at) AS date
-        FROM downloads_log l
-        JOIN files f ON f.title = l.file_name
-        WHERE l.user_email = ?
-        GROUP BY f.id, l.file_name
-        ORDER BY date DESC
-        LIMIT 5
-      `, [userEmail]);
-
-    res.json(rows); // 이 rows가 프론트에서 map 가능한 배열
+    res.json(rows);
   } catch (e) {
     console.error('최근 다운로드 불러오기 실패', e);
     res.status(500).json({ error: '서버 오류' });
@@ -1166,7 +1213,7 @@ app.post('/api/admin/payment-complete', isLoggedIn, isAdmin, async (req, res) =>
 // server.js (Express)
 app.get(
   '/api/admin/uploads/:id/download',
-  isLoggedIn, isAdmin,
+  isLoggedIn, isAdmin, verifyOrigin,  // 여기에 verifyOrigin 추가!
   async (req, res, next) => {
     try {
       // uploads 테이블에서 꺼내기
