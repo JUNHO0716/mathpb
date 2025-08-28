@@ -350,18 +350,18 @@ function renderTable(list) {
 
   tb.innerHTML = list.map((row, i) => {
     let btns = '';
-    if (row.files?.pdf) {
-      btns += `<button class="download-btn" title="PDF 다운로드" onclick="downloadFile('${row.id}','pdf')"
-          style="background:none;border:none;cursor:pointer;">
-          <img src="/pdf_download.png" alt="PDF 다운로드" style="width:32px;height:32px;">
-        </button>`;
-    }
-    if (row.files?.hwp) {
-      btns += `<button class="download-btn" title="HWP 다운로드" onclick="downloadFile('${row.id}','hwp')"
-          style="background:none;border:none;cursor:pointer;">
-          <img src="/hwp_download.png" alt="HWP 다운로드" style="width:32px;height:32px;">
-        </button>`;
-    }
+      if (row.files?.pdf) {
+        btns += `<button class="download-btn" title="PDF 다운로드" onclick="safeDownload('${row.id}','pdf')"
+            style="background:none;border:none;cursor:pointer;">
+            <img src="/pdf_download.png" alt="PDF 다운로드" style="width:32px;height:32px;">
+          </button>`;
+      }
+      if (row.files?.hwp) {
+        btns += `<button class="download-btn" title="HWP 다운로드" onclick="safeDownload('${row.id}','hwp')"
+            style="background:none;border:none;cursor:pointer;">
+            <img src="/hwp_download.png" alt="HWP 다운로드" style="width:32px;height:32px;">
+          </button>`;
+      }
     return `
       <tr>
         <td>${i + 1}</td>
