@@ -86,8 +86,7 @@ app.set('trust proxy', 1);
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  // ✅ Referer를 완전 차단하지 말고, 같은 출처일 땐 보내도록
-  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' } // ⬅ 중요
 }));
 
 // ✅ 전역 레이트 리밋(완만하게). 15분에 1000회
@@ -101,33 +100,35 @@ const commonLimiter = rateLimit({
 app.use(commonLimiter);
 
 // ✅ 허용 도메인만 통과
-const ALLOWED_ORIGINS = new Set([
-  'https://mathpb.com',
-  'http://mathpb.com',
-  'https://www.mathpb.com',
-  'http://www.mathpb.com',
-  'http://localhost:3000',
-  'http://localhost:5173'
+const ALLOWED_HOSTS = new Set([
+  'mathpb.com',
+  'www.mathpb.com',
+  'localhost'
 ]);
 
-function isAllowed(urlStr) {
-  try { return ALLOWED_ORIGINS.has(new URL(urlStr).origin); }
-  catch { return false; }
+function getHostOnly(h) {
+  return (h || '').toLowerCase().split(':')[0]; // 포트 제거
+}
+
+function originHost(urlStr) {
+  try { return new URL(urlStr).hostname.toLowerCase(); }
+  catch { return ''; }
 }
 
 function verifyOrigin(req, res, next) {
-  const origin  = req.get('Origin');     // ex) https://mathpb.com
-  const referer = req.get('Referer');    // ex) https://mathpb.com/index.html
-  const host    = req.get('Host');       // ex) mathpb.com
+  const origin  = req.get('Origin');            // ex) https://mathpb.com
+  const referer = req.get('Referer');           // ex) https://mathpb.com/index.html
+  const xfHost  = req.get('X-Forwarded-Host');  // 프록시가 원래 Host 넘겨줄 수 있음
+  const host    = req.get('Host');              // ex) mathpb.com
 
-  // ✅ 같은 호스트면 허용 (브라우저가 Origin 없이 보내도 통과)
-  const sameHost =
-    referer && (referer.startsWith(`https://${host}`) || referer.startsWith(`http://${host}`));
+  const oHost = originHost(origin);
+  const rHost = originHost(referer);
+  const hHost = getHostOnly(xfHost || host);
 
   const allowed =
-    (origin && isAllowed(origin)) ||
-    (referer && isAllowed(referer)) ||
-    sameHost;
+    (oHost && ALLOWED_HOSTS.has(oHost)) ||
+    (rHost && ALLOWED_HOSTS.has(rHost)) ||
+    (hHost && ALLOWED_HOSTS.has(hHost));
 
   if (!allowed) {
     return res.status(403).json({ error: 'FORBIDDEN_ORIGIN', detail: '출처 검증 실패' });
