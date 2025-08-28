@@ -84,10 +84,10 @@ app.set('trust proxy', 1);
 
 // ✅ 기본 보안 헤더
 app.use(helmet({
-  // 현재 인라인 스크립트/스타일이 많을 수 있어 CSP는 당장 끔 (추후 4단계에서 엄격 적용 예정)
   contentSecurityPolicy: false,
-  // S3/CloudFront 등 외부 리소스 로딩을 고려해 교차 출처 리소스 정책은 완화
   crossOriginResourcePolicy: { policy: 'cross-origin' },
+  // ✅ Referer를 완전 차단하지 말고, 같은 출처일 땐 보내도록
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
 
 // ✅ 전역 레이트 리밋(완만하게). 15분에 1000회
@@ -111,20 +111,16 @@ const ALLOWED_ORIGINS = new Set([
 ]);
 
 function isAllowed(urlStr) {
-  try {
-    const url = new URL(urlStr);
-    return ALLOWED_ORIGINS.has(url.origin);
-  } catch {
-    return false;
-  }
+  try { return ALLOWED_ORIGINS.has(new URL(urlStr).origin); }
+  catch { return false; }
 }
 
 function verifyOrigin(req, res, next) {
-  const origin  = req.get('Origin');   // ex) https://mathpb.com
-  const referer = req.get('Referer');  // ex) https://mathpb.com/index.html
-  const host    = req.get('Host');     // ex) mathpb.com
+  const origin  = req.get('Origin');     // ex) https://mathpb.com
+  const referer = req.get('Referer');    // ex) https://mathpb.com/index.html
+  const host    = req.get('Host');       // ex) mathpb.com
 
-  // ✅ 동일 도메인인데 Origin이 비어있을 때 허용
+  // ✅ 같은 호스트면 허용 (브라우저가 Origin 없이 보내도 통과)
   const sameHost =
     referer && (referer.startsWith(`https://${host}`) || referer.startsWith(`http://${host}`));
 
