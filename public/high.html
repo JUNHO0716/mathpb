@@ -382,10 +382,6 @@ function renderTable(list) {
     `;
   }).join('');
 }
-// 다운로드 함수(실제 구현 필요)
-function downloadFile(id, type) {
-  window.location.href = `/api/download/${id}?type=${type}`;
-}
 
 function renderPagination(total,curr){
   const p=document.getElementById('pagination');p.innerHTML='';
@@ -395,47 +391,6 @@ function renderPagination(total,curr){
     if(i!==curr)d.onclick=()=>fetchFiles(i);
     p.appendChild(d);
   }
-}
-
-async function downloadFile(id, type) {
-  if (!currentUser || (!currentUser.hasPaid && currentUser.role !== 'admin')) {
-    Swal.fire({
-      icon: 'warning',
-      title: '다운로드 권한 없음',
-      text: '결제 후 이용 가능합니다.',
-      showCancelButton: true,
-      showConfirmButton: false, // 결제하기 버튼 제거
-      cancelButtonText: '닫기',
-      cancelButtonColor: '#444',
-      background: '#1a1a1a',
-      color: '#ffffff',
-      iconColor: '#FDC512',
-      customClass: {
-        actions: 'swal2-actions-center'
-      }
-    });
-    return;
-  }
-
-  // ✅ 로그 저장 API 호출
-  try {
-    await fetch('/api/download-log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        fileId: id,
-        type,
-        userEmail: currentUser.email || 'guest@example.com'
-      })
-    });
-  } catch (e) {
-    console.warn('다운로드 기록 실패', e);
-  }
-
-  // ✅ 실제 다운로드
-  const url = `/api/download/${id}?type=${type}`;
-  window.location.href = url;
 }
 
 
