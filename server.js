@@ -47,12 +47,16 @@ const deleteS3 = key =>
 
 // ─── 로그인·관리자 체크 ───
 function isLoggedIn(req, res, next) {
-  if (req.session.user) return next();
-  return res.status(401).json({ msg: '로그인 필요' });
+  if (req.session?.user) return next();
+  return res.status(401).redirect('/login.html');
+}
+function isLoggedInJson(req, res, next) {      // API 전용 (리다이렉트 대신 JSON)
+  if (req.session?.user) return next();
+  return res.status(401).json({ msg: '로그인이 필요합니다.' });
 }
 function isAdmin(req, res, next) {
-  if (req.session.user?.role === 'admin') return next();
-  return res.status(403).json({ msg: '관리자 전용' });
+  if (req.session?.user?.role === 'admin') return next();
+  return res.status(403).send('관리자 전용');
 }
 
 // ─── 새 업로더 두 개 (코드 최상단에) ───
@@ -82,12 +86,86 @@ const app = express();
 // ✅ Render 등 프록시 뒤에 있을 때 IP/HTTPS 인식 정확히 하려면 필수
 app.set('trust proxy', 1);
 
-// ✅ 기본 보안 헤더
-app.use(helmet({
-  contentSecurityPolicy: false,
-  crossOriginResourcePolicy: { policy: 'cross-origin' },
-  referrerPolicy: { policy: 'strict-origin-when-cross-origin' } // ⬅ 중요
-}));
+// Express 기본 헤더 숨김 (보안 상수)
+app.disable('x-powered-by');
+
+// 보안 헤더 세트업
+app.use(
+  helmet({
+    // 1) HTTPS에서만 HSTS 적용(운영만)
+    hsts: process.env.NODE_ENV === 'production' ? {
+      maxAge: 60 * 60 * 24 * 180, // 180일
+      includeSubDomains: true,
+      preload: false
+    } : false,
+
+    // 2) Referrer 최소화
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+
+    // 3) S3 등 외부 리소스 대응
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+
+    // 4) CSP: 먼저 'reportOnly: true'로 시작 → 콘솔 에러 확인 후 enforce 권장
+    contentSecurityPolicy: {
+      useDefaults: true,
+      directives: {
+        "default-src": ["'self'"],
+        "base-uri": ["'self'"],
+        "form-action": ["'self'"],
+        "object-src": ["'none'"],
+
+        // 🔹 실제 사용하는 스크립트 CDN만 허용
+        "script-src": [
+          "'self'",
+          "https://cdn.jsdelivr.net",
+          "https://cdnjs.cloudflare.com",
+          "https://apis.google.com"
+        ],
+
+        // 🔹 인라인 스타일이 있다면 'unsafe-inline' 유지 (가능하면 나중에 제거)
+        "style-src": [
+          "'self'",
+          "'unsafe-inline'",
+          "https://fonts.googleapis.com",
+          "https://cdnjs.cloudflare.com"
+        ],
+
+        "font-src": [
+          "'self'",
+          "https://fonts.gstatic.com"
+        ],
+
+        // 🔹 S3에서 이미지 로드 허용
+        "img-src": [
+          "'self'",
+          "data:",
+          "blob:",
+          "https://*.amazonaws.com"
+        ],
+
+        // 🔹 fetch/XHR 허용 출처 (본 서비스 도메인 + 로컬 개발)
+        "connect-src": [
+          "'self'",
+          "https://mathpb.com",
+          "http://mathpb.com",
+          "http://localhost:3000",
+          "http://localhost:5173"
+        ],
+
+        // 🔒 클릭재킹 방지 (관리 페이지 임베드 금지)
+        "frame-ancestors": ["'none'"]
+      },
+      reportOnly: false   // ← 1~2일 모니터링 후 false로 바꿔서 실적용
+    }
+  })
+);
+
+// (추가) 혹시라도 누락되었을 때 nosniff 보강 (helmet이 기본 제공하지만 중복 무해)
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  next();
+});
+
 
 // ✅ 전역 레이트 리밋(완만하게). 15분에 1000회
 //  → 로그인/다운로드는 5단계에서 개별 제한 더 빡세게 추가할 것
@@ -99,12 +177,13 @@ const commonLimiter = rateLimit({
 });
 app.use(commonLimiter);
 
-// ✅ 허용 도메인만 통과
-const ALLOWED_HOSTS = new Set([
-  'mathpb.com',
-  'www.mathpb.com',
-  'localhost'
-]);
+const PROD = process.env.NODE_ENV === 'production';
+
+const ALLOWED_HOSTS = new Set(
+  PROD
+    ? ['mathpb.com', 'www.mathpb.com']                 // 운영: HTTPS 도메인만
+    : ['mathpb.com', 'www.mathpb.com', 'localhost']    // 개발: 로컬 허용
+);
 
 function getHostOnly(h) {
   return (h || '').toLowerCase().split(':')[0]; // 포트 제거
@@ -136,13 +215,34 @@ function verifyOrigin(req, res, next) {
   next();
 }
 
+// ▼ 게시판 첨부 다운로드 제한 (1분 30회)
+const boardDownloadLimiter = rateLimit({ windowMs: 60 * 1000, max: 30 });
+
+// ▼ /api/board/:id/attachment/:idx → idx 숫자만 허용
+function numericIdxParam(req, res, next) {
+  if (!/^\d+$/.test(req.params.idx)) return res.status(400).send('잘못된 요청');
+  next();
+}
+
+const downloadLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// /api/download/:id → 숫자만 허용
+function numericIdParam(req, res, next) {
+  if (!/^\d+$/.test(req.params.id)) {
+    return res.status(400).send('잘못된 요청');
+  }
+  next();
+}
+
 app.use(cors({
-  origin: [
-    'https://mathpb.com',      // 실제 서비스 도메인
-    'http://mathpb.com',       // http도 대비
-    'http://localhost:3000',   // 개발용
-    'http://localhost:5173'    // 개발용(vite)
-  ],
+  origin: PROD
+    ? ['https://mathpb.com']                           // 운영: HTTPS만
+    : ['https://mathpb.com', 'http://mathpb.com', 'http://localhost:3000', 'http://localhost:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -597,86 +697,106 @@ app.get('/check-auth', async (req, res) => {
   res.json({ isLoggedIn: false });
 });
 
-    // 파일 목록(필터/검색)
-    app.get('/api/files', async (req, res) => {
-      try {
-        const { region, district, school, grade, year, semester, level } = req.query;
-        let sql = "SELECT * FROM files WHERE 1=1";
-        let params = [];
-        if(region)   { sql += " AND region=?";   params.push(region); }
-        if(district) { sql += " AND district=?"; params.push(district); }
-        if(school)   { sql += " AND school=?";   params.push(school); }
-        if (grade !== '' && grade !== undefined) {
-            sql += " AND grade = ?";
-            params.push(grade);
-          }
-        if(year)     { sql += " AND year=?";     params.push(year); }
-        if(semester) { sql += " AND semester=?"; params.push(semester); }
-        if(level)    { sql += " AND level=?";    params.push(level); }
-        sql += " ORDER BY uploaded_at DESC";
-        const [rows] = await db.query(sql, params);
-
-        // rows 배열을 프론트 요구형태로 가공!
-        const newRows = rows.map(r => ({
-          ...r,
-          files: {
-            pdf: !!r.pdf_filename,      // 파일이 있으면 true, 없으면 false
-            hwp: !!r.hwp_filename
-          }
-        }));
-
-        res.json(newRows);
-      } catch (e) {
-        res.status(500).json({ message: 'DB 오류', error: e.message });
-      }
-    });
-
-    // 파일 다운로드
-app.get('/api/download/:id', isLoggedIn, verifyOrigin, async (req, res) => {
-const user = req.session.user;
-if (!user) return res.status(403).send('권한이 없습니다.');
-
-// ⭐ DB에서 is_subscribed와 role을 즉시 체크
-const [[dbUser]] = await db.query('SELECT is_subscribed, role FROM users WHERE id=?', [user.id]);
-if (!(dbUser.role === 'admin' || dbUser.is_subscribed == 1)) {
-  return res.status(403).send('권한이 없습니다.');
-}
-
+// 파일 목록(필터/검색)
+app.get('/api/files', isLoggedInJson, verifyOrigin, async (req, res) => {
   try {
-    const [rows] = await db.query(
-      'SELECT hwp_filename, pdf_filename, title FROM files WHERE id=?',
-      [req.params.id]
-    );
-    if (!rows.length) return res.status(404).send('파일 없음');
-    const { hwp_filename, pdf_filename, title } = rows[0];
+    const { region, district, school, grade, year, semester, level } = req.query;
+    let sql = "SELECT * FROM files WHERE 1=1";
+    const params = [];
+    if(region)   { sql += " AND region=?";   params.push(region); }
+    if(district) { sql += " AND district=?"; params.push(district); }
+    if(school)   { sql += " AND school=?";   params.push(school); }
+    if (grade !== '' && grade !== undefined) { sql += " AND grade=?"; params.push(grade); }
+    if(year)     { sql += " AND year=?";     params.push(year); }
+    if(semester) { sql += " AND semester=?"; params.push(semester); }
+    if(level)    { sql += " AND level=?";    params.push(level); }
+    sql += " ORDER BY uploaded_at DESC";
 
-    const type = req.query.type;
-    let filename = null, ext = null;
-    if (type === 'pdf') {
-      filename = pdf_filename;
-      ext = '.pdf';
-    } else {
-      filename = hwp_filename;
-      ext = '.hwp';
-      if (filename && filename.endsWith('.hwpx')) ext = '.hwpx';
-    }
+    const [rows] = await db.query(sql, params);
 
-    if (!filename) return res.status(404).send('해당 형식 파일 없음');
+    // ⬇ 필요한 정보만 응답, S3 키는 빼고 Boolean만 제공
+    const sanitized = rows.map(r => ({
+      id: r.id,
+      region: r.region,
+      district: r.district,
+      school: r.school,
+      grade: r.grade,
+      year: r.year,
+      semester: r.semester,
+      title: r.title,
+      level: r.level,
+      uploaded_at: r.uploaded_at,
+      files: {
+        pdf: !!r.pdf_filename,
+        hwp: !!r.hwp_filename
+      }
+    }));
 
-    const downloadFileName = `${title}${ext}`;
-    const signed = s3.getSignedUrl('getObject', {
-      Bucket: process.env.AWS_S3_BUCKET,
-      Key: filename,
-      Expires: 60,
-      ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(downloadFileName)}`
-    });
-
-    return res.redirect(signed);
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+    res.json(sanitized);
   } catch (e) {
-    console.error('다운로드 오류:', e);
-    res.status(500).send('다운로드 오류');
+    res.status(500).json({ message: 'DB 오류', error: e.message });
   }
 });
+
+// 파일 다운로드 (사용자)
+app.get(
+  '/api/download/:id',
+  downloadLimiter,   // ⬅ ① 남용 방지
+  numericIdParam,    // ⬅ ② id 형식 검사
+  isLoggedIn,
+  verifyOrigin,
+  async (req, res) => {
+    const user = req.session.user;
+    if (!user) return res.status(403).send('권한이 없습니다.');
+
+    // DB에서 구독/권한 확인
+    const [[dbUser]] = await db.query(
+      'SELECT is_subscribed, role FROM users WHERE id=?',
+      [user.id]
+    );
+    if (!(dbUser.role === 'admin' || dbUser.is_subscribed == 1)) {
+      return res.status(403).send('권한이 없습니다.');
+    }
+
+    try {
+      const [rows] = await db.query(
+        'SELECT hwp_filename, pdf_filename, title FROM files WHERE id=?',
+        [req.params.id]
+      );
+      if (!rows.length) return res.status(404).send('파일 없음');
+      const { hwp_filename, pdf_filename, title } = rows[0];
+
+      const type = req.query.type;
+      let key = null, ext = null;
+      if (type === 'pdf') {
+        key = pdf_filename;  ext = '.pdf';
+      } else {
+        key = hwp_filename;  ext = '.hwp';
+        if (key && key.endsWith('.hwpx')) ext = '.hwpx';
+      }
+      if (!key) return res.status(404).send('해당 형식 파일 없음');
+
+      // ⬅ ③ 캐시/검색엔진 차단
+      res.set('Cache-Control', 'no-store');
+      res.set('X-Robots-Tag', 'noindex, nofollow');
+
+      const downloadFileName = `${title}${ext}`;
+      const signed = s3.getSignedUrl('getObject', {
+        Bucket: process.env.AWS_S3_BUCKET,
+        Key: key,
+        Expires: 60,
+        ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(downloadFileName)}`
+      });
+
+      return res.redirect(302, signed);
+    } catch (e) {
+      console.error('다운로드 오류:', e);
+      return res.status(500).send('다운로드 오류');
+    }
+  }
+);
 
 
       // 파일 정보 수정 (관리자)
@@ -726,7 +846,7 @@ if (!(dbUser.role === 'admin' || dbUser.is_subscribed == 1)) {
       }
     });
 // 문의/업로드 글 등록 (POST /api/board)
-app.post('/api/board',  fileUpload.array('fileInput', 10), async (req, res) => {
+app.post('/api/board', isLoggedIn, verifyOrigin, fileUpload.array('fileInput', 10), async (req, res) => {
   try {
     const { boardType, title, password, content } = req.body;
     // 첨부파일명(여러개 콤마로)
@@ -766,30 +886,94 @@ app.get('/api/my-uploads', isLoggedIn, async (req, res) => {
   }
 });
 
-// 게시판 목록 (GET /api/board?type=ask OR type=upload)
-app.get('/api/board', async (req, res) => {
+// ✅ 게시판 목록 (키 노출 금지 + 로그인 보호)
+app.get('/api/board', isLoggedIn, verifyOrigin, async (req, res) => {
   try {
-    const type = req.query.type; // 'ask' or 'upload'
+    const type = req.query.type; // 'ask' | 'upload' 등
     const [rows] = await db.query(
-      'SELECT id, title, created_at, files FROM board WHERE boardType=? ORDER BY id DESC',
+      'SELECT id, title, content, created_at, files FROM board WHERE boardType=? ORDER BY id DESC',
       [type]
     );
-    res.json(rows);
+
+    // files(키 문자열) → 존재 여부 Boolean으로 축소
+    const sanitized = rows.map(r => ({
+      id: r.id,
+      title: r.title,
+      // 필요하면 content 요약/삭제 가능
+      created_at: r.created_at,
+      files: { exists: !!(r.files && r.files.trim().length) }
+    }));
+
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+    res.json(sanitized);
   } catch (e) {
     res.status(500).json({ message: '게시글 목록 오류', error: e.message });
   }
 });
 
-// 게시글 상세조회 (GET /api/board/:id)
-app.get('/api/board/:id', async (req, res) => {
+// ✅ 게시글 상세 (키 노출 금지 + 로그인 보호)
+app.get('/api/board/:id', isLoggedIn, verifyOrigin, async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM board WHERE id=?', [req.params.id]);
-    if (rows.length) res.json(rows[0]);
-    else res.status(404).json({ message: '글 없음' });
+    const [[row]] = await db.query('SELECT * FROM board WHERE id=?', [req.params.id]);
+    if (!row) return res.status(404).json({ message: '글 없음' });
+
+    const hasFiles = !!(row.files && row.files.trim().length);
+
+    // files(키 문자열) 제거 → 최소 정보만
+    const sanitized = {
+      id: row.id,
+      title: row.title,
+      content: row.content,
+      created_at: row.created_at,
+      files: { exists: hasFiles }
+    };
+
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+    res.json(sanitized);
   } catch (e) {
-    res.status(500).json({ message: '글 상세 오류', error: e.message });
+    res.status(500).json({ message: '게시글 상세 오류', error: e.message });
   }
 });
+
+// ✅ 게시판 첨부 다운로드 (키 노출 없이 302로 S3 이동)
+app.get('/api/board/:id/attachment/:idx',
+  isLoggedIn,           // 로그인 필수
+  verifyOrigin,         // 허용 도메인만
+  boardDownloadLimiter, // 남용 방지
+  numericIdxParam,      // idx 유효성
+  async (req, res) => {
+    const postId = Number(req.params.id);
+    const idx = Number(req.params.idx);
+
+    const [[row]] = await db.query('SELECT title, files FROM board WHERE id=?', [postId]);
+    if (!row) return res.status(404).send('글 없음');
+
+    const keys = (row.files || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const key = keys[idx];
+    if (!key) return res.status(404).send('첨부 없음');
+
+    // (옵션) 작성자/관리자만 허용하려면 여기서 추가 검증
+
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+
+    const fileName = `${row.title || 'attachment'}-${idx + 1}`;
+    const signed = s3.getSignedUrl('getObject', {
+      Bucket: process.env.AWS_S3_BUCKET,
+      Key: key,
+      Expires: 60,
+      ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`
+    });
+
+    return res.redirect(302, signed);
+  }
+);
 
 // ── 관리자 전용 업로드 리스트 조회 ──
 // GET /api/admin/uploads
@@ -1011,7 +1195,7 @@ app.post('/api/board_secure', fileUpload.array('fileInput', 10), async (req, res
   }
 });
 
-app.get('/api/board_secure', async (req, res) => {
+app.get('/api/board_secure', isLoggedIn, verifyOrigin, async (req, res) => {
   try {
     const type = req.query.type; // 예: 'notice' 등
     const [rows] = await db.query(
@@ -1024,23 +1208,32 @@ app.get('/api/board_secure', async (req, res) => {
   }
 });
 
+// ✅ 보안 게시판 비번 검증 (S3 key 제거, Boolean만 내려줌)
 app.post('/api/board_secure/:id/checkpw', async (req, res) => {
   try {
     const { password } = req.body;
     const [[row]] = await db.query('SELECT * FROM board_secure WHERE id=?', [req.params.id]);
+
     if (!row) return res.status(404).json({ message: '글 없음' });
-
-    // 관리자
-    if (req.session.user?.role === 'admin') {
-      return res.json({ success: true, data: row });
-    }
-
     const isMatch = await bcrypt.compare(password, row.password);
-    if (!isMatch) return res.status(403).json({ message: '비밀번호 불일치' });
+    if (!isMatch) return res.status(403).json({ message: '비밀번호 틀림' });
 
-    res.json({ success: true, data: row });
+    // files 컬럼은 key 대신 "존재 여부만" 내려줌
+    const hasFiles = !!(row.files && row.files.trim().length);
+
+    const sanitized = {
+      id: row.id,
+      title: row.title,
+      content: row.content,
+      created_at: row.created_at,
+      files: { exists: hasFiles }
+    };
+
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+    return res.json(sanitized);
   } catch (e) {
-    res.status(500).json({ message: '비밀번호 확인 오류', error: e.message });
+    res.status(500).json({ message: '비번 검증 오류', error: e.message });
   }
 });
 
@@ -1065,6 +1258,44 @@ app.post('/api/board_secure/:id/delete', async (req, res) => {
     res.status(500).json({ message: '보안 글 삭제 오류', error: e.message });
   }
 });
+
+// ✅ 보안 게시판 첨부 다운로드 (비번 검증된 사용자/관리자만 쓰게 하려면 추가 검증 가능)
+app.get('/api/board_secure/:id/attachment/:idx',
+  isLoggedIn,
+  verifyOrigin,
+  boardDownloadLimiter, // 이미 위에서 선언한 rateLimit 재사용
+  numericIdxParam,      // 이미 위에서 선언한 idx 숫자 검증 함수 재사용
+  async (req, res) => {
+    const postId = Number(req.params.id);
+    const idx = Number(req.params.idx);
+
+    const [[row]] = await db.query('SELECT title, files FROM board_secure WHERE id=?', [postId]);
+    if (!row) return res.status(404).send('글 없음');
+
+    const keys = (row.files || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const key = keys[idx];
+    if (!key) return res.status(404).send('첨부 없음');
+
+    // (옵션) 작성자/관리자만 허용할지 등 추가 검증 가능
+
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+
+    const fileName = `${row.title || 'attachment'}-${idx + 1}`;
+    const signed = s3.getSignedUrl('getObject', {
+      Bucket: process.env.AWS_S3_BUCKET,
+      Key: key,
+      Expires: 60,
+      ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`
+    });
+
+    return res.redirect(302, signed);
+  }
+);
 
 
  // ――― 프로필 사진 업로드 ―――
@@ -1127,7 +1358,7 @@ app.post(
 });
 
 // 최근 업로드 10개를 반환하는 API
-app.get('/api/uploads/recent', async (req, res) => {
+app.get('/api/uploads/recent', isLoggedIn, verifyOrigin, async (req, res) => {
   try {
     // files 테이블에서 최신 10개의 파일명(title), 업로드일(uploaded_at)만 뽑기
     const [rows] = await db.query(
@@ -1142,7 +1373,7 @@ app.get('/api/uploads/recent', async (req, res) => {
   }
 });
 
-app.post('/api/save-academy-address', async (req, res) => {
+app.post('/api/save-academy-address', isLoggedIn, async (req, res) => {
   const userId = req.session.user?.id;
   const { address } = req.body;
   if (!userId || !address) return res.json({ success: false });
@@ -1228,20 +1459,22 @@ app.post('/api/admin/payment-complete', isLoggedIn, isAdmin, async (req, res) =>
 // server.js (Express)
 app.get(
   '/api/admin/uploads/:id/download',
-  isLoggedIn, isAdmin, verifyOrigin,  // 여기에 verifyOrigin 추가!
+  isLoggedIn, isAdmin, verifyOrigin,
   async (req, res, next) => {
     try {
-      // uploads 테이블에서 꺼내기
       const [[row]] = await db.query(
         'SELECT s3_key, filename FROM uploads WHERE id = ?',
         [req.params.id]
       );
       if (!row) return res.status(404).send('업로드 없음');
 
-      const key = row.s3_key;        // S3 저장 키
-      const origName = row.filename; // 사용자가 업로드한 원본 파일명
+      const key = row.s3_key;
+      const origName = row.filename;
 
-      // S3로부터 signed URL 생성
+      // ⬇ 여기 추가
+      res.set('Cache-Control', 'no-store');
+      res.set('X-Robots-Tag', 'noindex, nofollow');
+
       const signedUrl = s3.getSignedUrl('getObject', {
         Bucket: process.env.AWS_S3_BUCKET,
         Key: key,
@@ -1263,6 +1496,54 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`서버 실행 http://localhost:${PORT}`);
 });
+
+// ──────────────────────────────────────
+//  정적 HTML “주소창 직접 접근” 제어  ※ express.static 위에 위치
+// ──────────────────────────────────────
+const PUBLIC_PAGES = [
+  'login.html', 'resetpw.html', 'signup.html'
+];
+
+const MEMBER_ONLY_PAGES = [
+  'index.html', 'home.html', 'problem_bank.html',
+  'high.html', 'middle.html', 'bookcase.html',
+  'upload.html', 'notice.html', 'profile.html'
+];
+
+const ADMIN_PAGES = [
+  'admin.html', 'admin_files.html', 'admin_Membership.html',
+  'admin_payment.html', 'admin_upload_review.html',
+  'admin_review.html' // ← 추가
+];
+
+
+// 공개: 누구나 접근
+for (const page of PUBLIC_PAGES) {
+  app.get('/' + page, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', page));
+  });
+}
+
+// 회원 전용: 로그인 필요
+for (const page of MEMBER_ONLY_PAGES) {
+  app.get('/' + page, isLoggedIn, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', page));
+  });
+}
+
+// 관리자 전용
+for (const page of ADMIN_PAGES) {
+  app.get('/' + page, isLoggedIn, isAdmin, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', page));
+  });
+}
+
+// 루트 접근: 미로그인 → 로그인 페이지로
+app.get('/', (req, res) => {
+  if (!req.session?.user) return res.redirect('/login.html');
+  return res.redirect('/index.html'); // 필요 시 home.html 등으로 변경
+});
+
 
  app.use(
    express.static(path.join(__dirname, 'public'), {
