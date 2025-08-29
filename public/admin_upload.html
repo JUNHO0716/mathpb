@@ -1,178 +1,213 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <meta name="robots" content="noindex, nofollow">
   <meta charset="UTF-8" />
-  <title>자료 업로드(관리자)</title>
+  <title>자료 관리(관리자)</title>
   <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:700,400&display=swap" rel="stylesheet">
   <style>
-    body {
+    body { background: #f5f5f7; font-family: 'Noto Sans KR', Arial, sans-serif; }
+    .admin-table-box {
+      max-width: 1480px;   /* ✅ 더 넓게 */
+      margin: 50px auto 0;
       background: #fff;
-      font-family: 'Noto Sans KR', Arial, sans-serif;
-      margin: 0;
-    }
-    .upload-wrap {
-   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 38px;
-  min-height: 100vh;
-  padding: 0;
-  background: #fff;
-    }
-    .upload-card {
-      background: #181818;
-      color: #fff;
       border-radius: 22px;
-      box-shadow: 0 4px 18px #0001;
-      padding: 32px 26px 28px 26px;
-      width: 370px;   /* 크기 줄임 */
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+      box-shadow: 0 4px 32px #0001;
+      padding: 38px 36px 40px 36px;
     }
-    .upload-card h2 {
+    h2 {
+      margin-bottom: 30px;
       text-align: left;
+      font-size: 1.48rem;  /* 글씨 약간 축소 */
+      font-weight: 900;
+      color: #181818;
+      letter-spacing: -2px;
+    }
+    .search-bar {
+      display: flex;
+      gap: 10px;
       margin-bottom: 20px;
-      letter-spacing: -1.5px;
-      font-size: 1.19rem;
-      font-weight: 800;
+      justify-content: flex-end;
+      align-items: center;
+      flex-wrap: wrap;
     }
-    .upload-card input,
-    .upload-card select {
-      width: 100%;
-      margin-bottom: 10px;
-      padding: 10px 10px;
-      border: none;
+    .search-bar select,
+    .search-bar input {
+      background: #fafafc;
+      border: 1.5px solid #d3d4da;
       border-radius: 8px;
-      font-size: 1rem;
-      box-sizing: border-box;
-      background: #232323;
-      color: #fff;
+      padding: 8px 10px;
+      font-size: 0.95rem;   /* 글씨 약간 축소 */
+      color: #222;
+      outline: none;
+      transition: border 0.13s;
+      min-width: 82px;
+      margin-bottom: 3px;
     }
-    .upload-card input::placeholder { color: #b7b7b7; }
-    .upload-card input[type="file"] { display: none; }
-    /* 설명문구 폰트 아주 작게 */
-    .file-desc {
-      font-size: 0.6rem !important;
-      color: #ffc400;
-      margin: 5px 0 11px 0;
-      line-height: 1.5;
-      word-break: keep-all;
+    .search-bar input[type="number"] {
+      width: 70px;
+      min-width: 60px;
     }
-    /* 드래그 드롭 영역 스타일 */
-    .drop-zone {
-      width: 100%;
-      padding: 26px 0;
-      margin-bottom: 17px;
-      background: #252525;
-      border-radius: 10px;
-      color: #ffc400;
-      text-align: center;
-      font-weight: bold;
-      border: 1.5px dashed #ffc400bb;
-      transition: background 0.18s, border 0.18s;
-      cursor: pointer;
-      user-select: none;
-      font-size: 1.03rem;
+    .search-bar select:focus, .search-bar input:focus {
+      border-color: #ffc400;
+      background: #fffbe9;
     }
-    .drop-zone.dragover {
-      background: #212121;
-      border-color: #ffe46e;
-      color: #ffe46e;
-    }
-    .upload-card button {
-      width: 100%;
+    .search-bar button {
       background: #ffc400;
       color: #181818;
       border: none;
       border-radius: 8px;
-      padding: 13px 0;
-      font-size: 1.03rem;
+      padding: 8px 20px;
+      font-size: 0.96rem;
       font-weight: bold;
-      margin-top: 7px;
       cursor: pointer;
-      box-shadow: 0 2px 7px #ffc40018;
-      letter-spacing: 0.05em;
+      margin-bottom: 3px;
+      box-shadow: 0 2px 7px #ffc40011;
+      letter-spacing: 0.03em;
       transition: background 0.16s;
     }
-    .upload-card button:active { background: #e0ad00; }
-    /* 오른쪽 파일목록 카드 */
-    .filelist-card {
-      background: #fff;
-      border-radius: 22px;
-      box-shadow: 0 4px 16px #1112;
-      padding: 36px 32px 24px 32px;
-      min-width: 420px;
-      width: 520px;
+    .search-bar button:last-child {
+      background: #ececec;
       color: #222;
+      margin-left: 4px;
+      border: 1px solid #dedede;
+      font-weight: 500;
     }
-    .filelist-title {
-      font-size: 1.09rem;
-      font-weight: 700;
-      margin-bottom: 12px;
-      letter-spacing: -0.8px;
-      color: #111;
+    .search-bar button:active { background: #ffd54f; }
+    .msg { text-align: center; margin-top: 8px; font-size: 0.98rem; color: #181818; }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 10px;
+      background: #fff;
+      border-radius: 14px;
+      overflow: hidden;
+      font-size: 0.97rem;   /* 글씨 약간 축소 */
+      table-layout: fixed;
+      word-break: keep-all;
     }
-    .file-list-row {
-      display: flex; align-items: center; gap: 9px;
-      margin-bottom: 11px; padding: 2px 0;
-      font-size: 1.01rem;
-      border-bottom: 1px solid #f4f4f4;
-    }
-    .file-icon { width: 22px; height: 22px; margin-right:6px; }
-    .file-name {
-      flex: 1;
+    th, td {
+      padding: 8px 7px;
+      text-align: center;
+      font-size: 0.97rem;    /* 글씨 약간 축소 */
+      border-bottom: 1.1px solid #f1f1f3;
+      word-break: keep-all;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      color: #232323;
     }
-    .file-size-x {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      min-width: 70px;
+    th {
+      background: #181818;
+      color: #fff;
+      font-weight: 800;
+      font-size: 1rem;
+      letter-spacing: 0.01em;
+      border-bottom: 2.2px solid #ffc400;
     }
-    .file-size {
-      color: #b6b6b6;
-      font-size: 0.97rem;
-      white-space: nowrap;
+    tr:last-child td { border-bottom: none; }
+    td {
+      color: #212327;
+      background: #fff;
+      transition: background 0.14s;
+      vertical-align: middle;
     }
-    .file-xbtn {
-      color: #888;
-      background: none;
-      border: none;
-      font-size: 1.1rem;
+    tr:hover td {
+      background: #fffbe8 !important;
+      transition: background 0.16s;
+    }
+    /* 다운로드 버튼만 남기고, 노란색 */
+    .download-btn {
+      background: #fffbe8;
+      color: #ffa900;
+      border: 1.5px solid #ffd54f;
+      border-radius: 6px;
+      padding: 5px 14px;
       cursor: pointer;
-      line-height: 1;
-      padding: 0 3px;
-      margin-left: 8px;
-      opacity: 0.72;
-      border-radius: 3px;
-      transition: color 0.15s, opacity 0.14s;
+      font-size: 0.95rem;
+      font-weight: bold;
+      transition: background 0.12s, color 0.12s, border 0.12s;
+      vertical-align: middle;
+      margin: 0 2px;
+      min-width: 72px;
     }
-    .file-xbtn:hover {
-      color: #ff3535;
-      opacity: 1;
-      background: none;
+    .download-btn:hover {
+      background: #fffde2;
+      color: #181818;
+      border-color: #ffc400;
     }
-    .msg { text-align:center; margin-top:16px; font-size:1rem; color:#111; }
-    @media (max-width: 800px) {
-      .upload-wrap { flex-direction: column; align-items: stretch; gap: 24px; }
-      .upload-card, .filelist-card { width: 96vw; min-width: 0; }
-      .filelist-card { padding: 26px 12px 18px 12px; }
-      .upload-card { padding: 20px 5vw 15px 5vw; }
+    /* 관리 버튼 */
+    .delete-btn, .edit-btn {
+      background: #181818;
+      color: #ffc400;
+      border: none;
+      border-radius: 7px;
+      padding: 5px 13px;
+      cursor: pointer;
+      font-size: 0.92rem;
+      font-weight: bold;
+      margin: 0 1.5px;
+      transition: background .12s, color .12s;
+      letter-spacing: 0.02em;
+      min-width: 50px;
+    }
+    .edit-btn { background: #ffc400; color: #181818; }
+    .edit-btn:hover { background: #ffe46e; }
+    .delete-btn:hover { background: #2d2d2d; color: #ff5353; }
+    .delete-btn:disabled, .edit-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    /* 반응형 */
+    @media (max-width: 1200px) {
+      .admin-table-box { max-width: 99vw; padding: 14px 2vw 16px 2vw; }
+      table, th, td { font-size: 0.93rem; }
+      th, td { padding: 6px 2px; }
+    }
+    @media (max-width: 950px) {
+      .admin-table-box { padding: 8px 1vw 10px 1vw; }
+      .search-bar { flex-direction: column; gap: 4px; align-items: stretch; }
+      table, th, td { font-size: 0.89rem; }
+      th, td { padding: 4px 1px; }
     }
   </style>
 </head>
 <body>
-  <div class="upload-wrap">
-    <!-- 왼쪽 카드(입력폼) -->
-    <div class="upload-card">
-      <h2>기출자료 업로드</h2>
-      <form id="upload-form">
-        <select name="level" id="level" required>
+  <div class="admin-table-box">
+    <h2>자료 관리 (관리자)</h2>
+    <div class="search-bar">
+      <select id="search-level"><option value="">관 전체</option><option>중등</option><option>고등</option></select>
+      <select id="search-region"><option value="">지역 전체</option><option>서울</option><option>경기</option><option>인천</option><option>부산</option><option>대구</option><option>광주</option><option>대전</option><option>기타</option></select>
+      <input id="search-school" placeholder="학교명" style="width:95px;" />
+      <input id="search-title"  placeholder="자료명" style="width:95px;" />
+      <input id="search-year"   placeholder="연도"   style="width:70px;" type="number"/>
+      <button onclick="doSearch()">검색</button>
+      <button onclick="resetSearch()" style="margin-left:2px;">초기화</button>
+    </div>
+    <div class="msg" id="msg"></div>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 55px;">ID</th>
+          <th style="width: 65px;">관</th>
+          <th style="width: 75px;">지역</th>
+          <th style="width: 85px;">구/군</th>
+          <th style="width: 155px;">학교</th>
+          <th style="width: 65px;">학년</th>
+          <th style="width: 70px;">연도</th>
+          <th style="width: 95px;">학기</th>
+          <th style="width: 260px;">제목</th>
+          <th style="width: 105px;">한글</th>
+          <th style="width: 105px;">PDF</th>
+          <th style="width: 98px;">관리</th>
+        </tr>
+      </thead>
+      <tbody id="file-list"><!-- JS로 채움 --></tbody>
+    </table>
+  </div>
+  <div id="edit-bg">
+    <div class="modal-box">
+      <h3 style="margin-top:0">자료 정보 수정</h3>
+      <form id="edit-form" enctype="multipart/form-data">
+        <select name="level" required>
           <option value="">관 선택</option>
           <option value="중등">중등</option>
           <option value="고등">고등</option>
@@ -188,12 +223,18 @@
           <option>대전</option>
           <option>기타</option>
         </select>
-        <input name="district" placeholder="구/군 (예: 강남구, 부평구 등)" required />
-        <input name="school" placeholder="학교명" required />
-        <select name="grade" id="grade" required>
+        <input name="district"  placeholder="구/군"         required />
+        <input name="school"    placeholder="학교"          required />
+        <select name="grade" required>
           <option value="">학년</option>
+          <option>중1</option>
+          <option>중2</option>
+          <option>중3</option>
+          <option>고1</option>
+          <option>고2</option>
+          <option>고3</option>
         </select>
-        <input name="year" placeholder="연도 (예: 2024)" type="number" required />
+        <input name="year"      type="number" placeholder="연도" required />
         <select name="semester" required>
           <option value="">학기</option>
           <option>1학기중간</option>
@@ -201,150 +242,149 @@
           <option>2학기중간</option>
           <option>2학기기말</option>
         </select>
-        <input name="title" placeholder="자료제목 (예: 1학기 중간고사 수학)" required />
-
-        <div class="file-desc">
-          ※ <b>한글파일(.hwp/.hwpx), PDF(.pdf) 각각 1개씩 업로드 가능</b><br>
-          (둘 중 하나만 업로드해도 됩니다. 여러 파일 동시 선택 시 자동 분류)
+        <input name="title"     placeholder="제목"          required />
+        <div style="font-size:.9rem;margin:4px 0 2px;">파일 교체(선택)</div>
+        <input name="files" type="file" multiple />
+        <div style="text-align:right;margin-top:12px;">
+          <button type="button" onclick="closeEdit()" style="margin-right:6px;">취소</button>
+          <button type="submit" id="edit-save-btn" style="background:#28b663;color:#fff;border:none;padding:6px 14px;border-radius:6px;">저장</button>
         </div>
-        <div class="drop-zone" id="drop-zone">파일 선택 또는 드래그 앤 드롭</div>
-        <input name="files" id="files-input" type="file" multiple required />
-        <button type="submit">자료 업로드</button>
       </form>
-      <div class="msg" id="msg"></div>
     </div>
-    <!-- 오른쪽 카드(파일리스트+삭제) -->
-    <div class="filelist-card">
-      <div class="filelist-title">업로드할 파일 목록</div>
-      <div id="file-list-box"></div>
+  </div>
+  <div class="preview-bg" id="preview-bg">
+    <div class="preview-content" id="preview-content">
+      <button onclick="closePreview()" style="float:right;font-size:1.1rem;background:none;border:none;color:#f45a6a;">✕</button>
+      <div id="preview-body"></div>
     </div>
   </div>
   <script>
-    // grade 동적 생성
-    const gradeSelect = document.getElementById('grade');
-    const levelSelect = document.getElementById('level');
-    function setGradeOptions(level) {
-      let opts = ['<option value="">학년</option>'];
-      if (level === '중등') {
-        opts.push('<option>중1</option>','<option>중2</option>','<option>중3</option>');
-      } else if (level === '고등') {
-        opts.push('<option>고1</option>','<option>고2</option>','<option>고3</option>');
+    // JS는 100% 그대로, 버튼만 수정
+    let fileListOrigin = [];
+    let editTargetId   = null;
+    async function fetchFiles(){
+      const res  = await fetch('/api/files',{credentials:'include'});
+      if(res.status===401){
+        alert('로그인 필요!'); location.href='/login.html'; return;
       }
-      gradeSelect.innerHTML = opts.join('');
+      const list = await res.json();
+      fileListOrigin = list;
+      renderTable(list);
     }
-    levelSelect.addEventListener('change', e => setGradeOptions(e.target.value));
-    setGradeOptions('');
-
-    // 파일 누적 관리 배열
-    let fileArr = [];
-    const input = document.getElementById('files-input');
-    const fileListBox = document.getElementById('file-list-box');
-
-    // input 파일 추가시 누적
-    input.addEventListener('change', function(e) {
-      const newFiles = Array.from(input.files);
-      // 기존 배열에 중복없이 누적 (이름+사이즈 기준)
-      for (const nf of newFiles) {
-        if (!fileArr.some(f => f.name === nf.name && f.size === nf.size)) {
-          fileArr.push(nf);
-        }
-      }
-      updateInputFiles();
-      renderFileList();
-    });
-
-    // 드래그앤드롭
-    const dropZone = document.getElementById('drop-zone');
-    dropZone.addEventListener('click', () => input.click());
-    dropZone.addEventListener('dragover', e => {
-      e.preventDefault();
-      dropZone.classList.add('dragover');
-    });
-    dropZone.addEventListener('dragleave', e => {
-      e.preventDefault();
-      dropZone.classList.remove('dragover');
-    });
-    dropZone.addEventListener('drop', e => {
-      e.preventDefault();
-      dropZone.classList.remove('dragover');
-      const newFiles = Array.from(e.dataTransfer.files);
-      for (const nf of newFiles) {
-        if (!fileArr.some(f => f.name === nf.name && f.size === nf.size)) {
-          fileArr.push(nf);
-        }
-      }
-      updateInputFiles();
-      renderFileList();
-    });
-
-    // 파일리스트 그리기
-    function renderFileList() {
-      if (!fileArr.length) {
-        fileListBox.innerHTML = '<div style="color:#bbb;">선택된 파일 없음</div>';
+    function renderTable(list){
+      const tbody = document.getElementById('file-list');
+      if(!list.length){
+        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;color:#bbb;">자료가 없습니다</td></tr>`;
         return;
       }
-      fileListBox.innerHTML = fileArr.map((f, i) => `
-        <div class="file-list-row">
-          ${getFileIcon(f.name)}
-          <span class="file-name">${f.name}</span>
-          <span class="file-size-x">
-            <span class="file-size">${(f.size/1024).toFixed(1)}KB</span>
-            <button type="button" class="file-xbtn" onclick="removeFile(${i})">✕</button>
-          </span>
-        </div>
+      tbody.innerHTML = list.map(r=>`
+        <tr>
+          <td>${r.id}</td>
+          <td>${r.level||'-'}</td>
+          <td>${r.region}</td>
+          <td>${r.district}</td>
+          <td>${r.school}</td>
+          <td>${r.grade}</td>
+          <td>${r.year}</td>
+          <td>${r.semester}</td>
+          <td>${r.title}</td>
+          <td>
+            ${r.hwp_filename ? `
+              <a href="/download/${r.id}?type=hwp" class="download-btn" target="_blank">다운로드</a>
+            ` : '-'}
+          </td>
+          <td>
+            ${r.pdf_filename ? `
+              <a href="/download/${r.id}?type=pdf" class="download-btn" target="_blank">다운로드</a>
+            ` : '-'}
+          </td>
+          <td>
+            <button class="edit-btn"   onclick="editFile(${r.id})">수정</button>
+            <button class="delete-btn" onclick="deleteFile(${r.id},this)">삭제</button>
+          </td>
+        </tr>
       `).join('');
     }
-
-    // 파일 확장자별 아이콘 반환
-    function getFileIcon(name) {
-      const ext = name.split('.').pop().toLowerCase();
-      if (ext === 'hwp' || ext === 'hwpx')
-        return `<img src="hwp_btn.png" class="file-icon" alt="HWP">`;
-      if (ext === 'pdf')
-        return `<img src="pdf_btn.png" class="file-icon" alt="PDF">`;
-      if (['jpg','jpeg','png','gif','bmp'].includes(ext))
-        return `<img src="img_icon.png" class="file-icon" alt="IMG">`;
-      return `<img src="file_icon.png" class="file-icon" alt="FILE">`;
+    function doSearch(){
+      let level = document.getElementById('search-level').value;
+      let region= document.getElementById('search-region').value;
+      let school= document.getElementById('search-school').value.trim();
+      let title = document.getElementById('search-title').value.trim();
+      let year  = document.getElementById('search-year').value.trim();
+      let filtered = fileListOrigin.filter(r=>
+        (!level || r.level===level) &&
+        (!region|| r.region===region) &&
+        (!school|| (r.school && r.school.includes(school))) &&
+        (!title || (r.title  && r.title.includes(title))) &&
+        (!year  || String(r.year).includes(year))
+      );
+      renderTable(filtered);
     }
-
-    // 삭제 기능
-    window.removeFile = function(idx) {
-      fileArr.splice(idx, 1);
-      updateInputFiles();
-      renderFileList();
-    };
-
-    // fileArr -> input.files 동기화
-    function updateInputFiles() {
-      const dt = new DataTransfer();
-      fileArr.forEach(f => dt.items.add(f));
-      input.files = dt.files;
+    function resetSearch(){
+      document.getElementById('search-level').value = '';
+      document.getElementById('search-region').value = '';
+      document.getElementById('search-school').value = '';
+      document.getElementById('search-title').value = '';
+      document.getElementById('search-year').value = '';
+      renderTable(fileListOrigin);
     }
-
-    // 업로드 폼 전송
-    document.getElementById('upload-form').onsubmit = async function(e){
-      e.preventDefault();
-      const form = e.target;
-      const data = new FormData(form);
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: data
-      });
-      const msg = document.getElementById('msg');
-      if(res.ok){
-        msg.textContent = '업로드 완료!';
-        form.reset();
-        fileArr = [];
-        updateInputFiles();
-        renderFileList();
-      }else{
-        const result = await res.json();
-        msg.textContent = result.message || '업로드 실패';
+    async function deleteFile(id,btn){
+      if(!confirm('정말 삭제하시겠습니까?')) return;
+      btn.disabled = true;
+      try{
+        const res = await fetch('/api/files/'+id,{method:'DELETE',credentials:'include'});
+        if(res.status===401){ alert('로그인 필요!'); location.href='/login.html'; return; }
+        const r   = await res.json();
+        document.getElementById('msg').textContent = r.message || r.msg;
+        fetchFiles();
+      }catch(e){
+        document.getElementById('msg').textContent = '삭제 오류';
       }
-    };
-
-    // 최초 진입시 파일리스트 표시
-    renderFileList();
+      btn.disabled = false;
+    }
+    function editFile(id){
+      editTargetId = id;
+      const row    = fileListOrigin.find(r=>r.id===id);
+      const form   = document.getElementById('edit-form');
+      form.level.value    = row.level;
+      form.region.value   = row.region;
+      form.district.value = row.district;
+      form.school.value   = row.school;
+      form.grade.value    = row.grade;
+      form.year.value     = row.year;
+      form.semester.value = row.semester;
+      form.title.value    = row.title;
+      form.files.value    = '';
+      document.getElementById('edit-bg').style.display='flex';
+    }
+    function closeEdit(){
+      document.getElementById('edit-bg').style.display='none';
+      document.getElementById('edit-form').reset();
+    }
+    document.getElementById('edit-form').onsubmit = async function(e){
+      e.preventDefault();
+      const btn = document.getElementById('edit-save-btn');
+      btn.disabled = true;
+      const fd  = new FormData(e.target);
+      const res = await fetch('/api/files/'+editTargetId,{
+        method:'PUT',
+        body:fd,
+        credentials:'include'
+      });
+      const r = await res.json();
+      document.getElementById('msg').textContent = r.message||r.msg;
+      btn.disabled = false;
+      closeEdit();
+      fetchFiles();
+    }
+    function previewFile(filename){
+      // 이 함수는 더 이상 호출되지 않으나 미리보기 삭제 요청에 따라 내용 그대로 둡니다.
+    }
+    function closePreview(){
+      document.getElementById('preview-bg').style.display='none';
+      document.getElementById('preview-body').innerHTML='';
+    }
+    fetchFiles();
   </script>
 </body>
 </html>

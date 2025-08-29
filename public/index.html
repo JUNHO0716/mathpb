@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+  <meta name="robots" content="noindex, nofollow">
   <meta charset="UTF-8">
-  <title>Mathbee</title>
+  <title>대시보드</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="/favicon.png" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -429,7 +430,7 @@
 /* ===== 안내 모달 (Intro Modal) ===== */
 .intro-overlay{position:fixed;inset:0;background:rgba(0,0,0,.38);display:none;align-items:center;justify-content:center;z-index:10000}
 .intro-overlay.show{display:flex}
-.intro-modal{width:min(760px,92vw);background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.22);overflow:hidden;transform:translateY(8px);opacity:0;animation:introPop .28s ease-out .02s forwards}
+.intro-modal{width:min(920px,95vw);background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.22);overflow:hidden;transform:translateY(8px);opacity:0;animation:introPop .28s ease-out .02s forwards}
 @keyframes introPop{to{opacity:1;transform:translateY(0)}}
 
 .intro-head{display:flex;gap:14px;align-items:center;padding:22px 24px;border-bottom:1px solid var(--border-light)}
@@ -465,6 +466,21 @@
 .btn-primary:hover{background:var(--btn-bg-hov)}
 .intro-close{position:absolute;top:10px;right:12px;border:none;background:none;font-size:1.6rem;color:#bbb;cursor:pointer}
 .intro-close:hover{color:#111}
+
+/* ----- intro-list: 제목 줄 + 설명 줄 레이아웃 ----- */
+.intro-list-dot li{margin:10px 0 12px}
+.intro-list-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.intro-list-desc{color:#555;font-size:.93rem;line-height:1.55;margin-left:16px}
+
+/* 점(노란 동그라미) 크기 살짝 키움 */
+.intro-list-dot .intro-dot{width:9px;height:9px}
+
+.intro-note {
+  font-size: 0.6rem;   /* 기본보다 약 3pt 정도 작게 */
+  color: #666;         /* 연한 회색 톤 */
+  line-height: 1.5;
+  margin-top: 6px;
+}
 
 
   </style>
@@ -967,18 +983,47 @@ window.addEventListener('DOMContentLoaded', () => {
       <div class="intro-grid">
         <!-- 1) 현재 제공 기능 -->
         <div class="intro-card">
-          <h4><span class="intro-dot"></span>1) 현재 제공 기능</h4>
-          <ul class="intro-list">
-            <li><span class="intro-strong">시험지 요청 서비스</span> — 선생님께서 <b>직접 올려주신 파일</b>을 바탕으로
-                <b>해설·미주가 포함된 한글(HWP)</b>로 제작합니다. <b>추가 비용 없이 구독만으로 이용</b>하실 수 있습니다.</li>
-            <li><span class="intro-strong">기출문제 다운로드</span> — 다양한 기출을 <b>PDF·HWP</b>로 내려받기</li>
-            <li>현재는 핵심 기능 위주로 운영 중이라 <b>구독료를 할인</b>하여 제공하고 있습니다.</li>
+          <h4></span>1) 현재 제공 기능</h4>
+          <ul class="intro-list intro-list-dot">
+            <!-- 시험지 요청 서비스 -->
+            <li>
+              <div class="intro-list-head">
+                <span class="intro-dot"></span>
+                <span class="intro-strong">시험지 요청 서비스</span>
+              </div>
+              <div class="intro-list-desc">
+                선생님께서 <b>직접 올려주신 파일</b>을 바탕으로,<br>
+                해설과 미주가 포함된 완성형 <b>한글(HWP)</b> 시험지를 제작
+              </div>
+              <div class="intro-list-desc" style="margin-top:6px;">
+                👉 <b>추가 비용 없이 구독만으로 이용 가능합니다.</b>
+              </div>
+            </li>
+
+            <!-- 기출문제 다운로드 -->
+            <li>
+              <div class="intro-list-head">
+                <span class="intro-dot"></span>
+                <span class="intro-strong">기출문제 다운로드</span>
+              </div>
+              <div class="intro-list-desc">
+                다양한 기출을 <b>PDF·HWP</b>로 내려받기
+              </div>
+            </li>
+
+            <!-- 안내 문장 -->
+            <li>
+              <div class="intro-note">
+                📢 현재 <b>문제은행</b>은 개발 중이라 시험지 위주로 운영 중이며,
+                    <b>구독료를 할인</b>하여 제공하고 있습니다.
+              </div>
+            </li>
           </ul>
         </div>
 
         <!-- 2) 문제은행(제작 중) -->
         <div class="intro-card">
-          <h4><span class="intro-dot"></span>2) 문제은행 (제작 중)</h4>
+          <h4></span>2) 문제은행 (제작 중)</h4>
           <p>
             단원·유형·난이도 등 원하는 조건으로 문제를 조합해 시험지를 만들 수 있도록 준비 중입니다.
             <b>AI 기반 유사문항 추천</b>과 <b>개념 추가</b> 기능을 포함하며, 결과물은 모두 <b>한글(HWP) 다운로드</b>를 지원합니다.
@@ -987,7 +1032,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
         <!-- 3) 내 책장 확장 -->
         <div class="intro-card">
-          <h4><span class="intro-dot"></span>3) 내 책장 기능 확장</h4>
+          <h4></span>3) 내 책장 기능 확장</h4>
           <ul class="intro-list">
             <li><b>내가 직접 제작한 시험지</b> 저장·관리</li>
             <li><b>학년·단원·유형별 폴더</b>를 만들어 여러 시험지를 체계적으로 정리</li>
@@ -1068,5 +1113,4 @@ window.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
 
