@@ -89,78 +89,28 @@ app.set('trust proxy', 1);
 // Express 기본 헤더 숨김 (보안 상수)
 app.disable('x-powered-by');
 
-// 보안 헤더 세트업
+// 보안 헤더 세트업 (CSP 끔)
 app.use(
   helmet({
-    // 1) HTTPS에서만 HSTS 적용(운영만)
+    contentSecurityPolicy: false, // ★ CSP 전부 비활성화
+    // HTTPS에서만 HSTS 적용(운영만)
     hsts: process.env.NODE_ENV === 'production' ? {
-      maxAge: 60 * 60 * 24 * 180, // 180일
+      maxAge: 60 * 60 * 24 * 180,
       includeSubDomains: true,
       preload: false
     } : false,
-
-    // 2) Referrer 최소화
+    // Referer 최소화
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-
-    // 3) S3 등 외부 리소스 대응
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
-
-    // 4) CSP: 먼저 'reportOnly: true'로 시작 → 콘솔 에러 확인 후 enforce 권장
-    contentSecurityPolicy: {
-      useDefaults: true,
-      directives: {
-        "default-src": ["'self'"],
-        "base-uri": ["'self'"],
-        "form-action": ["'self'"],
-        "object-src": ["'none'"],
-
-        // 🔹 실제 사용하는 스크립트 CDN만 허용
-        "script-src": [
-          "'self'",
-          "https://cdn.jsdelivr.net",
-          "https://cdnjs.cloudflare.com",
-          "https://apis.google.com"
-        ],
-
-        // 🔹 인라인 스타일이 있다면 'unsafe-inline' 유지 (가능하면 나중에 제거)
-        "style-src": [
-          "'self'",
-          "'unsafe-inline'",
-          "https://fonts.googleapis.com",
-          "https://cdnjs.cloudflare.com"
-        ],
-
-        "font-src": [
-          "'self'",
-          "https://fonts.gstatic.com"
-        ],
-
-        // 🔹 S3에서 이미지 로드 허용
-        "img-src": [
-          "'self'",
-          "data:",
-          "blob:",
-          "https://*.amazonaws.com"
-        ],
-
-        // 🔹 fetch/XHR 허용 출처 (본 서비스 도메인 + 로컬 개발)
-        "connect-src": [
-          "'self'",
-          "https://mathpb.com",
-          "http://mathpb.com",
-          "http://localhost:3000",
-          "http://localhost:5173"
-        ],
-
-        // 🔒 클릭재킹 방지 (관리 페이지 임베드 금지)
-        "frame-ancestors": ["'none'"]
-      },
-      reportOnly: false   // ← 1~2일 모니터링 후 false로 바꿔서 실적용
-    }
+    // S3 등 외부 리소스 대응
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
   })
 );
 
-// (추가) 혹시라도 누락되었을 때 nosniff 보강 (helmet이 기본 제공하지만 중복 무해)
+// 클릭재킹 방지(CSP의 frame-ancestors 대체)
+app.use(helmet.frameguard({ action: 'deny' }));
+
+// X-Powered-By 제거는 이미 위에서 하고 있음
+// nosniff 보강(중복 무해)
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   next();
@@ -1064,11 +1014,6 @@ app.post('/api/board/:id/delete', async (req, res) => {
     res.status(500).json({ message: '글 삭제 오류', error: e.message });
   }
 });
-
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
-
 
 
 // 로그아웃 API
