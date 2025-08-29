@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /login.html
+Disallow: /
+
+Sitemap: https://mathpb.com/sitemap.xml
