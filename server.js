@@ -107,7 +107,7 @@ app.use(
 );
 
 // 클릭재킹 방지(CSP의 frame-ancestors 대체)
-app.use(helmet.frameguard({ action: 'deny' }));
+app.use(helmet.frameguard({ action: 'sameorigin' }));  // 같은 출처만 허용
 
 // X-Powered-By 제거는 이미 위에서 하고 있음
 // nosniff 보강(중복 무해)
