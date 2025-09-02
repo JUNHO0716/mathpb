@@ -925,6 +925,11 @@ app.get('/api/board/:id/attachment/:idx',
   }
 );
 
+app.get('/terms.html',   (req,res)=>res.sendFile(path.join(__dirname,'public/terms.html')));
+app.get('/privacy.html', (req,res)=>res.sendFile(path.join(__dirname,'public/privacy.html')));
+app.get('/refund.html',  (req,res)=>res.sendFile(path.join(__dirname,'public/refund.html')));
+app.get('/finance.html', (req,res)=>res.sendFile(path.join(__dirname,'public/finance.html')));
+
 // ── 관리자 전용 업로드 리스트 조회 ──
 // GET /api/admin/uploads
 app.get(
