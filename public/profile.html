@@ -655,6 +655,7 @@ input:focus {
 <!-- Swiper JS (광고배너용) -->
 <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
 <script>
+document.addEventListener('DOMContentLoaded', function() {
 const topSwiper = new Swiper('.topSwiper', {
   loop: true,
   autoplay: { delay: 4000 },
@@ -966,6 +967,7 @@ document.getElementById('pw-modal-btn').onclick = function() {
 };
 
 // 비밀번호 변경 버튼 이벤트
+document.getElementById('pw-change-btn').onclick = async function() {
   const newPw = document.getElementById('new-password').value;
   const newPw2 = document.getElementById('confirm-password').value;
   if (!newPw || !newPw2) return alert('새 비밀번호를 입력하세요.');
@@ -989,47 +991,9 @@ document.getElementById('pw-modal-btn').onclick = function() {
   } else {
     alert(d.msg || '비밀번호 변경 실패');
   }
+};
 
-  // ============= 구독 관리 추가 =============
-async function loadSubStatus(){
-  try{
-    const r = await fetch('/api/subscription/status',{credentials:'include'});
-    const d = await r.json();
-    document.getElementById('sub-status')?.textContent = d.status || '-';
-    document.getElementById('next-bill')?.textContent  = d.next_billing_at || '-';
-    if(d.pay_method) document.getElementById('pay-method').textContent = d.pay_method;
-  }catch(e){ console.error(e); }
-}
-
-async function loadSubHistory(){
-  try{
-    const r = await fetch('/api/subscription/history',{credentials:'include'});
-    const d = await r.json();
-    const tbody=document.getElementById('sub-history');
-    if(!tbody) return;
-    if(!d.items?.length){
-      tbody.innerHTML='<tr><td colspan="4" style="padding:8px">이력 없음</td></tr>'; return;
-    }
-    tbody.innerHTML=d.items.map(it=>`
-      <tr>
-        <td style="border-bottom:1px solid #eee;padding:8px">${it.approved_at||'-'}</td>
-        <td style="border-bottom:1px solid #eee;padding:8px">₩${(it.amount||0).toLocaleString()}</td>
-        <td style="border-bottom:1px solid #eee;padding:8px">${it.status||'-'}</td>
-        <td style="border-bottom:1px solid #eee;padding:8px">${it.receipt_url?`<a href="${it.receipt_url}" target="_blank">보기</a>`:'-'}</td>
-      </tr>`).join('');
-  }catch(e){ console.error(e); }
-}
-
-document.getElementById('btn-cancel')?.addEventListener('click',async()=>{
-  if(!confirm('해지하시겠습니까? (기간 종료일까지 이용 가능, 다음 결제부터 미과금)')) return;
-  const r=await fetch('/api/subscription/cancel',{method:'POST',credentials:'include'});
-  if(r.ok){ alert('해지 완료'); loadSubStatus(); }
-  else alert('해지 실패');
 });
-
-loadSubStatus();
-loadSubHistory();
-
 </script>
 
 <!-- [비밀번호 확인] 결과 알림 모달 -->
@@ -1044,49 +1008,6 @@ loadSubHistory();
 </div>
 </div>
 </div>
-
-<!-- 구독 정보 카드: 회원 정보 카드 *아래*에 새로 추가 -->
-<div class="mysheet-board" id="subscription-card" style="margin-top:24px;">
-  <h2>구독 정보</h2>
-
-  <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
-    <div>
-      <div style="font-size:14px;color:#666">구독 상태</div>
-      <div id="sub-status" style="font-weight:900">확인 중…</div>
-    </div>
-    <div>
-      <div style="font-size:14px;color:#666">다음 결제일</div>
-      <div id="next-bill" style="font-weight:900">-</div>
-    </div>
-    <div>
-      <div style="font-size:14px;color:#666">결제 수단</div>
-      <div id="pay-method" style="font-weight:900">-</div>
-    </div>
-    <div style="margin-left:auto;display:flex;gap:10px">
-      <button id="btn-cancel" class="pw-btn" style="background:#C15856">구독 해지</button>
-      <a href="/pricing" class="pw-btn" style="text-decoration:none;background:#6366f1">요금제 보기</a>
-    </div>
-  </div>
-
-  <div style="margin-top:18px">
-    <h3 style="margin:0 0 8px;font-size:16px">결제 이력</h3>
-    <table style="width:100%;border-collapse:collapse">
-      <thead>
-        <tr>
-          <th style="border-bottom:1px solid #eee;padding:8px;text-align:left">결제일</th>
-          <th style="border-bottom:1px solid #eee;padding:8px;text-align:left">금액</th>
-          <th style="border-bottom:1px solid #eee;padding:8px;text-align:left">상태</th>
-          <th style="border-bottom:1px solid #eee;padding:8px;text-align:left">영수증</th>
-        </tr>
-      </thead>
-      <tbody id="sub-history">
-        <tr><td colspan="4" style="padding:8px">불러오는 중…</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-
 <footer class="site-footer">
   <div class="footer-inner">
     <div class="footer-brand">M.class</div>
