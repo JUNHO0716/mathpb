@@ -647,6 +647,49 @@ app.get('/check-auth', async (req, res) => {
   res.json({ isLoggedIn: false });
 });
 
+// 로그인 필요 시 JSON으로 에러 반환 (이미 비슷한 미들웨어가 있으면 그걸로 대체)
+const needAuthJson = (req, res, next) => {
+  if (!req.session || !req.session.user || !req.session.user.id) {
+    return res.status(401).json({ ok:false, message:'login required' });
+  }
+  next();
+};
+
+// 1) 구독 상태
+app.get('/api/subscription/status', needAuthJson, async (req, res) => {
+  const uid = req.session.user.id;
+
+  // 현재 DB 스키마 가정: users.is_subscribed / subscription_start / subscription_end
+  const [[u]] = await db.query(
+    `SELECT is_subscribed, subscription_start, subscription_end
+       FROM users WHERE id=?`,
+    [uid]
+  );
+  if (!u) return res.status(404).json({ ok:false });
+
+  const now = new Date();
+  const end = u.subscription_end ? new Date(u.subscription_end) : null;
+  const active = (u.is_subscribed === 1) || (end && end > now);
+
+  res.json({
+    ok: true,
+    status: active ? 'active' : 'inactive',
+    next_billing_at: end ? u.subscription_end : null,
+    pay_method: null // 결제수단 표시는 빌링 연동 후 채움
+  });
+});
+
+// 2) 결제 이력 (지금은 빈 배열; 나중에 payments 테이블 붙이면 교체)
+app.get('/api/subscription/history', needAuthJson, async (req, res) => {
+  res.json({ ok:true, items: [] });
+});
+
+// 3) 구독 해지 (기간말까지 이용하도록 is_subscribed만 0으로)
+app.post('/api/subscription/cancel', needAuthJson, async (req, res) => {
+  await db.query(`UPDATE users SET is_subscribed=0 WHERE id=?`, [req.session.user.id]);
+  res.json({ ok:true, message:'cancel scheduled' });
+});
+
 // 파일 목록(필터/검색)
 app.get('/api/files', isLoggedInJson, verifyOrigin, async (req, res) => {
   try {
