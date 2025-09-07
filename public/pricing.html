@@ -126,7 +126,7 @@
     }
   
   </style>
-  <script src="https://js.tosspayments.com/v2"></script>
+  <script src="/toss/v2.js"></script>
 </head>
 <body>
   <div class="wrap">
@@ -243,13 +243,13 @@
 async function ensureTossSDK() {
   if (window.TossPayments) return true;
 
-  let tag = document.querySelector('script[src="https://js.tosspayments.com/v2"]');
-  if (!tag) {
-    tag = document.createElement('script');
-    tag.src = 'https://js.tosspayments.com/v2';
-    tag.async = true;
-    document.head.appendChild(tag);
-  }
+    let tag = document.querySelector('script[src="/toss/v2.js"]');
+    if (!tag) {
+      tag = document.createElement('script');
+      tag.src = '/toss/v2.js';
+      tag.async = true;
+      document.head.appendChild(tag);
+    }
   const ok = await new Promise(res => {
     tag.addEventListener('load',  () => res(true),  { once: true });
     tag.addEventListener('error', () => res(false), { once: true });
@@ -345,7 +345,7 @@ async function openTossBilling(init) {
     return;
   }
   try {
-    const toss = window.TossPayments(TOSS_CLIENT_KEY); // test_ck_ 키 맞는지 다시 확인
+    const toss = window.TossPayments(TOSS_CLIENT_KEY); // test_ck_...
     await toss.requestBillingAuth({
       customerKey: init.customerKey,
       method: 'CARD',
