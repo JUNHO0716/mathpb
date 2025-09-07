@@ -1524,32 +1524,31 @@ app.listen(PORT, () => {
   console.log(`서버 실행 http://localhost:${PORT}`);
 });
 
-// --- Toss v2 SDK proxy (Adblock 우회) ---
-const TOSS_SDK_URL = 'https://js.tosspayments.com/v2/'; // ← 끝에 / 필수!
-
+// --- Toss v2 SDK proxy (Adblock 차단 우회) ---
 app.get('/toss/v2.js', async (req, res) => {
   try {
-    const upstream = await fetch(TOSS_SDK_URL, {
-      headers: {
-        'User-Agent': req.get('User-Agent') || 'Mozilla/5.0',
-        'Accept': '*/*',
-        'Accept-Encoding': 'identity'
-      }
+    const upstream = await fetch('https://js.tosspayments.com/v2', {
+      // 일부 보안/CDN이 UA 없는 요청을 거부하는 경우가 있어 UA만 지정
+      headers: { 'User-Agent': req.get('User-Agent') || 'Mozilla/5.0' }
     });
 
     if (!upstream.ok) {
       const text = await upstream.text().catch(() => '');
-      return res.status(upstream.status).type('text/plain').send(text || `Upstream ${upstream.status}`);
+      return res.status(502).type('text/plain')
+               .send(`Upstream ${upstream.status}\n${text}`);
     }
 
-    res.set('content-type', upstream.headers.get('content-type') || 'application/javascript; charset=utf-8');
+    // 원본 content-type 유지(없으면 js로)
+    res.set('content-type', upstream.headers.get('content-type')
+           || 'application/javascript; charset=utf-8');
+    // 광고차단 오탐을 줄이기 위해 캐시 헤더만 간단히
     res.set('cache-control', 'public, max-age=600');
 
     const buf = Buffer.from(await upstream.arrayBuffer());
-    res.send(buf);
+    return res.send(buf);
   } catch (e) {
     console.error('Toss v2 proxy error:', e);
-    res.status(500).type('text/plain').send('Proxy failed');
+    return res.status(500).type('text/plain').send('Proxy failed');
   }
 });
 
