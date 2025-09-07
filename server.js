@@ -30,6 +30,40 @@ import session from 'express-session';
 import iconv from 'iconv-lite';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import crypto from 'crypto';
+
+const TOSS_SECRET_KEY = process.env.TOSS_SECRET_KEY;
+const BASE_URL        = process.env.BASE_URL || 'https://mathpb.com';
+
+// Authorization: Basic base64("secretKey:")
+function tossAuthHeader() {
+  const token = Buffer.from(`${TOSS_SECRET_KEY}:`).toString('base64');
+  return `Basic ${token}`;
+}
+
+// ──────────────────────────────────────
+// Pricing table & resolver (ADD)
+// ──────────────────────────────────────
+const PRICE_TABLE = {
+  basic:    { month:  9900, year:  9900 * 12 * 0.85 | 0 }, // 연 15% 할인 예시
+  standard: { month: 14900, year: 14900 * 12 * 0.85 | 0 },
+  pro:      { month: 19900, year: 19900 * 12 * 0.85 | 0 },
+};
+
+function resolvePlan(plan) {
+  const key = String(plan || '').toLowerCase();
+  if (key === 'premium') return 'pro';
+  return ['basic','standard','pro'].includes(key) ? key : 'standard';
+}
+function resolveCycle(cycle) {
+  const key = String(cycle || '').toLowerCase();
+  return ['month','year'].includes(key) ? key : 'month';
+}
+function getPrice(plan, cycle) {
+  const p = resolvePlan(plan);
+  const c = resolveCycle(cycle);
+  return PRICE_TABLE[p][c];
+}
 
 // ─── ES 모듈에서 require() 쓰도록 ───────────────────
 import { createRequire } from 'module';
@@ -1489,6 +1523,144 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`서버 실행 http://localhost:${PORT}`);
 });
+
+// 1) 결제수단 등록 시작: 프론트가 호출 → 등록창 파라미터 제공
+app.post('/api/billing/start', isLoggedIn, async (req, res) => {
+  try {
+    const user = req.session.user;
+    const { plan, cycle } = req.body || {};
+
+    const planKey  = resolvePlan(plan);
+    const cycleKey = resolveCycle(cycle);
+    const price    = getPrice(planKey, cycleKey);   // ★ 서버가 금액 확정
+
+    const customerKey = `u_${user.id}`;
+    const orderId = `bill_${crypto.randomUUID()}`;
+    const successUrl = `${BASE_URL}/api/billing/callback/success`;
+    const failUrl    = `${BASE_URL}/api/billing/callback/fail`;
+
+    // 등록 성공 콜백에서 DB로 저장할 메타 (서버가 확정한 값)
+    req.session._subMeta = { plan: planKey, price, cycle: cycleKey };
+
+    res.json({
+      customerKey, orderId,
+      amount: 0,                      // 등록창은 0원
+      orderName: `${planKey} ${cycleKey}`,
+      successUrl, failUrl
+    });
+  } catch (e) {
+    console.error('billing/start error', e);
+    res.status(500).json({ msg: '초기화 실패' });
+  }
+});
+
+// 2) 등록 성공 콜백: authKey → billingKey 발급 → DB 저장
+app.get('/api/billing/callback/success', isLoggedIn, async (req, res) => {
+  try {
+    const { customerKey, authKey } = req.query;
+    if (!customerKey || !authKey) return res.status(400).send('누락된 파라미터');
+
+    const r = await fetch('https://api.tosspayments.com/v1/billing/authorizations/issue', {
+      method: 'POST',
+      headers: {
+        'Authorization': tossAuthHeader(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ customerKey, authKey })
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      console.error('Issue billingKey failed:', data);
+      return res.status(400).send(`빌링키 발급 실패: ${data.message || data.code || 'error'}`);
+    }
+
+    const billingKey = data?.billingKey;
+    if (!billingKey) return res.status(500).send('billingKey 없음');
+
+    const meta = req.session._subMeta || {};
+    delete req.session._subMeta;
+
+    await db.query(`
+      INSERT INTO billing_keys (user_id, customer_key, billing_key, plan, cycle, price)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE
+        customer_key = VALUES(customer_key),
+        billing_key  = VALUES(billing_key),
+        plan         = VALUES(plan),
+        cycle        = VALUES(cycle),
+        price        = VALUES(price)
+    `, [req.session.user.id, customerKey, billingKey, meta.plan || null, meta.cycle || null, meta.price || null]);
+
+    return res.redirect('/mypage/subscription');   // 카드 등록 완료 후 이동
+  } catch (e) {
+    console.error('billing success cb error', e);
+    return res.status(500).send('서버 오류');
+  }
+});
+
+// 3) 등록 실패 콜백
+app.get('/api/billing/callback/fail', isLoggedIn, (req, res) => {
+  const { code, message } = req.query;
+  res.status(400).send(`결제수단 등록 실패 [${code}] ${message || ''}`);
+});
+
+// 4) 자동결제 승인(과금)
+app.post('/api/billing/charge', isLoggedIn, async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const { orderName } = req.body;
+
+    // DB에서 금액 가져오기
+    const [[bk]] = await db.query(
+      'SELECT customer_key, billing_key, price, plan, cycle FROM billing_keys WHERE user_id=?',
+      [userId]
+    );
+    if (!bk) return res.status(400).json({ msg: '등록된 결제수단(빌링키) 없음' });
+
+    const amount = Number(bk.price);  // ← DB 값으로 확정
+    if (!(amount > 0)) return res.status(400).json({ msg: '금액 오류' });
+
+    const orderId = `sub_${crypto.randomUUID()}`;
+    const url = `https://api.tosspayments.com/v1/billing/${encodeURIComponent(bk.billing_key)}`;
+
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': tossAuthHeader(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        amount: Number(amount),
+        orderId,
+        orderName: orderName || '정기 구독 결제',
+        customerKey: bk.customer_key
+      })
+    });
+
+    const data = await r.json();
+    if (!r.ok) {
+      console.error('billing charge failed:', data);
+      return res.status(400).json({ ok: false, error: data });
+    }
+
+    // 결제 성공 → 구독 상태 갱신(예: 30일)
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const end = new Date(); end.setDate(today.getDate() + 30);
+    const endStr = end.toISOString().split('T')[0];
+
+    await db.execute(`
+      UPDATE users SET is_subscribed = 1, subscription_start = ?, subscription_end = ?
+      WHERE id = ?
+    `, [todayStr, endStr, userId]);
+
+    return res.json({ ok: true, payment: data });
+  } catch (e) {
+    console.error('billing charge error', e);
+    res.status(500).json({ ok: false, msg: '서버 오류' });
+  }
+});
+
 
 // ──────────────────────────────────────
 //  정적 HTML “주소창 직접 접근” 제어  ※ express.static 위에 위치
