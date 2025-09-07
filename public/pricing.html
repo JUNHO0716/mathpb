@@ -179,7 +179,7 @@
         </div>
       </article>
 
-      <article class="plan" data-plan="premium" data-month="24900" data-year="249000">
+      <article class="plan" data-plan="pro" data-month="24900" data-year="249000">
         <header>
           <h3>Premium</h3>
           <div class="price"><span class="num">24,900</span>원 <small>/ 월</small></div>
@@ -203,10 +203,10 @@
         <h4>결제 수단</h4>
         <div class="methods" role="group" aria-label="결제수단">
           <div class="chip active" data-method="toss">토스 간편결제</div>
-          <div class="chip" data-method="card">신용/체크카드</div>
-          <div class="chip" data-method="vbank">가상계좌</div>
+          <div class="chip" data-method="card">네이버 페이결제</div>
+          <div class="chip" data-method="vbank">카카오 자동결제</div>
         </div>
-        <p class="note">* 실제 결제 창은 다음 단계에서 열립니다(심사 전: 동선만 연결).</p>
+        <p class="note">* 현재는 토스 간편결제만 지원합니다.</p>
       </div>
 
       <div class="card">
@@ -237,7 +237,7 @@
       </div>
     </section>
   </div>
-
+  <script src="https://js.tosspayments.com/v2"></script>
   <script>
     // 결제 주기 토글
     const mBtn = document.getElementById('mBtn');
@@ -310,21 +310,48 @@
     });
   });
 
-    // 심사용 동선: 실제 결제 연동 전까지는 구독관리로 이동
-    subscribeBtn.addEventListener('click', ()=>{
-      if(subscribeBtn.disabled) return;
-      // 실제 연동 시: 서버에 plan/method/billingCycle 전송 후 결제창 오픈
-      // fetch('/api/subscribe/init', { method:'POST', headers:{'Content-Type':'application/json'},
-      //   body: JSON.stringify({ plan:selected.id, price:selected.price, cycle:billingCycle, method }) })
-      //   .then(res=>res.json()).then(({paymentUrl})=> window.location.href = paymentUrl);
+  const TOSS_CLIENT_KEY = "test_ck_0RnYX2w532okP2MNZRyPVNeyqApQ"; // Render env에 넣어둔 값 그대로
 
-      // 현재는 심사용 흐름
-      window.location.href = '/mypage/subscription';
-    });
+  // 기존 구독 시작 버튼 이벤트 교체
+  subscribeBtn.addEventListener('click', async ()=>{
+    if (subscribeBtn.disabled) return;
+    if (!selected) return alert('요금제를 선택하세요.');
+    if (method !== 'toss') return alert('현재는 토스 결제만 지원합니다.');
+
+    try {
+      // 1) 서버에 등록 파라미터 요청
+      const resp = await fetch('/api/billing/start', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({
+          plan: selected.id,      // 'basic' | 'standard' | 'premium'
+          cycle: billingCycle     // 'month' | 'year'
+        })
+      });
+      if (!resp.ok) throw new Error('초기화 실패');
+      const init = await resp.json(); 
+
+      // 2) 토스 빌링(자동결제) 등록창 열기
+      const payments = TossPayments(TOSS_CLIENT_KEY);
+      const payment  = payments.payment({ customerKey: init.customerKey });
+
+      await payment.requestBillingAuth({
+        method: 'CARD',
+        amount: { value: 0, currency: 'KRW' }, // 등록은 0원
+        orderId: init.orderId,
+        orderName: `${selected.id} ${billingCycle}`,
+        customerKey: init.customerKey,
+        successUrl: init.successUrl,
+        failUrl: init.failUrl
+      });
+    } catch (e) {
+      console.error(e);
+      alert('결제를 시작할 수 없습니다. 잠시 후 다시 시도해주세요.');
+    }
+  });
 
     // 초기 가격 세팅
     updatePrices();
   </script>
 </body>
 </html>
-
