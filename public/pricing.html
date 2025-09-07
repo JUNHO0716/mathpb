@@ -315,30 +315,25 @@ document.addEventListener('DOMContentLoaded', () => {
   agree.addEventListener('change', refresh);
   function refresh(){ subscribeBtn.disabled = !(agree.checked && !!selected); }
 
-  // Toss 결제창 열기
-  async function openTossBilling(init) {
-    // SDK 로드 대기(최대 2초)
-    for (let i = 0; i < 20 && typeof window.TossPayments === 'undefined'; i++) {
-      await new Promise(r => setTimeout(r, 100));
-    }
-    if (typeof window.TossPayments === 'undefined') {
-      alert('결제 모듈이 로드되지 않았습니다. 광고 차단/보안 확장프로그램을 끄고 새로고침 해주세요.');
-      return;
-    }
+    // 교체 후 (토스 v2 권장 방식)
+    async function openTossBilling(init) {
+      // SDK 로드 대기 (최대 2초) — 이 부분은 그대로 둬도 됩니다.
+      for (let i = 0; i < 20 && typeof window.TossPayments === 'undefined'; i++) {
+        await new Promise(r => setTimeout(r, 100));
+      }
+      if (typeof window.TossPayments === 'undefined') {
+        alert('결제 모듈이 로드되지 않았습니다. 광고 차단/보안 확장프로그램을 끄고 새로고침 해주세요.');
+        return;
+      }
 
-    const payments = window.TossPayments(TOSS_CLIENT_KEY);
-    const payment  = payments.payment({ customerKey: init.customerKey });
-
-    await payment.requestBillingAuth({
-      method: 'CARD',
-      amount: { value: 0, currency: 'KRW' }, // 카드 등록은 0원
-      orderId: init.orderId,
-      orderName: `${selected.id} ${billingCycle}`,
-      customerKey: init.customerKey,
-      successUrl: init.successUrl,
-      failUrl: init.failUrl
-    });
-  }
+      const tossPayments = window.TossPayments(TOSS_CLIENT_KEY);
+      await tossPayments.requestBillingAuth({
+        customerKey: init.customerKey,   // 서버에서 내려준 값
+        method: 'CARD',                  // 카드 정기결제
+        successUrl: init.successUrl,     // 서버에서 내려준 콜백 URL
+        failUrl: init.failUrl
+      });
+    }
 
   // 구독 시작하기
   subscribeBtn.addEventListener('click', async () => {
