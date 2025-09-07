@@ -260,6 +260,7 @@ async function ensureTossSDK() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  ensureTossSDK();
   // ★ Toss 테스트 클라이언트 키로 교체하세요 (test_ck_... 형태)
   const TOSS_CLIENT_KEY = "test_ck_0RnYX2w532okP2MNZRyPVNeyqApQ";
 
@@ -286,6 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let billingCycle = 'month'; // 'month' | 'year'
   let selected = null;
   let method = 'toss';        // 지금은 토스만 지원
+  let busy = false; 
 
   // 결제수단(지금은 UI만)
   methodChips.forEach(chip => {
@@ -337,23 +339,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 교체 후 (토스 v2 권장 방식)
 async function openTossBilling(init) {
-  const loaded = await ensureTossSDK();            // ← 여기서 확실히 로드
-  if (!loaded) {
+  const ok = await ensureTossSDK();
+  if (!ok) {
     alert('결제 모듈이 로드되지 않았습니다. 광고 차단/보안 확장프로그램을 끄고 새로고침 해주세요.');
     return;
   }
-  const toss = window.TossPayments(TOSS_CLIENT_KEY);  // test_ck_… 정확히 넣어둔 상태여야 함
-  await toss.requestBillingAuth({
-    customerKey: init.customerKey,
-    method: 'CARD',
-    successUrl: init.successUrl,
-    failUrl: init.failUrl
-  });
+  try {
+    const toss = window.TossPayments(TOSS_CLIENT_KEY); // test_ck_ 키 맞는지 다시 확인
+    await toss.requestBillingAuth({
+      customerKey: init.customerKey,
+      method: 'CARD',
+      successUrl: init.successUrl,
+      failUrl: init.failUrl
+    });
+  } catch (e) {
+    console.error('Toss error:', e);
+    alert(`토스 호출 실패: ${e?.code || ''} ${e?.message || e}`);
+  }
 }
 
   // 구독 시작하기
   subscribeBtn.addEventListener('click', async () => {
-    if (subscribeBtn.disabled) return;
+    if (subscribeBtn.disabled || busy) return;
+    busy = true; 
+    subscribeBtn.disabled = true;
     if (method !== 'toss') { alert('지금은 토스만 지원합니다.'); return; }
 
     try {
@@ -375,7 +384,10 @@ async function openTossBilling(init) {
     } catch (err) {
       console.error(err);
       alert('결제를 시작할 수 없습니다. 잠시 후 다시 시도해주세요.');
-    }
+    } finally {
+      busy = false;
+      subscribeBtn.disabled = false;
+    } 
   });
 
   // 초기 버튼 상태
@@ -386,4 +398,5 @@ async function openTossBilling(init) {
 
 </body>
 </html>
+
 
