@@ -239,6 +239,26 @@
     </section>
   </div>
 <script>
+
+async function ensureTossSDK() {
+  if (window.TossPayments) return true;
+
+  let tag = document.querySelector('script[src="https://js.tosspayments.com/v2"]');
+  if (!tag) {
+    tag = document.createElement('script');
+    tag.src = 'https://js.tosspayments.com/v2';
+    tag.async = true;
+    document.head.appendChild(tag);
+  }
+  const ok = await new Promise(res => {
+    tag.addEventListener('load',  () => res(true),  { once: true });
+    tag.addEventListener('error', () => res(false), { once: true });
+    // 혹시 이미 로드되어 있으면 즉시 true
+    if (window.TossPayments) res(true);
+  });
+  return ok && !!window.TossPayments;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // ★ Toss 테스트 클라이언트 키로 교체하세요 (test_ck_... 형태)
   const TOSS_CLIENT_KEY = "test_ck_0RnYX2w532okP2MNZRyPVNeyqApQ";
@@ -316,24 +336,20 @@ document.addEventListener('DOMContentLoaded', () => {
   function refresh(){ subscribeBtn.disabled = !(agree.checked && !!selected); }
 
     // 교체 후 (토스 v2 권장 방식)
-    async function openTossBilling(init) {
-      // SDK 로드 대기 (최대 2초) — 이 부분은 그대로 둬도 됩니다.
-      for (let i = 0; i < 20 && typeof window.TossPayments === 'undefined'; i++) {
-        await new Promise(r => setTimeout(r, 100));
-      }
-      if (typeof window.TossPayments === 'undefined') {
-        alert('결제 모듈이 로드되지 않았습니다. 광고 차단/보안 확장프로그램을 끄고 새로고침 해주세요.');
-        return;
-      }
-
-      const tossPayments = window.TossPayments(TOSS_CLIENT_KEY);
-      await tossPayments.requestBillingAuth({
-        customerKey: init.customerKey,   // 서버에서 내려준 값
-        method: 'CARD',                  // 카드 정기결제
-        successUrl: init.successUrl,     // 서버에서 내려준 콜백 URL
-        failUrl: init.failUrl
-      });
-    }
+async function openTossBilling(init) {
+  const loaded = await ensureTossSDK();            // ← 여기서 확실히 로드
+  if (!loaded) {
+    alert('결제 모듈이 로드되지 않았습니다. 광고 차단/보안 확장프로그램을 끄고 새로고침 해주세요.');
+    return;
+  }
+  const toss = window.TossPayments(TOSS_CLIENT_KEY);  // test_ck_… 정확히 넣어둔 상태여야 함
+  await toss.requestBillingAuth({
+    customerKey: init.customerKey,
+    method: 'CARD',
+    successUrl: init.successUrl,
+    failUrl: init.failUrl
+  });
+}
 
   // 구독 시작하기
   subscribeBtn.addEventListener('click', async () => {
@@ -370,3 +386,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
