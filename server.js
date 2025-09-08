@@ -1674,7 +1674,8 @@ const PUBLIC_PAGES = [
 const MEMBER_ONLY_PAGES = [
   'index.html', 'home.html', 'problem_bank.html',
   'high.html', 'middle.html', 'bookcase.html',
-  'upload.html', 'notice.html', 'profile.html'
+  'upload.html', 'notice.html', 'profile.html',
+'pricing.html'
 ];
 
 const ADMIN_PAGES = [
