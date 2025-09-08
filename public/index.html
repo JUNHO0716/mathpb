@@ -678,27 +678,6 @@
       if(sidebarLogout) sidebarLogout.addEventListener('click', logout);
       if(dropdownLogout) dropdownLogout.addEventListener('click', logout);
 
- // 결제 모달 관련
-  const payBtn = document.querySelector('.action-btn[href="pricing.html"]');
-  const paymentModal = document.getElementById('paymentModal');
-  const paymentIframe = document.getElementById('paymentIframe');
-  const closeModalBtn = document.getElementById('closeModalBtn');
-  if (payBtn) {
-    payBtn.addEventListener('click', function(e){
-      e.preventDefault();
-      paymentModal.classList.add('show');
-      paymentIframe.src = "pricing.html";
-      // 페이지 스크롤 막기 (선택)
-      document.body.style.overflow = "hidden";
-    });
-  }
-  if (closeModalBtn) {
-    closeModalBtn.addEventListener('click', function(){
-      paymentModal.classList.remove('show');
-      paymentIframe.src = "";
-      document.body.style.overflow = "";
-    });
-  }
   // 모달 바깥 클릭 시 닫기
   paymentModal.addEventListener('click', function(e){
     if (e.target === paymentModal) {
@@ -1122,6 +1101,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
