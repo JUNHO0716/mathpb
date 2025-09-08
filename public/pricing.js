@@ -2,20 +2,29 @@
 async function ensureTossSDK() {
   if (window.TossPayments) return true;
 
-    let tag = document.querySelector('script[src="https://js.tosspayments.com/v2"]');
-    if (!tag) {
-      tag = document.createElement('script');
-      tag.src = 'https://js.tosspayments.com/v2';
-      tag.async = true;
-      document.head.appendChild(tag);
-    }
-  const ok = await new Promise(res => {
+  // ✅ CDN 스크립트 태그 탐지: v2 또는 v2/ 어떤 형태든 잡히게
+  let tag = document.querySelector('script[src^="https://js.tosspayments.com/v2"]');
+  if (!tag) {
+    tag = document.createElement('script');
+    // ✅ 반드시 슬래시 포함!
+    tag.src = 'https://js.tosspayments.com/v2/';
+    tag.async = true;
+    document.head.appendChild(tag);
+  }
+
+  const ok = await new Promise((res) => {
     tag.addEventListener('load',  () => res(true),  { once: true });
     tag.addEventListener('error', () => res(false), { once: true });
-    // 혹시 이미 로드되어 있으면 즉시 true
+    // 이미 로드된 경우
     if (window.TossPayments) res(true);
   });
-  return ok && !!window.TossPayments;
+
+  if (ok && window.TossPayments) {
+    console.log('[pricing] Toss SDK loaded');
+    return true;
+  }
+  console.error('[pricing] Toss SDK failed to load');
+  return false;
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -152,3 +161,4 @@ async function openTossBilling(init) {
   // 초기 버튼 상태
   refresh();
 });
+
