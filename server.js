@@ -1712,17 +1712,5 @@ app.get('/', (req, res) => {
 });
 
 
- app.use(
-   express.static(path.join(__dirname, 'public'), {
-     setHeaders: (res, filePath) => {
-       if (filePath.endsWith('.html')) {
-         res.setHeader('Content-Type', 'text/html; charset=UTF-8');
-       } else if (filePath.endsWith('.js')) {
-         res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
-       } else if (filePath.endsWith('.css')) {
-         res.setHeader('Content-Type', 'text/css; charset=UTF-8');
-       }
-     }
-   })
- );
+app.use(express.static(path.join(__dirname, 'public')));
  
