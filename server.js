@@ -123,6 +123,22 @@ app.set('trust proxy', 1);
 // Express 기본 헤더 숨김 (보안 상수)
 app.disable('x-powered-by');
 
+// 보안 헤더 세트업 (CSP 끔)
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // ★ CSP 전부 비활성화
+    // HTTPS에서만 HSTS 적용(운영만)
+    hsts: process.env.NODE_ENV === 'production' ? {
+      maxAge: 60 * 60 * 24 * 180,
+      includeSubDomains: true,
+      preload: false
+    } : false,
+    // Referer 최소화
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    // S3 등 외부 리소스 대응
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
+  })
+);
 
 // 클릭재킹 방지(CSP의 frame-ancestors 대체)
 app.use(helmet.frameguard({ action: 'sameorigin' }));  // 같은 출처만 허용
@@ -1509,32 +1525,6 @@ app.listen(PORT, () => {
 });
 
 // --- Toss v2 SDK proxy (Adblock 차단 우회) ---
-app.get('/toss/v2.js', async (req, res) => {
-  try {
-    const upstream = await fetch('https://js.tosspayments.com/v2', {
-      // 일부 보안/CDN이 UA 없는 요청을 거부하는 경우가 있어 UA만 지정
-      headers: { 'User-Agent': req.get('User-Agent') || 'Mozilla/5.0' }
-    });
-
-    if (!upstream.ok) {
-      const text = await upstream.text().catch(() => '');
-      return res.status(502).type('text/plain')
-               .send(`Upstream ${upstream.status}\n${text}`);
-    }
-
-    // 원본 content-type 유지(없으면 js로)
-    res.set('content-type', upstream.headers.get('content-type')
-           || 'application/javascript; charset=utf-8');
-    // 광고차단 오탐을 줄이기 위해 캐시 헤더만 간단히
-    res.set('cache-control', 'public, max-age=600');
-
-    const buf = Buffer.from(await upstream.arrayBuffer());
-    return res.send(buf);
-  } catch (e) {
-    console.error('Toss v2 proxy error:', e);
-    return res.status(500).type('text/plain').send('Proxy failed');
-  }
-});
 
 // 1) 결제수단 등록 시작: 프론트가 호출 → 등록창 파라미터 제공
 app.post('/api/billing/start', isLoggedIn, async (req, res) => {
