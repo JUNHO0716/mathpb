@@ -2,10 +2,10 @@
 async function ensureTossSDK() {
   if (window.TossPayments) return true;
 
-    let tag = document.querySelector('script[src="/toss/v2.js"]');
+    let tag = document.querySelector('script[src="https://js.tosspayments.com/v2"]');
     if (!tag) {
       tag = document.createElement('script');
-      tag.src = '/toss/v2.js';
+      tag.src = 'https://js.tosspayments.com/v2';
       tag.async = true;
       document.head.appendChild(tag);
     }
