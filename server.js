@@ -1530,6 +1530,7 @@ app.listen(PORT, () => {
 app.post('/api/billing/start', isLoggedIn, async (req, res) => {
   try {
     const user = req.session.user;
+    console.log('API 호출 시 세션 사용자 정보:', user); // ⭐ 이 한 줄을 추가하세요.
     const { plan, cycle } = req.body || {};
 
     const planKey  = resolvePlan(plan);
