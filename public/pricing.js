@@ -158,7 +158,56 @@ async function openTossBilling(init) {
     } 
   });
 
+
+  async function initializePaymentWidget() {
+  // clientKey는 Toss Payments 대시보드에서 발급받은 실제 키로 대체하세요.
+  const customerKey = `u_<%= userId %>`;
+  const clientKey = 'test_ck_D5GePWL0kO9Ajo1kgbRXlOoKWAz2';
+  const paymentWidget = PaymentWidget(clientKey, PaymentWidget.ANONYMOUS);
+
+  paymentWidget.renderPaymentMethods('#payment-methods', {
+    variantKey: 'DEFAULT',
+  });
+  paymentWidget.renderAgreement('#agreement');
+
+  const subscribeBtn = document.getElementById('subscribeBtn');
+
+  subscribeBtn.addEventListener('click', async () => {
+    try {
+      const res = await fetch('/api/billing/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan: 'basic',
+          cycle: 'month',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.msg);
+        return;
+      }
+
+      paymentWidget.requestPayment({
+        customerKey: data.customerKey,
+        orderId: data.orderId,
+        orderName: data.orderName,
+        successUrl: data.successUrl,
+        failUrl: data.failUrl,
+      });
+    } catch (error) {
+      console.error('Payment request failed:', error);
+      alert('결제 초기화에 실패했습니다.');
+    }
+  });
+}
+
+// 페이지 로드 시 위젯 초기화
+document.addEventListener('DOMContentLoaded', initializePaymentWidget);
+
+  
   // 초기 버튼 상태
   refresh();
 });
+
 
