@@ -126,16 +126,22 @@ app.disable('x-powered-by');
 // 보안 헤더 세트업 (CSP 끔)
 app.use(
   helmet({
-    contentSecurityPolicy: false, // ★ CSP 전부 비활성화
-    // HTTPS에서만 HSTS 적용(운영만)
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "https://js.tosspayments.com", "'unsafe-inline'", "'unsafe-eval'"],
+        frameSrc: ["https://js.tosspayments.com"],
+        connectSrc: ["'self'", "https://api.tosspayments.com", "https://js.tosspayments.com"],
+        // 추가로 필요한 도메인이 있다면 여기에 넣으세요.
+      },
+    },
+    // 기존의 다른 Helmet 설정들은 유지합니다.
     hsts: process.env.NODE_ENV === 'production' ? {
       maxAge: 60 * 60 * 24 * 180,
       includeSubDomains: true,
       preload: false
     } : false,
-    // Referer 최소화
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-    // S3 등 외부 리소스 대응
     crossOriginResourcePolicy: { policy: 'cross-origin' }
   })
 );
