@@ -123,28 +123,6 @@ app.set('trust proxy', 1);
 // Express 기본 헤더 숨김 (보안 상수)
 app.disable('x-powered-by');
 
-// 보안 헤더 세트업 (CSP 끔)
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "https://js.tosspayments.com", "'unsafe-inline'", "'unsafe-eval'"],
-        frameSrc: ["https://js.tosspayments.com"],
-        connectSrc: ["'self'", "https://api.tosspayments.com", "https://js.tosspayments.com"],
-        // 추가로 필요한 도메인이 있다면 여기에 넣으세요.
-      },
-    },
-    // 기존의 다른 Helmet 설정들은 유지합니다.
-    hsts: process.env.NODE_ENV === 'production' ? {
-      maxAge: 60 * 60 * 24 * 180,
-      includeSubDomains: true,
-      preload: false
-    } : false,
-    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-    crossOriginResourcePolicy: { policy: 'cross-origin' }
-  })
-);
 
 // 클릭재킹 방지(CSP의 frame-ancestors 대체)
 app.use(helmet.frameguard({ action: 'sameorigin' }));  // 같은 출처만 허용
