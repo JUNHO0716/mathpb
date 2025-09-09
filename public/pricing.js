@@ -1,34 +1,6 @@
 
-async function ensureTossSDK() {
-  if (window.TossPayments) return true;
-
-  // ✅ CDN 스크립트 태그 탐지: v2 또는 v2/ 어떤 형태든 잡히게
-  let tag = document.querySelector('script[src^="https://js.tosspayments.com/v2"]');
-  if (!tag) {
-    tag = document.createElement('script');
-    // ✅ 반드시 슬래시 포함!
-    tag.src = 'https://js.tosspayments.com/v2/';
-    tag.async = true;
-    document.head.appendChild(tag);
-  }
-
-  const ok = await new Promise((res) => {
-    tag.addEventListener('load',  () => res(true),  { once: true });
-    tag.addEventListener('error', () => res(false), { once: true });
-    // 이미 로드된 경우
-    if (window.TossPayments) res(true);
-  });
-
-  if (ok && window.TossPayments) {
-    console.log('[pricing] Toss SDK loaded');
-    return true;
-  }
-  console.error('[pricing] Toss SDK failed to load');
-  return false;
-}
 
 document.addEventListener('DOMContentLoaded', () => {
-  ensureTossSDK();
   // ★ Toss 테스트 클라이언트 키로 교체하세요 (test_ck_... 형태)
   const TOSS_CLIENT_KEY = "test_ck_0RnYX2w532okP2MNZRyPVNeyqApQ";
 
@@ -107,16 +79,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 교체 후 (토스 v2 권장 방식)
 async function openTossBilling(init) {
-  const ok = await ensureTossSDK();
-  if (!ok) {
-    alert('결제 모듈이 로드되지 않았습니다. 광고 차단/보안 확장프로그램을 끄고 새로고침 해주세요.');
-    return;
-  }
   try {
-    const toss = window.TossPayments(TOSS_CLIENT_KEY); // test_ck_...
-    await toss.requestBillingAuth({
+    const tossBilling = window.TossBilling(TOSS_CLIENT_KEY); // ✅ TossBilling 으로 변경
+    await tossBilling.requestBillingAuth('카드', {          // ✅ '카드' 추가
       customerKey: init.customerKey,
-      method: 'CARD',
       successUrl: init.successUrl,
       failUrl: init.failUrl
     });
@@ -158,56 +124,6 @@ async function openTossBilling(init) {
     } 
   });
 
-
-  async function initializePaymentWidget() {
-  // clientKey는 Toss Payments 대시보드에서 발급받은 실제 키로 대체하세요.
-  const customerKey = `u_<%= userId %>`;
-  const clientKey = 'test_ck_D5GePWL0kO9Ajo1kgbRXlOoKWAz2';
-  const paymentWidget = PaymentWidget(clientKey, PaymentWidget.ANONYMOUS);
-
-  paymentWidget.renderPaymentMethods('#payment-methods', {
-    variantKey: 'DEFAULT',
-  });
-  paymentWidget.renderAgreement('#agreement');
-
-  const subscribeBtn = document.getElementById('subscribeBtn');
-
-  subscribeBtn.addEventListener('click', async () => {
-    try {
-      const res = await fetch('/api/billing/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plan: 'basic',
-          cycle: 'month',
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        alert(data.msg);
-        return;
-      }
-
-      paymentWidget.requestPayment({
-        customerKey: data.customerKey,
-        orderId: data.orderId,
-        orderName: data.orderName,
-        successUrl: data.successUrl,
-        failUrl: data.failUrl,
-      });
-    } catch (error) {
-      console.error('Payment request failed:', error);
-      alert('결제 초기화에 실패했습니다.');
-    }
-  });
-}
-
-// 페이지 로드 시 위젯 초기화
-document.addEventListener('DOMContentLoaded', initializePaymentWidget);
-
-  
   // 초기 버튼 상태
   refresh();
 });
-
-
