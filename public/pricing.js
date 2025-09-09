@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 단축 선택자
   const $  = s => document.querySelector(s);
-  const $$ = s => [...document.querySelectorAll(s)];
+  const $$ = s => Array.from(document.querySelectorAll(s));
 
   // 필수 엘리먼트
   const mBtn = $('#mBtn');
@@ -127,4 +127,3 @@ async function openTossBilling(init) {
   // 초기 버튼 상태
   refresh();
 });
-
