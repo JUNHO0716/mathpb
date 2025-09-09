@@ -1527,7 +1527,7 @@ app.listen(PORT, () => {
 // --- Toss v2 SDK proxy (Adblock 차단 우회) ---
 app.get('/toss/v2.js', async (req, res) => {
   try {
-    const upstream = await fetch('https://js.tosspayments.com/v1/billing', {
+    const upstream = await fetch('https://js.tosspayments.com/v2', {
       // 일부 보안/CDN이 UA 없는 요청을 거부하는 경우가 있어 UA만 지정
       headers: { 'User-Agent': req.get('User-Agent') || 'Mozilla/5.0' }
     });
