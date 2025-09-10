@@ -8,7 +8,7 @@ footer {
 
 .footer-container {
   display: flex;
-  justify-content: space-around; /* ★★★ 이 부분을 수정하여 좌우로 퍼지게 합니다 ★★★ */
+  justify-content: space-between; /* ★★★ 이 부분을 변경하여 좌우로 최대한 퍼지게 합니다 ★★★ */
   flex-wrap: wrap;
   padding-bottom: 15px;
   border-bottom: 1px solid #e0e0e0;
@@ -17,8 +17,8 @@ footer {
 }
 
 .footer-section {
-  flex: 1;                  /* ★★★ 각 섹션이 공간을 차지하도록 수정 ★★★ */
-  min-width: 200px;         /* ★★★ 최소 너비를 다시 확보 ★★★ */
+  flex: 1;                  /* 각 섹션이 공간을 차지하도록 수정 */
+  min-width: 200px;         /* 최소 너비를 다시 확보 */
   margin: 5px 15px;
   text-align: left;
 }
