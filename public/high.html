@@ -270,21 +270,18 @@ input:checked + .slider:before {
     <table>
       <thead>
         <tr>
-          <th style="width:60px">No</th>
-          <th style="text-align:left;padding-left:18px">자료명</th>
-          <th>학년</th>
-          <th>학기</th>
-          <th>연도</th>
-          <th>업로드일</th>
-          <th style="width:170px">다운로드</th>
+          <th style="width: 60px;">No</th>
+          <th style="width: auto; text-align: left; padding-left: 18px;">자료명</th>
+          <th style="width: 80px;">학년</th>
+          <th style="width: 100px;">학기</th>
+          <th style="width: 80px;">연도</th>
+          <th style="width: 120px;">업로드일</th>
+          <th style="width: 170px;">다운로드</th>
         </tr>
       </thead>
       <tbody id="file-list"></tbody>
     </table>
   </div>
-
-  <div class="pagination" id="pagination"></div>
-</div>
 
 <script>
 let currentUser = null;
@@ -410,7 +407,29 @@ function renderTable(list) {
     tb.innerHTML = '<tr><td colspan="7" style="padding:20px;color:#9ba4b0;">자료가 없습니다</td></tr>';
     return;
   }
-  tb.innerHTML = list.map((row, i) => `
+  tb.innerHTML = list.map((row, i) => {
+    // --- 👇 변경점 시작 ---
+    // 'btns' 변수를 만들어 파일 존재 여부에 따라 버튼을 추가합니다.
+    let btns = '';
+
+    // row.files 객체가 있고, 그 안에 pdf 경로가 있을 때만 PDF 버튼을 추가합니다.
+    if (row.files?.pdf) {
+      btns += `<button class="download-btn" title="PDF 다운로드" onclick="downloadFile('${row.id}','pdf')"
+          style="background:none;border:none;cursor:pointer;">
+          <img src="/pdf_download.png" alt="PDF 다운로드" style="width:32px;height:32px;">
+        </button>`;
+    }
+    
+    // row.files 객체가 있고, 그 안에 hwp 경로가 있을 때만 HWP 버튼을 추가합니다.
+    if (row.files?.hwp) {
+      btns += `<button class="download-btn" title="HWP 다운로드" onclick="downloadFile('${row.id}','hwp')"
+          style="background:none;border:none;cursor:pointer;">
+          <img src="/hwp_download.png" alt="HWP 다운로드" style="width:32px;height:32px;">
+        </button>`;
+    }
+    // ---  변경점 끝 ---
+
+    return `
     <tr>
       <td>${(currentPage - 1) * pageSize + i + 1}</td>
       <td style="text-align:left;padding-left:18px">
@@ -421,15 +440,11 @@ function renderTable(list) {
       <td>${row.semester || ''}</td>
       <td>${row.year || ''}</td>
       <td>${formatDate(row.uploaded_at || row.date)}</td>
-      <td>
-        <button class="download-btn" title="PDF 다운로드" onclick="downloadFile('${row.id}','pdf')">
-          <img src="/pdf_download.png" alt="PDF 다운로드" style="width:32px;height:32px;">
-        </button>
-        <button class="download-btn" title="HWP 다운로드" onclick="downloadFile('${row.id}','hwp')">
-          <img src="/hwp_download.png" alt="HWP 다운로드" style="width:32px;height:32px;">
-        </button>
-      </td>
-    </tr>`).join('');
+      
+      <td>${btns}</td>
+    </tr>
+    `;
+  }).join('');
 }
 
 function downloadFile(id, type) {
@@ -512,3 +527,4 @@ window.onload = () => {
 
 </body>
 </html>
+
