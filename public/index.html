@@ -1,1109 +1,1754 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta name="robots" content="noindex, nofollow">
-  <meta charset="UTF-8">
-  <title>대시보드</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/png" href="/favicon.png" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
-  <script src="/toss/v2.js"></script>
+import dotenv from 'dotenv';
+dotenv.config();
 
-  <style>
-    :root{
-      --purple-bg:#ffffff;
-      --purple-dk:#ffffff;
-      --btn-bg:#FDC512;
-      --btn-bg-hov:#D9A90F; 
-      --border-light:#e9e9e9;      /* 🆕 아주 옅은 회색 */
-      --text-main:#111;
-      --text-sub:#5f5f5f;
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+import passport from 'passport';
+import GoogleStrategy from 'passport-google-oauth20';
+import mysql from 'mysql2/promise';
+const db = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT,
+  charset: 'utf8mb4',
+  timezone: 'Z'
+});
+db.on('connection', conn => conn.query("SET NAMES utf8mb4"));
+import bcrypt from 'bcrypt';
+import cors from 'cors';
+import AWS from 'aws-sdk';
+import multer from 'multer';
+import multerS3 from 'multer-s3';
+import express from 'express';
+import session from 'express-session';
+import iconv from 'iconv-lite';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import crypto from 'crypto';
+
+const TOSS_SECRET_KEY = process.env.TOSS_SECRET_KEY;
+const BASE_URL        = process.env.BASE_URL || 'https://mathpb.com';
+
+// Authorization: Basic base64("secretKey:")
+function tossAuthHeader() {
+  const token = Buffer.from(`${TOSS_SECRET_KEY}:`).toString('base64');
+  return `Basic ${token}`;
+}
+
+// ──────────────────────────────────────
+// Pricing table & resolver (ADD)
+// ──────────────────────────────────────
+const PRICE_TABLE = {
+  basic:    { month:  24900, year:  24900 * 12 * 0.85 | 0 }, // 연 15% 할인
+  standard: { month:  69900, year:  69900 * 12 * 0.85 | 0 },
+  pro:      { month: 176000, year: 176000 * 12 * 0.85 | 0 },
+};
+
+function resolvePlan(plan) {
+  const key = String(plan || '').toLowerCase();
+  if (key === 'premium') return 'pro'; // 혹시 모를 호환성
+  return ['basic','standard','pro'].includes(key) ? key : 'standard'; // standard를 기본값으로
+}
+function resolveCycle(cycle) {
+  const key = String(cycle || '').toLowerCase();
+  return ['month','year'].includes(key) ? key : 'month';
+}
+function getPrice(plan, cycle) {
+  const p = resolvePlan(plan);
+  const c = resolveCycle(cycle);
+  return PRICE_TABLE[p][c];
+}
+
+// ─── ES 모듈에서 require() 쓰도록 ───────────────────
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
+// AWS S3 연결
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION
+});
+
+const deleteS3 = key =>
+  s3.deleteObject({ Bucket: process.env.AWS_S3_BUCKET, Key: key }).promise();
+
+// ─── 로그인·관리자 체크 ───
+function isLoggedIn(req, res, next) {
+  if (req.session?.user) return next();
+  return res.status(401).redirect('/login.html');
+}
+function isLoggedInJson(req, res, next) {      // API 전용 (리다이렉트 대신 JSON)
+  if (req.session?.user) return next();
+  return res.status(401).json({ msg: '로그인이 필요합니다.' });
+}
+function isAdmin(req, res, next) {
+  if (req.session?.user?.role === 'admin') return next();
+  return res.status(403).send('관리자 전용');
+}
+
+// ─── 새 업로더 두 개 (코드 최상단에) ───
+const avatarUpload = multer({
+  storage: multerS3({
+    s3,
+    bucket: process.env.AWS_S3_BUCKET,      
+    contentType: multerS3.AUTO_CONTENT_TYPE, // ★ 올바른 MIME 설정
+    key: (req,file,cb)=> {
+      const ext=file.originalname.split('.').pop();
+      cb(null,`profile/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`);
     }
+  })
+});
 
-    * {
-      box-sizing: border-box;
-      font-family: 'Noto Sans KR', sans-serif;
+const fileUpload = multer({
+  storage: multerS3({ s3, bucket: process.env.AWS_S3_BUCKET,
+    key: (req,file,cb)=> {
+      const today=new Date().toISOString().slice(0,10);
+      const ext=file.originalname.split('.').pop();
+      cb(null,`files/${today}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`);
     }
+  })
+});
 
-    body {
-      margin: 0;
-      display: flex;
-      height: 100vh;
-      background: #f5f6fa;
-    }
+const app = express();
+// ✅ Render 등 프록시 뒤에 있을 때 IP/HTTPS 인식 정확히 하려면 필수
+app.set('trust proxy', 1);
 
-    /* ===== Fade-in + Slide from Left ===== */
-    .fade-in-left {
-      opacity: 0;
-      transform: translateX(-30px);
-      animation: fadeInLeft 0.6s ease forwards;
-    }
+// Express 기본 헤더 숨김 (보안 상수)
+app.disable('x-powered-by');
 
-    @keyframes fadeInLeft {
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
+// 보안 헤더 세트업 (CSP 끔)
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // ★ CSP 전부 비활성화
+    // HTTPS에서만 HSTS 적용(운영만)
+    hsts: process.env.NODE_ENV === 'production' ? {
+      maxAge: 60 * 60 * 24 * 180,
+      includeSubDomains: true,
+      preload: false
+    } : false,
+    // Referer 최소화
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    // S3 등 외부 리소스 대응
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
+  })
+);
 
-    /* ===== 사이드바 스타일 ===== */
-    .sidebar {
-      width: 190px;
-      background: #0f0f0f;
-      color: white;
-      transition: width 0.3s;
-      display: flex;
-      flex-direction: column;
-      padding-top: 20px;
-      align-items: stretch; 
-      overflow-x: hidden;
-    }
+// 클릭재킹 방지(CSP의 frame-ancestors 대체)
+app.use(helmet.frameguard({ action: 'sameorigin' }));  // 같은 출처만 허용
 
-    .menu-list {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;   /* 메뉴들은 항상 위에서부터 쌓이게 */
-    width: 100%;               /* 메뉴 아이템 폭 100% */
+// X-Powered-By 제거는 이미 위에서 하고 있음
+// nosniff 보강(중복 무해)
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  next();
+});
+
+
+// ✅ 전역 레이트 리밋(완만하게). 15분에 1000회
+//  → 로그인/다운로드는 5단계에서 개별 제한 더 빡세게 추가할 것
+const commonLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 1000,                 // v7 옵션명: limit
+  standardHeaders: 'draft-7',  // 응답헤더에 속도제한 정보 노출(표준)
+  legacyHeaders: false,
+});
+app.use(commonLimiter);
+
+const PROD = process.env.NODE_ENV === 'production';
+
+const ALLOWED_HOSTS = new Set(
+  PROD
+    ? ['mathpb.com', 'www.mathpb.com']                 // 운영: HTTPS 도메인만
+    : ['mathpb.com', 'www.mathpb.com', 'localhost']    // 개발: 로컬 허용
+);
+
+function getHostOnly(h) {
+  return (h || '').toLowerCase().split(':')[0]; // 포트 제거
+}
+
+function originHost(urlStr) {
+  try { return new URL(urlStr).hostname.toLowerCase(); }
+  catch { return ''; }
+}
+
+function verifyOrigin(req, res, next) {
+  const origin  = req.get('Origin');            // ex) https://mathpb.com
+  const referer = req.get('Referer');           // ex) https://mathpb.com/index.html
+  const xfHost  = req.get('X-Forwarded-Host');  // 프록시가 원래 Host 넘겨줄 수 있음
+  const host    = req.get('Host');              // ex) mathpb.com
+
+  const oHost = originHost(origin);
+  const rHost = originHost(referer);
+  const hHost = getHostOnly(xfHost || host);
+
+  const allowed =
+    (oHost && ALLOWED_HOSTS.has(oHost)) ||
+    (rHost && ALLOWED_HOSTS.has(rHost)) ||
+    (hHost && ALLOWED_HOSTS.has(hHost));
+
+  if (!allowed) {
+    return res.status(403).json({ error: 'FORBIDDEN_ORIGIN', detail: '출처 검증 실패' });
   }
-
-    .sidebar.collapsed {
-      width: 80px;
-    }
-
-    .logo {
-      height: 36px;
-      margin-bottom: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      width: 100%;
-    }
-
-    .logo-text {
-      font-size: 20px;
-      font-weight: bold;
-      transition: opacity 0.3s;
-      color: #FFD400;
-      opacity: 1;
-    }
-
-    .logo-img {
-      position: absolute;
-      width: 30px;
-      height: 30px;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    .sidebar.collapsed .logo-text {
-      opacity: 0;
-    }
-
-    .sidebar.collapsed .logo-img {
-      opacity: 1;
-    }
-
-    .menu-item {
-      position: relative;
-      display: flex;
-      align-items: center;
-      padding: 15px 17px;
-      cursor: pointer;
-      transition: background 0.2s;
-      width: 100%;
-      opacity: 0;
-      transform: translateX(-30px);
-      margin-bottom: 12px;
-    }
-
-    .menu-item .active-bg {
-      position: absolute;
-      left: 12px;      /* 흰색 사각형 좌우 여백(조절 가능) */
-      right: 12px;
-      top: 3px;        /* 위/아래 여백 */
-      bottom: 3px;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 12px rgba(248, 246, 246, 0.133);
-      z-index: 0;
-      opacity: 0;     /* 기본 투명 */
-      transition: opacity 0.18s;
-    }
-    .sidebar.collapsed .menu-item.active .active-bg {
-      opacity: 1;
-    }
-    
-    .menu-item.active .active-bg {
-        opacity: 1;
-      }
-
-      .menu-item img.menu-icon {
-      position: relative;
-      z-index: 2;
-    }
-
-    .menu-item.show {
-      animation: fadeInLeft 0.5s ease forwards;
-    }
-
-    .menu-item:hover {
-      background: #1e1e1e;
-    }
-
-    .menu-item i,
-    .menu-item span:not(.active-bg) {
-      position: relative;
-      z-index: 1;
-    }
-    .menu-item span:not(.active-bg) {
-      display: inline-block;          /* 폭 제어하려면 inline-block */
-      max-width: 140px;               /* 충분히 큰 값(텍스트 길이보다 여유 있게) */
-      overflow: hidden;
-      white-space: nowrap;
-      font-size: 0.8rem !important;
-      opacity: 1;
-      transition:
-        max-width .25s ease .30s,     /* 폭은 0.30s 뒤에 열리며 0.25s 동안 */
-        opacity   .25s ease .30s;     /* 동일 타이밍으로 페이드-인 */
-    }
-
-    .sidebar.collapsed .menu-item span:not(.active-bg) {
-      max-width: 0;                   /* 폭 0 → 아이콘 공간만 남음 */
-      opacity: 0;                     /* 투명 */
-      transition:
-        max-width .20s ease 0s,       /* 즉시 접히며 0.2s 동안 닫힘 */
-        opacity   .05s ease 0s;       /* 바로 사라짐 */
-    }
-
-    /* 폭이 다 늘어난 뒤에 글씨 나타날 수 있도록 지연 */
-    .sidebar.expanded .menu-item span:not(.active-bg) {
-      position: static;                /* 다시 레이아웃에 참여 */
-      opacity: 1;                      /* 서서히 나타남 */
-      transition: opacity .22s .05s;   /* 0.05s 지연 후 페이드-인 */
-    }
-
-    .sidebar.collapsed .menu-item img.menu-icon {
-      display: inline-block !important;
-    }
-
-    .menu-button {
-      width: 20px;
-      height: 20px;
-      cursor: pointer;
-      position: relative;
-      background: none;
-      border: none;
-      outline: none;
-      margin: 20px auto 20px auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .menu-button span {
-      display: block;
-      position: absolute;
-      background-color: #fff;
-      border-radius: 2px;
-      transition: all 0.4s cubic-bezier(.7,.2,.17,1.3);
-    }
-
-    .menu-button span:nth-child(1),
-    .menu-button span:nth-child(2),
-    .menu-button span:nth-child(3) {
-      width: 100%;
-      height: 2px;   /* 두께 절반 */
-      left: 0;
-    }
-
-    .menu-button span:nth-child(1) { top: 2px; }
-    .menu-button span:nth-child(2) { top: 6.5px; }
-    .menu-button span:nth-child(3) { top: 11px; }
-
-    .menu-button.active span {
-      width: 2px;
-      height: 100%;
-      top: 0;
-    }
-
-    .menu-button.active span:nth-child(1) { left: 0px; }
-    .menu-button.active span:nth-child(2) { left: 6.5px; }
-    .menu-button.active span:nth-child(3) { left: 13px; }
-
-    /* ===== 메인 콘텐츠 ===== */
-    .main-content {
-      flex-grow: 1;
-      padding: 40px;
-      opacity: 0;
-      transform: translateX(-30px);
-      animation: fadeInLeft 0.8s ease forwards;
-      animation-delay: 0.3s;
-    }
-
-    .menu-item.active {
-      color: #222;
-      font-weight: 600;
-      background: none;   /* 기존 흰배경 지움 */
-      box-shadow: none;   /* 기존 그림자 지움 */
-      border-radius: 0;
-    }
-
-    .menu-item.active i {
-      color: #4b39ef;
-    }
-    
-
-    .menu-icon {
-      width: 20px;
-      height: 20px;
-      margin-right: 15px;
-      object-fit: contain;
-      margin-left: 11px;
-    }
-
-    /* ===== Help FAB + Dropdown ===== */
-    .help-container{position:fixed;bottom:24px;right:24px;z-index:999}
-    .help-fab{width:46px;height:46px;border-radius:50%;border:none;background:#f8c900;color:#111;font-size:24px;cursor:pointer;box-shadow:0 8px 16px rgba(0,0,0,.2);transition:transform .15s}
-    .help-fab:hover{transform:scale(1.06)}
-    .help-menu{list-style:none;margin:0;padding:0;position:absolute;bottom:72px;right:0;background:#ffffff;width:280px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.18);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(10px);transition:all .25s}
-    .help-menu.show{opacity:1;pointer-events:auto;transform:translateY(0)}
-    .help-menu li{padding:14px 20px;font-size:14px;cursor:pointer;display:flex;gap:8px;align-items:center;transition:background .15s}
-    .help-menu li:not(:last-child){border-bottom:1px solid #f0f0f0}
-    .help-menu li:hover{background:#f7f7f7}
-    .help-menu .badge{width:24px;height:24px;border-radius:50%;background:#eef0f4;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
-
-    /* ① sidebar는 이미 flex-column 이므로 spacer에 flex-grow:1 */
-    .spacer { flex-grow: 1; }
-
-    /* ② 로그아웃 글씨도 접힐 때 숨기려면(선택) */
-    .sidebar.collapsed .menu-item.logout span:not(.active-bg) {
-      display: none;
-    }
-
-    /* ③ 하단과 조금 떨어뜨리고 싶다면 여백 주기(원하는 값) */
-    .menu-item.logout { margin-bottom: 30px; }
-
-    /* iframe 전용 */
-    #contentFrame{flex:1;border:none;width:100%;height:100%;}
-    /* main-content 를 flex 컨테이너로 */
-    .main-content{display:flex;padding:0;}
-
-    /* ────── 1) 헤더 ────── */
-      .page-header{
-        min-width:980px;padding:8px 40px 10px;
-        display:flex;align-items:center;justify-content:space-between;
-        position:relative; background: #fff;
-      }
-      .header-titles h1{font-size:1.3rem;font-weight:900;color:var(--text-main);margin-bottom: 2px;}
-      .sub-date{margin-top:4px;font-size:.7rem;font-weight:700;color:var(--text-sub);}
-
-      .header-actions{display:flex;align-items:center;gap:16px;} /* 버튼 간격 ↑ */
-
-      /* 1-a  버튼들 */
-      .action-btn{
-        padding:6px 20px;border-radius:9999px;
-        background:var(--btn-bg);color:#111;font-weight:700;
-        font-size:.70rem;display:inline-flex;align-items:center;gap:8px;
-        transition:.15s;text-decoration:none;
-      }
-      .action-btn i{font-size:.9rem;}
-      .action-btn:hover{background:var(--btn-bg-hov);}
-      /* 버튼끼리 살짝 띄우기 */
-      .action-btn+ .action-btn{margin-left:0;} 
-
-      /* 1-b  프로필 */
-      .user-wrapper{position:relative;}
-      .user-box{
-        display:flex;align-items:center;gap:14px;cursor:pointer; /* gap ↑ */
-      }
-      .avatar{
-        width:34px;height:34px;border-radius:50%;
-        object-fit:cover;background:#ddd;
-      }
-      .user-name{
-        font-size:0.8rem;font-weight:700;color:var(--text-main);
-        white-space:nowrap;
-      }
-      .user-box i{font-size:.8rem;color:#888;transition:.2s;}
-
-      .dropdown{
-        position:absolute;right:0;top:calc(100% + 6px);
-        min-width:160px;background:#fff;border:1px solid #eee;border-radius:10px;
-        box-shadow:0 4px 14px rgba(0,0,0,.06);padding:8px 0;display:none;z-index:20;
-      }
-      .dropdown a{
-        display:block;padding:10px 18px;font-size:.92rem;color:#333;
-        text-decoration:none;white-space:nowrap;transition:.13s;
-      }
-      .dropdown a:hover{background:#f8f8f8;}
-
-      .page-header::after{
-      content:'';
-      position:absolute;
-      left:50%;                          /* 가운데 기준 */
-      bottom:0;                          /* 헤더 맨 아래 */
-      transform:translateX(-50%);        /* 정확한 중앙 정렬 */
-
-      width:97%;                         /* ← 길이(=양쪽 여백) 조절 포인트 */
-      height:1px;                        /* 선 굵기 */
-      background:var(--border-light);    /* 선 색상 */
-      }
-
-    .highlight {
-      position: relative;
-      display: inline-block;
-    }
-
-    .highlight::before {
-      content: "";
-      position: absolute;
-      top: -4px;      /* 글자 위 위치 */
-      left: 0;
-      width: 30px;    /* 선 길이 */
-      height: 5px;    /* 선 굵기 */
-      background: #f8c900;  /* 노란색 */
-      border-radius: 2px;
-    }
-
-    .main-content {
-      display: flex;
-      flex-direction: column;   /* ← 이 한 줄이 없으면 세로로 쌓이지 않습니다! */
-      flex-grow: 1;
-      padding: 0;
-      overflow: hidden;
-    }
-    
-    .user-box.loading * { visibility: hidden; }
-
-    body.swal2-shown {
-      height: 100% !important;
-      overflow: hidden !important;
-    }
-
-.modal-overlay {
-  display: none;
-  position: fixed;
-  z-index: 9999;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.38);
-  justify-content: center;
-  align-items: center;
-}
-.modal-overlay.show {
-  display: flex;
-}
-.modal-content {
-  position: relative;
-  width: 1150px;
-  max-width: 95vw;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 8px 40px rgba(30,30,30,0.18);
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  overflow: hidden;
-  min-height: 700px;
-}
-.close-modal {
-  position: absolute;
-  right: 16px;
-  top: 10px;
-  background: none;
-  border: none;
-  font-size: 2rem;
-  color: #bbb;
-  z-index: 2;
-  cursor: pointer;
-  transition: color .2s;
-}
-.close-modal:hover { color: #111; }
-#paymentIframe {
-  width: 100%;
-  height: 800px;
-  border: none;
-  background: #fafbfc;
-  border-radius: 0 0 18px 18px;
+  next();
 }
 
-/* ===== 안내 모달 (Intro Modal) ===== */
-.intro-overlay{position:fixed;inset:0;background:rgba(0,0,0,.38);display:none;align-items:center;justify-content:center;z-index:10000}
-.intro-overlay.show{display:flex}
-.intro-modal{width:min(920px,95vw);background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.22);overflow:hidden;transform:translateY(8px);opacity:0;animation:introPop .28s ease-out .02s forwards}
-@keyframes introPop{to{opacity:1;transform:translateY(0)}}
+// ▼ 게시판 첨부 다운로드 제한 (1분 30회)
+const boardDownloadLimiter = rateLimit({ windowMs: 60 * 1000, max: 30 });
 
-.intro-head{display:flex;gap:14px;align-items:center;padding:22px 24px;border-bottom:1px solid var(--border-light)}
-.intro-badge{width:34px;height:34px;border-radius:10px;background:var(--btn-bg);display:flex;align-items:center;justify-content:center;font-weight:900;color:#111}
-.intro-title{font-size:1.22rem;font-weight:900;color:#111;letter-spacing:-.2px}
-.intro-sub{font-size:.92rem;color:#5f5f5f;margin-top:2px}
-
-.intro-body{padding:18px 22px 8px}
-
-.intro-callout{
-  background:#fff8d8;border:1px dashed #f0cc4b;color:#6a5512;
-  padding:10px 12px;border-radius:10px;font-size:.92rem;line-height:1.5;margin-bottom:12px
+// ▼ /api/board/:id/attachment/:idx → idx 숫자만 허용
+function numericIdxParam(req, res, next) {
+  if (!/^\d+$/.test(req.params.idx)) return res.status(400).send('잘못된 요청');
+  next();
 }
 
-.intro-grid{display:grid;grid-template-columns:1fr;gap:12px}
-@media (min-width:820px){.intro-grid{grid-template-columns:1fr 1fr}}
+const downloadLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
-.intro-card{
-  border:1px solid var(--border-light);border-radius:14px;background:#fff;padding:16px 16px 14px
-}
-.intro-card h4{margin:0 0 8px;font-size:1rem;color:#111}
-.intro-card p{margin:0;font-size:.93rem;color:#555;line-height:1.55}
-.intro-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#FDC512;margin-right:8px;vertical-align:middle}
-
-.intro-list{margin:8px 0 0;padding-left:0;list-style:none}
-.intro-list li{margin:6px 0;color:#444;font-size:.93rem}
-.intro-strong{font-weight:800;color:#111}
-
-.intro-footer{display:flex;gap:10px;justify-content:flex-end;padding:14px 16px;border-top:1px solid var(--border-light);background:#fafafa}
-.btn-ghost{background:#fff;border:1px solid #e8e8e8;border-radius:9999px;padding:9px 16px;font-weight:700;color:#333;cursor:pointer}
-.btn-ghost:hover{background:#f7f7f7}
-.btn-primary{background:var(--btn-bg);border:none;border-radius:9999px;padding:9px 18px;font-weight:800;color:#111;cursor:pointer}
-.btn-primary:hover{background:var(--btn-bg-hov)}
-.intro-close{position:absolute;top:10px;right:12px;border:none;background:none;font-size:1.6rem;color:#bbb;cursor:pointer}
-.intro-close:hover{color:#111}
-
-/* ----- intro-list: 제목 줄 + 설명 줄 레이아웃 ----- */
-.intro-list-dot li{margin:10px 0 12px}
-.intro-list-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.intro-list-desc{color:#555;font-size:.93rem;line-height:1.55;margin-left:16px}
-
-/* 점(노란 동그라미) 크기 살짝 키움 */
-.intro-list-dot .intro-dot{width:9px;height:9px}
-
-.intro-note {
-  font-size: 0.6rem;   /* 기본보다 약 3pt 정도 작게 */
-  color: #666;         /* 연한 회색 톤 */
-  line-height: 1.5;
-  margin-top: 6px;
+// /api/download/:id → 숫자만 허용
+function numericIdParam(req, res, next) {
+  if (!/^\d+$/.test(req.params.id)) {
+    return res.status(400).send('잘못된 요청');
+  }
+  next();
 }
 
-#profileName {
-  font-size:0.7rem;   /* 원하는 크기 */
-  font-weight:600;    /* 두께 */
-  color:#444;         /* 색상 */
-  margin:0;           /* h3 기본 여백 없애기 */
+app.use(cors({
+  origin: PROD
+    ? ['https://mathpb.com']                           // 운영: HTTPS만
+    : ['https://mathpb.com', 'http://mathpb.com', 'http://localhost:3000', 'http://localhost:5173'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// 프리플라이트(OPTIONS) 요청까지 허용
+app.options('*', cors());
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,   // ✅ 로그인 전에는 세션 안 만듦
+  cookie: {
+    httpOnly: true,           // ✅ JS로 쿠키 접근 차단
+    sameSite: 'lax',          // ✅ 다른 사이트에서 함부로 요청 못함 (CSRF 완화)
+    secure: process.env.NODE_ENV === 'production', // ✅ HTTPS에서만 전송
+    maxAge: 1000 * 60 * 60 * 2 // 2시간
+  }
+}));
+app.use(express.json());
+
+function multerErrorHandler(err, req, res, next) {
+  if (err && err.field === 'avatar') {
+    return res.status(400).json({ ok: false, code: err.code, msg: err.message, field: err.field });
+  }
+  next(err);
 }
+app.use(multerErrorHandler);
 
+// ──────────────────────────────────────────────
+// 아이디 중복 확인  POST /check-id
+// Body: { id : "사용자가 입력한 아이디" }
+// ──────────────────────────────────────────────
+app.post('/check-id', async (req, res) => {
+  try {
+    const { id } = req.body;
 
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-<body>
+    // 1) 값이 비었으면 400
+    if (!id) return res.status(400).json({ msg: '아이디를 입력하세요.' });
 
-  <div class="sidebar fade-in-left" id="sidebar">
-    <div class="logo">
-      <span class="logo-text">Mathbee</span>
-      <img src="logo_m.png" alt="로고" class="logo-img">
-    </div>
-    <button class="menu-button" id="toggleBtn" onclick="toggleSidebarAnim()" aria-label="사이드바 열기/닫기">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-    <div class="menu-list">
-    <div class="menu-item" id="menu1" data-url="home.html">
-      <span class="active-bg"></span>
-      <img class="menu-icon" src="main_home_w.png"
-        data-icon-black="main_home_b.png" data-icon-white="main_home_w.png" alt="" />
-      <span>메인홈</span>
-    </div>
-    <div class="menu-item" id="menu2" data-url="problem_bank.html">
-      <span class="active-bg"></span>
-      <img class="menu-icon" src="icon_book_w.png"
-          data-icon-black="icon_book_b.png" data-icon-white="icon_book_w.png" alt="">
-      <span>문제은행</span>
-    </div>
-    <div class="menu-item" id="menu3" data-url="high.html">
-      <span class="active-bg"></span>
-      <img class="menu-icon" src="icon_school_w.png" 
-        data-icon-black="icon_school_b.png" data-icon-white="icon_school_w.png" alt="" />
-      <span>내신기출 시험지</span>
-    </div>
-    <div class="menu-item" id="menu4" data-url="bookcase.html">
-      <span class="active-bg"></span>
-      <img class="menu-icon" src="icon_bookcase_w.png" 
-        data-icon-black="icon_bookcase_b.png" data-icon-white="icon_bookcase_w.png" alt="" />
-      <span>내 책장</span>
-    </div>
-    <div class="menu-item" id="menu5" data-url="upload.html">
-      <span class="active-bg"></span>
-      <img class="menu-icon" src="icon_upload_w.png" 
-        data-icon-black="icon_upload_b.png" data-icon-white="icon_upload_w.png" alt="" />
-      <span>시험지 요청</span>
-    </div>
-     <div class="menu-item" id="menu6" data-url="notice.html">
-      <span class="active-bg"></span>
-      <img class="menu-icon" src="icon_notification_w.png" 
-        data-icon-black="icon_notification_b.png" data-icon-white="icon_notification_w.png" alt="" />
-      <span>공지사항</span>
-    </div>
-      <div class="menu-item" id="menu7" data-url="profile.html">
-      <span class="active-bg"></span>
-      <img class="menu-icon" src="icon_my_w.png" 
-        data-icon-black="icon_my_b.png" data-icon-white="icon_my_w.png" alt="" />
-      <span>내 계정</span>
-    </div>
-  </div>
-    <div class="spacer"></div>
-    <div class="menu-item" id="menu8">
-      <span class="active-bg"></span>
-      <img class="menu-icon" src="icon_logout_w.png" 
-        data-icon-black="icon_logout_b.png" data-icon-white="icon_logout_w.png" alt="" />
-      <span>로그아웃</span>
-    </div>
-  </div>
+    // 2) DB 조회   ★컬럼명(userId)과 테이블(users) 확인!
+    const [rows] = await db.query(
+      'SELECT id FROM users WHERE id = ?',
+      [id]
+    );
 
-<div class="main-content" id="mainContent">
-  <header class="page-header">
-    <div class="header-titles">
-      <h1 id="pageTitle"><span class="highlight">Ma</span>in home</h1>
-      <div class="sub-date" id="todayTxt"></div>
-    </div>
-    <div class="header-actions">
-      <a href="pricing.html" class="action-btn"><i class="fa-regular fa-credit-card"></i> 결제하기</a>
-      <a href="review_form.html" class="action-btn"><i class="fa-regular fa-pen-to-square"></i> 후기 남기기</a>
-      <div class="user-wrapper" id="userWrapper">
-        <div class="user-box loading" id="userBox">
-          <img alt="avatar" class="avatar" id="avatar">
-          <h3 id="profileName">Guest</h3>
-          <i class="fa-solid fa-chevron-down" id="arrowIcon"></i>
-        </div>
-        <div class="dropdown" id="dropdownMenu">
-          <a href="profile.html">내 프로필</a>
-          <a href="#" id="logoutBtn">로그아웃</a>
-          <a href="admin.html" id="goAdminPage" style="display:none;">관리자페이지</a>
-        </div>
-      </div>
-    </div>
-  </header>  <!-- ← ← ← 반드시 닫는다!! -->
-
-  <iframe id="contentFrame" src="home.html"></iframe>
-</div>
-
-  <script>
-    // 날짜 표시
-    const wk=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    const mo=['January','February','March','April','May','June','July','August','September','October','November','December'];
-    function setToday(){
-      const t=new Date();
-      document.getElementById('todayTxt').textContent =
-        `${wk[t.getDay()]}  ${String(t.getDate()).padStart(2,'0')} ${mo[t.getMonth()]} ${t.getFullYear()}`;
+    // 3) 있으면 409, 없으면 200
+    if (rows.length) {
+      return res.status(409).json({ msg: '이미 사용 중인 아이디입니다.' });
     }
+    return res.json({ msg: '사용 가능한 아이디입니다.' });
+  } catch (err) {
+    console.error('check-id error:', err);
+    return res.status(500).json({ msg: '서버 오류' });
+  }
+});
 
-    let currentUser = null;
-    
-    /* 로그인·프로필 바인딩 + 관리자 판별 */
-    let IS_ADMIN=false;
-    async function bindUser(){
-      try{
-        const res = await fetch('/check-auth?ts=' + Date.now(), {
-          credentials: 'include', cache: 'no-store'
-        });
-        const d = await res.json();
-        if(!d.isLoggedIn) return;
+app.post('/api/update-biznum', isLoggedIn, async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const { bizNum } = req.body;
+    if (!bizNum) return res.json({ success: false });
+    await db.query('UPDATE users SET bizNum = ? WHERE id = ?', [bizNum, userId]);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
 
-        const u = d.user || {};
-        currentUser = u; // ✅ 이 줄 추가!!! (딱 이거!)
-        const displayId = u.email ? u.email.split('@')[0] : (u.name || 'Guest');
+app.get('/api/admin/users', isLoggedIn, isAdmin, async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT id, email, name, created_at, is_subscribed, subscription_start, subscription_end
+      FROM users
+      ORDER BY created_at DESC
+    `);
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ message: '회원 목록 조회 오류', error: e.message });
+  }
+});
 
-        document.getElementById('profileName').textContent = displayId;
+app.post('/api/update-subscription', isLoggedIn, isAdmin, async (req, res) => {
+  const { userId, action } = req.body;
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  const endDate = new Date();
+  endDate.setDate(today.getDate() + 30);
+  const endDateStr = endDate.toISOString().split('T')[0];
 
-        const avatarEl = document.getElementById('avatar');
-        if (u.avatarUrl && u.avatarUrl.trim() !== "") {
-          avatarEl.src = u.avatarUrl;
-        } else {
-          avatarEl.src = 'icon_my_b.png';
-        }
-        avatarEl.alt = displayId;
+  try {
+    if (action === 'extend') {
+      await db.execute(`
+        UPDATE users SET is_subscribed = 1, subscription_start = ?, subscription_end = ?
+        WHERE id = ?
+      `, [todayStr, endDateStr, userId]);
+      res.json({ success: true, message: '✅ 구독이 연장되었습니다.' });
+    } else if (action === 'cancel') {
+      await db.execute(`
+        UPDATE users SET is_subscribed = 0, subscription_end = ?
+        WHERE id = ?
+      `, [todayStr, userId]);
+      res.json({ success: true, message: '❌ 구독이 해지되었습니다.' });
+    } else {
+      res.status(400).json({ success: false, message: '올바른 action 아님' });
+    }
+  } catch (e) {
+    res.status(500).json({ success: false, message: '서버 오류', error: e.message });
+  }
+});
 
-        document.getElementById('userBox').classList.remove('loading');
-        // **여기 추가!**
-        if (u.role === 'admin') {
-        document.getElementById('goAdminPage').style.display = 'block';
-      } else {
-        document.getElementById('goAdminPage').style.display = 'none';
+
+
+// [1] passport 초기화 및 세션 연결
+app.use(passport.initialize());
+app.use(passport.session());
+
+// [2] GoogleStrategy 설정
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: process.env.GOOGLE_CALLBACK_URL
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    const email = profile.emails[0].value;
+    const name = profile.displayName;
+    const avatarUrl = profile.photos && profile.photos[0]?.value || null;
+
+    // DB에 이미 있는 유저인지 확인
+    const [rows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+
+    let user;
+    if (rows.length) {
+      user = rows[0];
+      // DB에 사진이 없으면 업데이트
+      if (avatarUrl && (!user.avatarUrl || user.avatarUrl === '/icon_my_b.png')) {
+        await db.query('UPDATE users SET avatarUrl=? WHERE id=?', [avatarUrl, user.id]);
+        user.avatarUrl = avatarUrl; // 메모리상에도 갱신
       }
-      }catch(e){  
-        console.error(e);
-      }
+    } else {
+      // 신규 가입: avatarUrl까지 같이 저장!
+      await db.query(
+        'INSERT INTO users (id, email, name, password, phone, avatarUrl) VALUES (?, ?, ?, NULL, "", ?)',
+        [profile.id, email, name, avatarUrl]
+      );
+      const [newUser] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
+      user = newUser[0];
     }
 
-     // 프로필 드롭다운
-    function initDropdown(){
-      const box=document.getElementById('userBox');
-      const menu=document.getElementById('dropdownMenu');
-      const arrow=document.getElementById('arrowIcon');
-      box.addEventListener('click',e=>{
-        e.stopPropagation();
-        const open=menu.style.display==='block';
-        menu.style.display=open?'none':'block';
-        arrow.style.transform=open?'rotate(0deg)':'rotate(180deg)';
-      });
-      document.addEventListener('click',e=>{
-        if(!menu.contains(e.target)){
-          menu.style.display='none';
-          arrow.style.transform='rotate(0deg)';
-        }
-      });
+    return done(null, {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      avatarUrl: user.avatarUrl || '/icon_my_b.png'
+    });
+  } catch (err) {
+    console.error('Google Strategy error:', err);
+    return done(err);
+  }
+}));
+
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+passport.deserializeUser((obj, done) => {
+  done(null, obj);
+});
+
+// 서버 상태 확인용 라우트 (MySQL 연결 확인)
+app.get('/ping-db', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT NOW() AS now');
+    res.send(`✅ DB 연결 성공! 현재 시간: ${rows[0].now}`);
+  } catch (e) {
+    console.error('❌ DB 연결 실패:', e);
+    res.status(500).send('DB 연결 실패');
+  }
+});
+
+// 회원가입 (POST /register)
+app.post('/register', async (req, res) => {
+  const { id, email, password, name, phone } = req.body;
+
+   console.log('회원가입 요청 데이터:', req.body);
+
+  if (!id || !email || !password || !name || !phone) return res.status(400).json({ msg: "필수 입력값" });
+
+  try {
+    const hash = await bcrypt.hash(password, 10);
+    await db.query(
+      'INSERT INTO users (id, email, password, name, phone) VALUES (?, ?, ?, ?, ?)',
+      [id, email, hash, name, phone]
+    );
+    res.json({ msg: "회원가입 성공" });
+  } catch (e) {
+    console.error('회원가입 에러:', e);  // 에러 로그
+    if (e.code === 'ER_DUP_ENTRY') {
+      res.status(409).json({ msg: "이미 존재하는 이메일" });
+    } else {
+      res.status(500).json({ msg: "서버 오류", error: e.message });
     }
+  }
+});
 
-    document.addEventListener('DOMContentLoaded',()=>{
-      setToday();
-      initDropdown();
-      bindUser();
-
-      const sidebarLogout = document.getElementById('menu8');
-      if(sidebarLogout) sidebarLogout.addEventListener('click', async ()=>{
-        try {
-          await fetch('/logout', {credentials:'include'});
-          location.href = '/login.html';
-        } catch(e){
-          console.error('로그아웃 실패', e);
-        }
-      });
-      const dropdownLogout = document.getElementById('logoutBtn');
-
-      async function logout(){
-        await fetch('/logout',{credentials:'include'});
-        location.href = '/login.html';  // 또는 location.reload(); 원하는 방식 선택
+app.post(
+  '/api/user-upload',
+  isLoggedIn,
+  fileUpload.array('fileInput', 10),
+  async (req, res) => {
+    try {
+      const userId = req.session.user.id;
+      const files  = req.files;
+      if (!files || !files.length) {
+        return res.status(400).json({ msg: '파일이 없습니다.' });
       }
 
-      if(sidebarLogout) sidebarLogout.addEventListener('click', logout);
-      if(dropdownLogout) dropdownLogout.addEventListener('click', logout);
+      for (const f of files) {
+       // 헤더 바이트를 latin1 로 뽑아서 → UTF-8 로 해석
+       const decodedName = Buffer
+         .from(f.originalname, 'latin1')
+         .toString('utf8');
 
-  // 모달 바깥 클릭 시 닫기
-  paymentModal.addEventListener('click', function(e){
-    if (e.target === paymentModal) {
-      paymentModal.classList.remove('show');
-      paymentIframe.src = "";
-      document.body.style.overflow = "";
+
+        // ③ DB에 저장할 때는 decodedName 을 사용!
+        await db.query(
+          'INSERT INTO uploads (user_id, filename, s3_key, status) VALUES (?, ?, ?, ?)',
+          [userId, decodedName, f.key, '확인중']
+        );
+      }
+
+      res.json({ msg: '업로드 성공' });
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ msg: '서버 오류', error: e.message });
     }
+  }
+);
+
+// 로그인 API - 세션 저장 포함
+app.post('/login', async (req, res) => {
+  const { id, password } = req.body; // email -> id
+  try {
+    const [rows] = await db.query('SELECT * FROM users WHERE id=?', [id]);
+    if (!rows.length) return res.status(401).json({ msg: "아이디 또는 비밀번호 오류" });
+
+    const user = rows[0];
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(401).json({ msg: "아이디 또는 비밀번호 오류" });
+
+    req.session.user = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role || 'user',
+      avatarUrl: user.avatarUrl || '/icon_my_b.png'
+    };
+    res.json({ msg: "로그인 성공", user: req.session.user });
+  } catch (e) {
+    res.status(500).json({ msg: "서버 오류", error: e.message });
+  }
+});
+
+// 비밀번호 재설정 (POST /resetpw)
+// 이메일+이름+핸드폰번호가 모두 맞아야 변경 가능!
+app.post('/resetpw', async (req, res) => {
+  const { email, name, phone, password } = req.body;
+  if (!email || !name || !phone || !password) return res.status(400).json({ msg: "입력값 오류" });
+  try {
+    // 세 정보가 모두 맞는 회원만 비번 변경 허용
+    const [rows] = await db.query(
+      'SELECT * FROM users WHERE email=? AND name=? AND phone=?',
+      [email, name, phone]
+    );
+    if (!rows.length) return res.status(404).json({ msg: "입력 정보가 맞지 않습니다" });
+
+    const hash = await bcrypt.hash(password, 10);
+    await db.query('UPDATE users SET password=? WHERE email=?', [hash, email]);
+    res.json({ msg: "비밀번호가 변경되었습니다!" });
+  } catch (e) {
+    res.status(500).json({ msg: "서버 오류", error: e.message });
+  }
+});
+
+// 공지 등록 (POST /api/notices) ─ 관리자만
+app.post('/api/notices',
+  isLoggedIn, isAdmin,
+  fileUpload.single('image'),
+  async (req, res) => {
+    const { title, content, category } = req.body;
+    if (!title || !content)
+      return res.status(400).json({ msg: '필수 입력값' });
+
+    const imageUrl = req.file ? req.file.location : null;   // S3 URL
+    const today    = new Date().toISOString().slice(0, 10);
+
+    await db.query(
+      'INSERT INTO notices (title, date, content, imageUrl, category) VALUES (?,?,?,?,?)',
+      [title, today, content, imageUrl, category || '공지']
+    );
+    res.json({ msg: '공지 등록 성공' });
+});
+
+// 공지사항 목록 (제목, 날짜만)
+app.get('/api/notices', async (req, res) => {
+  const type = req.query.type || '공지';  // 기본값: 공지
+
+  try {
+    const [rows] = await db.query(
+      'SELECT * FROM notices WHERE category = ? ORDER BY id DESC',
+      [type]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'DB 오류' });
+  }
+});
+
+// 공지 상세 조회
+app.get('/api/notices/:id', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM notices WHERE id=?', [req.params.id]);
+    if (rows.length) res.json(rows[0]);
+    else res.status(404).json({ msg: "공지 없음" });
+  } catch (e) {
+    res.status(500).json({ msg: "공지 상세 오류", error: e.message });
+  }
+});
+
+// 공지 삭제 (DELETE /api/notices/:id) ─ 관리자만
+app.delete('/api/notices/:id',
+  isLoggedIn, isAdmin,
+  async (req, res) => {
+    const [r] = await db.query('DELETE FROM notices WHERE id=?', [req.params.id]);
+    if (r.affectedRows) return res.json({ msg: '삭제 성공' });
+    res.status(404).json({ msg: '공지 없음' });
+});
+
+    // 업로드 API (관리자용)
+    app.post('/api/upload',
+  isLoggedIn, isAdmin, verifyOrigin,  // 여기 추가!
+  fileUpload.array('files'),
+  async (req, res) => {
+      try {
+        const { region, district, school, grade, year, semester, title, level } = req.body;
+        const files = req.files;
+        if(!files || files.length === 0) return res.status(400).json({ message: '파일이 없습니다.' });
+
+        // 확장자별로 구분
+        let hwpKey = null, pdfKey = null;
+for (const f of files) {
+  const ext = path.extname(f.originalname).toLowerCase();   // ✅ ext 선언
+  if (['.hwp', '.hwpx'].includes(ext)) hwpKey = f.key;
+  if (ext === '.pdf')               pdfKey = f.key;
+}
+
+        await db.query(
+          `INSERT INTO files 
+            (region, district, school, grade, year, semester, title, hwp_filename, pdf_filename, level)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [region, district, school, grade, year, semester, title, hwpKey, pdfKey, level]
+        );
+        res.json({ message: '업로드 성공' });
+      } catch (e) {
+        res.status(500).json({ message: '서버 오류', error: e.message });
+      }
+    });
+
+// – 로그인된 사용자만, 본인이 올린 항목만 삭제 가능
+app.delete('/api/uploads/:id', isLoggedIn, async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const uploadId = req.params.id;
+
+    // 본인이 올린 것만 삭제
+    const [result] = await db.query(
+      'DELETE FROM uploads WHERE id = ? AND user_id = ?',
+      [uploadId, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ msg: '삭제할 업로드가 없거나 권한이 없습니다.' });
+    }
+    res.json({ msg: '삭제 성공' });
+  } catch (err) {
+    console.error('DELETE /api/uploads/:id error:', err);
+    res.status(500).json({ msg: '서버 오류' });
+  }
+});
+
+
+// [bizNum 업데이트 바로 아래쯤에]
+app.post('/api/save-academy', isLoggedIn, async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const { name, phone } = req.body;
+    if (!name) return res.json({ success: false, msg: '학원명을 입력하세요.' });
+
+    // users 테이블에 academyName, academyPhone 업데이트
+    await db.query(
+      'UPDATE users SET academyName = ?, academyPhone = ? WHERE id = ?',
+      [name, phone || '', userId]
+    );
+
+    // 세션에도 반영
+    req.session.user.academyName  = name;
+    req.session.user.academyPhone = phone || '';
+    req.session.save(err => {
+      if (err) console.error('세션 저장 오류:', err);
+    });
+
+    res.json({ success: true });
+  } catch (e) {
+    console.error('/api/save-academy error:', e);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// ▶ /check-auth 핸들러 수정
+app.get('/check-auth', async (req, res) => {
+  if (req.session.user) {
+   const [rows] = await db.query(
+     'SELECT avatarUrl, is_subscribed, phone, bizNum, email, academyName, academyPhone FROM users WHERE id = ?',
+     [req.session.user.id]
+   );
+    const u = rows[0] || {};
+    const avatarUrl    = u.avatarUrl    || '/icon_my_b.png';
+    const hasPaid       = req.session.user.role === 'admin' || u.is_subscribed == 1;
+    const phone        = u.phone        || '-';
+    const bizNum       = u.bizNum       || '';
+    const academyName  = u.academyName  || '';
+    const academyPhone = u.academyPhone || '';
+    const email        = u.email        || req.session.user.email || '-'; // email 필드 보장
+
+    // 세션 동기화
+    Object.assign(req.session.user, { avatarUrl, hasPaid, phone, bizNum, academyName, academyPhone, email });
+
+    return res.json({
+      isLoggedIn: true,
+      user: {
+        ...req.session.user,
+        avatarUrl,
+        hasPaid,
+        phone,
+        bizNum,
+        academyName,
+        academyPhone,
+        email    // 프론트에서도 이 키 써야 함!
+      }
+    });
+  }
+  res.json({ isLoggedIn: false });
+});
+
+// 로그인 필요 시 JSON으로 에러 반환 (이미 비슷한 미들웨어가 있으면 그걸로 대체)
+const needAuthJson = (req, res, next) => {
+  if (!req.session || !req.session.user || !req.session.user.id) {
+    return res.status(401).json({ ok:false, message:'login required' });
+  }
+  next();
+};
+
+// 1) 구독 상태
+app.get('/api/subscription/status', needAuthJson, async (req, res) => {
+  const uid = req.session.user.id;
+
+  // 현재 DB 스키마 가정: users.is_subscribed / subscription_start / subscription_end
+  const [[u]] = await db.query(
+    `SELECT is_subscribed, subscription_start, subscription_end
+       FROM users WHERE id=?`,
+    [uid]
+  );
+  if (!u) return res.status(404).json({ ok:false });
+
+  const now = new Date();
+  const end = u.subscription_end ? new Date(u.subscription_end) : null;
+  const active = (u.is_subscribed === 1) || (end && end > now);
+
+  res.json({
+    ok: true,
+    status: active ? 'active' : 'inactive',
+    next_billing_at: end ? u.subscription_end : null,
+    pay_method: null // 결제수단 표시는 빌링 연동 후 채움
   });
 });
-    
-    window.addEventListener('message', function(event) {
-      if (event.data && event.data.type === 'goNotice') {
-        // ... 기존 코드 ...
-        document.querySelectorAll('.menu-item').forEach(i => {
-          i.classList.remove('active');
-          var icon = i.querySelector('.menu-icon');
-          if (icon) icon.src = icon.dataset.iconWhite;
-        });
-        const noticeMenu = document.getElementById('menu6');
-        noticeMenu.classList.add('active');
-        const icon = noticeMenu.querySelector('.menu-icon');
-        if (icon) icon.src = icon.dataset.iconBlack;
 
-        const pageTitle = document.getElementById('pageTitle');
-        pageTitle.innerHTML = `<span class="highlight">No</span>tice`;
+// 2) 결제 이력 (지금은 빈 배열; 나중에 payments 테이블 붙이면 교체)
+app.get('/api/subscription/history', needAuthJson, async (req, res) => {
+  res.json({ ok:true, items: [] });
+});
 
-        document.getElementById('contentFrame').src = 'notice.html?id=' + event.data.noticeId;
+// 3) 구독 해지 (기간말까지 이용하도록 is_subscribed만 0으로)
+app.post('/api/subscription/cancel', needAuthJson, async (req, res) => {
+  await db.query(`UPDATE users SET is_subscribed=0 WHERE id=?`, [req.session.user.id]);
+  res.json({ ok:true, message:'cancel scheduled' });
+});
+
+// 파일 목록(필터/검색)
+app.get('/api/files', isLoggedInJson, verifyOrigin, async (req, res) => {
+  try {
+    const { region, district, school, grade, year, semester, level } = req.query;
+    let sql = "SELECT * FROM files WHERE 1=1";
+    const params = [];
+    if(region)   { sql += " AND region=?";   params.push(region); }
+    if(district) { sql += " AND district=?"; params.push(district); }
+    if(school)   { sql += " AND school=?";   params.push(school); }
+    if (grade !== '' && grade !== undefined) { sql += " AND grade=?"; params.push(grade); }
+    if(year)     { sql += " AND year=?";     params.push(year); }
+    if(semester) { sql += " AND semester=?"; params.push(semester); }
+    if(level)    { sql += " AND level=?";    params.push(level); }
+    sql += " ORDER BY uploaded_at DESC";
+
+    const [rows] = await db.query(sql, params);
+
+    // ⬇ 필요한 정보만 응답, S3 키는 빼고 Boolean만 제공
+    const sanitized = rows.map(r => ({
+      id: r.id,
+      region: r.region,
+      district: r.district,
+      school: r.school,
+      grade: r.grade,
+      year: r.year,
+      semester: r.semester,
+      title: r.title,
+      level: r.level,
+      uploaded_at: r.uploaded_at,
+      files: {
+        pdf: !!r.pdf_filename,
+        hwp: !!r.hwp_filename
       }
+    }));
 
-      // ★★★ "더보기" 버튼 클릭 시 ★★★
-      if (event.data && event.data.type === 'goNoticeMore') {
-        // 메뉴 전체 비활성화 및 아이콘 변경
-        document.querySelectorAll('.menu-item').forEach(i => {
-          i.classList.remove('active');
-          var icon = i.querySelector('.menu-icon');
-          if (icon) icon.src = icon.dataset.iconWhite;
-        });
-        // 공지사항 메뉴만 active 및 아이콘 black
-        const noticeMenu = document.getElementById('menu6');
-        noticeMenu.classList.add('active');
-        const icon = noticeMenu.querySelector('.menu-icon');
-        if (icon) icon.src = icon.dataset.iconBlack;
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+    res.json(sanitized);
+  } catch (e) {
+    res.status(500).json({ message: 'DB 오류', error: e.message });
+  }
+});
 
-        // 타이틀 변경
-        const pageTitle = document.getElementById('pageTitle');
-        if (pageTitle) pageTitle.innerHTML = `<span class="highlight">No</span>tice`;
+// 파일 다운로드 (사용자)
+app.get(
+  '/api/download/:id',
+  downloadLimiter,   // ⬅ ① 남용 방지
+  numericIdParam,    // ⬅ ② id 형식 검사
+  isLoggedIn,
+  verifyOrigin,
+  async (req, res) => {
+    const user = req.session.user;
+    if (!user) return res.status(403).send('권한이 없습니다.');
 
-        // notice.html 로 iframe 이동
-        document.getElementById('contentFrame').src = 'notice.html';
-      }
-        // ★★★ "최근 업로드 더보기" 버튼 클릭 시 ★★★
-        if (event.data && event.data.type === 'goUploadMore') {
-          document.querySelectorAll('.menu-item').forEach(i => {
-            i.classList.remove('active');
-            var icon = i.querySelector('.menu-icon');
-            if (icon) icon.src = icon.dataset.iconWhite;
-          });
-          const menu3 = document.getElementById('menu3');
-          menu3.classList.add('active');
-          const icon = menu3.querySelector('.menu-icon');
-          if (icon) icon.src = icon.dataset.iconBlack;
-          const pageTitle = document.getElementById('pageTitle');
-          if (pageTitle) pageTitle.innerHTML = `<span class="highlight">Te</span>st paper`;
-          document.getElementById('contentFrame').src = 'high.html';
-        }
-    });
-    // 메뉴 등장 애니메이션 순차적 적용
-    window.addEventListener('DOMContentLoaded', () => {
-      const menuIds = ["menu1", "menu2", "menu3", "menu4", "menu5", "menu6", "menu7", "menu8"];
-      menuIds.forEach((id, idx) => {
-        const el = document.getElementById(id);
-        setTimeout(() => {
-          el.classList.add("show");
-        }, 300 + idx * 80);
-      });
-    });
-    function toggleSidebarAnim() {
-      const sb  = document.getElementById('sidebar');
-      const btn = document.getElementById('toggleBtn');
-      sb.classList.toggle('collapsed');
-      btn.classList.toggle('active');
+    // DB에서 구독/권한 확인
+    const [[dbUser]] = await db.query(
+      'SELECT is_subscribed, role FROM users WHERE id=?',
+      [user.id]
+    );
+    if (!(dbUser.role === 'admin' || dbUser.is_subscribed == 1)) {
+      return res.status(403).send('권한이 없습니다.');
     }
-    document.querySelectorAll('.menu-item').forEach(item => {
-      item.addEventListener('click', function() {
-        document.querySelectorAll('.menu-item').forEach(i => {
-          i.classList.remove('active');
-          // 아이콘 흰색으로 변경
-          var icon = i.querySelector('.menu-icon');
-          if (icon) icon.src = icon.dataset.iconWhite;
-        });
-        this.classList.add('active');
-        // 아이콘 검정으로 변경
-        var activeIcon = this.querySelector('.menu-icon');
-        if (activeIcon) activeIcon.src = activeIcon.dataset.iconBlack;
-const url = this.dataset.url;
-const menuId = this.id;
 
-if (menuId === 'menu5') {
-  fetch('/check-auth', { credentials: 'include', cache: 'no-store' })
-    .then(res => res.json())
-    .then(data => {
-      if (data.isLoggedIn && (data.user?.hasPaid || data.user?.isAdmin)) {
-        // ✅ 관리자도 허용
-        document.getElementById('contentFrame').src = url;
+    try {
+      const [rows] = await db.query(
+        'SELECT hwp_filename, pdf_filename, title FROM files WHERE id=?',
+        [req.params.id]
+      );
+      if (!rows.length) return res.status(404).send('파일 없음');
+      const { hwp_filename, pdf_filename, title } = rows[0];
+
+      const type = req.query.type;
+      let key = null, ext = null;
+      if (type === 'pdf') {
+        key = pdf_filename;  ext = '.pdf';
       } else {
-      Swal.fire({
-        icon: 'warning',
-        title: '이용 불가',
-        text: '해당 서비스는 결제한 사용자만 이용할 수 있습니다.',
-        confirmButtonText: '확인',
-        confirmButtonColor: '#FDC512',
-        background: '#1a1a1a',
-        color: '#fff',
-        iconColor: '#FDC512'
-      }).then((result) => {
-        // 이 부분이 반드시 사용자가 모달을 닫은 "후"에만 실행
-        if (result.isConfirmed) {
-          const frame = document.getElementById('contentFrame');
-          frame.src = 'home.html';
-          frame.style.height = "100%";
-          document.getElementById('mainContent').style.height = "100%";
-          document.querySelectorAll('.menu-item').forEach(i => {
-            i.classList.remove('active');
-            const icon = i.querySelector('.menu-icon');
-            if (icon) icon.src = icon.dataset.iconWhite;
-          });
-          const menu1 = document.getElementById('menu1');
-          menu1.classList.add('active');
-          const firstIcon = menu1.querySelector('.menu-icon');
-          if (firstIcon) firstIcon.src = firstIcon.dataset.iconBlack;
-          const pageTitle = document.getElementById('pageTitle');
-          if (pageTitle) pageTitle.innerHTML = `<span class="highlight">Ma</span>in home`;
-        }
-      });
+        key = hwp_filename;  ext = '.hwp';
+        if (key && key.endsWith('.hwpx')) ext = '.hwpx';
       }
-    })
-    .catch(err => {
-      console.error('결제 확인 실패', err);
-    });
-} else if (url) {
-  document.getElementById('contentFrame').src = url;
-}
+      if (!key) return res.status(404).send('해당 형식 파일 없음');
 
-        // **★ 여기에 타이틀 변경 코드 추가 ★**
-        const pageTitle = document.getElementById('pageTitle');
-        const t = menuTitles[this.id];
-        if (pageTitle && t) {
-          pageTitle.innerHTML = `<span class="highlight">${t.highlight}</span>${t.text}`;
+      // ⬅ ③ 캐시/검색엔진 차단
+      res.set('Cache-Control', 'no-store');
+      res.set('X-Robots-Tag', 'noindex, nofollow');
+
+      const downloadFileName = `${title}${ext}`;
+      const signed = s3.getSignedUrl('getObject', {
+        Bucket: process.env.AWS_S3_BUCKET,
+        Key: key,
+        Expires: 60,
+        ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(downloadFileName)}`
+      });
+
+      return res.redirect(302, signed);
+    } catch (e) {
+      console.error('다운로드 오류:', e);
+      return res.status(500).send('다운로드 오류');
+    }
+  }
+);
+
+
+      // 파일 정보 수정 (관리자)
+      app.put('/api/files/:id', isLoggedIn, isAdmin, fileUpload.array('files'), async (req, res) => {
+        try {
+          const { region, district, school, grade, year, semester, title, level } = req.body;
+      const files = req.files || [];
+      // 첨부파일 없이 메타데이터만 수정할 때
+      if (!files.length) {
+        await db.query(`
+          UPDATE files SET region=?, district=?, school=?, grade=?, year=?,
+            semester=?, title=?, level=? WHERE id=?`,
+          [region, district, school, grade, year, semester, title, level, req.params.id]
+        );
+        return res.json({ message: '수정 완료(파일 변경 없음)' });
+      }
+
+        // 기존 파일명 조회
+        const [[row]] = await db.query('SELECT hwp_filename, pdf_filename FROM files WHERE id=?', [req.params.id]);
+        if (!row) return res.status(404).json({ message: '자료 없음' });
+
+        let newHwp = row.hwp_filename, newPdf = row.pdf_filename;
+
+        for (let f of files) {
+          const ext = path.extname(f.originalname).toLowerCase();
+          if (['.hwp', '.hwpx'].includes(ext)) {
+            // 기존 파일 실제 삭제
+            if (newHwp) { try { await deleteS3(newHwp); } catch (e) {} }
+            newHwp = f.key;
+          }
+          if (ext === '.pdf') {
+            if (newPdf) { try { await deleteS3(newPdf); } catch (e) {} }
+            newPdf = f.key;
+          }
         }
 
-      });
+        await db.query(
+          `UPDATE files SET
+            region=?, district=?, school=?, grade=?, year=?, semester=?, title=?, level=?,
+            hwp_filename=?, pdf_filename=?
+          WHERE id=?`,
+          [region, district, school, grade, year, semester, title, level, newHwp, newPdf, req.params.id]
+        );
+        res.json({ message: '수정 완료' });
+      } catch (e) {
+        res.status(500).json({ message: '수정 오류', error: e.message });
+      }
     });
-
-    // 페이지 로드시 첫번째 메뉴 active + 아이콘 세팅
-    window.addEventListener('DOMContentLoaded', () => {
-      const first = document.getElementById('menu1');
-      first.classList.add('active');
-
-      // 아이콘 흑백 전환
-      const firstIcon = first.querySelector('.menu-icon');   // img 태그를 따로 잡고
-      firstIcon.src = firstIcon.dataset.iconBlack; 
-      document.querySelectorAll('.menu-item:not(#menu1) .menu-icon').forEach(icon => {
-        icon.src = icon.dataset.iconWhite;
-      });
-
-      // iframe 기본 로드
-      document.getElementById('contentFrame').src = first.dataset.url;   // ← 핵심
-    });
-
-window.addEventListener('DOMContentLoaded', () => {
-  const params = new URLSearchParams(window.location.search);
-  const menuParam = params.get('menu');
-  if (menuParam === 'notice') {
-    // 모든 메뉴 비활성화 및 아이콘 white
-    document.querySelectorAll('.menu-item').forEach(i => {
-      i.classList.remove('active');
-      var icon = i.querySelector('.menu-icon');
-      if (icon) icon.src = icon.dataset.iconWhite;
-    });
-    // 공지사항 메뉴만 active 및 아이콘 black
-    const noticeMenu = document.getElementById('menu6');
-    noticeMenu.classList.add('active');
-    const icon = noticeMenu.querySelector('.menu-icon');
-    if (icon) icon.src = icon.dataset.iconBlack;
-
-    // 타이틀
-    const pageTitle = document.getElementById('pageTitle');
-    pageTitle.innerHTML = `<span class="highlight">No</span>tice`;
-
-    // iframe src
-    document.getElementById('contentFrame').src = 'notice.html';
+// 문의/업로드 글 등록 (POST /api/board)
+app.post('/api/board', isLoggedIn, verifyOrigin, fileUpload.array('fileInput', 10), async (req, res) => {
+  try {
+    const { boardType, title, password, content } = req.body;
+    // 첨부파일명(여러개 콤마로)
+  const files = req.files && req.files.length > 0
+      ? req.files.map(f => f.key).join(',')        // ✅ S3 Key
+      : '';
+    await db.query(
+      'INSERT INTO board (boardType, title, password, content, files) VALUES (?, ?, ?, ?, ?)',
+      [boardType, title, password, content, files]
+    );
+    res.json({ message: '글 등록 성공' });
+  } catch (e) {
+    res.status(500).json({ message: '글 등록 오류', error: e.message });
   }
 });
 
 
-      function toggleSidebarAnim () {
-        const sb  = document.getElementById('sidebar');
-        const btn = document.getElementById('toggleBtn');
-        const willOpen = sb.classList.contains('collapsed'); // 접힌 상태 → 열릴 건지?
+app.get('/api/my-uploads', isLoggedIn, async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+       SELECT id,
+        filename,
+        status,
+        reject_reason,
+        uploaded_at    AS created_at,
+        completed_at
+      FROM uploads
+      WHERE user_id = ?
+      ORDER BY uploaded_at DESC
+    `, [req.session.user.id]);
 
-        sb.classList.toggle('collapsed');   // 폭 토글
-        btn.classList.toggle('active');
-        sb.classList.remove('expanded');    // 글씨 잠깐 숨김(absolute 상태)
+    // 새로 업로드된 이름은 이미 UTF-8로 잘 저장돼 있으므로 바로 내려줍니다.
+    res.json(rows);
+  } catch (e) {
+    console.error('my-uploads 조회 오류:', e);
+    res.status(500).json({ msg: '업로드 조회 실패', error: e.message });
+  }
+});
 
-        // 열릴 때만, 폭 0.3 s 애니메이션이 끝난 뒤에 expanded 붙여 글씨 복귀
-        if (willOpen) {
-          setTimeout(() => sb.classList.add('expanded'), 300);
-        }
-      }
+// ✅ 게시판 목록 (키 노출 금지 + 로그인 보호)
+app.get('/api/board', isLoggedIn, verifyOrigin, async (req, res) => {
+  try {
+    const type = req.query.type; // 'ask' | 'upload' 등
+    const [rows] = await db.query(
+      'SELECT id, title, content, created_at, files FROM board WHERE boardType=? ORDER BY id DESC',
+      [type]
+    );
 
-      const menuTitles = {
-        menu1: { highlight: "Ma", text: "in home" },
-        menu2: { highlight: "Pr", text: "oblem Bank" },
-        menu3: { highlight: "Te", text: "st paper" },
-        menu4: { highlight: "My", text: " Library" },
-        menu5: { highlight: "Up", text: "load files" },
-        menu6: { highlight: "No", text: "tice" },
-        menu7: { highlight: "My", text: " Account" },
-        menu8: { highlight: "Lo", text: "gout" }
-      };
-      
-      </script>
+    // files(키 문자열) → 존재 여부 Boolean으로 축소
+    const sanitized = rows.map(r => ({
+      id: r.id,
+      title: r.title,
+      // 필요하면 content 요약/삭제 가능
+      created_at: r.created_at,
+      files: { exists: !!(r.files && r.files.trim().length) }
+    }));
 
-      <!-- Help FAB + Dropdown 마크업 -->
-      <div class="help-container" id="helpContainer">
-        <ul class="help-menu" id="helpMenu">
-          <li data-url="https://pf.kakao.com/_xyzxyz"><span class="badge">1</span>카카오 문의하기</li>
-          <li><span class="badge">2</span>문의 게시판</li>
-          <li><span class="badge">3</span>시험지 요청하기</li>
-          <li><span class="badge">4</span>시험지 출제하기(준비중)</li>
-        </ul>
-        <button class="help-fab" id="helpFab" aria-label="도움말">?</button>
-      </div>
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+    res.json(sanitized);
+  } catch (e) {
+    res.status(500).json({ message: '게시글 목록 오류', error: e.message });
+  }
+});
 
-      <!-- 새로 여는 <script> 블록 안에 JS 삽입 -->
-      <script>
-        window.addEventListener('DOMContentLoaded', () => {
-          const fab  = document.getElementById('helpFab');
-          const menu = document.getElementById('helpMenu');
+// ✅ 게시글 상세 (키 노출 금지 + 로그인 보호)
+app.get('/api/board/:id', isLoggedIn, verifyOrigin, async (req, res) => {
+  try {
+    const [[row]] = await db.query('SELECT * FROM board WHERE id=?', [req.params.id]);
+    if (!row) return res.status(404).json({ message: '글 없음' });
 
-          // 버튼 클릭 → 메뉴 토글
-          fab.addEventListener('click', () => {
-            menu.classList.toggle('show');
-          });
+    const hasFiles = !!(row.files && row.files.trim().length);
 
-          // 화면 아무 곳이나 클릭하면 닫힘
-          document.addEventListener('click', e => {
-            if (!menu.contains(e.target) && !fab.contains(e.target)) {
-              menu.classList.remove('show');
-            }
-          });
+    // files(키 문자열) 제거 → 최소 정보만
+    const sanitized = {
+      id: row.id,
+      title: row.title,
+      content: row.content,
+      created_at: row.created_at,
+      files: { exists: hasFiles }
+    };
 
-          // 메뉴 항목 클릭 시 새 창 열기 + 닫기
-          menu.querySelectorAll('li').forEach(li => {
-            li.addEventListener('click', () => {
-              const url = li.dataset.url;
-              if (url) window.open(url, '_blank');
-              menu.classList.remove('show');
-            });
-          });
-        });
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+    res.json(sanitized);
+  } catch (e) {
+    res.status(500).json({ message: '게시글 상세 오류', error: e.message });
+  }
+});
 
-</script>
-<!-- 결제 모달 -->
-<div id="paymentModal" class="modal-overlay">
-  <div class="modal-content">
-    <button class="close-modal" id="closeModalBtn">&times;</button>
-    <iframe id="paymentIframe" src="" frameborder="0"></iframe>
-  </div>
-</div>
+// ✅ 게시판 첨부 다운로드 (키 노출 없이 302로 S3 이동)
+app.get('/api/board/:id/attachment/:idx',
+  isLoggedIn,           // 로그인 필수
+  verifyOrigin,         // 허용 도메인만
+  boardDownloadLimiter, // 남용 방지
+  numericIdxParam,      // idx 유효성
+  async (req, res) => {
+    const postId = Number(req.params.id);
+    const idx = Number(req.params.idx);
 
-<!-- 안내 모달 -->
-<div id="introOverlay" class="intro-overlay" aria-hidden="true">
-  <div class="intro-modal" role="dialog" aria-modal="true" aria-labelledby="introTitle">
-    <button class="intro-close" id="introCloseBtn" aria-label="닫기">&times;</button>
+    const [[row]] = await db.query('SELECT title, files FROM board WHERE id=?', [postId]);
+    if (!row) return res.status(404).send('글 없음');
 
-    <div class="intro-head">
-      <div class="intro-badge">MB</div>
-      <div>
-        <div id="introTitle" class="intro-title">Mathbee 이용 안내</div>
-        <div class="intro-sub">선생님의 시간을 아끼는 도구가 되겠습니다.</div>
-      </div>
-    </div>
+    const keys = (row.files || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
 
-    <div class="intro-body">
-      <div class="intro-callout">
-        선생님들의 구독료는 <span class="intro-strong">디자인·사용자 편의·핵심 기능 개발</span>에 투명하게 재투자됩니다.
-        현장에서 필요한 기능을 빠르게 반영하고, <span class="intro-strong">업무 시간을 줄여드리는 것</span>을 최우선으로 하겠습니다.
-      </div>
+    const key = keys[idx];
+    if (!key) return res.status(404).send('첨부 없음');
 
-      <div class="intro-grid">
-        <!-- 1) 현재 제공 기능 -->
-        <div class="intro-card">
-          <h4></span>1) 현재 제공 기능</h4>
-          <ul class="intro-list intro-list-dot">
-            <!-- 시험지 요청 서비스 -->
-            <li>
-              <div class="intro-list-head">
-                <span class="intro-dot"></span>
-                <span class="intro-strong">시험지 요청 서비스</span>
-              </div>
-              <div class="intro-list-desc">
-                선생님께서 <b>직접 올려주신 파일</b>을 바탕으로,<br>
-                해설과 미주가 포함된 완성형 <b>한글(HWP)</b> 시험지를 제작
-              </div>
-              <div class="intro-list-desc" style="margin-top:6px;">
-                👉 <b>추가 비용 없이 구독만으로 이용 가능합니다.</b>
-              </div>
-            </li>
+    // (옵션) 작성자/관리자만 허용하려면 여기서 추가 검증
 
-            <!-- 기출문제 다운로드 -->
-            <li>
-              <div class="intro-list-head">
-                <span class="intro-dot"></span>
-                <span class="intro-strong">기출문제 다운로드</span>
-              </div>
-              <div class="intro-list-desc">
-                다양한 기출을 <b>PDF·HWP</b>로 내려받기
-              </div>
-            </li>
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Robots-Tag', 'noindex, nofollow');
 
-            <!-- 안내 문장 -->
-            <li>
-              <div class="intro-note">
-                📢 현재 <b>문제은행</b>은 개발 중이라 시험지 위주로 운영 중이며,
-                    <b>구독료를 할인</b>하여 제공하고 있습니다.
-              </div>
-            </li>
-          </ul>
-        </div>
-
-        <!-- 2) 문제은행(제작 중) -->
-        <div class="intro-card">
-          <h4></span>2) 문제은행 (제작 중)</h4>
-          <p>
-            단원·유형·난이도 등 원하는 조건으로 문제를 조합해 시험지를 만들 수 있도록 준비 중입니다.
-            <b>AI 기반 유사문항 추천</b>과 <b>개념 추가</b> 기능을 포함하며, 결과물은 모두 <b>한글(HWP) 다운로드</b>를 지원합니다.
-          </p>
-        </div>
-
-        <!-- 3) 내 책장 확장 -->
-        <div class="intro-card">
-          <h4></span>3) 내 책장 기능 확장</h4>
-          <ul class="intro-list">
-            <li><b>내가 직접 제작한 시험지</b> 저장·관리</li>
-            <li><b>학년·단원·유형별 폴더</b>를 만들어 여러 시험지를 체계적으로 정리</li>
-            <li>문제은행에서 고른 문제에 <b>개념을 추가</b>해 만드는 <b>맞춤형 교재</b> 관리</li>
-            <li>AI 편집으로 <b>디자인·레이아웃</b>을 원하는 형태로 조정 가능한
-                <b>교재 제작 전용 공간</b> 제공 예정</li>
-          </ul>
-        </div>
-
-        <!-- 4) 약속 -->
-        <div class="intro-card">
-          <h4><span class="intro-dot"></span>Mathbee의 약속</h4>
-          <p>
-            선생님의 구독에 책임 있게 보답하겠습니다. 매달 현장에 꼭 필요한 개선을 반영하고,
-            <b>“선생님의 시간을 아껴주는 파트너”</b>가 되겠습니다.
-          </p>
-        </div>
-      </div>
-    </div>
-
-    <div class="intro-footer">
-      <button class="btn-ghost" id="introNeverBtn">다시 보지 않기</button>
-      <button class="btn-primary" id="introOkBtn">확인</button>
-    </div>
-  </div>
-</div>
-<script>
-/* ===== 안내 모달 로직 (DOM 생성 후 바인딩) ===== */
-(function(){
-  const KEY = 'mathbee_intro_dismissed_v1';
-
-  function qs(id){ return document.getElementById(id); }
-
-  function bindIntroModal(){
-    const overlay   = qs('introOverlay');
-    const btnClose  = qs('introCloseBtn');
-    const btnOk     = qs('introOkBtn');
-    const btnNever  = qs('introNeverBtn');
-    if(!overlay) return;
-
-    function openIntro(){
-      overlay.classList.add('show');
-      document.body.style.overflow = 'hidden';
-      overlay.setAttribute('aria-hidden','false');
-    }
-    function closeIntro(remember){
-      overlay.classList.remove('show');
-      document.body.style.overflow = '';
-      overlay.setAttribute('aria-hidden','true');
-      if(remember){ try{ localStorage.setItem(KEY,'1'); }catch(e){} }
-    }
-
-    btnClose && btnClose.addEventListener('click', ()=>closeIntro(false));
-    btnOk    && btnOk.addEventListener('click',    ()=>closeIntro(false));
-    btnNever && btnNever.addEventListener('click', ()=>closeIntro(true));
-    overlay  && overlay.addEventListener('click', (e)=>{
-      if(e.target === overlay) closeIntro(false);
+    const fileName = `${row.title || 'attachment'}-${idx + 1}`;
+    const signed = s3.getSignedUrl('getObject', {
+      Bucket: process.env.AWS_S3_BUCKET,
+      Key: key,
+      Expires: 60,
+      ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`
     });
 
-    // 페이지 다 뜬 뒤 0.8초 후 오픈 (단, '다시 보지 않기' 저장 안 됐을 때)
-    const dismissed = localStorage.getItem(KEY) === '1';
-    if(!dismissed){ setTimeout(openIntro, 800); }
+    return res.redirect(302, signed);
+  }
+);
 
-    // 디버그용: 콘솔에서 showIntro() 입력 → 강제 노출
-    window.showIntro = function(){
-      localStorage.removeItem(KEY);
-      openIntro();
+app.get('/terms.html',   (req,res)=>res.sendFile(path.join(__dirname,'public/terms.html')));
+app.get('/privacy.html', (req,res)=>res.sendFile(path.join(__dirname,'public/privacy.html')));
+app.get('/refund.html',  (req,res)=>res.sendFile(path.join(__dirname,'public/refund.html')));
+app.get('/finance.html', (req,res)=>res.sendFile(path.join(__dirname,'public/finance.html')));
+
+// ── 관리자 전용 업로드 리스트 조회 ──
+// GET /api/admin/uploads
+app.get(
+  '/api/admin/uploads',
+  isLoggedIn, isAdmin,
+  async (req, res) => {
+    try {
+      const [rows] = await db.query(
+        `SELECT id, user_id, filename, status, reject_reason, uploaded_at, completed_at
+         FROM uploads
+         ORDER BY uploaded_at DESC`
+      );
+      res.json(rows);
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ msg: '관리자 업로드 조회 실패' });
+    }
+  }
+);
+
+// ── 관리자 전용 상태 변경 ──
+// PATCH /api/admin/uploads/:id
+// Body: { status: "in_progress"|"rejected"|"completed", reason?: string }
+app.patch(
+  '/api/admin/uploads/:id',
+  isLoggedIn, isAdmin,
+  express.json(),
+  async (req, res) => {
+    try {
+      const { status, reason } = req.body;
+      const id = req.params.id;
+      let sql, params;
+
+      if (status === 'in_progress') {
+        sql    = 'UPDATE uploads SET status=? WHERE id=?';
+        params = ['제작중', id];
+
+      } else if (status === 'rejected') {
+        sql    = 'UPDATE uploads SET status=?, reject_reason=? WHERE id=?';
+        params = ['반려', reason || '', id];
+
+      } else if (status === 'completed') {
+        sql    = 'UPDATE uploads SET status=?, completed_at=NOW() WHERE id=?';
+        params = ['완료', id];
+
+      } else {
+        return res.status(400).json({ msg: '올바른 status만 변경 가능합니다.' });
+      }
+
+      const [r] = await db.query(sql, params);
+      if (r.affectedRows === 0) return res.status(404).json({ msg: '해당 업로드가 없습니다.' });
+      res.json({ msg: '상태 변경 성공' });
+
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ msg: '상태 변경 실패', error: e.message });
+    }
+  }
+);
+
+// 글 삭제 (관리자/본인, POST /api/board/:id/delete)
+app.post('/api/board/:id/delete', async (req, res) => {
+  try {
+    // 관리자: 그냥 삭제, 본인: 비밀번호 체크 필요!
+    const { password } = req.body;
+    const [rows] = await db.query('SELECT * FROM board WHERE id=?', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ message: '글 없음' });
+
+    // 비공개글이면 비번 체크
+    if (rows[0].password && password !== rows[0].password) {
+      return res.status(403).json({ message: '비밀번호 불일치' });
+    }
+
+    // 첨부파일 삭제
+    if (rows[0].files) {
+      const fileArr = rows[0].files.split(',');
+      for (let f of fileArr) {
+        if (f) {
+          try { await deleteS3(f); } catch (e) {}
+        }
+      }
+    }
+
+    await db.query('DELETE FROM board WHERE id=?', [req.params.id]);
+    res.json({ message: '삭제 성공' });
+  } catch (e) {
+    res.status(500).json({ message: '글 삭제 오류', error: e.message });
+  }
+});
+
+
+// 로그아웃 API
+app.get('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.clearCookie('connect.sid');
+    res.json({ msg: '로그아웃 되었습니다' });
+  });
+});
+// Google 로그인 시작
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+app.get('/admin_review.html', isLoggedIn, isAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin_review.html'));
+});
+
+// 로그인 후 콜백 처리
+app.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login.html' }),
+  (req, res) => {
+    req.session.user = req.user;  // 세션 저장
+    res.redirect('/index.html'); // 로그인 성공 후 메인으로 이동
+  }
+);
+
+// ──────────────────────────────────────
+//  관리자만 접근 가능한 정적 페이지
+// ──────────────────────────────────────
+app.get('/admin_upload.html', isLoggedIn, isAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin_upload.html'));
+});
+
+app.get('/admin_files.html',  isLoggedIn, isAdmin, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin_files.html'));
+});
+
+ // 파일 다운로드 log
+app.post('/api/download-log', isLoggedIn, verifyOrigin, async (req, res) => {
+  const { fileId, type } = req.body;
+  if (!fileId || !type) return res.status(400).json({ error: '데이터 누락' });
+
+  const conn = await db.getConnection();
+  try {
+    const [[file]] = await conn.query('SELECT title FROM files WHERE id = ?', [fileId]);
+    const title = file?.title || '제목없음';
+
+    await conn.query(`
+      INSERT INTO downloads_log (file_id, file_name, type, user_email, downloaded_at)
+      VALUES (?, ?, ?, ?, NOW())
+    `, [fileId, title, type, req.session.user.email]);
+
+    res.json({ success: true });
+  } catch (e) {
+    console.error('다운로드 로그 저장 실패', e);
+    res.status(500).json({ error: '서버 오류' });
+  } finally {
+    conn.release();
+  }
+});
+
+app.get('/api/downloads/recent', isLoggedIn, verifyOrigin, async (req, res) => {
+  try {
+    const sessionEmail = req.session.user.email;  // ✅ 세션 기준
+    const [rows] = await db.query(`
+      SELECT f.id, l.file_name AS name, COUNT(*) AS count, MAX(l.downloaded_at) AS date
+      FROM downloads_log l
+      JOIN files f ON f.title = l.file_name
+      WHERE l.user_email = ?
+      GROUP BY f.id, l.file_name
+      ORDER BY date DESC
+      LIMIT 5
+    `, [sessionEmail]);
+
+    res.json(rows);
+  } catch (e) {
+    console.error('최근 다운로드 불러오기 실패', e);
+    res.status(500).json({ error: '서버 오류' });
+  }
+});
+
+
+// 파일 삭제 (관리자만)
+app.delete('/api/files/:id', isLoggedIn, isAdmin, async (req, res) => {
+  try {
+    // 파일명 조회 (첨부파일 실제 삭제)
+    const [[row]] = await db.query('SELECT hwp_filename, pdf_filename FROM files WHERE id=?', [req.params.id]);
+    if (!row) return res.status(404).json({ message: '자료 없음' });
+
+    // 실제 파일 삭제 (존재하면)
+    if (row.hwp_filename) {
+      try { await deleteS3(row.hwp_filename); } catch (e) {}
+    }
+    if (row.pdf_filename) {
+      try { await deleteS3(row.pdf_filename); } catch (e) {}
+    }
+
+    // DB에서 삭제
+    await db.query('DELETE FROM files WHERE id=?', [req.params.id]);
+    res.json({ message: '삭제 성공' });
+  } catch (e) {
+    res.status(500).json({ message: '삭제 오류', error: e.message });
+  }
+});
+
+app.post('/api/board_secure', fileUpload.array('fileInput', 10), async (req, res) => {
+  try {
+    const { boardType, title, password, content } = req.body;
+    const files = req.files && req.files.length > 0
+      ? req.files.map(f => f.key).join(',')
+      : '';
+
+    const hash = await bcrypt.hash(password, 10);
+
+    await db.query(
+      'INSERT INTO board_secure (boardType, title, password, content, files) VALUES (?, ?, ?, ?, ?)',
+      [boardType, title, hash, content, files]
+    );
+
+    res.json({ message: '보안글 등록 성공' });
+  } catch (e) {
+    res.status(500).json({ message: '보안글 등록 오류', error: e.message });
+  }
+});
+
+app.get('/api/board_secure', isLoggedIn, verifyOrigin, async (req, res) => {
+  try {
+    const type = req.query.type; // 예: 'notice' 등
+    const [rows] = await db.query(
+      'SELECT id, title, created_at FROM board_secure WHERE boardType=? ORDER BY id DESC',
+      [type]
+    );
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ message: '보안 게시글 목록 오류', error: e.message });
+  }
+});
+
+// ✅ 보안 게시판 비번 검증 (S3 key 제거, Boolean만 내려줌)
+app.post('/api/board_secure/:id/checkpw', async (req, res) => {
+  try {
+    const { password } = req.body;
+    const [[row]] = await db.query('SELECT * FROM board_secure WHERE id=?', [req.params.id]);
+
+    if (!row) return res.status(404).json({ message: '글 없음' });
+    const isMatch = await bcrypt.compare(password, row.password);
+    if (!isMatch) return res.status(403).json({ message: '비밀번호 틀림' });
+
+    // files 컬럼은 key 대신 "존재 여부만" 내려줌
+    const hasFiles = !!(row.files && row.files.trim().length);
+
+    const sanitized = {
+      id: row.id,
+      title: row.title,
+      content: row.content,
+      created_at: row.created_at,
+      files: { exists: hasFiles }
     };
+
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+    return res.json(sanitized);
+  } catch (e) {
+    res.status(500).json({ message: '비번 검증 오류', error: e.message });
   }
+});
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindIntroModal);
-  } else {
-    bindIntroModal();
+app.post('/api/board_secure/:id/delete', async (req, res) => {
+  try {
+    const { password } = req.body;
+    const [[row]] = await db.query('SELECT * FROM board_secure WHERE id=?', [req.params.id]);
+    if (!row) return res.status(404).json({ message: '글 없음' });
+
+    // 관리자
+    if (req.session.user?.role === 'admin') {
+      await db.query('DELETE FROM board_secure WHERE id=?', [req.params.id]);
+      return res.json({ message: '관리자가 삭제 완료' });
+    }
+
+    const isMatch = await bcrypt.compare(password, row.password);
+    if (!isMatch) return res.status(403).json({ message: '비밀번호 불일치' });
+
+    await db.query('DELETE FROM board_secure WHERE id=?', [req.params.id]);
+    res.json({ message: '삭제 성공' });
+  } catch (e) {
+    res.status(500).json({ message: '보안 글 삭제 오류', error: e.message });
   }
-})();
-</script>
+});
 
-</body>
-</html>
+// ✅ 보안 게시판 첨부 다운로드 (비번 검증된 사용자/관리자만 쓰게 하려면 추가 검증 가능)
+app.get('/api/board_secure/:id/attachment/:idx',
+  isLoggedIn,
+  verifyOrigin,
+  boardDownloadLimiter, // 이미 위에서 선언한 rateLimit 재사용
+  numericIdxParam,      // 이미 위에서 선언한 idx 숫자 검증 함수 재사용
+  async (req, res) => {
+    const postId = Number(req.params.id);
+    const idx = Number(req.params.idx);
+
+    const [[row]] = await db.query('SELECT title, files FROM board_secure WHERE id=?', [postId]);
+    if (!row) return res.status(404).send('글 없음');
+
+    const keys = (row.files || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const key = keys[idx];
+    if (!key) return res.status(404).send('첨부 없음');
+
+    // (옵션) 작성자/관리자만 허용할지 등 추가 검증 가능
+
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+
+    const fileName = `${row.title || 'attachment'}-${idx + 1}`;
+    const signed = s3.getSignedUrl('getObject', {
+      Bucket: process.env.AWS_S3_BUCKET,
+      Key: key,
+      Expires: 60,
+      ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`
+    });
+
+    return res.redirect(302, signed);
+  }
+);
 
 
+ // ――― 프로필 사진 업로드 ―――
+ //  1)  클라이언트쪽 필드명이 'avatar' 또는 'file' 둘 다 올 수 있게 처리
+ //  2)  multer / S3 단계에서 발생한 에러도 500 → 400 으로 내려주기
+app.post(
+  '/api/upload-profile-photo',
+  isLoggedIn,
+  avatarUpload.single('avatar'),      // ← 한 줄이면 충분 (필드명 'avatar'만 씀)
+  async (req, res) => {
+    console.log('req.body:', req.body);
+    console.log('req.file:', req.file);
+    try {
+      if (!req.file) {
+        return res.status(400).json({ msg: '업로드된 파일이 없습니다.' });
+      }
+
+      const url = req.file.location;   // S3 public URL
+
+      // ① DB 저장
+      await db.query(
+        'UPDATE users SET avatarUrl=? WHERE id=?',
+        [url, req.session.user.id]
+      );
+
+      // ② 세션에도 반영하고, 반드시 save!
+      req.session.user.avatarUrl = url;
+      req.session.save(err => {
+        if (err) {
+          console.error('세션 저장 오류:', err);
+          return res.status(500).json({ msg: '세션 저장 오류' });
+        }
+        // ③ 클라이언트에 새 URL 반환
+        res.json({ success: true, avatarUrl: url });
+      });
+    } catch (e) {
+      console.error('프로필 사진 업로드 오류:', e);
+      res.status(500).json({ msg: '서버 오류', error: e.message });
+    }
+  }
+);
+
+    app.delete('/api/delete-profile-photo', isLoggedIn, async (req, res) => {
+  try {
+    const url = req.session.user.avatarUrl;
+    if (url && !url.includes('/icon_my_b.png')) { // 기본이미지 아니면
+      const key = url.split('.amazonaws.com/')[1];
+      await deleteS3(key);
+    }
+
+    await db.query('UPDATE users SET avatarUrl=? WHERE id=?',
+      ['/icon_my_b.png', req.session.user.id]);
+    req.session.user.avatarUrl = '/icon_my_b.png';
+
+    res.json({ success: true, avatarUrl: '/icon_my_b.png' });
+  } catch (e) {
+    console.error('프로필 삭제 오류:', e);
+    res.status(500).json({ msg: '삭제 오류', error: e.message });
+  }
+});
+
+// 최근 업로드 10개를 반환하는 API
+app.get('/api/uploads/recent', isLoggedIn, verifyOrigin, async (req, res) => {
+  try {
+    // files 테이블에서 최신 10개의 파일명(title), 업로드일(uploaded_at)만 뽑기
+    const [rows] = await db.query(
+      `SELECT title AS name, DATE_FORMAT(uploaded_at, '%Y-%m-%d') AS date
+       FROM files
+       ORDER BY uploaded_at DESC
+       LIMIT 10`
+    );
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ message: '업로드 목록 오류', error: e.message });
+  }
+});
+
+app.post('/api/save-academy-address', isLoggedIn, async (req, res) => {
+  const userId = req.session.user?.id;
+  const { address } = req.body;
+  if (!userId || !address) return res.json({ success: false });
+
+  await db.execute('UPDATE users SET academyAddress = ? WHERE id = ?', [address, userId]);
+  res.json({ success: true });
+});
+
+// 비밀번호 확인 API
+app.post('/api/check-password', isLoggedIn, async (req, res) => {
+  const { password } = req.body;
+  if (!password) return res.json({ success: false, msg: '비밀번호를 입력하세요.' });
+  try {
+    const [rows] = await db.query('SELECT password FROM users WHERE id=?', [req.session.user.id]);
+    if (!rows.length) return res.json({ success: false, msg: '사용자 정보 없음' });
+
+    const valid = await bcrypt.compare(password, rows[0].password);
+    if (valid) return res.json({ success: true });
+    return res.json({ success: false, msg: '비밀번호가 일치하지 않습니다.' });
+  } catch (e) {
+    res.json({ success: false, msg: '서버 오류' });
+  }
+});
+
+// 비밀번호 변경 API
+app.post('/api/change-password', isLoggedIn, async (req, res) => {
+  const { password } = req.body;
+  if (!password) return res.json({ success: false, msg: '새 비밀번호를 입력하세요.' });
+  try {
+    const hash = await bcrypt.hash(password, 10);
+    await db.query('UPDATE users SET password=? WHERE id=?', [hash, req.session.user.id]);
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: false, msg: '비밀번호 변경 오류' });
+  }
+});
+
+app.post('/api/payment-request', isLoggedIn, async (req, res) => {
+  try {
+    const { payer, amount, note } = req.body;
+    await db.query(
+      'INSERT INTO point_payments (user_id, payer, amount, note, status) VALUES (?, ?, ?, ?, "대기중")',
+      [req.session.user.id, payer, amount, note]
+    );
+    // 100개 초과시 오래된 것 삭제
+    await db.query(`
+      DELETE FROM point_payments
+      WHERE id NOT IN (SELECT id FROM (SELECT id FROM point_payments ORDER BY requested_at DESC LIMIT 100) tmp)
+    `);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
 
 
+app.get('/api/admin/payment-list', isLoggedIn, isAdmin, async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT p.id, u.name AS user_name, p.payer, p.amount, p.note, p.status, p.requested_at
+       FROM point_payments p
+       JOIN users u ON p.user_id = u.id
+       ORDER BY p.requested_at DESC
+       LIMIT 100`
+    );
+    res.json(rows);
+  } catch (e) {
+    res.status(500).json({ msg: '조회 오류', error: e.message });
+  }
+});
+
+app.post('/api/admin/payment-complete', isLoggedIn, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.body;
+    await db.query('UPDATE point_payments SET status="완료" WHERE id=?', [id]);
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
 
 
+// server.js (Express)
+app.get(
+  '/api/admin/uploads/:id/download',
+  isLoggedIn, isAdmin, verifyOrigin,
+  async (req, res, next) => {
+    try {
+      const [[row]] = await db.query(
+        'SELECT s3_key, filename FROM uploads WHERE id = ?',
+        [req.params.id]
+      );
+      if (!row) return res.status(404).send('업로드 없음');
+
+      const key = row.s3_key;
+      const origName = row.filename;
+
+      // ⬇ 여기 추가
+      res.set('Cache-Control', 'no-store');
+      res.set('X-Robots-Tag', 'noindex, nofollow');
+
+      const signedUrl = s3.getSignedUrl('getObject', {
+        Bucket: process.env.AWS_S3_BUCKET,
+        Key: key,
+        Expires: 60,
+        ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(origName)}`
+      });
+
+      return res.redirect(signedUrl);
+    } catch (err) {
+      console.error(err);
+      next(err);
+    }
+  }
+);
+
+// 서버 실행
+const PORT = process.env.PORT || 3001;
+
+app.listen(PORT, () => {
+  console.log(`서버 실행 http://localhost:${PORT}`);
+});
+
+// --- Toss v2 SDK proxy (Adblock 차단 우회) ---
+app.get('/toss/v2.js', async (req, res) => {
+  try {
+    const upstream = await fetch('https://js.tosspayments.com/v2', {
+      // 일부 보안/CDN이 UA 없는 요청을 거부하는 경우가 있어 UA만 지정
+      headers: { 'User-Agent': req.get('User-Agent') || 'Mozilla/5.0' }
+    });
+
+    if (!upstream.ok) {
+      const text = await upstream.text().catch(() => '');
+      return res.status(502).type('text/plain')
+               .send(`Upstream ${upstream.status}\n${text}`);
+    }
+
+    // 원본 content-type 유지(없으면 js로)
+    res.set('content-type', upstream.headers.get('content-type')
+           || 'application/javascript; charset=utf-8');
+    // 광고차단 오탐을 줄이기 위해 캐시 헤더만 간단히
+    res.set('cache-control', 'public, max-age=600');
+
+    const buf = Buffer.from(await upstream.arrayBuffer());
+    return res.send(buf);
+  } catch (e) {
+    console.error('Toss v2 proxy error:', e);
+    return res.status(500).type('text/plain').send('Proxy failed');
+  }
+});
+
+// 1) 결제수단 등록 시작: 프론트가 호출 → 등록창 파라미터 제공
+app.post('/api/billing/start', isLoggedIn, async (req, res) => {
+  try {
+    const user = req.session.user;
+    const { plan, cycle } = req.body || {};
+
+    const planKey  = resolvePlan(plan);
+    const cycleKey = resolveCycle(cycle);
+    const price    = getPrice(planKey, cycleKey);   // ★ 서버가 금액 확정
+
+    const customerKey = `u_${user.id}`;
+    const orderId = `bill_${crypto.randomUUID()}`;
+    const successUrl = `${BASE_URL}/api/billing/callback/success`;
+    const failUrl    = `${BASE_URL}/api/billing/callback/fail`;
+
+    // 등록 성공 콜백에서 DB로 저장할 메타 (서버가 확정한 값)
+    req.session._subMeta = { plan: planKey, price, cycle: cycleKey };
+
+    res.json({
+      customerKey, orderId,
+      amount: 0,                      // 등록창은 0원
+      orderName: `${planKey} ${cycleKey}`,
+      successUrl, failUrl
+    });
+  } catch (e) {
+    console.error('billing/start error', e);
+    res.status(500).json({ msg: '초기화 실패' });
+  }
+});
+
+// 2) 등록 성공 콜백: authKey → billingKey 발급 → DB 저장
+app.get('/api/billing/callback/success', isLoggedIn, async (req, res) => {
+  try {
+    const { customerKey, authKey } = req.query;
+    if (!customerKey || !authKey) return res.status(400).send('누락된 파라미터');
+
+    const r = await fetch('https://api.tosspayments.com/v1/billing/authorizations/issue', {
+      method: 'POST',
+      headers: {
+        'Authorization': tossAuthHeader(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ customerKey, authKey })
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      console.error('Issue billingKey failed:', data);
+      return res.status(400).send(`빌링키 발급 실패: ${data.message || data.code || 'error'}`);
+    }
+
+    const billingKey = data?.billingKey;
+    if (!billingKey) return res.status(500).send('billingKey 없음');
+
+    const meta = req.session._subMeta || {};
+    delete req.session._subMeta;
+
+    await db.query(`
+      INSERT INTO billing_keys (user_id, customer_key, billing_key, plan, cycle, price)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE
+        customer_key = VALUES(customer_key),
+        billing_key  = VALUES(billing_key),
+        plan         = VALUES(plan),
+        cycle        = VALUES(cycle),
+        price        = VALUES(price)
+    `, [req.session.user.id, customerKey, billingKey, meta.plan || null, meta.cycle || null, meta.price || null]);
+
+    return res.redirect('/index.html');   // 카드 등록 완료 후 이동
+  } catch (e) {
+    console.error('billing success cb error', e);
+    return res.status(500).send('서버 오류');
+  }
+});
+
+// 3) 등록 실패 콜백
+app.get('/api/billing/callback/fail', isLoggedIn, (req, res) => {
+  const { code, message } = req.query;
+  res.status(400).send(`결제수단 등록 실패 [${code}] ${message || ''}`);
+});
+
+// 4) 자동결제 승인(과금)
+app.post('/api/billing/charge', isLoggedIn, async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const { orderName } = req.body;
+
+    // DB에서 금액 가져오기
+    const [[bk]] = await db.query(
+      'SELECT customer_key, billing_key, price, plan, cycle FROM billing_keys WHERE user_id=?',
+      [userId]
+    );
+    if (!bk) return res.status(400).json({ msg: '등록된 결제수단(빌링키) 없음' });
+
+    const amount = Number(bk.price);  // ← DB 값으로 확정
+    if (!(amount > 0)) return res.status(400).json({ msg: '금액 오류' });
+
+    const orderId = `sub_${crypto.randomUUID()}`;
+    const url = `https://api.tosspayments.com/v1/billing/${encodeURIComponent(bk.billing_key)}`;
+
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': tossAuthHeader(),
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        amount: Number(amount),
+        orderId,
+        orderName: orderName || '정기 구독 결제',
+        customerKey: bk.customer_key
+      })
+    });
+
+    const data = await r.json();
+    if (!r.ok) {
+      console.error('billing charge failed:', data);
+      return res.status(400).json({ ok: false, error: data });
+    }
+
+    // 결제 성공 → 구독 상태 갱신(예: 30일)
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const end = new Date(); end.setDate(today.getDate() + 30);
+    const endStr = end.toISOString().split('T')[0];
+
+    await db.execute(`
+      UPDATE users SET is_subscribed = 1, subscription_start = ?, subscription_end = ?
+      WHERE id = ?
+    `, [todayStr, endStr, userId]);
+
+    return res.json({ ok: true, payment: data });
+  } catch (e) {
+    console.error('billing charge error', e);
+    res.status(500).json({ ok: false, msg: '서버 오류' });
+  }
+});
+
+
+// ──────────────────────────────────────
+//  정적 HTML “주소창 직접 접근” 제어  ※ express.static 위에 위치
+// ──────────────────────────────────────
+const PUBLIC_PAGES = [
+  'login.html', 'resetpw.html', 'signup.html'
+];
+
+const MEMBER_ONLY_PAGES = [
+  'index.html', 'home.html', 'problem_bank.html',
+  'high.html', 'middle.html', 'bookcase.html',
+  'upload.html', 'notice.html', 'profile.html'
+];
+
+const ADMIN_PAGES = [
+  'admin.html', 'admin_files.html', 'admin_Membership.html',
+  'admin_payment.html', 'admin_upload_review.html',
+  'admin_review.html' // ← 추가
+];
+
+
+// 공개: 누구나 접근
+for (const page of PUBLIC_PAGES) {
+  app.get('/' + page, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', page));
+  });
+}
+
+// 회원 전용: 로그인 필요
+for (const page of MEMBER_ONLY_PAGES) {
+  app.get('/' + page, isLoggedIn, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', page));
+  });
+}
+
+// 관리자 전용
+for (const page of ADMIN_PAGES) {
+  app.get('/' + page, isLoggedIn, isAdmin, (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', page));
+  });
+}
+
+// 루트 접근: 미로그인 → 로그인 페이지로
+app.get('/', (req, res) => {
+  if (!req.session?.user) return res.redirect('/login.html');
+  return res.redirect('/index.html'); // 필요 시 home.html 등으로 변경
+});
+
+
+ app.use(
+   express.static(path.join(__dirname, 'public'), {
+     setHeaders: (res, filePath) => {
+       if (filePath.endsWith('.html')) {
+         res.setHeader('Content-Type', 'text/html; charset=UTF-8');
+       } else if (filePath.endsWith('.js')) {
+         res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
+       } else if (filePath.endsWith('.css')) {
+         res.setHeader('Content-Type', 'text/css; charset=UTF-8');
+       }
+     }
+   })
+ );
+ 
