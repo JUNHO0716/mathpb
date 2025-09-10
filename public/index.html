@@ -678,19 +678,6 @@
       if(sidebarLogout) sidebarLogout.addEventListener('click', logout);
       if(dropdownLogout) dropdownLogout.addEventListener('click', logout);
 
- // 결제 모달 관련
-  const payBtn = document.querySelector('.action-btn[href="pricing.html"]');
-  const paymentModal = document.getElementById('paymentModal');
-  const paymentIframe = document.getElementById('paymentIframe');
-  const closeModalBtn = document.getElementById('closeModalBtn');
-  if (payBtn) {
-    payBtn.addEventListener('click', function(e){
-      e.preventDefault(); // 이 부분이 링크의 기본 동작(페이지 이동)을 막고 있습니다.
-      paymentModal.classList.add('show');
-      paymentIframe.src = "pricing.html";
-      document.body.style.overflow = "hidden";
-    });
-  }
   if (closeModalBtn) {
     closeModalBtn.addEventListener('click', function(){
       paymentModal.classList.remove('show');
@@ -961,13 +948,6 @@ window.addEventListener('DOMContentLoaded', () => {
         });
 
 </script>
-<!-- 결제 모달 -->
-<div id="paymentModal" class="modal-overlay">
-  <div class="modal-content">
-    <button class="close-modal" id="closeModalBtn">&times;</button>
-    <iframe id="paymentIframe" src="" frameborder="0"></iframe>
-  </div>
-</div>
 
 <!-- 안내 모달 -->
 <div id="introOverlay" class="intro-overlay" aria-hidden="true">
