@@ -1619,7 +1619,7 @@ app.get('/api/billing/callback/success', isLoggedIn, async (req, res) => {
         price        = VALUES(price)
     `, [req.session.user.id, customerKey, billingKey, meta.plan || null, meta.cycle || null, meta.price || null]);
 
-    return res.redirect('/index.html');   // 카드 등록 완료 후 이동
+    return res.redirect('/index.html?payment_success=true');
   } catch (e) {
     console.error('billing success cb error', e);
     return res.status(500).send('서버 오류');
