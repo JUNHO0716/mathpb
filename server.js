@@ -45,15 +45,15 @@ function tossAuthHeader() {
 // Pricing table & resolver (ADD)
 // ──────────────────────────────────────
 const PRICE_TABLE = {
-  basic:    { month:  9900, year:  9900 * 12 * 0.85 | 0 }, // 연 15% 할인 예시
-  standard: { month: 14900, year: 14900 * 12 * 0.85 | 0 },
-  pro:      { month: 19900, year: 19900 * 12 * 0.85 | 0 },
+  basic:    { month:  24900, year:  24900 * 12 * 0.85 | 0 }, // 연 15% 할인
+  standard: { month:  69900, year:  69900 * 12 * 0.85 | 0 },
+  pro:      { month: 176000, year: 176000 * 12 * 0.85 | 0 },
 };
 
 function resolvePlan(plan) {
   const key = String(plan || '').toLowerCase();
-  if (key === 'premium') return 'pro';
-  return ['basic','standard','pro'].includes(key) ? key : 'standard';
+  if (key === 'premium') return 'pro'; // 혹시 모를 호환성
+  return ['basic','standard','pro'].includes(key) ? key : 'standard'; // standard를 기본값으로
 }
 function resolveCycle(cycle) {
   const key = String(cycle || '').toLowerCase();
