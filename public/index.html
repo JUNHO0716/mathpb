@@ -685,10 +685,9 @@
   const closeModalBtn = document.getElementById('closeModalBtn');
   if (payBtn) {
     payBtn.addEventListener('click', function(e){
-      e.preventDefault();
+      e.preventDefault(); // 이 부분이 링크의 기본 동작(페이지 이동)을 막고 있습니다.
       paymentModal.classList.add('show');
       paymentIframe.src = "pricing.html";
-      // 페이지 스크롤 막기 (선택)
       document.body.style.overflow = "hidden";
     });
   }
