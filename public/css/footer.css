@@ -1,0 +1,51 @@
+footer {
+  background-color: #222; /* 어두운 배경색 */
+  color: #ccc; /* 기본 글자색 */
+  padding: 40px 20px;
+  font-size: 0.9rem;
+}
+
+.footer-container {
+  display: flex; /* 자식 요소들을 가로로 정렬 */
+  justify-content: space-around; /* 요소들 사이에 균등한 간격 */
+  flex-wrap: wrap; /* 화면이 좁아지면 줄바꿈 */
+  padding-bottom: 20px;
+  border-bottom: 1px solid #444; /* 하단 저작권 영역과 구분선 */
+}
+
+.footer-section {
+  flex: 1; /* 각 섹션이 가능한 동일한 너비를 갖도록 함 */
+  min-width: 200px; /* 최소 너비 지정 */
+  margin: 10px;
+}
+
+.footer-section h4 {
+  color: #fff;
+  margin-bottom: 15px;
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-section a {
+  color: #ccc;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-section a:hover {
+  color: #fff; /* 마우스 올렸을 때 색상 변경 */
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 20px;
+}
+
+.social-links a {
+  color: #ccc;
+  margin: 0 10px;
+  font-size: 1.2rem;
+}
