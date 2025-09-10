@@ -22,16 +22,6 @@
   *{box-sizing:border-box;font-family:'Noto Sans KR',sans-serif;margin:0;}
   body{background:#fff;min-height:100vh;display:flex;flex-direction:column;}
 
-  /* ────── 1) 헤더 ────── */
-  .page-header{
-    min-width:980px;padding:28px 40px 16px;
-    display:flex;align-items:center;justify-content:space-between;
-    position:relative;
-  }
-  .header-titles h1{font-size:1.55rem;font-weight:900;color:var(--text-main);}
-  .sub-date{margin-top:4px;font-size:.95rem;font-weight:700;color:var(--text-sub);}
-
-  .header-actions{display:flex;align-items:center;gap:16px;} /* 버튼 간격 ↑ */
 
   /* 1-a  버튼들 */
   .action-btn{
@@ -268,7 +258,7 @@
       min-height:300px;          /* 틀만 보이도록 */
     }
     .notice-card h2{
-      font-size:1.12rem;
+      font-size:1.0rem;
       font-weight:900;
       margin:0 0 10px 0;    /* 위쪽 여백 0, 아래 10px */
     }
@@ -283,7 +273,7 @@
       padding:28px;
       min-height:420px;
     }
-    .mysheet-board h2{font-size:1.25rem;font-weight:900;margin-bottom:22px;}
+    .mysheet-board h2{font: size 1em; font-weight:900;margin-bottom:22px;}
 
     /* ▼ 공지사항 미리보기 위젯 */
     .notice-head{
@@ -313,20 +303,20 @@
     }
     .notice-item{
       display:flex;align-items:center;height:28px;padding:0 2px;
-      border-radius:6px;font-size:.95rem;cursor:pointer;
+      border-radius:6px;font-size:.8rem;cursor:pointer;
       transition:background .13s;overflow:hidden;
     }
     .notice-item:hover{background:#f5faf8;}
     .notice-num{
-      min-width:18px;height:18px;background:#111;color:#fff;
-      border-radius:50px;font-size:.76rem;font-weight:700;
+      min-width:16px;height:16px;background:#111;color:#fff;
+      border-radius:50px;font-size:.6rem;font-weight:700;
       display:flex;align-items:center;justify-content:center;
       margin-right:6px;
       transition:background .23s;
     }
     .notice-title{
       flex:1;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;
-      color:#333;font-weight:500;font-size:.92rem;
+      color:#333;font-weight:500;font-size:.8rem;
     }
 
     /* ==============================================
@@ -355,7 +345,7 @@
     }
 
     .rf-header{
-      font-size:1.15rem;font-weight:900;color:var(--text-main);
+      font-size:1.0rem;font-weight:900;color:var(--text-main);
       display:flex;align-items:center;gap:8px;margin-bottom:18px;
     }
     .rf-table-wrap{flex:1;max-height:260px;overflow-y:auto;}
@@ -365,7 +355,7 @@
     .rf-table thead{position:sticky;top:0;background:#f7f7f7;z-index:1;}
     .rf-table thead th { color:#555; }
     .rf-table th,.rf-table td{
-      padding:10px 14px;font-size:.85rem;border-bottom:1px solid #eee;
+      padding:10px 14px;font-size:.7rem;border-bottom:1px solid #eee;
       text-align:left;
     }
     .rf-table tbody tr:nth-child(even){background:#fafafa;}
@@ -456,7 +446,7 @@
 
 .btn-plus i {
   color: #fdc512;         /* 노란색 */
-  font-size: 1.35rem;
+  font-size: 1.1rem;
   transition: color 0.18s;
 }
 
@@ -475,7 +465,7 @@
   color: #111;
   border-radius: 7px;
   padding: 6px 14px;
-  font-size: 0.93rem;
+  font-size: 0.8rem;
   font-weight: 700;
   margin: 0 4px;
   cursor: pointer;
@@ -496,7 +486,7 @@
   display:flex;flex-direction:column;
 }
 .mysheet-requests-header {
-  font-size:1.09em;
+  font-size:0.9em;
   font-weight:900;
   color:#222;
   margin-bottom:12px;
@@ -530,7 +520,7 @@
   text-align: center !important;  /* ← 추가 */
   vertical-align: middle;
   font-family: 'Pretendard', sans-serif;  /* 예시: Pretendard로 변경 */
-  font-size: 0.8rem;                     /* 상태 강조용 크기 */
+  font-size: 0.75rem;                     /* 상태 강조용 크기 */
   font-weight: 400;                       /* 진하게 */
 }
 
@@ -611,7 +601,7 @@
 }
 
 .mybox-title {
-  font-size: 1.22em;
+  font-size: 1.0em;
   font-weight: 800;
   color: #7956e8;
   margin-bottom: 26px;
@@ -623,7 +613,7 @@
 }
 
 .mybox-ready {
-  font-size: 2.2em;
+  font-size: 1.9em;
   font-weight: 900;
   color: #b9b4cb;
   text-align: center;
