@@ -1069,6 +1069,18 @@ window.addEventListener('DOMContentLoaded', () => {
   </div>
 </div>
 <script>
+  // 페이지가 로드되면 '포스트잇'이 있는지 확인합니다.
+  document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentSuccess = urlParams.get('payment_success');
+
+    // '포스트잇'이 있으면 메시지를 띄우고 주소에서 떼어냅니다.
+    if (paymentSuccess === 'true') {
+      alert('카드 등록이 완료되었습니다!');
+      history.replaceState({}, document.title, window.location.pathname);
+    }
+  });
+
 /* ===== 안내 모달 로직 (DOM 생성 후 바인딩) ===== */
 (function(){
   const KEY = 'mathbee_intro_dismissed_v1';
@@ -1117,7 +1129,7 @@ window.addEventListener('DOMContentLoaded', () => {
   } else {
     bindIntroModal();
   }
-})();
+});
 </script>
 
 </body>
