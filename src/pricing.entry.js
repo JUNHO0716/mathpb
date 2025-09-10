@@ -2,34 +2,28 @@
 import { loadTossPayments } from '@tosspayments/tosspayments-sdk';
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 공개 클라이언트 키: 테스트/운영에 맞게 server-side에서 주입하거나 window 전역으로 지정
   const CLIENT_KEY = (typeof window !== 'undefined' && window.TOSS_CLIENT_KEY)
     ? window.TOSS_CLIENT_KEY
-    : 'test_ck_xxx';
+    : 'test_ck_0RnYX2w532okP2MNZRyPVNeyqApQ';
 
-  // 단축 선택자
   const $  = (s) => document.querySelector(s);
   const $$ = (s) => Array.from(document.querySelectorAll(s));
 
-  // 필수 엘리먼트
   const mBtn         = $('#mBtn');
   const yBtn         = $('#yBtn');
-  const planCards    = $$('.plan');           // 각 요금제 article.plan (data-plan, data-month, data-year)
+  const planCards    = $$('.plan');
   const subscribeBtn = $('#subscribeBtn');
   const agree        = $('#agree');
-  const chosen       = $('#chosen');          // 선택 요약 표시 영역
-  const methodChips  = $$('.methods .chip');  // 결제수단 칩 (data-method="toss" | "card" | "vbank")
+  const chosen       = $('#chosen');
+  const methodChips  = $$('.methods .chip');
 
-  // 상태값
-  let billingCycle = 'month';   // 'month' | 'year'
-  let selected     = null;      // { id, price }
-  let method       = 'toss';    // UI 상에서만 쓰는 선택값 (현재는 토스만 지원)
+  let billingCycle = 'month';
+  let selected     = null;
+  let method       = 'toss';
   let busy         = false;
 
-  // 유틸
   const fmt = (n) => Number(n).toLocaleString('ko-KR');
 
-  // 초기화: 결제수단 칩 토글
   methodChips.forEach(chip => {
     chip.addEventListener('click', () => {
       methodChips.forEach(c => c.classList.remove('active'));
@@ -38,56 +32,59 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 요금제 선택 버튼
   planCards.forEach(card => {
     const btn = card.querySelector('.select-btn');
     btn?.addEventListener('click', () => {
-      // 기존 선택 해제
       planCards.forEach(c => c.classList.remove('selected'));
-
-      // 현재 카드 선택
       card.classList.add('selected');
-
-      const id     = card.dataset.plan;
-      const price  = (billingCycle === 'year') ? Number(card.dataset.year)
-                                               : Number(card.dataset.month);
-      selected = { id, price };
-
-      const title = card.querySelector('h3')?.textContent.trim() || id;
-      chosen.textContent = `${title} - ${fmt(price)}원 / ${billingCycle === 'year' ? '년' : '월'}`;
-
-      refresh();
+      updateSelection();
     });
   });
 
-  // 월/연 전환
+  // 2. 연간 버튼 스크립트 오류 수정
   [mBtn, yBtn].forEach(btn => {
     btn.addEventListener('click', () => {
       const isMonth = (btn === mBtn);
-
       billingCycle = isMonth ? 'month' : 'year';
       mBtn.classList.toggle('active', isMonth);
       yBtn.classList.toggle('active', !isMonth);
 
-      const active = document.querySelector('.plan.selected');
-      if (active && selected) {
-        selected.price = isMonth ? Number(active.dataset.month)
-                                 : Number(active.dataset.year);
-
-        const title = active.querySelector('h3')?.textContent.trim() || selected.id;
-        chosen.textContent = `${title} - ${fmt(selected.price)}원 / ${billingCycle === 'year' ? '년' : '월'}`;
-      }
-      refresh();
+      // 모든 플랜 카드의 가격 표시를 업데이트
+      planCards.forEach(card => {
+        const priceEl = card.querySelector('.price .num');
+        const smallEl = card.querySelector('.price small');
+        if (priceEl && smallEl) {
+          const newPrice = isMonth ? card.dataset.month : card.dataset.year;
+          priceEl.textContent = fmt(newPrice);
+          smallEl.textContent = isMonth ? '/ 월' : '/ 년';
+        }
+      });
+      // 선택된 요약 정보도 업데이트
+      updateSelection();
     });
   });
 
-  // 약관 동의 → 버튼 활성화
+  function updateSelection() {
+    const selectedCard = $('.plan.selected');
+    if (selectedCard) {
+      const id = selectedCard.dataset.plan;
+      const price = (billingCycle === 'year') ? Number(selectedCard.dataset.year) : Number(selectedCard.dataset.month);
+      selected = { id, price };
+      const title = selectedCard.querySelector('h3')?.textContent.trim() || id;
+      chosen.textContent = `${title} - ${fmt(price)}원 / ${billingCycle === 'year' ? '년' : '월'}`;
+    } else {
+      selected = null;
+      chosen.textContent = '아직 선택하지 않았어요.';
+    }
+    refresh();
+  }
+
   agree.addEventListener('change', refresh);
   function refresh() {
     subscribeBtn.disabled = !(agree.checked && !!selected);
   }
 
-  // 설치(npm) 방식: 통합 SDK → payment() → requestBillingAuth
+  // 3. 토스 결제창 취소 메시지 수정
   async function openTossBilling(init) {
     try {
       const toss = await loadTossPayments(CLIENT_KEY);
@@ -100,15 +97,17 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     } catch (e) {
       console.error('Toss billing open error:', e);
-      alert(`토스 호출 실패: ${e?.message || e}`);
+      if (e?.code === 'USER_CANCEL') {
+        alert('결제가 취소되었습니다.');
+      } else {
+        alert(`결제창 호출 중 오류가 발생했습니다: ${e?.message || '알 수 없는 오류'}`);
+      }
     }
-}
+  }
 
-  // 구독 시작하기
   subscribeBtn.addEventListener('click', async () => {
     if (subscribeBtn.disabled || busy) return;
 
-    // ⚠️ 지금은 토스만 지원
     if (method !== 'toss') {
       alert('지금은 토스 간편결제만 지원합니다.');
       return;
@@ -118,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
     subscribeBtn.disabled = true;
 
     try {
-      // 서버에서 등록창 파라미터 받기 (서버가 금액/주기 확정)
       const res = await fetch('/api/billing/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -139,17 +137,16 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(msg || '초기화 실패');
       }
 
-      const init = await res.json(); // { customerKey, successUrl, failUrl, ... }
+      const init = await res.json();
       await openTossBilling(init);
     } catch (err) {
       console.error(err);
       alert('결제를 시작할 수 없습니다. 잠시 후 다시 시도해주세요.');
     } finally {
       busy = false;
-      subscribeBtn.disabled = false;
+      refresh();
     }
   });
 
-  // 초기 버튼 상태
   refresh();
 });
