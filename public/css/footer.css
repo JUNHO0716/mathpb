@@ -8,11 +8,10 @@ footer {
 
 .footer-container {
   display: flex;
-  justify-content: space-between; /* ★★★ 이 부분을 변경하여 좌우로 최대한 퍼지게 합니다 ★★★ */
+  justify-content: space-around; /* ★★★ 이 부분을 변경하여 좌우로 최대한 퍼지게 합니다 ★★★ */
   flex-wrap: wrap;
   padding-bottom: 15px;
   border-bottom: 1px solid #e0e0e0;
-  max-width: 1100px;
   margin: 0 auto 15px; /* 푸터 컨테이너와 하단 저작권 사이 여백 추가 */
 }
 
