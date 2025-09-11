@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta name="robots" content="noindex, nofollow">
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=1200" />
-  <title>기출자료 리스트</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1200" />
+  <title>기출자료 리스트</title>
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:700,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/footer.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:700,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/footer.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-  <style>
+<style>
 /* ========== 컬러 팔레트 (black / gray / light-gray) ========== */
 :root{
   --c-main:#111;            /* 거의 검정 */
@@ -236,54 +236,54 @@ input:checked + .slider:before {
 <body>
 
 <section class="page-banner">
-  <div class="inner">
-    <h2 class="with-toggle">
-      <span id="level-title"></span> <span class="bar-sep">|</span> 기출자료
-      <span class="level-toggle-container">
-        <label class="switch">
-          <input type="checkbox" id="levelToggle">
-          <span class="slider"></span>
-        </label>
-        <span id="levelText"></span>
-      </span>
-    </h2>
-    <p>전국 학교별 기출자료를 한 곳에서 확인하고, 필요한 자료를 쉽게 찾아보세요.</p>
-  </div>
+  <div class="inner">
+    <h2 class="with-toggle">
+      <span id="level-title"></span> <span class="bar-sep">|</span> 기출자료
+      <span class="level-toggle-container">
+        <label class="switch">
+          <input type="checkbox" id="levelToggle">
+          <span class="slider"></span>
+        </label>
+        <span id="levelText"></span>
+      </span>
+    </h2>
+    <p>전국 학교별 기출자료를 한 곳에서 확인하고, 필요한 자료를 쉽게 찾아보세요.</p>
+  </div>
 </section>
 
 <div class="wrapper">
-  <div class="toolbar">
-    <div class="filter-set">
-      <select id="region" class="filter"><option value="">지역</option><option>서울</option><option>경기</option></select>
-      <input id="district" class="filter" placeholder="구/군">
-      <input id="school" class="filter" placeholder="학교명">
-      <select id="grade" class="filter"><option value="">학년</option></select>
-      <input id="year" class="filter" placeholder="연도" type="number">
-      <select id="semester" class="filter"><option value="">학기</option><option>1학기중간</option><option>1학기기말</option><option>2학기중간</option><option>2학기기말</option></select>
-      <button class="btn btn--search" onclick="searchFiles()"><i class="fa-solid fa-magnifying-glass"></i> 검색</button>
-      <button id="uploadBtn" class="btn btn--primary" style="display:none;margin-left:8px;"><i class="fa-solid fa-upload"></i> 시험지 업로드</button>
-      <button id="manageBtn" class="btn btn--primary" style="display:none;margin-left:8px;"><i class="fa-solid fa-gears"></i> 시험지 관리</button>
-    </div>
-  </div>
+  <div class="toolbar">
+    <div class="filter-set">
+      <select id="region" class="filter"><option value="">지역</option><option>서울</option><option>경기</option></select>
+      <input id="district" class="filter" placeholder="구/군">
+      <input id="school" class="filter" placeholder="학교명">
+      <select id="grade" class="filter"><option value="">학년</option></select>
+      <input id="year" class="filter" placeholder="연도" type="number">
+      <select id="semester" class="filter"><option value="">학기</option><option>1학기중간</option><option>1학기기말</option><option>2학기중간</option><option>2학기기말</option></select>
+      <button class="btn btn--search" onclick="searchFiles()"><i class="fa-solid fa-magnifying-glass"></i> 검색</button>
+      <button id="uploadBtn" class="btn btn--primary" style="display:none;margin-left:8px;"><i class="fa-solid fa-upload"></i> 시험지 업로드</button>
+      <button id="manageBtn" class="btn btn--primary" style="display:none;margin-left:8px;"><i class="fa-solid fa-gears"></i> 시험지 관리</button>
+    </div>
+  </div>
 
-  <div class="table-wrap">
-    <table>
-            <thead >
-        <tr>
-          <th style="width: 60px;">No</th>
-          <th style="width: auto; text-align: left; padding-left: 18px;">자료명</th>
-          <th style="width: 80px;">학년</th>
-          <th style="width: 100px;">학기</th>
-          <th style="width: 80px;">연도</th>
-          <th style="width: 120px;">업로드일</th>
-          <th style="width: 170px;">다운로드</th>
-        </tr>
-      </thead>
-            <tbody id="file-list"></tbody>
-    </table>
-  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:60px">No</th>
+          <th style="text-align:left;padding-left:18px">자료명</th>
+          <th>학년</th>
+          <th>학기</th>
+          <th>연도</th>
+          <th>업로드일</th>
+          <th style="width:170px">다운로드</th>
+        </tr>
+      </thead>
+      <tbody id="file-list"></tbody>
+    </table>
+  </div>
 
-  <div class="pagination" id="pagination"></div>
+  <div class="pagination" id="pagination"></div>
 </div>
 
 <script>
@@ -291,131 +291,126 @@ let currentUser = null;
 let fileData = [];
 let currentPage = 1;
 const pageSize = 30;
+// 🔑 변경점: 현재 선택된 레벨(중등/고등)을 저장할 변수
 let currentLevel = '중등';
 
+// 🔑 변경점: 중등/고등별 학년 옵션 미리 정의
 const gradeOptions = {
-  '중등': ['중1', '중2', '중3'],
-  '고등': ['고1', '고2', '고3']
+  '중등': ['중1', '중2', '중3'],
+  '고등': ['고1', '고2', '고3']
 };
 
+/**
+ * 🔑 새로운 함수: 중등/고등 모드를 전환하는 핵심 함수
+ * UI 텍스트, 학년 필터 옵션을 변경하고 데이터를 다시 불러옵니다.
+ */
 function switchLevel(level) {
-  currentLevel = level; 
-  const levelTitle = document.getElementById('level-title');
-  const levelText = document.getElementById('levelText');
-  const levelToggle = document.getElementById('levelToggle');
+  currentLevel = level; // 현재 레벨 상태 업데이트
 
-  if (level === '중등') {
-    levelTitle.textContent = '중등관';
-    levelText.textContent = '중등';
-    levelToggle.checked = true;
-  } else {
-    levelTitle.textContent = '고등관';
-    levelText.textContent = '고등';
-    levelToggle.checked = false;
-  }
+  // 1. UI 텍스트 및 토글 상태 업데이트
+  const levelTitle = document.getElementById('level-title');
+  const levelText = document.getElementById('levelText');
+  const levelToggle = document.getElementById('levelToggle');
 
-  const gradeSelect = document.getElementById('grade');
-  gradeSelect.innerHTML = '<option value="">학년</option>';
-  gradeOptions[level].forEach(optionText => {
-    const option = document.createElement('option');
-    option.value = optionText;
-    option.textContent = optionText;
-    gradeSelect.appendChild(option);
-  });
-  
-  clearFilters();
-  fetchFiles();
+  if (level === '중등') {
+    levelTitle.textContent = '중등관';
+    levelText.textContent = '중등';
+    levelToggle.checked = true; // 중등일 때 토글 ON
+  } else {
+    levelTitle.textContent = '고등관';
+    levelText.textContent = '고등';
+    levelToggle.checked = false; // 고등일 때 토글 OFF
+  }
+
+  // 2. 학년 필터 옵션 동적 변경
+  const gradeSelect = document.getElementById('grade');
+  gradeSelect.innerHTML = '<option value="">학년</option>'; // 기존 옵션 초기화
+  gradeOptions[level].forEach(optionText => {
+    const option = document.createElement('option');
+    option.value = optionText;
+    option.textContent = optionText;
+    gradeSelect.appendChild(option);
+  });
+  
+  // 3. 필터 초기화 및 데이터 다시 불러오기
+  clearFilters();
+  fetchFiles();
 }
 
+// 필터 초기화 함수
 function clearFilters() {
-    document.getElementById('region').value = '';
-    document.getElementById('district').value = '';
-    document.getElementById('school').value = '';
-    document.getElementById('grade').value = '';
-    document.getElementById('year').value = '';
-    document.getElementById('semester').value = '';
+    document.getElementById('region').value = '';
+    document.getElementById('district').value = '';
+    document.getElementById('school').value = '';
+    document.getElementById('grade').value = '';
+    document.getElementById('year').value = '';
+    document.getElementById('semester').value = '';
 }
+
 
 async function fetchFiles() {
-  const params = new URLSearchParams({
-    region:   document.getElementById('region').value,
-    district: document.getElementById('district').value.trim(),
-    school:   document.getElementById('school').value.trim(),
-    grade:    document.getElementById('grade').value,
-    year:     document.getElementById('year').value.trim(),
-    semester: document.getElementById('semester').value
-  });
-  params.append('level', currentLevel);
+  const params = new URLSearchParams({
+    region:   document.getElementById('region').value,
+    district: document.getElementById('district').value.trim(),
+    school:   document.getElementById('school').value.trim(),
+    grade:    document.getElementById('grade').value,
+    year:     document.getElementById('year').value.trim(),
+    semester: document.getElementById('semester').value
+  });
+  // 🔑 변경점: 하드코딩된 '중등' 대신 currentLevel 변수 사용
+  params.append('level', currentLevel);
 
-  try {
-    const res = await fetch('/api/files?' + params.toString());
-    fileData = await res.json();
-    currentPage = 1;
-    renderPage();
-  } catch (error) {
-    console.error("데이터를 불러오는 데 실패했습니다.", error);
-    const tb = document.getElementById('file-list');
-    tb.innerHTML = '<tr><td colspan="7" style="padding:20px;color:#c0392b;">데이터 로딩 중 오류가 발생했습니다.</td></tr>';
-  }
+  try {
+    const res = await fetch('/api/files?' + params.toString());
+    fileData = await res.json();
+    currentPage = 1;
+    renderPage();
+  } catch (error) {
+    console.error("데이터를 불러오는 데 실패했습니다.", error);
+    const tb = document.getElementById('file-list');
+    tb.innerHTML = '<tr><td colspan="7" style="padding:20px;color:#c0392b;">데이터 로딩 중 오류가 발생했습니다.</td></tr>';
+  }
 }
 
 function searchFiles(){
-  fetchFiles();
+  fetchFiles();
 }
 
 function renderPage(){
-  const start = (currentPage - 1) * pageSize;
-  const end = start + pageSize;
-  const list = Array.isArray(fileData) ? fileData : (fileData.items || []);
-  const pageData = list.slice(start, end);
-  renderTable(pageData);
-  renderPagination();
+  const start = (currentPage - 1) * pageSize;
+  const end = start + pageSize;
+  const list = Array.isArray(fileData) ? fileData : (fileData.items || []);
+  const pageData = list.slice(start, end);
+  renderTable(pageData);
+  renderPagination();
 }
 
 function renderPagination(){
-  const list = Array.isArray(fileData) ? fileData : (fileData.items || []);
-  const totalPages = Math.ceil(list.length / pageSize) || 1;
-  const p = document.getElementById('pagination');
-  p.innerHTML = '';
-  for(let i=1; i<=totalPages; i++){
-    const d = document.createElement('div');
-    d.className = 'page' + (i === currentPage ? ' active' : '');
-    d.textContent = i;
-    if(i !== currentPage) {
-      d.onclick = () => {
-        currentPage = i;
-        renderPage();
-      };
-    }
-    p.appendChild(d);
-  }
+  const list = Array.isArray(fileData) ? fileData : (fileData.items || []);
+  const totalPages = Math.ceil(list.length / pageSize) || 1;
+  const p = document.getElementById('pagination');
+  p.innerHTML = '';
+  for(let i=1; i<=totalPages; i++){
+    const d = document.createElement('div');
+    d.className = 'page' + (i === currentPage ? ' active' : '');
+    d.textContent = i;
+    if(i !== currentPage) {
+      d.onclick = () => {
+        currentPage = i;
+        renderPage();
+      };
+    }
+    p.appendChild(d);
+  }
 }
 
-// ▼▼▼ 2. 다운로드 버튼 복원 (파일 있을 때만 표시) ▼▼▼
 function renderTable(list) {
   const tb = document.getElementById('file-list');
   if (!list.length) {
     tb.innerHTML = '<tr><td colspan="7" style="padding:20px;color:#9ba4b0;">자료가 없습니다</td></tr>';
     return;
   }
-  tb.innerHTML = list.map((row, i) => {
-    let btns = '';
-
-    // row.files 객체가 있고, 그 안에 pdf 경로가 있을 때만 PDF 버튼을 추가합니다.
-    if (row.files?.pdf) {
-      btns += `<button class="download-btn" title="PDF 다운로드" onclick="downloadFile('${row.id}','pdf')">
-          <img src="/pdf_download.png" alt="PDF 다운로드" style="width:32px;height:32px;">
-        </button>`;
-    }
-    
-    // row.files 객체가 있고, 그 안에 hwp 경로가 있을 때만 HWP 버튼을 추가합니다.
-    if (row.files?.hwp) {
-      btns += `<button class="download-btn" title="HWP 다운로드" onclick="downloadFile('${row.id}','hwp')">
-          <img src="/hwp_download.png" alt="HWP 다운로드" style="width:32px;height:32px;">
-        </button>`;
-    }
-
-    return `
+  tb.innerHTML = list.map((row, i) => `
     <tr>
       <td>${(currentPage - 1) * pageSize + i + 1}</td>
       <td style="text-align:left;padding-left:18px">
@@ -426,86 +421,94 @@ function renderTable(list) {
       <td>${row.semester || ''}</td>
       <td>${row.year || ''}</td>
       <td>${formatDate(row.uploaded_at || row.date)}</td>
-      <td>${btns}</td>
-    </tr>
-    `;
-  }).join('');
+      <td>
+        <button class="download-btn" title="PDF 다운로드" onclick="downloadFile('${row.id}','pdf')">
+          <img src="/pdf_download.png" alt="PDF 다운로드" style="width:32px;height:32px;">
+        </button>
+        <button class="download-btn" title="HWP 다운로드" onclick="downloadFile('${row.id}','hwp')">
+          <img src="/hwp_download.png" alt="HWP 다운로드" style="width:32px;height:32px;">
+        </button>
+      </td>
+    </tr>`).join('');
 }
-// ▲▲▲ 2. 다운로드 버튼 복원 (파일 있을 때만 표시) ▲▲▲
 
 function downloadFile(id, type) {
-  if (!currentUser || (!currentUser.hasPaid && currentUser.role !== 'admin')) {
-    Swal.fire({
-      icon: 'warning',
-      title: '다운로드 권한 없음',
-      text: '결제 후 이용 가능합니다.',
-      showCancelButton: true,
-      showConfirmButton: false,
-      cancelButtonText: '닫기',
-      cancelButtonColor: '#444',
-      background: '#1a1a1a',
-      color: '#ffffff',
-      iconColor: '#FDC512',
-      customClass: { actions: 'swal2-actions-center' }
-    });
-    return;
-  }
-  const url = `/api/download/${id}?type=${encodeURIComponent(type)}`;
-  window.location.href = url;
+  if (!currentUser || (!currentUser.hasPaid && currentUser.role !== 'admin')) {
+    Swal.fire({
+      icon: 'warning',
+      title: '다운로드 권한 없음',
+      text: '결제 후 이용 가능합니다.',
+      showCancelButton: true,
+      showConfirmButton: false,
+      cancelButtonText: '닫기',
+      cancelButtonColor: '#444',
+      background: '#1a1a1a',
+      color: '#ffffff',
+      iconColor: '#FDC512',
+      customClass: { actions: 'swal2-actions-center' }
+    });
+    return;
+  }
+  const url = `/api/download/${id}?type=${encodeURIComponent(type)}`;
+  window.location.href = url;
 }
 
 function formatDate(dateString) {
-  if(!dateString) return '';
-  const d = new Date(dateString);
-  if(isNaN(d)) return (dateString.split('T')[0] || dateString);
-  return d.toISOString().slice(0, 10);
+  if(!dateString) return '';
+  const d = new Date(dateString);
+  if(isNaN(d)) return (dateString.split('T')[0] || dateString);
+  return d.toISOString().slice(0, 10);
 }
 
 async function showAdminButtons(){
-  try{
-    const {isLoggedIn,user={}} = await (await fetch('/check-auth',{credentials:'include'})).json();
-    if(isLoggedIn){
-      currentUser = user;
-      if(user.role==='admin'){
-        const uploadBtn = document.getElementById('uploadBtn');
-        const manageBtn = document.getElementById('manageBtn');
-        if(uploadBtn){
-          uploadBtn.style.display = 'inline-flex';
-          uploadBtn.onclick = ()=> location.href = 'admin_upload.html';
-        }
-        if(manageBtn){
-          manageBtn.style.display = 'inline-flex';
-          manageBtn.onclick = () => location.href = 'admin_files.html';
-        }
-      }
-    }
-  }catch(e){
-    console.error('관리자 체크 실패', e);
-  }
+  try{
+    const {isLoggedIn,user={}} = await (await fetch('/check-auth',{credentials:'include'})).json();
+    if(isLoggedIn){
+      currentUser = user;
+      if(user.role==='admin'){
+        const uploadBtn = document.getElementById('uploadBtn');
+        const manageBtn = document.getElementById('manageBtn');
+        if(uploadBtn){
+          uploadBtn.style.display = 'inline-flex';
+          uploadBtn.onclick = ()=> location.href = 'admin_upload.html';
+        }
+        if(manageBtn){
+          manageBtn.style.display = 'inline-flex';
+          manageBtn.onclick = () => location.href = 'admin_files.html';
+        }
+      }
+    }
+  }catch(e){
+    console.error('관리자 체크 실패', e);
+  }
 }
 
+// 🔑 변경점: 토글 스위치 이벤트 리스너 변경
 document.getElementById('levelToggle').addEventListener('change', function(event) {
-  if (event.target.checked) {
-    switchLevel('중등');
-  } else {
-    switchLevel('고등');
-  }
+  // 스위치가 체크(ON) 상태이면 '중등', 아니면 '고등'으로 전환
+  if (event.target.checked) {
+    switchLevel('중등');
+  } else {
+    switchLevel('고등');
+  }
 });
 
+// footer 로드
 document.addEventListener("DOMContentLoaded", function() {
-  fetch('/footer.html')
-    .then(response => response.text())
-    .then(data => {
-      document.body.insertAdjacentHTML('beforeend', data);
-    });
+  fetch('/footer.html')
+    .then(response => response.text())
+    .then(data => {
+      document.body.insertAdjacentHTML('beforeend', data);
+    });
 });
 
+/* ===== 시작 ===== */
 window.onload = () => {
-  showAdminButtons();
-  switchLevel('중등');
+  showAdminButtons();
+  // 🔑 변경점: 페이지 로드 시 '중등'을 기본으로 설정하고 데이터 로드
+  switchLevel('중등');
 };
 </script>
 
 </body>
 </html>
-
