@@ -422,12 +422,14 @@ function renderTable(list) {
       <td>${row.year || ''}</td>
       <td>${formatDate(row.uploaded_at || row.date)}</td>
       <td>
-        <button class="download-btn" title="PDF 다운로드" onclick="downloadFile('${row.id}','pdf')">
-          <img src="/pdf_download.png" alt="PDF 다운로드" style="width:32px;height:32px;">
-        </button>
-        <button class="download-btn" title="HWP 다운로드" onclick="downloadFile('${row.id}','hwp')">
-          <img src="/hwp_download.png" alt="HWP 다운로드" style="width:32px;height:32px;">
-        </button>
+        <button class="download-btn" title="PDF 다운로드" onclick="safeDownload('${row.id}','pdf')"
+            style="background:none;border:none;cursor:pointer;">
+            <img src="/pdf_download.png" alt="PDF 다운로드" style="width:32px;height:32px;">
+          </button>
+        <button class="download-btn" title="HWP 다운로드" onclick="safeDownload('${row.id}','hwp')"
+            style="background:none;border:none;cursor:pointer;">
+            <img src="/hwp_download.png" alt="HWP 다운로드" style="width:32px;height:32px;">
+          </button>
       </td>
     </tr>`).join('');
 }
@@ -512,3 +514,4 @@ window.onload = () => {
 
 </body>
 </html>
+
