@@ -1619,7 +1619,30 @@ app.get('/api/billing/callback/success', isLoggedIn, async (req, res) => {
         price        = VALUES(price)
     `, [req.session.user.id, customerKey, billingKey, meta.plan || null, meta.cycle || null, meta.price || null]);
 
+    const startDate = new Date();
+    const endDate = new Date();
+
+    if (meta.cycle === 'year') {
+      endDate.setFullYear(startDate.getFullYear() + 1);
+    } else {
+      // ▼▼▼▼▼ 바로 이 부분을 수정합니다 ▼▼▼▼▼
+      endDate.setMonth(startDate.getMonth() + 1); // 월간 구독: 30일 대신 한 달을 더함
+    }
+
+    const startDateStr = startDate.toISOString().split('T')[0];
+    const endDateStr = endDate.toISOString().split('T')[0];
+
+    await db.query(`
+      UPDATE users
+      SET
+        is_subscribed = 1,
+        subscription_start = ?,
+        subscription_end = ?
+      WHERE id = ?
+    `, [startDateStr, endDateStr, req.session.user.id]);
+
     return res.redirect('/index.html?payment_success=true');
+
   } catch (e) {
     console.error('billing success cb error', e);
     return res.status(500).send('서버 오류');
