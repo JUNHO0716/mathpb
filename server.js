@@ -298,7 +298,8 @@ app.post('/api/update-biznum', isLoggedIn, async (req, res) => {
 app.get('/api/admin/users', isLoggedIn, isAdmin, async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT id, email, name, created_at, is_subscribed, subscription_start, subscription_end
+      SELECT id, email, name, created_at, is_subscribed, subscription_start, subscription_end,
+             academyName, academyPhone, bizNum
       FROM users
       ORDER BY created_at DESC
     `);
