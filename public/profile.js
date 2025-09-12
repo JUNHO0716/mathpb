@@ -40,7 +40,11 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('mainHeaderName').textContent = u.name;
       document.getElementById('profileTitle').textContent = u.tier || 'Free';
       
-      document.getElementById('profileId').textContent = u.email;
+      let displayId = u.id;
+      if (/^[0-9]{10,21}$/.test(u.id) && u.email && u.email.includes('@')) {
+        displayId = u.email.split('@')[0];
+      }
+      document.getElementById('profileId').textContent = displayId;
       document.getElementById('profileEmail').textContent = u.email;
       document.getElementById('profilePhone').textContent = formatPhoneNumber(u.phone);
       
@@ -56,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (e) { console.error("사용자 정보 로딩 실패:", e); }
   }
 
-  // --- 구독 관리 기능 (수정) ---
+  // --- 구독 관리 기능 ---
   async function loadSubStatus() {
     try {
       const r = await fetch('/api/subscription/status', { credentials: 'include' });
