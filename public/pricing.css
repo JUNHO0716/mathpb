@@ -123,3 +123,104 @@ a{color:var(--brand);text-decoration:none}
     border-bottom-color: var(--brand-ink);
     outline: none;
 }
+
+
+/* ===== 3D 오버라이드: 패널/버튼 입체 + 선택 시 볼록 효과 ===== */
+
+/* 톤(필요시 숫자만 조절) */
+:root{
+  --z-shadow-1: 0 8px 18px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05);
+  --z-shadow-2: 0 14px 30px rgba(0,0,0,.12), 0 6px 10px rgba(0,0,0,.08);
+  --edge-light: rgba(255,255,255,.85);
+  --edge-dark: rgba(0,0,0,.06);
+}
+
+/* 공통 전환 */
+.plan, .card { 
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+  will-change: transform, box-shadow;
+}
+
+/* 패널 기본: 살짝 떠있는 카드 */
+.plan, .card{
+  background: linear-gradient(180deg, #ffffff, #fafbff);
+  border: 1px solid #eef0f6;
+  box-shadow: var(--z-shadow-1);
+  position: relative;
+}
+
+/* 윗면 하이라이트로 입체감 */
+.plan::before, .card::before{
+  content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
+  background: linear-gradient(180deg, var(--edge-light), transparent 55%);
+  opacity:.65;
+}
+
+/* 호버 시 살짝 더 떠오르기 */
+.plan:hover, .card:hover{ 
+  box-shadow: var(--z-shadow-2);
+  transform: translateY(-2px);
+}
+
+/* === 요금제 선택 시 볼록(살짝 업) + 강조 === */
+@keyframes planPop{
+  0%   { transform: translateY(0) scale(1); }
+  65%  { transform: translateY(-10px) scale(1.01); }
+  100% { transform: translateY(-8px)  scale(1); }
+}
+.plan.selected{
+  transform: translateY(-8px);
+  box-shadow: 0 18px 40px rgba(47,73,255,.20), 0 8px 16px rgba(47,73,255,.12);
+  border-color: #cfd6ff;
+  animation: planPop .18s ease-out;
+}
+
+/* 선택 패널의 윗면 하이라이트 약간 강화 */
+.plan.selected::before{ opacity:.8; }
+
+/* 카드 내부 선택 버튼(각 요금제) 3D */
+.select-btn{
+  background: linear-gradient(180deg, #ffffff, #eef1ff);
+  color: var(--brand-ink);
+  border: 1px solid #e4e8ff;
+  box-shadow: 0 6px 14px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9);
+  border-radius: 12px;
+  transform: translateY(0);
+  transition: transform .06s ease, box-shadow .15s ease, background .15s ease, color .15s ease;
+}
+.select-btn:hover{
+  background: linear-gradient(180deg, #ffffff, #e8ecff);
+  box-shadow: 0 10px 22px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.95);
+}
+.select-btn:active{
+  transform: translateY(1px);
+  box-shadow: 0 6px 14px rgba(0,0,0,.12), inset 0 2px 0 rgba(0,0,0,.04);
+}
+
+/* 선택된 패널 안의 버튼은 색 반전(가독↑) */
+.plan.selected .select-btn{
+  background: linear-gradient(180deg, #3956ff, #2f49ff);
+  color:#fff;
+  border-color: #2540ff;
+  box-shadow: 0 10px 22px rgba(47,73,255,.28), inset 0 1px 0 rgba(255,255,255,.2);
+}
+
+/* 하단 '구독 시작하기' 메인 버튼 3D */
+.btn{
+  background: linear-gradient(180deg, #3f5aff, #2f49ff);
+  box-shadow: 0 10px 22px rgba(47,73,255,.28), inset 0 1px 0 rgba(255,255,255,.25);
+  border: 1px solid #2742ff;
+}
+.btn:hover{
+  background: linear-gradient(180deg, #4660ff, #324cff);
+  box-shadow: 0 14px 28px rgba(47,73,255,.32), inset 0 1px 0 rgba(255,255,255,.3);
+}
+.btn:active{
+  transform: translateY(1px);
+  box-shadow: 0 10px 20px rgba(47,73,255,.26), inset 0 2px 0 rgba(0,0,0,.06);
+}
+
+/* 토글 캡슐은 기존 톤 유지 (필요시 아래 주석 해제)
+.toggle{ box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 6px 12px rgba(0,0,0,.06); }
+.toggle button.active{ box-shadow: inset 0 1px 0 rgba(255,255,255,.9); }
+*/
