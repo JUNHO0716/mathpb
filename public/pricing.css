@@ -224,3 +224,145 @@ a{color:var(--brand);text-decoration:none}
 .toggle{ box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 6px 12px rgba(0,0,0,.06); }
 .toggle button.active{ box-shadow: inset 0 1px 0 rgba(255,255,255,.9); }
 */
+
+/* ============== 레이아웃/타이포 살짝 키우기 ============== */
+.wrap{
+  max-width: 1320px;       /* 기존 1150 → 1320으로 확대 */
+  padding: 32px 24px 88px; /* 상하/좌우 살짝 키움 */
+}
+.grid{ gap: 22px; }         /* 카드 사이 간격 확대 */
+@media (min-width:1200px){
+  .hero h1{ font-size: 1.85rem; }  /* 히어로 타이틀 살짝 키움(기존 1.65) */
+}
+
+/* ============== 토글 스위치: 슬라이딩 애니메이션 ============== */
+.toggle{
+  position: relative;
+  background: #eef0ff;               /* 약한 라이트톤 */
+  padding: 8px;
+  border-radius: 999px;
+  border: 1px solid #e5e8ff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+}
+.toggle::before{
+  content:"";
+  position:absolute;
+  top: 6px; left: 6px;
+  width: calc(50% - 6px);
+  height: calc(100% - 12px);
+  background:#fff;
+  border-radius: 999px;
+  box-shadow: 0 6px 12px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.85);
+  transition: left .25s cubic-bezier(.2,.7,.2,1);
+}
+/* 연간이 활성화되면 오른쪽으로 자연스럽게 이동 */
+.toggle:has(#yBtn.active)::before{ left: calc(50% + 6px); }
+
+.toggle button{
+  position: relative; z-index: 1;
+  font-weight: 800;
+  color: #2a36a8;
+  transition: color .2s ease;
+}
+.toggle button.active{ color: var(--brand-ink); }
+
+/* ============== 뒤로가기 버튼 예쁘게 ============== */
+.back-btn{
+  display:inline-flex; align-items:center; gap:8px;
+  padding: 8px 12px;
+  background:#fff;
+  border:1px solid #ececf1;
+  border-radius: 12px;
+  box-shadow: var(--z-shadow-1, 0 8px 18px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05));
+  transition: transform .12s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.back-btn:hover{
+  transform: translateY(-1px);
+  box-shadow: var(--z-shadow-2, 0 14px 30px rgba(0,0,0,.12), 0 6px 10px rgba(0,0,0,.08));
+  border-color:#e3e7ff;
+}
+.back-btn:active{ transform: translateY(0); }
+
+/* ============== 패널/버튼 3D + 선택시 볼록(기존 코드 유지 보강) ============== */
+/* 패널 기본 3D 톤 보강 */
+.plan, .card{
+  background: linear-gradient(180deg, #ffffff, #fafbff);
+  border: 1px solid #eef0f6;
+  box-shadow: var(--z-shadow-1, 0 8px 18px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05));
+  position: relative;
+}
+.plan::before, .card::before{
+  content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,.85), transparent 55%);
+  opacity:.6;
+}
+
+/* ✅ 요금제 카드만 hover시 살짝 상승 */
+.plan:hover{
+  box-shadow: var(--z-shadow-2, 0 14px 30px rgba(0,0,0,.12), 0 6px 10px rgba(0,0,0,.08));
+  transform: translateY(-2px);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+/* ✅ 선택 시 볼록 업 */
+@keyframes planPop{
+  0%{ transform: translateY(0) scale(1); }
+  65%{ transform: translateY(-10px) scale(1.01); }
+  100%{ transform: translateY(-8px) scale(1); }
+}
+.plan.selected{
+  transform: translateY(-8px);
+  box-shadow: 0 18px 40px rgba(47,73,255,.20), 0 8px 16px rgba(47,73,255,.12);
+  border-color: #cfd6ff;
+  animation: planPop .18s ease-out;
+}
+.plan.selected::before{ opacity:.8; }
+
+/* ✅ 하단 요약/약관 패널은 고정(튀지 않음) */
+.summary .card,
+.summary .card:hover{
+  transform: none !important;
+  box-shadow: var(--z-shadow-1, 0 8px 18px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05)) !important;
+}
+
+/* 버튼 입체감 */
+.select-btn{
+  background: linear-gradient(180deg, #ffffff, #eef1ff);
+  color: var(--brand-ink);
+  border: 1px solid #e4e8ff;
+  box-shadow: 0 6px 14px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9);
+  border-radius: 12px;
+  transform: translateY(0);
+  transition: transform .06s ease, box-shadow .15s ease, background .15s ease, color .15s ease;
+}
+.select-btn:hover{
+  background: linear-gradient(180deg, #ffffff, #e8ecff);
+  box-shadow: 0 10px 22px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.95);
+}
+.select-btn:active{
+  transform: translateY(1px);
+  box-shadow: 0 6px 14px rgba(0,0,0,.12), inset 0 2px 0 rgba(0,0,0,.04);
+}
+/* 선택된 패널 안의 버튼은 반전 */
+.plan.selected .select-btn{
+  background: linear-gradient(180deg, #3956ff, #2f49ff);
+  color:#fff; border-color:#2540ff;
+  box-shadow: 0 10px 22px rgba(47,73,255,.28), inset 0 1px 0 rgba(255,255,255,.2);
+}
+
+/* 하단 메인 버튼 3D */
+.btn{
+  background: linear-gradient(180deg, #3f5aff, #2f49ff);
+  box-shadow: 0 10px 22px rgba(47,73,255,.28), inset 0 1px 0 rgba(255,255,255,.25);
+  border: 1px solid #2742ff;
+  transition: transform .06s ease, box-shadow .15s ease, background .15s ease;
+}
+.btn:hover{
+  background: linear-gradient(180deg, #4660ff, #324cff);
+  box-shadow: 0 14px 28px rgba(47,73,255,.32), inset 0 1px 0 rgba(255,255,255,.3);
+}
+.btn:active{
+  transform: translateY(1px);
+  box-shadow: 0 10px 20px rgba(47,73,255,.26), inset 0 2px 0 rgba(0,0,0,.06);
+}
+
