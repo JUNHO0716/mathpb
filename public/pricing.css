@@ -1,368 +1,185 @@
 :root{
-    --bg:#ffffff;
-    --text:#111;
-    --sub:#555;
-    --line:#e9e9e9;
-    --brand:#5E70E7;
-    --brand-weak:#d5dbf6;
-    --brand-ink:#1B2473;
-    --card:#fff;
-    --muted:#f7f7f9;
-    --success:#22c55e;
-    --danger:#ef4444;
-    --warning:#f59e0b;
+  --bg:#ffffff;
+  --text:#111;
+  --sub:#555;
+  --line:#e9e9e9;
+  --brand:#5E70E7;
+  --brand-weak:#d5dbf6;
+  --brand-ink:#1B2473;
+  --card:#fff;
+  --muted:#f7f7f9;
+  --success:#22c55e;
+  --danger:#ef4444;
+  --warning:#f59e0b;
+
+  /* 3D용 그림자 톤 */
+  --z-shadow-1: 0 8px 18px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05);
+  --z-shadow-2: 0 14px 30px rgba(0,0,0,.12), 0 6px 10px rgba(0,0,0,.08);
 }
+
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif}
 a{color:var(--brand);text-decoration:none}
-.wrap{
-    max-width:1150px; margin:0 auto; padding:28px 18px 80px;
+
+/* 화면 사이즈 살짝 확대 */
+.wrap{ max-width:1320px; margin:0 auto; padding:32px 24px 88px; }
+
+.topbar{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+
+/* 뒤로가기: 화살표만, 배경 없음 */
+.back-btn{
+  font-size:26px; font-weight:900; color:var(--brand); text-decoration:none;
+  line-height:1; margin-right:0;
+  display:inline-flex; align-items:center;
+  transition: transform .15s ease, color .15s ease, text-shadow .15s ease;
 }
-.topbar{
-    display:flex; 
-    align-items:center; 
-    gap:10px; 
-    margin-bottom:18px;
-}
-.back-btn {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: var(--text);
-    text-decoration: none;
-    margin-right: 0px; 
-    line-height: 1;
-}
-.steps{
-    font-size:.92rem;
-    color:var(--sub); 
-    margin-left: auto; /* 왼쪽 마진을 최대로 하여 오른쪽으로 밀어냄 */
-    margin-right: 25px; /* 오른쪽 여백을 더 늘림 */
-}
+.back-btn:hover{ transform:translateX(-3px); color:#324cff; text-shadow:0 6px 18px rgba(47,73,255,.25); }
+.back-btn:active{ transform:translateX(-1px); }
+
+.steps{ font-size:.92rem; color:var(--sub); margin-left:auto; margin-right:25px; }
+
 .hero{
-    display:flex; gap:20px; align-items:center; justify-content:space-between; flex-wrap:wrap;
-    margin:8px 0 16px;
+  display:flex; gap:20px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+  margin:8px 0 16px;
 }
-.hero h1{font-size:1.65rem; margin:0; font-weight:900; letter-spacing:-.3px}
-.hero p{margin:6px 0 0; color:var(--sub)}
+.hero h1{ font-size:1.85rem; margin:0; font-weight:900; letter-spacing:-.3px }
+.hero p{ margin:6px 0 0; color:var(--sub) }
+
+/* 토글: 슬라이더가 움직이는 캡슐 */
 .toggle{
-    display:flex; align-items:center; gap:10px; background:var(--muted); padding:8px; border-radius:999px;
-}
-.toggle button{
-    border:none; background:transparent; padding:10px 16px; border-radius:999px; cursor:pointer; font-weight:700;
-}
-.toggle button.active{background:#fff; box-shadow:0 0 0 1px #ececf1 inset}
-.grid{
-    display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:14px;
-}
-@media (max-width:980px){ .grid{grid-template-columns:1fr} }
-.plan{
-    background:var(--card); border-radius:18px; box-shadow:0 0 8px #eee; padding:20px 18px; position:relative; overflow:hidden;
-    border:1px solid #f1f1f4;
-}
-.plan.popular::after{
-    content:'가장 인기'; position:absolute; top:12px; right:-32px; transform:rotate(35deg);
-    background:var(--brand); color:#fff; font-size:.72rem; padding:6px 40px; font-weight:700;
-}
-.plan header{display:flex; align-items:flex-end; justify-content:space-between; gap:8px; margin-bottom:12px}
-.plan h3{margin:0; font-size:1.15rem}
-.price{font-weight:900; font-size:1.45rem}
-.price small{font-weight:600; color:var(--sub); font-size:.9rem}
-.feature{display:flex; align-items:flex-start; gap:10px; margin:8px 0; color:#222}
-.feature .dot{width:8px; height:8px; border-radius:50%; background:var(--success); margin-top:6px}
-.foot{
-    display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:14px;
-}
-.select-btn{
-    width:100%; border:none; cursor:pointer; border-radius:10px; padding:12px 14px; font-weight:800; letter-spacing:.6px;
-    background:#f4f5ff; color:var(--brand-ink);
-    transition:transform .04s ease, background .15s ease;
-}
-.select-btn:hover{background:#eef0ff}
-.plan.selected{outline:2px solid var(--brand); box-shadow:0 0 0 6px #eef1ff}
-.plan.selected .select-btn{background:var(--brand); color:#fff}
-.summary{
-    display:grid; grid-template-columns: 1.1fr .9fr; gap:18px; margin-top:18px;
-}
-@media (max-width:980px){ .summary{grid-template-columns:1fr} }
-.card{
-    background:#fff; border-radius:18px; box-shadow:0 0 8px #eee; padding:18px; border:1px solid #f1f1f4;
-}
-.card h4{margin:0 0 10px; font-size:1.05rem}
-.methods{display:flex; gap:10px; flex-wrap:wrap}
-.chip{
-    border:1px solid #e7e7ee; border-radius:12px; padding:10px 12px; cursor:pointer; background:#fff; font-weight:700;
-}
-.chip.active{outline:2px solid var(--brand); background:#f7f8ff}
-.legal{font-size:.92rem; color:#333}
-.legal ul{margin:8px 0 0 18px}
-.agree{
-    display:flex; gap:8px; align-items:center; margin-top:12px; font-size:.85rem;
-}
-.agree input{width:17px; height:17px; margin:0}
-.cta{
-    display:flex; align-items:center; justify-content:flex-end; gap:12px; margin-top:14px;
-}
-.btn{
-    font-size:1.06rem; padding:12px 22px; border-radius:10px; border:none; cursor:pointer; font-weight:800; letter-spacing:1px; transition:background .15s;
-    background:var(--brand); color:#fff;
-}
-.btn:disabled{background:var(--brand-weak); color:#aaa; cursor:not-allowed}
-.mini{font-size:.88rem; color:var(--sub)}
-.note{font-size:.85rem; color:var(--sub); margin-top:6px}
-.hr{height:1px; background:var(--line); margin:14px 0}
-.perks{display:flex; gap:10px; flex-wrap:wrap; margin-top:8px}
-.perk{background:#f6f8ff; border:1px solid #ebefff; border-radius:999px; padding:7px 12px; font-weight:700; font-size:.9rem; color:#3743A1}
-.legal a, .agree a {
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-    transition: color .15s ease, border-color .15s ease;
-}
-.legal a:hover, .agree a:hover,
-.legal a:focus-visible, .agree a:focus-visible {
-    color: var(--brand-ink);
-    border-bottom-color: var(--brand-ink);
-    outline: none;
-}
-
-
-/* ===== 3D 오버라이드: 패널/버튼 입체 + 선택 시 볼록 효과 ===== */
-
-/* 톤(필요시 숫자만 조절) */
-:root{
-  --z-shadow-1: 0 8px 18px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05);
-  --z-shadow-2: 0 14px 30px rgba(0,0,0,.12), 0 6px 10px rgba(0,0,0,.08);
-  --edge-light: rgba(255,255,255,.85);
-  --edge-dark: rgba(0,0,0,.06);
-}
-
-/* 공통 전환 */
-.plan, .card { 
-  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
-  will-change: transform, box-shadow;
-}
-
-/* 패널 기본: 살짝 떠있는 카드 */
-.plan, .card{
-  background: linear-gradient(180deg, #ffffff, #fafbff);
-  border: 1px solid #eef0f6;
-  box-shadow: var(--z-shadow-1);
-  position: relative;
-}
-
-/* 윗면 하이라이트로 입체감 */
-.plan::before, .card::before{
-  content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
-  background: linear-gradient(180deg, var(--edge-light), transparent 55%);
-  opacity:.65;
-}
-
-/* 호버 시 살짝 더 떠오르기 */
-.plan:hover, .card:hover{ 
-  box-shadow: var(--z-shadow-2);
-  transform: translateY(-2px);
-}
-
-/* === 요금제 선택 시 볼록(살짝 업) + 강조 === */
-@keyframes planPop{
-  0%   { transform: translateY(0) scale(1); }
-  65%  { transform: translateY(-10px) scale(1.01); }
-  100% { transform: translateY(-8px)  scale(1); }
-}
-.plan.selected{
-  transform: translateY(-8px);
-  box-shadow: 0 18px 40px rgba(47,73,255,.20), 0 8px 16px rgba(47,73,255,.12);
-  border-color: #cfd6ff;
-  animation: planPop .18s ease-out;
-}
-
-/* 선택 패널의 윗면 하이라이트 약간 강화 */
-.plan.selected::before{ opacity:.8; }
-
-/* 카드 내부 선택 버튼(각 요금제) 3D */
-.select-btn{
-  background: linear-gradient(180deg, #ffffff, #eef1ff);
-  color: var(--brand-ink);
-  border: 1px solid #e4e8ff;
-  box-shadow: 0 6px 14px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9);
-  border-radius: 12px;
-  transform: translateY(0);
-  transition: transform .06s ease, box-shadow .15s ease, background .15s ease, color .15s ease;
-}
-.select-btn:hover{
-  background: linear-gradient(180deg, #ffffff, #e8ecff);
-  box-shadow: 0 10px 22px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.95);
-}
-.select-btn:active{
-  transform: translateY(1px);
-  box-shadow: 0 6px 14px rgba(0,0,0,.12), inset 0 2px 0 rgba(0,0,0,.04);
-}
-
-/* 선택된 패널 안의 버튼은 색 반전(가독↑) */
-.plan.selected .select-btn{
-  background: linear-gradient(180deg, #3956ff, #2f49ff);
-  color:#fff;
-  border-color: #2540ff;
-  box-shadow: 0 10px 22px rgba(47,73,255,.28), inset 0 1px 0 rgba(255,255,255,.2);
-}
-
-/* 하단 '구독 시작하기' 메인 버튼 3D */
-.btn{
-  background: linear-gradient(180deg, #3f5aff, #2f49ff);
-  box-shadow: 0 10px 22px rgba(47,73,255,.28), inset 0 1px 0 rgba(255,255,255,.25);
-  border: 1px solid #2742ff;
-}
-.btn:hover{
-  background: linear-gradient(180deg, #4660ff, #324cff);
-  box-shadow: 0 14px 28px rgba(47,73,255,.32), inset 0 1px 0 rgba(255,255,255,.3);
-}
-.btn:active{
-  transform: translateY(1px);
-  box-shadow: 0 10px 20px rgba(47,73,255,.26), inset 0 2px 0 rgba(0,0,0,.06);
-}
-
-/* 토글 캡슐은 기존 톤 유지 (필요시 아래 주석 해제)
-.toggle{ box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 6px 12px rgba(0,0,0,.06); }
-.toggle button.active{ box-shadow: inset 0 1px 0 rgba(255,255,255,.9); }
-*/
-
-/* ============== 레이아웃/타이포 살짝 키우기 ============== */
-.wrap{
-  max-width: 1320px;       /* 기존 1150 → 1320으로 확대 */
-  padding: 32px 24px 88px; /* 상하/좌우 살짝 키움 */
-}
-.grid{ gap: 22px; }         /* 카드 사이 간격 확대 */
-@media (min-width:1200px){
-  .hero h1{ font-size: 1.85rem; }  /* 히어로 타이틀 살짝 키움(기존 1.65) */
-}
-
-/* ============== 토글 스위치: 슬라이딩 애니메이션 ============== */
-.toggle{
-  position: relative;
-  background: #eef0ff;               /* 약한 라이트톤 */
-  padding: 8px;
-  border-radius: 999px;
-  border: 1px solid #e5e8ff;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+  position:relative; display:flex; align-items:center; gap:0;
+  background:#eef0ff; padding:8px; border-radius:999px; border:1px solid #e5e8ff;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6);
 }
 .toggle::before{
-  content:"";
-  position:absolute;
-  top: 6px; left: 6px;
-  width: calc(50% - 6px);
-  height: calc(100% - 12px);
-  background:#fff;
-  border-radius: 999px;
-  box-shadow: 0 6px 12px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.85);
-  transition: left .25s cubic-bezier(.2,.7,.2,1);
+  content:""; position:absolute; top:6px; left:6px;
+  width:calc(50% - 6px); height:calc(100% - 12px);
+  background:#fff; border-radius:999px;
+  box-shadow:0 6px 12px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.85);
+  transition:left .25s cubic-bezier(.2,.7,.2,1);
 }
-/* 연간이 활성화되면 오른쪽으로 자연스럽게 이동 */
-.toggle:has(#yBtn.active)::before{ left: calc(50% + 6px); }
+/* 연간 활성화 시 오른쪽으로 */
+.toggle:has(#yBtn.active)::before{ left:calc(50% + 6px); }
 
 .toggle button{
-  position: relative; z-index: 1;
-  font-weight: 800;
-  color: #2a36a8;
-  transition: color .2s ease;
+  flex:1; border:none; background:transparent !important;
+  padding:10px 16px; border-radius:999px; cursor:pointer; font-weight:800;
+  color:#2a36a8; position:relative; z-index:1; transition:color .2s ease;
 }
-.toggle button.active{ color: var(--brand-ink); }
+.toggle button.active{ color:var(--brand-ink); }
 
-/* ============== 뒤로가기 버튼 예쁘게 ============== */
-.back-btn{
-  display:inline-flex; align-items:center; gap:8px;
-  padding: 8px 12px;
-  background:#fff;
-  border:1px solid #ececf1;
-  border-radius: 12px;
-  box-shadow: var(--z-shadow-1, 0 8px 18px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05));
-  transition: transform .12s ease, box-shadow .18s ease, border-color .18s ease;
-}
-.back-btn:hover{
-  transform: translateY(-1px);
-  box-shadow: var(--z-shadow-2, 0 14px 30px rgba(0,0,0,.12), 0 6px 10px rgba(0,0,0,.08));
-  border-color:#e3e7ff;
-}
-.back-btn:active{ transform: translateY(0); }
+.grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-top:14px; }
+@media (max-width:980px){ .grid{ grid-template-columns:1fr } }
 
-/* ============== 패널/버튼 3D + 선택시 볼록(기존 코드 유지 보강) ============== */
-/* 패널 기본 3D 톤 보강 */
+/* 카드(요금제/요약) 공통 3D 베이스 */
 .plan, .card{
-  background: linear-gradient(180deg, #ffffff, #fafbff);
-  border: 1px solid #eef0f6;
-  box-shadow: var(--z-shadow-1, 0 8px 18px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05));
-  position: relative;
+  background:linear-gradient(180deg, #ffffff, #fafbff);
+  border-radius:18px;
+  border:1px solid #eef0f6;
+  box-shadow:var(--z-shadow-1);
+  padding:20px 18px;
+  position:relative; overflow:hidden;
 }
 .plan::before, .card::before{
   content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
-  background: linear-gradient(180deg, rgba(255,255,255,.85), transparent 55%);
+  background:linear-gradient(180deg, rgba(255,255,255,.85), transparent 55%);
   opacity:.6;
 }
 
-/* ✅ 요금제 카드만 hover시 살짝 상승 */
-.plan:hover{
-  box-shadow: var(--z-shadow-2, 0 14px 30px rgba(0,0,0,.12), 0 6px 10px rgba(0,0,0,.08));
-  transform: translateY(-2px);
-  transition: transform .18s ease, box-shadow .18s ease;
+/* 요금제 카드 개별 설정 */
+.plan.popular::after{
+  content:'가장 인기'; position:absolute; top:12px; right:-32px; transform:rotate(35deg);
+  background:var(--brand); color:#fff; font-size:.72rem; padding:6px 40px; font-weight:700;
 }
+.plan header{ display:flex; align-items:flex-end; justify-content:space-between; gap:8px; margin-bottom:12px }
+.plan h3{ margin:0; font-size:1.15rem }
+.price{ font-weight:900; font-size:1.45rem }
+.price small{ font-weight:600; color:var(--sub); font-size:.9rem }
+.feature{ display:flex; align-items:flex-start; gap:10px; margin:8px 0; color:#222 }
+.feature .dot{ width:8px; height:8px; border-radius:50%; background:var(--success); margin-top:6px }
+.foot{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:14px }
 
-/* ✅ 선택 시 볼록 업 */
+/* 요금제 카드만 hover 시 살짝 상승 */
+.plan:hover{ box-shadow:var(--z-shadow-2); transform:translateY(-2px); transition:transform .18s ease, box-shadow .18s ease; }
+
+/* 선택 시 볼록 올라오기 */
 @keyframes planPop{
-  0%{ transform: translateY(0) scale(1); }
-  65%{ transform: translateY(-10px) scale(1.01); }
-  100%{ transform: translateY(-8px) scale(1); }
+  0%{ transform:translateY(0) scale(1); }
+  65%{ transform:translateY(-10px) scale(1.01); }
+  100%{ transform:translateY(-8px) scale(1); }
 }
 .plan.selected{
-  transform: translateY(-8px);
-  box-shadow: 0 18px 40px rgba(47,73,255,.20), 0 8px 16px rgba(47,73,255,.12);
-  border-color: #cfd6ff;
-  animation: planPop .18s ease-out;
+  transform:translateY(-8px);
+  box-shadow:0 18px 40px rgba(47,73,255,.20), 0 8px 16px rgba(47,73,255,.12);
+  border-color:#cfd6ff;
+  animation:planPop .18s ease-out;
 }
 .plan.selected::before{ opacity:.8; }
 
-/* ✅ 하단 요약/약관 패널은 고정(튀지 않음) */
+/* 하단 요약/약관 패널은 고정(볼록/hover 없음) */
+.summary{ display:grid; grid-template-columns:1.1fr .9fr; gap:18px; margin-top:18px; }
+@media (max-width:980px){ .summary{ grid-template-columns:1fr } }
 .summary .card,
-.summary .card:hover{
-  transform: none !important;
-  box-shadow: var(--z-shadow-1, 0 8px 18px rgba(0,0,0,.08), 0 2px 6px rgba(0,0,0,.05)) !important;
-}
+.summary .card:hover{ transform:none; box-shadow:var(--z-shadow-1); }
 
-/* 버튼 입체감 */
+/* 선택 버튼 3D */
 .select-btn{
-  background: linear-gradient(180deg, #ffffff, #eef1ff);
-  color: var(--brand-ink);
-  border: 1px solid #e4e8ff;
-  box-shadow: 0 6px 14px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9);
-  border-radius: 12px;
-  transform: translateY(0);
-  transition: transform .06s ease, box-shadow .15s ease, background .15s ease, color .15s ease;
+  width:100%; border:1px solid #e4e8ff; border-radius:12px;
+  padding:12px 14px; cursor:pointer;
+  font-weight:800; letter-spacing:.6px; color:var(--brand-ink);
+  background:linear-gradient(180deg, #ffffff, #eef1ff);
+  box-shadow:0 6px 14px rgba(0,0,0,.12), inset 0 1px 0 rgba(255,255,255,.9);
+  transform:translateY(0);
+  transition:transform .06s ease, box-shadow .15s ease, background .15s ease, color .15s ease;
 }
 .select-btn:hover{
-  background: linear-gradient(180deg, #ffffff, #e8ecff);
-  box-shadow: 0 10px 22px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.95);
+  background:linear-gradient(180deg, #ffffff, #e8ecff);
+  box-shadow:0 10px 22px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.95);
 }
 .select-btn:active{
-  transform: translateY(1px);
-  box-shadow: 0 6px 14px rgba(0,0,0,.12), inset 0 2px 0 rgba(0,0,0,.04);
+  transform:translateY(1px);
+  box-shadow:0 6px 14px rgba(0,0,0,.12), inset 0 2px 0 rgba(0,0,0,.04);
 }
-/* 선택된 패널 안의 버튼은 반전 */
+/* 선택된 카드 안 버튼 반전 */
 .plan.selected .select-btn{
-  background: linear-gradient(180deg, #3956ff, #2f49ff);
+  background:linear-gradient(180deg, #3956ff, #2f49ff);
   color:#fff; border-color:#2540ff;
-  box-shadow: 0 10px 22px rgba(47,73,255,.28), inset 0 1px 0 rgba(255,255,255,.2);
+  box-shadow:0 10px 22px rgba(47,73,255,.28), inset 0 1px 0 rgba(255,255,255,.2);
 }
 
 /* 하단 메인 버튼 3D */
 .btn{
-  background: linear-gradient(180deg, #3f5aff, #2f49ff);
-  box-shadow: 0 10px 22px rgba(47,73,255,.28), inset 0 1px 0 rgba(255,255,255,.25);
-  border: 1px solid #2742ff;
-  transition: transform .06s ease, box-shadow .15s ease, background .15s ease;
+  font-size:1.06rem; padding:12px 22px; border-radius:10px; border:1px solid #2742ff;
+  cursor:pointer; font-weight:800; letter-spacing:1px;
+  background:linear-gradient(180deg, #3f5aff, #2f49ff); color:#fff;
+  box-shadow:0 10px 22px rgba(47,73,255,.28), inset 0 1px 0 rgba(255,255,255,.25);
+  transition:transform .06s ease, box-shadow .15s ease, background .15s ease;
 }
 .btn:hover{
-  background: linear-gradient(180deg, #4660ff, #324cff);
-  box-shadow: 0 14px 28px rgba(47,73,255,.32), inset 0 1px 0 rgba(255,255,255,.3);
+  background:linear-gradient(180deg, #4660ff, #324cff);
+  box-shadow:0 14px 28px rgba(47,73,255,.32), inset 0 1px 0 rgba(255,255,255,.3);
 }
-.btn:active{
-  transform: translateY(1px);
-  box-shadow: 0 10px 20px rgba(47,73,255,.26), inset 0 2px 0 rgba(0,0,0,.06);
-}
+.btn:active{ transform:translateY(1px); box-shadow:0 10px 20px rgba(47,73,255,.26), inset 0 2px 0 rgba(0,0,0,.06); }
+.btn:disabled{ background:var(--brand-weak); color:#aaa; cursor:not-allowed }
 
+.mini{ font-size:.88rem; color:var(--sub) }
+.note{ font-size:.85rem; color:var(--sub); margin-top:6px }
+.hr{ height:1px; background:var(--line); margin:14px 0 }
+
+.perks{ display:flex; gap:10px; flex-wrap:wrap; margin-top:8px }
+.perk{ background:#f6f8ff; border:1px solid #ebefff; border-radius:999px; padding:7px 12px; font-weight:700; font-size:.9rem; color:#3743A1 }
+
+.legal{ font-size:.92rem; color:#333 }
+.legal ul{ margin:8px 0 0 18px }
+.agree{ display:flex; gap:8px; align-items:center; margin-top:12px; font-size:.85rem }
+.agree input{ width:17px; height:17px; margin:0 }
+.cta{ display:flex; align-items:center; justify-content:flex-end; gap:12px; margin-top:14px }
+
+.legal a, .agree a{
+  text-decoration:none; border-bottom:1px solid transparent;
+  transition:color .15s ease, border-color .15s ease;
+}
+.legal a:hover, .agree a:hover,
+.legal a:focus-visible, .agree a:focus-visible{
+  color:var(--brand-ink); border-bottom-color:var(--brand-ink); outline:none;
+}
