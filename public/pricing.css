@@ -59,7 +59,7 @@ a{color:var(--brand);text-decoration:none}
   transition:left .25s cubic-bezier(.2,.7,.2,1);
 }
 /* 연간 활성화 시 오른쪽으로 */
-.toggle:has(#yBtn.active)::before{ left:calc(50% + 4px); }
+.toggle:has(#yBtn.active)::before{ left:calc(50% + 2px); }
 
 .toggle button{
   flex:1; border:none; background:transparent !important;
@@ -237,3 +237,4 @@ a{color:var(--brand);text-decoration:none}
   outline:2px solid var(--brand);
   background:#f7f8ff;
 }
+
