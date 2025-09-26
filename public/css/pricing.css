@@ -22,7 +22,11 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:
 a{color:var(--brand);text-decoration:none}
 
 /* 화면 사이즈 살짝 확대 */
-.wrap{ max-width:1320px; margin:0 auto; padding:32px 24px 88px; }
+.wrap{ 
+  max-width:1320px; 
+  margin:0 auto; 
+  padding: 0 24px; /* <-- 상하 여백을 0으로 만들었습니다. (좌우는 유지) */
+}
 
 .topbar{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
 
@@ -63,8 +67,9 @@ a{color:var(--brand);text-decoration:none}
 
 .toggle button{
   flex:1; border:none; background:transparent !important;
-  padding:10px 16px; border-radius:999px; cursor:pointer; font-weight:800;
+  padding:7px 16px; border-radius:999px; cursor:pointer; font-weight:800;
   color:#2a36a8; position:relative; z-index:1; transition:color .2s ease;
+  font-size: 0.65rem; /* <-- 글자 크기를 조절하는 속성을 여기에 추가하세요 */
 }
 .toggle button.active{ color:var(--brand-ink); }
 

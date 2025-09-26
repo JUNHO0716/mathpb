@@ -100,7 +100,12 @@ export default function(passport) {
     callbackURL: process.env.KAKAO_CALLBACK_URL
   }, async (accessToken, refreshToken, profile, done) => {
     try {
-      const email = profile._json.kakao_account.email;
+      // [수정] 카카오에서 이메일을 받지 못했을 경우, 임시 이메일을 생성하도록 변경
+      let email = profile._json.kakao_account.email;
+      if (!email) {
+        email = `kakao_${profile.id}@mathpb.com`;
+      }
+
       const name = profile.displayName;
       const avatarUrl = profile._json.properties.profile_image || null;
 
