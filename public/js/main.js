@@ -1,3 +1,5 @@
+// main.js (최종 수정본)
+
 // 전역 변수 선언
 let currentUser = null;
 
@@ -63,12 +65,13 @@ function initDropdown() {
   });
 }
 
-// 스크립트 실행이 가능하도록 개선된 loadContent 함수
+// ▼▼▼ [수정] 스크립트 실행 오류를 해결한 최종 loadContent 함수 ▼▼▼
 async function loadContent(url) {
   const contentFrame = document.getElementById('content-area');
   if (!contentFrame) return;
 
-  contentFrame.innerHTML = ''; 
+  // 로딩 중임을 시각적으로 표시 (선택 사항)
+  contentFrame.innerHTML = '<div class="spinner-overlay"><div class="spinner"></div></div>';
 
   try {
     const response = await fetch(url);
@@ -82,26 +85,29 @@ async function loadContent(url) {
     
     contentFrame.innerHTML = doc.body.innerHTML;
 
+    // script 태그들을 찾아 순차적으로 실행
     const scripts = Array.from(doc.body.querySelectorAll('script'));
     for (const oldScript of scripts) {
       const newScript = document.createElement('script');
       
+      // 모든 속성 복사 (type="module" 등)
       Array.from(oldScript.attributes).forEach(attr => {
         newScript.setAttribute(attr.name, attr.value);
       });
       
+      // 외부 스크립트(src가 있는 경우)
       if (oldScript.src) {
-        newScript.src = oldScript.src;
-        await new Promise((resolve) => {
+        // 스크립트 로드가 완료될 때까지 기다림
+        await new Promise((resolve, reject) => {
           newScript.onload = resolve;
-          newScript.onerror = resolve; 
-          document.body.appendChild(newScript);
+          newScript.onerror = reject;
+          document.body.appendChild(newScript).remove(); // 추가 후 즉시 제거하여 실행만 유도
         });
       } else {
+        // 인라인 스크립트
         newScript.textContent = oldScript.textContent;
-        document.body.appendChild(newScript);
+        document.body.appendChild(newScript).remove();
       }
-      newScript.remove();
     }
   } catch (error) {
     console.error('콘텐츠 로딩 실패:', error);
@@ -112,11 +118,9 @@ async function loadContent(url) {
 document.addEventListener('DOMContentLoaded', function () {
   const navLinks = document.querySelectorAll('.nav-link');
 
-  // 페이지 로드 시 사용자 정보 로딩 및 드롭다운 기능 활성화
   bindUser();
   initDropdown();
   
-  // 로그아웃 버튼 이벤트 리스너
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async (e) => {
@@ -131,14 +135,11 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // 네비게이션 링크 클릭 이벤트
   navLinks.forEach(link => {
     link.addEventListener('click', function (e) {
       e.preventDefault(); 
-      
       navLinks.forEach(item => item.classList.remove('active'));
       this.classList.add('active');
-
       const pageToLoad = this.getAttribute('data-page');
       if (pageToLoad) {
         loadContent(pageToLoad);
@@ -146,17 +147,13 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // ▼▼▼ [수정] URL 파라미터를 확인하는 로직을 일반화 ▼▼▼
   const params = new URLSearchParams(window.location.search);
-  const menuToActivate = params.get('menu'); // e.g., 'subscribe', 'review'
+  const menuToActivate = params.get('menu');
 
   if (menuToActivate) {
-    // URL 파라미터 값에 해당하는 버튼을 찾습니다.
-    // e.g., menu=review -> data-page="review.html" 버튼을 찾음
     const buttonToClick = document.querySelector(`.nav-link[data-page="${menuToActivate}.html"]`);
     if (buttonToClick) {
       buttonToClick.click();
     }
   }
-  // ▲▲▲ [수정] 로직 끝 ▲▲▲
 });
