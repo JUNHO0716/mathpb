@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>매쓰비</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/pricing.css">
+
+  <script src="js/main.js" defer></script>
+</head>
+
+<body class="flex flex-col min-h-screen">
+  
+  <header class="bg-white/80 backdrop-blur-sm shadow-md sticky top-0 z-50">
+    <div class="container mx-auto px-8 py-4 flex justify-between items-center">
+      <div class="flex items-center">
+        <a href="index.html" class="flex items-center space-x-2">
+          <img src="image_logo/logo.png" alt="MathBee Logo" class="h-8" /> 
+          <span class="text-xl font-bold text-black">MathBee</span>
+        </a>
+
+        <nav class="flex space-x-8 ml-16">
+          <a href="#" class="nav-link" data-page="subscribe.html">구독(결제) 하기</a>
+          <a href="#" class="nav-link" data-page="story.html">스토리</a>
+          <a href="#" class="nav-link" data-page="review.html">후기남기기</a>
+          <a href="#" class="nav-link" data-page="support.html">고객센터</a>
+        </nav>
+      </div>
+
+      <div class="user-wrapper" id="userWrapper">
+        <div class="user-box loading" id="userBox">
+          <img src="icon_my_b.png" alt="avatar" class="avatar" id="avatar">
+          <h3 id="profileName">Guest</h3>
+          <i class="fa-solid fa-chevron-down" id="arrowIcon" style="transition: transform 0.2s;"></i>
+        </div>
+        <div class="dropdown" id="dropdownMenu">
+          <a href="#" class="nav-link" data-page="profile.html">내 프로필</a>
+          <a href="#" id="logoutBtn">로그아웃</a>
+          <a href="admin.html" id="goAdminPage" style="display:none;">관리자페이지</a>
+        </div>
+      </div>
+    </div>
+    </header>
+  
+  <main id="content-area" class="flex-grow container mx-auto p-8">
+    <div class="text-center text-gray-500 pt-20">
+      <h2 class="text-2xl font-semibold">안녕하세요! MathBee 입니다.</h2>
+      <p class="mt-2">상단 메뉴를 클릭하여 원하시는 서비스를 확인해보세요.</p>
+    </div>
+  </main>
+
+</body>
+</html>

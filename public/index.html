@@ -102,12 +102,12 @@
       <div class="sub-date" id="todayTxt"></div>
     </div>
     <div class="header-actions">
-      <a href="pricing.html" class="action-btn"><i class="fa-regular fa-credit-card"></i> 결제하기</a>
-      <a href="review_form.html" class="action-btn"><i class="fa-regular fa-pen-to-square"></i> 후기 남기기</a>
+  <a href="main.html?menu=subscribe" class="action-btn"><i class="fa-regular fa-credit-card"></i> 결제하기</a>
+  <a href="main.html?menu=review" class="action-btn"><i class="fa-regular fa-pen-to-square"></i> 후기 남기기</a>
       <div class="user-wrapper" id="userWrapper">
         <div class="user-box loading" id="userBox">
-          <img alt="avatar" class="avatar" id="avatar">
-          <h3 id="profileName">Guest</h3>
+          <img alt="avatar" class="index-avatar" id="index-headerAvatar">
+          <h3 id="index-headerProfileName">Guest</h3>
           <i class="fa-solid fa-chevron-down" id="arrowIcon"></i>
         </div>
         <div class="dropdown" id="dropdownMenu">
@@ -117,11 +117,8 @@
         </div>
       </div>
     </div>
-  </header>  <!-- ← ← ← 반드시 닫는다!! -->
-
-  <div id="contentFrame"></div>
+  </header>  <div id="contentFrame"></div>
 </div>
-      <!-- Help FAB + Dropdown 마크업 -->
       <div class="help-container" id="helpContainer">
         <ul class="help-menu" id="helpMenu">
           <li data-url="https://pf.kakao.com/_xyzxyz"><span class="badge">1</span>카카오 문의하기</li>
@@ -132,7 +129,6 @@
         <button class="help-fab" id="helpFab" aria-label="도움말">?</button>
       </div>
 
-<!-- 결제 모달 -->
 <div id="paymentModal" class="modal-overlay">
   <div class="modal-content">
     <button class="close-modal" id="closeModalBtn">&times;</button>
@@ -140,7 +136,6 @@
   </div>
 </div>
 
-<!-- 안내 모달 -->
 <div id="introOverlay" class="intro-overlay" aria-hidden="true">
   <div class="intro-modal" role="dialog" aria-modal="true" aria-labelledby="introTitle">
     <button class="intro-close" id="introCloseBtn" aria-label="닫기">&times;</button>
@@ -160,11 +155,9 @@
       </div>
 
       <div class="intro-grid">
-        <!-- 1) 현재 제공 기능 -->
         <div class="intro-card">
           <h4></span>1) 현재 제공 기능</h4>
           <ul class="intro-list intro-list-dot">
-            <!-- 시험지 요청 서비스 -->
             <li>
               <div class="intro-list-head">
                 <span class="intro-dot"></span>
@@ -179,7 +172,6 @@
               </div>
             </li>
 
-            <!-- 기출문제 다운로드 -->
             <li>
               <div class="intro-list-head">
                 <span class="intro-dot"></span>
@@ -190,7 +182,6 @@
               </div>
             </li>
 
-            <!-- 안내 문장 -->
             <li>
               <div class="intro-note">
                 📢 현재 <b>문제은행</b>은 개발 중이라 시험지 위주로 운영 중이며,
@@ -200,7 +191,6 @@
           </ul>
         </div>
 
-        <!-- 2) 문제은행(제작 중) -->
         <div class="intro-card">
           <h4></span>2) 문제은행 (제작 중)</h4>
           <p>
@@ -209,7 +199,6 @@
           </p>
         </div>
 
-        <!-- 3) 내 책장 확장 -->
         <div class="intro-card">
           <h4></span>3) 내 책장 기능 확장</h4>
           <ul class="intro-list">
@@ -221,7 +210,6 @@
           </ul>
         </div>
 
-        <!-- 4) 약속 -->
         <div class="intro-card">
           <h4><span class="intro-dot"></span>Mathbee의 약속</h4>
           <p>
@@ -239,12 +227,6 @@
   </div>
 </div>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-<script src="/socket.io/socket.io.js"></script>
 <script src="js/index.js"></script>
 </body>
 </html>
-
-
-
-
-

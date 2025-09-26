@@ -205,18 +205,19 @@ window.initializeHomePage = function(user) {
 function bindUser(user) { 
   if (!user) return;
     
-    const profileNameCollapsed = document.getElementById('profileName');
-    const profileEmailCollapsed = document.getElementById('profileEmail');
-    const profileAvatar = document.getElementById('profileAvatar');
+    // --- 👇 여기가 수정된 부분입니다 (ID 변경) ---
+    const profileNameCollapsed = document.getElementById('home-profileName');
+    const profileEmailCollapsed = document.getElementById('home-profileEmail');
+    const profileAvatar = document.getElementById('home-profileAvatar');
     if(profileNameCollapsed) profileNameCollapsed.textContent = user.name || '-';
     if(profileEmailCollapsed) profileEmailCollapsed.textContent = user.email || '-';
     if(profileAvatar) profileAvatar.src = user.avatarUrl || 'https://via.placeholder.com/74';
     
-    const profileNameExpanded = document.getElementById('profileNameExpanded');
-    const profileAvatarExpanded = document.getElementById('profileAvatarExpanded');
-    const profileIdValue = document.getElementById('profileIdValue');
-    const profileEmailValue = document.getElementById('profileEmailValue');
-    const profilePhoneValue = document.getElementById('profilePhoneValue');
+    const profileNameExpanded = document.getElementById('home-profileNameExpanded');
+    const profileAvatarExpanded = document.getElementById('home-profileAvatarExpanded');
+    const profileIdValue = document.getElementById('home-profileIdValue');
+    const profileEmailValue = document.getElementById('home-profileEmailValue');
+    const profilePhoneValue = document.getElementById('home-profilePhoneValue');
     const profilePlan = document.querySelector('.home-profile-plan');
 
     if(profileNameExpanded) profileNameExpanded.textContent = user.name || '-';
@@ -224,7 +225,6 @@ function bindUser(user) {
     if(profileIdValue) profileIdValue.textContent = user.id || user.email || '-';
     if(profileEmailValue) profileEmailValue.textContent = user.email || '-';
     
-    // --- 👇 여기가 수정된 부분입니다 ---
     if(profilePhoneValue) profilePhoneValue.textContent = formatPhoneNumber(user.phone);
     
     if(profilePlan) {

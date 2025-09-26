@@ -167,30 +167,30 @@
     overflow: hidden;
     align-self: flex-start;
   }
-  .profile-main-collapsed {
+  .home-profile-main-collapsed {
     display: flex;
     align-items: center;
     gap: 20px;
   }
-  .profile-main-collapsed img {
+  .home-profile-main-collapsed img {
     width: 74px;
     height: 74px;
     border-radius: 50%;
     object-fit: cover;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
   }
-  .profile-main-collapsed .home-info h3 {
+  .home-profile-main-collapsed .home-info h3 {
     font-size: 1.15rem;
     font-weight: 900;
     color: var(--text-main);
   }
-  .profile-main-expanded {
+  .home-profile-main-expanded {
     display: none;
     flex-direction: column;
     align-items: center;
     text-align: center;
   }
-  .profile-main-expanded img {
+  .home-profile-main-expanded img {
     width: 90px;
     height: 90px;
     border-radius: 50%;
@@ -198,7 +198,7 @@
     margin-bottom: 16px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
   }
-  .profile-main-expanded h3 {
+  .home-profile-main-expanded h3 {
     font-size: 1.4rem;
     font-weight: 900;
     margin: 0;
@@ -232,10 +232,10 @@
   .home-profile-card.home-expanded {
     min-height: 420px;
   }
-  .home-profile-card.home-expanded .profile-main-collapsed {
+  .home-profile-card.home-expanded .home-profile-main-collapsed {
     display: none;
   }
-  .home-profile-card.home-expanded .profile-main-expanded {
+  .home-profile-card.home-expanded .home-profile-main-expanded {
     display: flex;
   }
   .home-profile-card.home-expanded .home-profile-toggle-btn i {

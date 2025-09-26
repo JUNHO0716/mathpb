@@ -163,16 +163,27 @@ async function bindUser() {
     if (!d.isLoggedIn) return;
     const u = d.user || {};
     currentUser = u;
-    const displayId = u.email ? u.email.split('@')[0] : (u.name || 'Guest');
-    document.getElementById('profileName').textContent = displayId;
-    const avatarEl = document.getElementById('avatar');
-    if (u.avatarUrl && u.avatarUrl.trim() !== "") {
-      avatarEl.src = u.avatarUrl;
-    } else {
-      avatarEl.src = 'icon_my_b.png';
+    
+    // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+    // 여기를 수정했습니다 (u.id가 이메일이면 @ 앞부분만 표시)
+    const processedId = (u.id && u.id.includes('@')) ? u.id.split('@')[0] : u.id;
+    const displayName = processedId || u.name || (u.email ? u.email.split('@')[0] : 'Guest');
+    // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+    
+    document.getElementById('index-headerProfileName').textContent = displayName;
+    const avatarEl = document.getElementById('index-headerAvatar');
+    
+    if (avatarEl) {
+      if (u.avatarUrl && u.avatarUrl.trim() !== "") {
+        avatarEl.src = u.avatarUrl;
+      } else {
+        avatarEl.src = 'icon_my_b.png';
+      }
+      avatarEl.alt = displayName;
     }
-    avatarEl.alt = displayId;
+
     document.getElementById('userBox').classList.remove('loading');
+    
     if (u.role === 'admin') {
       document.getElementById('goAdminPage').style.display = 'block';
     } else {
@@ -241,32 +252,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   if (sidebarLogout) sidebarLogout.addEventListener('click', logout);
   if (dropdownLogout) dropdownLogout.addEventListener('click', logout);
-  const payBtn = document.querySelector('.action-btn[href="pricing.html"]');
-  const paymentModal = document.getElementById('paymentModal');
-  const paymentIframe = document.getElementById('paymentIframe');
-  const closeModalBtn = document.getElementById('closeModalBtn');
-  if (payBtn) {
-    payBtn.addEventListener('click', function(e) {
-      e.preventDefault();
-      paymentModal.classList.add('show');
-      paymentIframe.src = "pricing.html";
-      document.body.style.overflow = "hidden";
-    });
-  }
-  if (closeModalBtn) {
-    closeModalBtn.addEventListener('click', function() {
-      paymentModal.classList.remove('show');
-      paymentIframe.src = "";
-      document.body.style.overflow = "";
-    });
-  }
-  paymentModal.addEventListener('click', function(e) {
-    if (e.target === paymentModal) {
-      paymentModal.classList.remove('show');
-      paymentIframe.src = "";
-      document.body.style.overflow = "";
-    }
-  });
 });
 
 // 메뉴 등장 애니메이션 순차적 적용
