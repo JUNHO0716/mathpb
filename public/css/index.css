@@ -1,0 +1,543 @@
+:root {
+  --purple-bg: #ffffff;
+  --purple-dk: #ffffff;
+  --btn-bg: #FDC512;
+  --btn-bg-hov: #D9A90F;
+  --border-light: #e9e9e9;
+  --text-main: #111;
+  --text-sub: #5f5f5f;
+  --sb-open: 210px; 
+  --sb-collapsed: 76px;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  height: 100vh;
+}
+
+.fade-in-left {
+  opacity: 0;
+  transform: translateX(-30px);
+  animation: fadeInLeft 0.6s ease forwards;
+}
+
+@keyframes fadeInLeft {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ===== 사이드바 스타일 ===== */
+.sidebar {
+  width: var(--sb-open);
+  background: #2a2a35;
+  border-top-right-radius: 30px;
+  border-bottom-right-radius: 30px;
+  overflow: hidden;
+  box-shadow: 4px 0 15px rgba(0,0,0,0.3);
+  color: #e0e0e0;
+  transition: width 0.3s ease, border-radius 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  padding-top: 20px;
+  align-items: stretch;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1000;
+  border-right: none;
+}
+
+.sidebar.collapsed {
+  width: var(--sb-collapsed);
+  border-top-right-radius: 30px;
+  border-bottom-right-radius: 30px;
+}
+
+.menu-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.logo {
+  height: 36px;
+  margin-bottom: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: bold;
+  color: #FFD400;
+  
+  /* 어두운 배경에 맞는 그림자를 추가해 입체감을 줍니다. */
+  text-shadow: 1px 1px 0px #A08000, 
+               2px 2px 3px rgba(0, 0, 0, 0.5);
+  
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+
+.logo-img {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  
+  /* 원형으로 만들고 테두리를 추가해 효과를 극대화합니다. */
+  border-radius: 50%;
+  border: 2px solid #2a2a35;
+
+  /* 사이드바 색상에 맞춰 안으로 파인 그림자 효과를 적용합니다. */
+  box-shadow: inset 2px 2px 4px #1e1e26, 
+              inset -2px -2px 4px #363644;
+}
+
+.sidebar.collapsed .logo-text {
+  opacity: 0;
+}
+
+.sidebar.collapsed .logo-img {
+  opacity: 1;
+}
+
+.menu-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 15px 17px;
+  cursor: pointer;
+  width: 100%;
+  opacity: 0;
+  transform: translateX(-30px);
+  margin-bottom: 12px;
+  border-radius: 10px;
+  transition: background-color 0.2s ease;
+}
+
+.menu-item .active-bg {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 3px;
+  bottom: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  box-shadow: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.18s;
+}
+
+.menu-item.active .active-bg {
+  opacity: 1;
+}
+
+.menu-item img.menu-icon,
+.menu-item span {
+  position: relative;
+  z-index: 2;
+}
+
+.menu-item.show {
+  animation: fadeInLeft 0.5s ease forwards;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.menu-item span:not(.active-bg) {
+  display: inline-block;
+  max-width: 140px;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 0.8rem !important;
+  opacity: 1;
+  color: #d1d1d1;
+  transition: max-width .25s ease .30s, opacity .25s ease .30s;
+}
+
+.sidebar.collapsed .menu-item span:not(.active-bg) {
+  max-width: 0;
+  opacity: 0;
+  transition: max-width .20s ease 0s, opacity .05s ease 0s;
+}
+
+.menu-item.active span:not(.active-bg) {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.menu-button {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  position: relative;
+  background: none;
+  border: none;
+  outline: none;
+  margin: 20px auto 20px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-button span {
+  display: block;
+  position: absolute;
+  background-color: #fff;
+  border-radius: 2px;
+  transition: all 0.4s cubic-bezier(.7, .2, .17, 1.3);
+}
+
+.menu-button span:nth-child(1),
+.menu-button span:nth-child(2),
+.menu-button span:nth-child(3) {
+  width: 100%;
+  height: 2px;
+  left: 0;
+}
+
+.menu-button span:nth-child(1) { top: 2px; }
+.menu-button span:nth-child(2) { top: 6.5px; }
+.menu-button span:nth-child(3) { top: 11px; }
+
+.menu-button.active span {
+  width: 2px;
+  height: 100%;
+  top: 0;
+}
+
+.menu-button.active span:nth-child(1) { left: 0px; }
+.menu-button.active span:nth-child(2) { left: 6.5px; }
+.menu-button.active span:nth-child(3) { left: 13px; }
+
+/* ===== 메인 콘텐츠 ===== */
+.main-content {
+  flex-grow: 1;
+  opacity: 0;
+  transform: translateX(-30px);
+  animation: fadeInLeft 0.8s ease forwards;
+  animation-delay: 0.3s;
+  margin-left: var(--sb-open);
+  transition: margin-left .25s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.sidebar.collapsed ~ .main-content {
+  margin-left: var(--sb-collapsed);
+}
+
+
+/* ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼ */
+/* ▼▼▼▼▼▼ 아이콘 투명도 효과 (수정) ▼▼▼▼▼▼ */
+.menu-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 15px;
+  object-fit: contain;
+  margin-left: 11px;
+  /* 기본 아이콘을 조금 더 흐리게 변경 */
+  opacity: 0.6; 
+  transition: opacity 0.2s ease; 
+}
+
+/* 선택되거나 마우스를 올린 메뉴의 아이콘만 선명하게(100%) */
+.menu-item.active .menu-icon,
+.menu-item:hover .menu-icon {
+  opacity: 1;
+}
+/* ▲▲▲▲▲▲ 아이콘 투명도 효과 (수정) ▲▲▲▲▲▲ */
+/* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */
+
+
+.spacer { flex-grow: 1; }
+.menu-item.logout { margin-bottom: 30px; }
+#contentFrame { flex: 1; border: none; width: 100%; height: 100%; overflow-y: auto; }
+
+/* 헤더 */
+.page-header{ min-width:980px; padding:8px 40px 10px; display:flex; align-items:center; justify-content:space-between; position:relative; background: #fff; }
+.header-titles h1 {
+  font-size: 1.3rem;
+  font-weight: 900;
+  
+  /* 음각 효과를 위해 글자색을 배경보다 살짝 어둡게 변경 */
+  color: #333;
+
+  /* 밝은 그림자와 어두운 그림자를 교차시켜 파인 느낌을 줌 */
+  text-shadow: 1px 1px 1px #d4d5d9, 
+               -1px -1px 1px #ffffff;
+}
+
+.sub-date{margin-top:2px;font-size:.7rem;font-weight:700;color:var(--text-sub);}
+.header-actions{display:flex;align-items:center;gap:16px;}
+/* [수정] 입체적인 버튼 스타일 */
+.action-btn {
+  padding: 8px 22px; /* 패딩을 살짝 조정해 더 보기 좋게 만듭니다 */
+  border-radius: 9999px;
+  border: none;
+  
+  /* 노란빛이 도는 그라데이션 배경 */
+  background: linear-gradient(145deg, #FFDE6B, #FDC512);
+  
+  color: #4D3800; /* 가독성을 위해 어두운 갈색 톤으로 변경 */
+  font-weight: 700; /* 폰트를 조금 더 두껍게 */
+  font-size: .75rem;
+  
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  
+  /* 입체감을 만드는 핵심인 그림자 효과 */
+  box-shadow: 5px 5px 10px #d4d5d9, 
+              -5px -5px 10px #ffffff;
+
+  transition: all 0.15s ease-in-out;
+}
+
+/* 마우스를 올렸을 때 버튼이 살짝 올라오는 효과 */
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 7px 7px 15px #d4d5d9, 
+              -7px -7px 15px #ffffff;
+}
+
+/* 버튼을 클릭했을 때 (눌리는 효과) */
+.action-btn:active {
+  transform: translateY(1px);
+  /* 그림자를 내부 그림자(inset)로 변경하여 눌린 느낌을 줍니다. */
+  background: #FDC512;
+  box-shadow: inset 4px 4px 8px #d6a80e, 
+              inset -4px -4px 8px #ffe278;
+}
+.user-wrapper{position:relative;}
+.user-box{ display:flex;align-items:center;gap:14px;cursor:pointer; }
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  
+  /* 배경색과 동일한 색상의 테두리를 추가해 깊이감을 줍니다. */
+  border: 2px solid #f5f6fa;
+
+  /* 내부(inset) 그림자를 사용해 안으로 파인 듯한 효과를 만듭니다. */
+  box-shadow: inset 3px 3px 7px #d4d5d9, 
+              inset -3px -3px 7px #ffffff;
+}
+#profileName { font-size:0.7rem; font-weight:600; color:#444; margin:0; }
+.user-box i{font-size:.8rem;color:#888;transition:.2s;}
+.dropdown{ position:absolute;right:0;top:calc(100% + 6px); min-width:160px;background:#fff;border:1px solid #eee;border-radius:10px; box-shadow:0 4px 14px rgba(0,0,0,.06);padding:8px 0;display:none;z-index:20; }
+.dropdown a{ display:block;padding:10px 18px;font-size:.92rem;color:#333; text-decoration:none;white-space:nowrap;transition:.13s; }
+.dropdown a:hover{background:#f8f8f8;}
+.page-header::after{ content:''; position:absolute; left:50%; bottom:0; transform:translateX(-50%); width:97%; height:1px; background:var(--border-light); }
+.highlight { position: relative; display: inline-block; }
+.highlight::before {
+  /* ▼▼▼▼▼ 여기부터 추가 ▼▼▼▼▼ */
+  content: '';
+  position: absolute;
+  top: -6px;  /* 글자 위로 6px 이동 */
+  left: 0;
+  width: 100%; /* 부모 요소(.highlight)와 동일한 너비 */
+  height: 6px; /* 막대 높이 */
+  border-radius: 3px; /* 둥근 모서리 */
+  /* ▲▲▲▲▲ 여기까지 추가 ▲▲▲▲▲ */
+
+  /* 기존 노란색 대신 입체 버튼에 사용했던 그라데이션 적용 */
+  background: linear-gradient(145deg, #FFDE6B, #FDC512);
+
+  /* 작은 크기에 맞는 섬세한 그림자 효과 */
+  box-shadow: 2px 2px 4px #d4d5d9, 
+              -2px -2px 4px #ffffff;
+}
+.user-box.loading * { visibility: hidden; }
+
+/* Help FAB */
+.help-container{position:fixed;bottom:24px;right:24px;z-index:999}
+/* [수정] 입체적인 FAB 스타일 */
+.help-fab {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%; /* 원형 모양 유지 */
+  border: none;
+  
+  /* 노란빛 그라데이션 배경 적용 */
+  background: linear-gradient(145deg, #FFDE6B, #FDC512);
+  
+  /* 가독성을 위한 어두운 글자색과 굵기 */
+  color: #4D3800;
+  font-size: 24px;
+  font-weight: 700;
+
+  cursor: pointer;
+  
+  /* 입체감을 만드는 핵심 그림자 효과 */
+  box-shadow: 5px 5px 10px #d4d5d9, 
+              -5px -5px 10px #ffffff;
+  
+  /* ? 기호가 정중앙에 오도록 보정 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  transition: all 0.15s ease-in-out;
+}
+
+/* 마우스를 올렸을 때 버튼이 살짝 올라오는 효과 */
+.help-fab:hover {
+  transform: translateY(-2px);
+  box-shadow: 7px 7px 15px #d4d5d9, 
+              -7px -7px 15px #ffffff;
+}
+
+/* 버튼을 클릭했을 때 (눌리는 효과) */
+.help-fab:active {
+  transform: translateY(1px);
+  background: #FDC512;
+  box-shadow: inset 4px 4px 8px #d6a80e, 
+              inset -4px -4px 8px #ffe278;
+}
+.help-menu{list-style:none;margin:0;padding:0;position:absolute;bottom:72px;right:0;background:#ffffff;width:280px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.18);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(10px);transition:all .25s}
+.help-menu.show{opacity:1;pointer-events:auto;transform:translateY(0)}
+.help-menu li{padding:14px 20px;font-size:14px;cursor:pointer;display:flex;gap:8px;align-items:center;transition:background .15s}
+.help-menu li:not(:last-child){border-bottom:1px solid #f0f0f0}
+.help-menu li:hover{background:#f7f7f7}
+.help-menu .badge{width:24px;height:24px;border-radius:50%;background:#eef0f4;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+
+/* 모달 스타일 */
+body.swal2-shown { height: 100% !important; overflow: hidden !important; }
+.modal-overlay { display: none; position: fixed; z-index: 9999; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.38); justify-content: center; align-items: center; }
+.modal-overlay.show { display: flex; }
+.modal-content { position: relative; width: 1150px; max-width: 95vw; background: #fff; border-radius: 10px; box-shadow: 0 8px 40px rgba(30,30,30,0.18); padding: 0; display: flex; flex-direction: column; align-items: stretch; overflow: hidden; min-height: 700px; }
+.close-modal { position: absolute; right: 16px; top: 10px; background: none; border: none; font-size: 2rem; color: #bbb; z-index: 2; cursor: pointer; transition: color .2s; }
+.close-modal:hover { color: #111; }
+#paymentIframe { width: 100%; height: 800px; border: none; background: #fafbfc; border-radius: 0 0 18px 18px; }
+.intro-overlay{position:fixed;inset:0;background:rgba(0,0,0,.38);display:none;align-items:center;justify-content:center;z-index:10000}
+.intro-overlay.show{display:flex}
+.intro-modal{width:min(920px,95vw);background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.22);overflow:hidden;transform:translateY(8px);opacity:0;animation:introPop .28s ease-out .02s forwards}
+@keyframes introPop{to{opacity:1;transform:translateY(0)}}
+.intro-head{display:flex;gap:14px;align-items:center;padding:22px 24px;border-bottom:1px solid var(--border-light)}
+.intro-badge{width:34px;height:34px;border-radius:10px;background:var(--btn-bg);display:flex;align-items:center;justify-content:center;font-weight:900;color:#111}
+.intro-title{font-size:1.22rem;font-weight:900;color:#111;letter-spacing:-.2px}
+.intro-sub{font-size:.92rem;color:#5f5f5f;margin-top:2px}
+.intro-body{padding:18px 22px 8px}
+.intro-callout{ background:#fff8d8;border:1px dashed #f0cc4b;color:#6a5512; padding:10px 12px;border-radius:10px;font-size:.92rem;line-height:1.5;margin-bottom:12px }
+.intro-grid{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:820px){.intro-grid{grid-template-columns:1fr 1fr}}
+.intro-card{ border:1px solid var(--border-light);border-radius:14px;background:#fff;padding:16px 16px 14px }
+.intro-card h4{margin:0 0 8px;font-size:1rem;color:#111}
+.intro-card p{margin:0;font-size:.93rem;color:#555;line-height:1.55}
+.intro-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#FDC512;margin-right:8px;vertical-align:middle}
+.intro-list{margin:8px 0 0;padding-left:0;list-style:none}
+.intro-list li{margin:6px 0;color:#444;font-size:.93rem}
+.intro-strong{font-weight:800;color:#111}
+.intro-footer{display:flex;gap:10px;justify-content:flex-end;padding:14px 16px;border-top:1px solid var(--border-light);background:#fafafa}
+.btn-ghost{background:#fff;border:1px solid #e8e8e8;border-radius:9999px;padding:9px 16px;font-weight:700;color:#333;cursor:pointer}
+.btn-ghost:hover{background:#f7f7f7}
+.btn-primary{background:var(--btn-bg);border:none;border-radius:9999px;padding:9px 18px;font-weight:800;color:#111;cursor:pointer}
+.btn-primary:hover{background:var(--btn-bg-hov)}
+.intro-close{position:absolute;top:10px;right:12px;border:none;background:none;font-size:1.6rem;color:#bbb;cursor:pointer}
+.intro-close:hover{color:#111}
+.intro-list-dot li{margin:10px 0 12px}
+.intro-list-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.intro-list-desc{color:#555;font-size:.93rem;line-height:1.55;margin-left:16px}
+.intro-list-dot .intro-dot{width:9px;height:9px}
+.intro-note { font-size: 0.6rem; color: #666; line-height: 1.5; margin-top: 6px; }
+
+
+/* ▼▼▼▼▼ [수정] 모달 최종 스타일 (안내문구 색상 변경) ▼▼▼▼▼ */
+
+/* 1. 뒷 배경 오버레이: 블러 효과 제거 */
+.intro-overlay {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* 2. 모달창 본체: 유리 질감 유지 */
+.intro-modal {
+  background: rgba(245, 245, 245, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* 3. 모달 내부 요소: 배경색 제거 */
+.intro-head, .intro-footer {
+  background: transparent;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+.intro-head {
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+.intro-footer {
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+/* 4. 모달 본문 내부 카드들: 입체감 추가 */
+.intro-card {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* 4-1. [변경] 안내문구(.intro-callout)를 노란색으로 변경 */
+.intro-callout {
+  background: rgba(255, 249, 230, 0.8); /* 부드러운 반투명 노란색 */
+  border: 1px solid rgba(255, 236, 179, 0.9);
+  color: #6a5512; /* 가독성을 위한 어두운 갈색 텍스트 */
+  border-radius: 12px;
+}
+
+/* 5. 버튼 디자인 */
+.intro-footer .btn-ghost, .intro-footer .btn-primary {
+  border-radius: 12px;
+  padding: 10px 20px;
+  transition: background .2s ease, border-color .2s ease;
+}
+.intro-footer .btn-ghost {
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    color: #343a40;
+    font-weight: 600;
+}
+.intro-footer .btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.6);
+    border-color: rgba(255, 255, 255, 0.8);
+}
+.intro-footer .btn-primary {
+    background: rgba(253, 197, 18, 0.7);
+    border: 1px solid rgba(253, 197, 18, 0.9);
+    color: #4D3800;
+    font-weight: 700;
+}
+.intro-footer .btn-primary:hover {
+    background: rgba(217, 169, 15, 0.8);
+    border-color: rgba(253, 197, 18, 1);
+}
+
+/* ▲▲▲▲▲ [수정] 모달 최종 스타일 (안내문구 색상 변경) ▲▲▲▲▲ */

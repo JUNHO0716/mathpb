@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta name="robots" content="noindex, nofollow">
+  <meta charset="UTF-8">
+  <title>회원가입 | MathBee</title>
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:400,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/signup.css">
+  <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+</head>
+<body>
+
+  <header class="page-header">
+    <div class="logo-container">
+      <img src="image_logo/logo.png" alt="Company Logo" /> 
+      <span class="company-name">MathBee</span>
+    </div>
+  </header>
+
+  <div class="signup-center-wrap">
+    <div class="signup-card">
+      <div class="signup-header">
+        <h1>회원가입</h1>
+        <div class="sub">회원이 되어 다양한 혜택을 경험해 보세요!</div>
+      </div>
+
+      <div class="signup-form-wrap">
+        <form class="signup-form" id="signupForm" autocomplete="off">
+          <div class="signup-label">아이디 <span class="star">*</span></div>
+          <div class="signup-row">
+            <input type="text" id="signup_id" placeholder="아이디 입력(6~20자)" maxlength="20" required autocomplete="off">
+            <button type="button" class="btn-check" id="idCheckBtn">중복 확인</button>
+          </div>
+
+          <div class="signup-label">비밀번호 <span class="star">*</span></div>
+          <input type="password" id="signup_pw" placeholder="비밀번호 입력 (문자, 숫자, 특수문자 포함 8~20자)" required maxlength="20" autocomplete="new-password">
+
+          <div class="signup-label">비밀번호 확인 <span class="star">*</span></div>
+          <input type="password" id="signup_pw2" placeholder="비밀번호 재입력" required maxlength="20" autocomplete="new-password">
+
+          <div class="signup-label">이름 <span class="star">*</span></div>
+          <input type="text" id="signup_name" placeholder="이름을 입력해주세요" required autocomplete="off">
+
+          <div class="signup-label">주소 <span class="star">*</span></div>
+          <div class="signup-row address-row">
+            <input type="text" id="signup_addr1" placeholder="주소를 입력해주세요" readonly required autocomplete="off">
+            <button type="button" class="btn-check" id="addrSearchBtn">주소 찾기</button>
+          </div>
+          <div class="signup-row">
+            <input type="text" id="signup_addr2" placeholder="상세주소" autocomplete="off">
+          </div>
+
+          <div class="signup-label">전화번호 <span class="star">*</span></div>
+          <input type="text" id="signup_phone" placeholder="휴대폰 번호 입력" required autocomplete="off">
+
+          <div class="signup-label">이메일 주소 <span class="star">*</span></div>
+          <div class="signup-row email-row">
+            <input type="text" id="signup_email_id" style="flex:1;" placeholder="이메일 주소" required autocomplete="off">
+            <span>@</span>
+            <input type="text" id="signup_email_domain" style="flex:1;" placeholder="도메인" required autocomplete="off">
+            <select id="signup_email_select" style="flex:1;">
+              <option value="">선택</option>
+              <option value="naver.com">naver.com</option>
+              <option value="gmail.com">gmail.com</option>
+              <option value="daum.net">daum.net</option>
+              <option value="nate.com">nate.com</option>
+              <option value="hanmail.com">hanmail.com</option>
+              <option value="직접입력">직접입력</option>
+            </select>
+          </div>
+
+          <div class="signup-label">생년월일</div>
+          <div class="signup-row birth-row">
+            <select id="birth_year"><option value="">년도</option></select>
+            <select id="birth_month"><option value="">월</option></select>
+            <select id="birth_day"><option value="">일</option></select>
+          </div>
+          
+          <div class="signup-btn-column">
+            <button type="submit" class="signup-btn submit">가입완료</button>
+            <button type="button" class="signup-btn cancel" onclick="location.href='login.html'">취소</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-bg" id="modalBg">
+        <div class="modal">
+          <div class="modal-title" id="modalTitle"></div>
+          <div class="modal-msg" id="modalMsg"></div>
+          <button class="modal-btn" id="modalOkBtn">확인</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="js/signup.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<div class="container">
+  <div style="padding: 30px 20px 10px 15px; display: flex; align-items: center; gap: 10px;">
+    <label for="categorySelect" style="font-size: 20px; font-weight: bold;">카테고리</label>
+    <select id="categorySelect" style="padding: 8px 14px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; height: 42px;">
+      <option value="공지">공지사항</option>
+      <option value="업데이트">업데이트</option>
+      <option value="패치">수정사항</option>
+    </select>
+  </div>
+  <input type="text" id="titleInput" class="title-input" placeholder="제목">
+  <div class="editor-wrapper">
+    <div id="editor"></div>
+  </div>
+  <div class="submit-area">
+    <button class="submit-btn">등록</button>
+  </div>
+</div>
+<script src="js/notice_write.js"></script>

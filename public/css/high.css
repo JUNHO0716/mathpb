@@ -1,0 +1,366 @@
+:root{--c-main:#111;--c-text:#4b4f55;--c-light:#fbfbfc;--c-border:#e9e9e9;--c-btn:#FDC512;--c-btn-hov:#D9A90F;--c-accent:#202020;}
+*{box-sizing:border-box;font-family:'Noto Sans KR',sans-serif;margin:0;}
+
+body{color:var(--c-text);min-height:100vh;display:flex;flex-direction:column;}
+
+.wrapper{width:95%;max-width:1400px;margin:40px auto;}
+
+.content-panel {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 20px 25px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+  margin: 40px 12px 0 12px;
+  box-sizing: border-box;
+}
+
+.toolbar{
+  display:flex;
+  justify-content:flex-start;
+  align-items:center;
+  margin-bottom:20px;
+  flex-wrap:wrap;
+  gap: 10px;
+}
+.filter-set{display:flex;gap:10px; flex-wrap: wrap; justify-content: flex-start;}
+
+
+.filter{
+  min-width: 140px;
+  appearance:none;
+  outline:none !important;
+  border:1px solid var(--c-border);
+  border-radius:6px;
+  padding:0 32px 0 12px;
+  height: 38px;
+  background:#fff url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' fill='%23343a40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 7l5 6 5-6H5z'/%3E%3C/svg%3E") no-repeat right 10px center/10px 10px;
+  box-shadow: none;
+  transition: all 0.2s ease-in-out;
+}
+.filter:hover {
+    border-color: #ccc;
+}
+
+#school {
+    width: 200px;
+}
+.filter:focus{border-color:var(--c-main);box-shadow:none;}
+.filter::-ms-expand{display:none;}
+.select-wrap{position:relative;display:inline-block;}
+
+.btn{
+    height:38px;
+    padding:0 20px;
+    border:none;
+    border-radius:8px;
+    font-weight:700;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    transition: all 0.2s ease-in-out;
+    font-size:.93rem;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.07);
+}
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+}
+
+.btn--search {
+  background: linear-gradient(145deg, #3a3a3a, #1a1a1a);
+  color: #fff;
+  position: relative;
+  box-shadow: 5px 5px 10px #dcd5c9,
+              -5px -5px 10px #ffffff;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn--search:hover {
+  background: linear-gradient(145deg, #4a4a4a, #2a2a2a);
+  transform: translateY(-2px);
+  box-shadow: 7px 7px 15px #dcd5c9,
+              -7px -7px 15px #ffffff;
+}
+
+.btn--search:active {
+  transform: translateY(1px);
+  background: #202020;
+  box-shadow: inset 4px 4px 8px #0d0d0d,
+              inset -4px -4px 8px #4d4d4d;
+}
+
+.btn--primary{background:var(--c-btn);color:#fff;}
+.btn--primary:hover{background:var(--c-btn-hov);}
+
+.table-wrap{
+  min-height: 500px;
+  background:#fff;
+  border-radius:0;
+  box-shadow:none;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse !important;
+  border-spacing: 0;
+  border: 0;
+  table-layout: fixed;
+}
+thead{background:var(--c-light);color:var(--c-main);font-weight:700;}
+th, td {
+  padding: 10px 8px;
+  font-size: .9rem;
+  text-align: center;
+  border: 0 !important;
+  border-bottom: 1px solid #f5f5f5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+thead th:nth-child(1) { width: 6%; }
+thead th:nth-child(2) { width: 34%; }
+thead th:nth-child(3) { width: 10%; }
+thead th:nth-child(4) { width: 8%; }
+thead th:nth-child(5) { width: 12%; }
+thead th:nth-child(6) { width: 8%; }
+thead th:nth-child(7) { width: 12%; }
+thead th:nth-child(8) { width: 10%; }
+
+
+thead th {
+  border-bottom: 1px solid #e9e9e9;
+}
+
+th[data-sort] { cursor: pointer; user-select: none; position: relative; }
+th[data-sort]:hover { background: #f8f9fa; }
+.sort-icon { display: inline-block; width: 0.8em; height: 0.8em; position: relative; vertical-align: middle; margin-left: 5px; top: -1px; }
+.sort-icon::before, .sort-icon::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); border-left: 3.5px solid transparent; border-right: 3.5px solid transparent; opacity: 0.3; }
+.sort-icon::before { bottom: 50%; margin-bottom: 1.5px; border-bottom: 4.5px solid var(--c-text); }
+.sort-icon::after { top: 50%; margin-top: 1.5px; border-top: 4.5px solid var(--c-text); }
+th.sorted[data-direction="asc"] .sort-icon::before,
+th.sorted[data-direction="desc"] .sort-icon::after { opacity: 1; }
+th.sorted[data-direction="asc"] .sort-icon::after,
+th.sorted[data-direction="desc"] .sort-icon::before { opacity: 0.3; }
+.spinner { display: none; width: 16px; height: 16px; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: #fff; animation: spin 1s ease-in-out infinite; }
+.btn.loading .spinner { display: block; }
+.btn.loading .fa-magnifying-glass { display: none; }
+.btn:disabled { opacity: 0.7; cursor: not-allowed; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+tbody tr:hover{
+  background:#fffbe6;
+}
+
+/* ▼▼▼ [추가] 파일명에 커서를 올렸을 때 클릭 가능하도록 스타일 변경 ▼▼▼ */
+.file-title-link {
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  font-weight: 500;
+}
+.file-title-link:hover {
+  text-decoration: underline;
+  color: #0056b3;
+}
+/* ▲▲▲ [추가] 파일명 스타일 ▲▲▲ */
+
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 28px 0;
+}
+.page {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50% !important;
+  background: transparent;
+  color: var(--c-main);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.page:hover {
+  background: #f1f3f5;
+}
+.page.active {
+  background: var(--c-accent);
+  color: #fff;
+  pointer-events: none;
+}
+.page.disabled {
+  color: #ced4da;
+  cursor: not-allowed;
+  background: transparent;
+}
+.pagination-ellipsis {
+  color: var(--c-text);
+  padding: 0 4px;
+}
+@media (max-width:1024px){.filter-set{flex-wrap:wrap;gap:6px;}.toolbar{gap:10px;}}
+
+
+/* ▼▼▼ [수정됨] 이미지 배경 및 입체 효과 부분 ▼▼▼ */
+.page-banner {
+  margin: 24px 12px;
+  /* 여기에 사용하고 싶은 .jpg 이미지의 경로를 넣어주세요. */
+  /* 이미지를 찾을 수 없을 때를 대비한 대체 배경색을 linear-gradient 아래에 추가합니다. */
+  background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url('image_banner/image.jpg') no-repeat center center, #4a69bd;
+  background-size: cover;
+  border-radius: 18px; /* 모서리 둥글기 약간 더 강조 */
+  padding: 24px 30px 24px 65px;
+  min-height: 230px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-bottom: none;
+  box-sizing: border-box;
+  color: #ffffff;
+  position: relative;
+  /* 입체적인 느낌을 위한 그림자 추가 */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), /* 아래로 떨어지는 그림자 */
+              0 -4px 15px rgba(255, 255, 255, 0.1) inset, /* 위쪽 밝은 하이라이트 */
+              0 4px 15px rgba(0, 0, 0, 0.15) inset; /* 아래쪽 어두운 그림자 */
+  transform: translateY(0); /* 기본 위치 */
+  transition: all 0.3s ease-in-out; /* 부드러운 전환 효과 */
+}
+
+/* 마우스 호버 시 살짝 떠오르는 효과 */
+.page-banner:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35),
+                0 -6px 20px rgba(255, 255, 255, 0.15) inset,
+                0 6px 20px rgba(0, 0, 0, 0.2) inset;
+}
+
+
+.page-banner .inner {
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.page-banner h2 {
+  font-size: 1.9rem; /* 제목 크기 약간 키움 */
+  font-weight: 900;
+  margin: 0 0 16px 0; /* 아래 여백 약간 늘림 */
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* 텍스트 그림자 추가 */
+}
+
+.page-banner p {
+  font-size: 1.1rem; /* 본문 크기 약간 키움 */
+  line-height: 1.6; /* 줄 간격 약간 넓힘 */
+  color: #e0e0e0; /* 텍스트 색상 약간 밝게 */
+  opacity: .98; /* 투명도 조정 */
+  margin: 0;
+  text-align: left;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* 텍스트 그림자 추가 */
+}
+
+@media (max-width: 768px) {
+  .page-banner {
+    padding: 24px 35px;
+    border-radius: 14px; /* 반응형에서도 둥글기 유지 */
+  }
+  .page-banner h2 {
+    font-size: 1.7rem;
+  }
+  .page-banner p {
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-banner {
+    padding: 24px 20px;
+    min-height: auto;
+    border-radius: 12px;
+  }
+  .page-banner h2 {
+    font-size: 1.5rem;
+  }
+  .page-banner p {
+    font-size: 1rem;
+  }
+}
+
+.bar-sep {color: #f8c900;font-weight: 1000;}
+.level-toggle-container {display: inline-flex;align-items: center;margin-left: 20px;gap: 10px;font-size: 0.98rem;font-weight: 700;}
+.switch {position: relative;display: inline-block;width: 52px;height: 28px;}
+.switch input {opacity: 0;width: 0;height: 0;}
+.slider {position: absolute;cursor: pointer;top:0; left:0; right:0; bottom:0;background-color: var(--c-btn);transition: .4s;border-radius: 28px;  }
+.slider:before {position: absolute;content: "";height: 22px; width: 22px;left: 3px; bottom: 3px;background-color: white;transition: .4s;border-radius: 50%;}
+input:checked + .slider:before {transform: translateX(24px);}
+.with-toggle {display: flex;align-items: flex-end;gap: 18px;}
+.with-toggle .level-toggle-container {margin: 0;position: relative;top: -7px;bottom: 0;}
+.swal2-actions-center {justify-content: center !important;}
+
+
+/* ▼▼▼ [추가] 상세보기 슬라이드 패널 CSS ▼▼▼ */
+.details-slide-panel {
+    position: fixed;
+    top: 70px;
+    right: 10px;
+    width: 400px;
+    height: calc(100vh - 100px);
+    background-color: #ffffff;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    z-index: 1002;
+    transform: translateX(calc(100% + 50px));
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    display: flex;
+    flex-direction: column;
+    border-radius: 30px;
+}
+.details-slide-panel.is-open {
+    transform: translateX(0);
+}
+.details-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #e2e8f0;
+}
+.details-panel-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+.details-panel-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: #718096;
+}
+.details-panel-content {
+    padding: 24px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+.details-panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    z-index: 1001;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+.details-panel-overlay.is-open {
+    opacity: 1;
+    visibility: visible;
+}
+/* ▲▲▲ [추가] 상세보기 슬라이드 패널 CSS ▲▲▲ */

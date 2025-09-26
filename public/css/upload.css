@@ -1,0 +1,587 @@
+:root{
+    --upload-primary-color: #6366f1;
+    --upload-body-bg: #f9fafb;
+    --upload-widget-bg: #ffffff;
+    --upload-shadow-dark: #d0d3d5;
+    --upload-shadow-light: #ffffff;
+    --upload-text-primary: #111827;
+    
+    --upload-btn-bg:#FDC512;
+    --upload-text-main:#111;
+    --upload-text-sub:#5f5f5f;
+    --upload-background-color2: #ffffff;
+    --upload-border-light:#e9e9e9;
+}
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  margin: 0;
+  background-color: #f8f9fa;
+}
+
+/* ▼▼▼ [수정됨] 페이지 배너에 이미지 배경 및 입체 효과 적용 ▼▼▼ */
+.upload-page-banner {
+  margin: 24px 12px;
+  /* 여기에 사용하고 싶은 .jpg 이미지의 경로를 넣어주세요. */
+  background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url('path/to/your/image.jpg') no-repeat center center, #4a69bd;
+  background-size: cover;
+  border-radius: 18px;
+  padding: 24px 30px 24px 65px;
+  min-height: 230px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-bottom: none;
+  box-sizing: border-box;
+  color: #ffffff;
+  position: relative;
+  /* 입체적인 느낌을 위한 그림자 */
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25),
+              0 -4px 15px rgba(255, 255, 255, 0.1) inset,
+              0 4px 15px rgba(0, 0, 0, 0.15) inset;
+  transform: translateY(0);
+  transition: all 0.3s ease-in-out;
+}
+
+/* 마우스 호버 시 떠오르는 효과 */
+.upload-page-banner:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35),
+                0 -6px 20px rgba(255, 255, 255, 0.15) inset,
+                0 6px 20px rgba(0, 0, 0, 0.2) inset;
+}
+
+.upload-page-banner h2 {
+  font-size: 1.9rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  margin-bottom: 16px;
+}
+
+.upload-page-banner p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  opacity: .98;
+  color: #e0e0e0;
+  margin-top: 14px;
+  text-align: left;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+}
+/* ▲▲▲ 수정된 부분 끝 ▲▲▲ */
+
+
+.upload-main-wrapper {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.upload-left-panel {
+  width: 21%;
+  background: #f8f9fa; /* 배경색을 body와 유사하게 변경하여 일체감 부여 */
+  border-radius: 20px; /* 좀 더 부드러운 느낌을 위해 값을 살짝 조정 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px;
+  position: sticky;
+  top: 24px;
+  align-self: flex-start;
+  height: calc(100vh - 48px);
+  box-sizing: border-box;
+  margin: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.8); /* 밝은 테두리 추가 */
+  /* 입체감을 위한 그림자 효과 수정 */
+  box-shadow: 8px 8px 16px rgba(209, 217, 224, 0.7),
+              -8px -8px 16px rgba(255, 255, 255, 0.9);
+  transition: all 0.3s ease-in-out;
+}
+
+.upload-left-panel h3 {
+  font-size: 1.2rem;
+  margin-bottom: 16px;
+}
+
+.upload-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px dashed #d0d5dd;
+  width: 100%;
+  background-color: #ffffff;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  min-height: 400px; 
+}
+.upload-left-panel.upload-dragover .upload-box {
+  background: rgba(230, 230, 230, 0.6);
+}
+.upload-box:hover {
+  border-color: #a0a8b5;
+  background-color: #f8f9fa;
+}
+
+.upload-box input[type="file"] {
+  display: none;
+}
+.upload-box label {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  padding: 140px 20px; 
+  box-sizing: border-box;
+}
+.upload-right-panel {
+  width: 77%;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 0;
+  box-sizing: border-box;
+  background-color: #fff;
+}
+
+.upload-slider-tabs {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  padding-left: 5px;
+}
+.upload-tab-indicator {
+  position: absolute;
+  height: 100%;
+  background-color: var(--upload-btn-bg);
+  border-radius: 999px;
+  transition: left 0.4s cubic-bezier(0.22, 1, 0.36, 1), width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 1;
+}
+.upload-tab-btn {
+  position: relative;
+  z-index: 2;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: none;
+  background-color: transparent;
+  color: var(--upload-text-sub);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.3s, box-shadow 0.3s;
+  box-shadow: 4px 4px 8px #d0d3d5, -4px -4px 8px #ffffff;
+}
+.upload-tab-btn.upload-active {
+  color: var(--upload-text-main);
+  box-shadow: inset 2px 2px 4px #d0d3d5, inset -2px -2px 4px #ffffff;
+}
+.upload-tab-btn:not(.upload-active):hover {
+  color: var(--upload-text-main);
+}
+
+.upload-content-area {
+  background: var(--upload-background-color2);
+  border-radius: 22px;
+  box-shadow: 8px 8px 16px #d0d3d5, -8px -8px 16px #ffffff;
+  padding: 28px;
+  border: none;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.upload-rejected-section {
+  display: none;
+}
+
+.upload-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--upload-border-light);
+}
+
+#content-title {
+  font-size: 1.2rem;
+  font-weight: 900;
+  margin: 0;
+  color: #222;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+th, td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+th {
+  background: #f0f0f0;
+}
+.upload-card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 323px);
+  justify-content: center;
+  gap: 20px;
+  margin-top: 0;
+  padding-top: 20px;
+  max-height: 592px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.upload-card-statusbox {
+  background: #fff;
+  border-radius: 25px;
+  box-shadow: 0 2px 18px rgba(33,37,41,.08);
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  height: 128px;
+  margin-bottom: 20px;
+  padding: 0;
+  overflow: hidden;
+  border: none;
+  position: relative;
+  transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+.upload-card-statusbox:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(33,37,41,.12);
+}
+
+.upload-card-statusbox::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: linear-gradient(to top, rgba(255,255,255,1) 30%, rgba(255,255,255,0));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+.upload-card-statusbox:hover::after {
+    opacity: 1;
+}
+
+.card-hover-buttons {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 3;
+}
+.upload-card-statusbox:hover .card-hover-buttons {
+    opacity: 1;
+    visibility: visible;
+}
+.card-action-btn {
+    border: 1px solid #ddd;
+    background-color: #fff;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.85rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+}
+.card-action-btn:hover {
+    background-color: #f5f5f5;
+    transform: translateY(-2px);
+}
+.card-action-btn.delete {
+    color: #e53e3e;
+    border-color: #fed7d7;
+}
+.card-action-btn.delete:hover {
+    background-color: #fff5f5;
+}
+
+.upload-card-left {
+  flex: 0 0 162px;
+  width: 162px;
+  min-width: 162px;
+  display: flex;
+  align-items: flex-start;
+  padding: 7px 0 0 14px;
+}
+.upload-card-icon-wrap {
+  width: 51px !important;
+  height: 51px !important;
+  min-width: 51px;
+  border: 2.5px solid #ffe063;
+  border-radius: 17px;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 7px;
+  margin-left: -4px;
+  margin-top: 2px;
+}
+.upload-card-icon-wrap img { width: 29px; height: 29px; }
+.upload-card-badge-group { display: flex; gap: 6px; margin-bottom: 3px; }
+.upload-card-badge { display: inline-block; font-size: 0.55rem; border-radius: 20px; padding: 2px 6px; white-space: nowrap; }
+.upload-card-badge.upload-req { background: #111; color: #fff; }
+.upload-card-badge.upload-check { background: #FFD54F; color: #111; font-weight: 600; }
+.upload-card-meta-box { 
+  display: flex; 
+  flex-direction: column;
+  align-items: flex-start; 
+  height: 100%; 
+}
+.upload-card-badge.upload-make { background: #e8f4e5; color: #45593e; font-weight: 600; }
+.upload-card-badge.upload-done { background: #e5f4fa; color: #1d5b84; font-weight: 600; }
+.upload-card-filename { 
+  font-size: 0.7rem; 
+  font-weight: 570; 
+  color: #111; 
+  width: 112px; 
+  margin-top: 3px; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+  text-align: left; 
+  flex-grow: 1;
+}
+.upload-card-upload-date {
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  margin-bottom: 20px;
+  margin-left: -20px;
+}
+.upload-date { color: #111; font-weight: 600; }
+.upload-label { color: #bbb; font-weight: 400; font-size: 0.7rem; transform: translateY(1px); }
+.upload-icon { width: 14px; height: 14px; opacity: 0.6; }
+.upload-card-right { flex: 1; display: flex; flex-direction: column; padding: 13px 0 0 23px; min-width: 0; justify-content: center; align-items: flex-start; }
+.upload-progress-step { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; position: relative; }
+.upload-progress-num { width: 10px; height: 10px; font-size: 0.4rem; font-weight: 600; border-radius: 50%; background: #f5f5f5; color: #bbb; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0; z-index: 2; position: relative; box-sizing: border-box; transform: translateY(3px); }
+.upload-progress-step:not(:last-child)::after { content: ""; position: absolute; left: 5px; top: 13px; width: 1px; height: 32px; background: #eee; z-index: 1; }
+.upload-progress-content { display: flex; flex-direction: column; transform: translateY(-0.5px); }
+.upload-progress-title { font-size: 0.55rem; font-weight: 700; color: #bbb; }
+.upload-progress-subtext { font-size: 0.38rem; color: #bbb; font-weight: 400; }
+.upload-card-statusbox[data-status="확인중"] .upload-progress-step:nth-child(1) .upload-progress-num { background: #FFD54F; color: #222; }
+.upload-card-statusbox[data-status="제작중"] .upload-progress-step:nth-child(2) .upload-progress-num { background: #4CAF50; color: #fff; }
+.upload-card-statusbox[data-status="완료"] .upload-progress-step:nth-child(3) .upload-progress-num { background: #2196F3; color: #fff; }
+.upload-card-statusbox[data-status="확인중"] .upload-progress-step:nth-child(1) .upload-progress-title, .upload-card-statusbox[data-status="확인중"] .upload-progress-step:nth-child(1) .upload-progress-subtext,
+.upload-card-statusbox[data-status="제작중"] .upload-progress-step:nth-child(2) .upload-progress-title, .upload-card-statusbox[data-status="제작중"] .upload-progress-step:nth-child(2) .upload-progress-subtext,
+.upload-card-statusbox[data-status="완료"] .upload-progress-step:nth-child(3) .upload-progress-title, .upload-card-statusbox[data-status="완료"] .upload-progress-step:nth-child(3) .upload-progress-subtext { color: #111; font-weight: 700; }
+.upload-preview-item { width: 100%; min-height: 40px; border: 1.5px solid #eee; border-radius: 8px; display: flex; align-items: center; flex-wrap: nowrap; margin-bottom: 5px; background: #fff; box-shadow: 0.5px 0.5px 3px rgba(0,0,0,0.04); padding: 5px 10px 5px 8px; }
+.upload-preview-item img { width: 22px; margin-right: 10px; flex-shrink: 0; }
+.upload-preview-item .upload-filename { flex: 1; text-align: left; font-size: 0.8em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.upload-preview-item .upload-remove-btn { cursor: pointer; color: #111; font-size: 1.05em; margin-left: 12px; }
+.upload-preview-bottom-btns { width: 100%; display: flex; flex-direction: column; gap: 7px; margin-top: 12px; position: absolute; left: 0; bottom: 30px; padding: 0 24px; box-sizing: border-box; }
+#add-file-btn { 
+  width: 100%; 
+  padding: 10px 18px; 
+  font-size: 1.0rem; 
+  border-radius: 8px; 
+  border: none; 
+  font-weight: 700; 
+  cursor: pointer; 
+  background: #e0e7ef; 
+  color: #333; 
+}
+#upload-btn {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #FEE500;
+  color: #191919;
+  font-size: 1.0rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 3px 3px 6px var(--upload-shadow-dark), -3px -3px 6px var(--upload-shadow-light);
+  width: 100%;
+}
+#upload-btn:hover {
+  background-color: #FDD835;
+}
+#upload-btn:active {
+  box-shadow: inset 2px 2px 4px var(--upload-shadow-dark), inset -2px -2px 4px var(--upload-shadow-light);
+}
+#upload-head-area { margin-top: 130px; }
+.upload-card-statusbox[data-status="확인중"] { box-shadow: 0 4px 12px rgba(255,213,79,0.5); }
+.upload-card-statusbox[data-status="제작중"] { box-shadow: 0 4px 12px rgba(100, 200, 100, 0.5); }
+.upload-card-statusbox[data-status="제작중"] .upload-card-icon-wrap { border-color: #4CAF50; }
+.upload-card-statusbox[data-status="완료"] { box-shadow: 0 4px 12px rgba(30, 144, 255, 0.5); }
+.upload-card-statusbox[data-status="완료"] .upload-card-icon-wrap { border-color: #2196F3; }
+.upload-modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  font-family: 'Noto Sans KR', sans-serif;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.upload-modal-overlay[style*="display: flex"] {
+  opacity: 1;
+}
+.upload-modal-content {
+  background: #222;
+  padding: 50px 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  width: 90%;
+  max-width: 480px;
+  border: none;
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+.upload-modal-overlay[style*="display: flex"] .upload-modal-content {
+  transform: scale(1);
+}
+.upload-modal-content .upload-modal-icon {
+  width: 70px;
+  height: 70px;
+  background-color: #ffcb2c;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 30px auto;
+  font-size: 3rem;
+  color: #222;
+  font-weight: bold;
+}
+.upload-modal-content .upload-modal-icon::before {
+    content: '!';
+}
+.upload-modal-content h3 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #fff;
+}
+.upload-modal-content p {
+  font-size: 1.1rem;
+  color: #bbb;
+  line-height: 1.7;
+  margin-bottom: 40px;
+}
+.upload-modal-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-direction: row;
+}
+.upload-modal-btn {
+  width: 140px;
+  padding: 14px 25px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.upload-modal-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+.upload-modal-btn-confirm {
+  background-color: #ffcb2c;
+  color: #111;
+}
+.upload-modal-btn-confirm:hover {
+  background-color: #ffd44c;
+}
+.upload-modal-btn-cancel {
+  background-color: #555;
+  color: #fff;
+}
+.upload-modal-btn-cancel:hover {
+  background-color: #666;
+}
+
+.details-slide-panel {
+    position: fixed;
+    top: 70px;
+    right: 10px;
+    width: 400px;
+    height: calc(100vh - 100px);
+    background-color: #ffffff;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    z-index: 1002;
+    transform: translateX(calc(100% + 50px));
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    display: flex;
+    flex-direction: column;
+    border-radius: 30px;
+}
+.details-slide-panel.is-open {
+    transform: translateX(0);
+}
+.details-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #e2e8f0;
+}
+.details-panel-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+.details-panel-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: #718096;
+}
+.details-panel-content {
+    padding: 24px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+.details-panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    z-index: 1001;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+.details-panel-overlay.is-open {
+    opacity: 1;
+    visibility: visible;
+}

@@ -1,0 +1,116 @@
+:root {
+  --main-color: #111;
+  --hover-color: #333;
+  --border-color: #e5e7eb;
+  --bg-color: #fff;
+  --font-family: 'Noto Sans KR', sans-serif;
+  --light-bg-color: #f3f4f6; /* '요금제 보기'와 동일한 연한 회색 */
+  --light-bg-hover: #e5e7eb;
+}
+html, body {
+  width: 100%; min-height: 100vh;
+  background: var(--bg-color);
+  font-family: var(--font-family);
+  display: flex; justify-content: center; align-items: center;
+  margin: 0;
+}
+.reset-card {
+  background: #fff; border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 32px 36px; width: 420px;
+}
+.reset-card h2 {
+  text-align: center; margin-bottom: 8px; font-size: 1.5rem;
+  font-weight: 700; color: var(--main-color);
+}
+.reset-card .description {
+  text-align: center; color: #6b7280; font-size: 0.9rem;
+  margin-bottom: 24px; line-height: 1.5;
+}
+
+/* ▼▼▼ input 필드 수정 ▼▼▼ */
+.reset-card input[type="text"],
+.reset-card input[type="password"] {
+  width: 100%; /* 너비를 100%로 설정 */
+  box-sizing: border-box; /* padding과 border가 너비에 포함되도록 */
+  margin-bottom: 12px; padding: 12px;
+  border-radius: 7px; border: 1px solid var(--border-color);
+  font-size: 0.95rem; background: #f9fbfe;
+}
+.reset-card input:focus {
+  outline: none; border-color: var(--main-color);
+}
+/* ▲▲▲ input 필드 수정 ▲▲▲ */
+
+/* 모든 버튼의 기본 스타일 */
+.reset-card button {
+  width: 100%; padding: 12px; border-radius: 7px;
+  font-weight: 700; font-size: 1rem;
+  border: none; cursor: pointer; transition: background 0.2s;
+  box-sizing: border-box; /* 버튼도 padding, border가 너비에 포함되도록 */
+}
+
+/* '인증번호 받기', '확인', '비밀번호 변경' 버튼 (검정색) */
+#sendCodeBtn, #verifyCodeBtn, #resetPwBtn {
+  background: var(--main-color);
+  color: #fff;
+}
+#sendCodeBtn:hover, #verifyCodeBtn:hover, #resetPwBtn:hover {
+  background: var(--hover-color);
+}
+
+/* '이메일/휴대폰 인증' 선택 버튼 그룹 */
+.auth-method-select {
+    display: flex;
+    margin-bottom: 16px;
+    gap: 8px; /* 버튼 사이 간격 */
+}
+
+/* ▼▼▼ '이메일/휴대폰 인증' 버튼 스타일 (최종 수정) ▼▼▼ */
+.auth-method-btn {
+    flex: 1;
+    padding: 10px;
+    font-size: 0.9rem;
+    font-weight: 600; /* 글씨 두께 조정 */
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 8px;
+    background-color: var(--light-bg-color); /* '요금제 보기'와 동일한 배경색 */
+    color: var(--main-color);
+    border: 1px solid var(--border-color);
+}
+.auth-method-btn:hover {
+    background-color: var(--light-bg-hover);
+}
+.auth-method-btn.active {
+    background: var(--main-color);
+    color: #fff;
+    border-color: var(--main-color);
+}
+/* ▲▲▲ '이메일/휴대폰 인증' 버튼 스타일 (최종 수정) ▲▲▲ */
+
+.input-group {
+  display: flex; gap: 8px; align-items: center;
+}
+/* '확인' 버튼만 너비 자동 조절 */
+.input-group button { 
+    width: auto; 
+    flex-shrink: 0; 
+    padding: 12px 16px;
+}
+.input-group #timer {
+  font-size: 0.9rem; color: #ef4444; font-weight: 500;
+  flex-shrink: 0;
+}
+.result-msg {
+  text-align: center; min-height: 20px; font-size: 0.9rem;
+  margin-top: 12px;
+}
+.back-link {
+  display: block; text-align: center; margin-top: 20px;
+  color: #6b7280; text-decoration: none; font-size: 0.9rem;
+}
+.back-link:hover { text-decoration: underline; }
+@media (max-width: 480px) {
+  .reset-card { width: 90vw; padding: 24px; box-shadow: none; border: 1px solid var(--border-color); }
+}

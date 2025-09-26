@@ -1,0 +1,55 @@
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  /* 페이지 전체 배경색 */
+  background-color: #30313E; 
+  transition: opacity 0.5s ease-in-out;
+}
+
+body.fade-out {
+  opacity: 0;
+}
+
+h1 {
+  font-family: 'Roboto', sans-serif;
+  /* 'LOGIN' 글씨 색상 */
+  color: #434451; 
+}
+
+/* ▼▼▼ [요청] 구분선 스타일 ▼▼▼ */
+.divider {
+  border: none;
+  height: 1px;
+  /* h1과 동일한 색상으로 지정 */
+  background-color: #434451; 
+  margin: 20px 0;
+}
+/* ▲▲▲ 구분선 스타일 ▲▲▲ */
+
+
+/* ▼▼▼ [요청] 로그인 버튼 스타일 ▼▼▼ */
+.login-btn {
+  /* 버튼 배경색을 h1과 동일한 색상으로 지정 */
+  background-color: #434451; 
+  /* 배경이 어두우므로 글자색은 흰색으로 변경 */
+  color: #ffffff; 
+  border: none;
+  /* 기존 버튼의 모양, 크기 등은 유지됩니다. */
+}
+
+/* 로그인 버튼에 마우스를 올렸을 때 효과 */
+.login-btn:hover {
+  background-color: #585969; /* 약간 더 밝은 색으로 변경 */
+}
+/* ▲▲▲ 로그인 버튼 스타일 ▲▲▲ */
+
+
+/* 회원가입 버튼 (반투명 스타일 유지) */
+.signup-btn {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff; 
+  border: 1px solid rgba(255, 255, 255, 0.2); 
+}
+
+.signup-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}

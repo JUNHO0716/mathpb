@@ -1,0 +1,116 @@
+<section class="profile-promo-banner">
+  <div class="swiper profile-ad-swiper">
+    <div class="swiper-wrapper">
+      <div class="swiper-slide" data-url="promo1.html"><img src="image_banner/ad_big1.jpg" alt="탑 배너 1"></div>
+      <div class="swiper-slide" data-url="promo2.html"><img src="image_banner/ad_big2.jpg" alt="탑 배너 2"></div>
+      <div class="swiper-slide" data-url="promo3.html"><img src="image_banner/ad_big3.jpg" alt="탑 배너 3"></div>
+    </div>
+    <div class="profile-ad-swiper-pagination"></div>
+  </div>
+</section>
+<div class="dashboard-container">
+  <aside class="left-column">
+    <div class="left-panel-card">
+      <div class="profile-photo-section">
+        <label for="profileImageInput"><img id="profileAvatar" alt="avatar"></label>
+        <input type="file" id="profileImageInput" name="avatar" accept="image/*" style="display:none;">
+        <h3 id="cardProfileName">UserName</h3>
+        <p id="profileTitle">UX Designer</p>
+      </div>
+      <div class="profile-details-section">
+        <div class="detail-item"><span class="label">ID</span><span id="profileId" class="value">-</span></div>
+        <div class="detail-item"><span class="label">Email</span><span id="profileEmail" class="value">-</span></div>
+        <div class="detail-item"><span class="label">Phone number</span><span id="profilePhone" class="value">-</span></div>
+      </div>
+      <div class="profile-actions">
+          <button type="button" class="profile-action-btn" id="changePhotoBtn"><i class="fas fa-camera"></i> 사진 변경</button>
+          <button type="button" class="profile-action-btn" id="savePhotoBtn" style="display:none;"><i class="fas fa-save"></i> 저장</button>
+          <button type="button" class="profile-action-btn" id="deletePhotoBtn"><i class="fas fa-trash-alt"></i> 삭제</button>
+      </div>
+    </div>
+    <div class="left-panel-card">
+        <h2>구독 관리</h2>
+        <div class="profile-details-section">
+            <div class="detail-item"><span class="label">구독 상태</span><span id="sub-status" class="value">-</span></div>
+            <div class="detail-item"><span class="label">다음 결제일</span><span id="next-bill" class="value">-</span></div>
+        </div>
+        <div class="subscription-history-section">
+            <h4>결제 이력</h4>
+            <ul id="sub-history-list" class="payment-history-list"><li>이력 없음</li></ul>
+        </div>
+        <div class="subscription-actions">
+            <a href="pricing.html" id="subscribeBtn" class="pw-btn subscribe-btn" style="display: none;">구독하기</a>
+            <button id="btn-cancel" class="pw-btn btn-cancel" style="display: none;">구독 해지</button>
+            <button id="openPricingModalBtn" class="pw-btn plan-btn">요금제 보기</button>
+        </div>
+    </div>
+  </aside>
+
+  <main class="main-content-area">
+    <header class="content-header">
+      <h1 id="mainHeaderName">회원 정보</h1>
+    </header>
+    <div class="content-widgets">
+      <div class="widget-card">
+        <h2>회원 정보 변경</h2>
+        <div id="pw-box">
+          <div class="info-row" id="pw-check-box"><label>비밀번호 확인</label><div class="input-group"><input type="password" id="current-password" placeholder="기존 비밀번호 입력" autocomplete="new-password"/><button id="pw-check-btn" class="pw-btn" aria-label="확인"><i class="fas fa-check"></i></button></div></div>
+          <div id="pw-change-box" style="display:none;">
+            <div class="info-row"><label>새 비밀번호</label><div class="input-group"><input type="password" id="new-password" placeholder="새 비밀번호"/><input type="password" id="confirm-password" placeholder="비밀번호 확인"/><button id="pw-change-btn" class="pw-btn" aria-label="변경"><i class="fas fa-edit"></i></button></div></div>
+            <div class="info-row"><label>휴대폰 번호</label><div class="input-group"><input type="text" id="new-phone" placeholder="새 휴대폰 번호 입력" /><button id="phone-change-btn" class="pw-btn" aria-label="저장"><i class="fas fa-save"></i></button></div></div>
+            <div class="info-row"><label>이메일</label><div class="input-group"><input type="text" id="new-email" placeholder="새 이메일 주소 입력" /><button id="email-change-btn" class="pw-btn" aria-label="저장"><i class="fas fa-save"></i></button></div></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="widget-card">
+        <h2>학원 정보</h2>
+        <div class="info-row"><label>학원 명</label><input id="mem-academy-name" type="text" placeholder="학원명" /></div>
+        <div class="info-row"><label>학원 번호</label><input id="mem-academy-phone" type="text" placeholder="전화번호" /></div>
+        <div class="info-row">
+          <label>학원 주소</label>
+          <div class="input-group">
+            <input id="mem-academy-address1" type="text" placeholder="주소를 검색하세요" readonly/>
+            <button id="academy-address-search-btn" class="pw-btn" aria-label="주소 찾기"><i class="fas fa-search"></i></button>
+          </div>
+        </div>
+        <div class="info-row">
+            <label></label> <input id="mem-academy-address2" type="text" placeholder="상세주소" />
+        </div>
+        <div class="action-row-right">
+            <button id="academy-save-btn" class="pw-btn">학원 정보 저장/변경</button>
+        </div>
+      </div>
+      
+      <div class="widget-card">
+        <h2>현금영수증</h2>
+        <div class="info-row">
+          <label>발급 번호</label>
+          <div class="input-group">
+            <input id="mem-biz-input" type="text" placeholder="사업자/휴대폰번호" />
+            <button id="mem-biz-btn" class="pw-btn">저장</button>
+          </div>
+        </div>
+      </div>
+      </div>
+  </main>
+  
+  <aside class="actions-panel">
+    <div class="left-panel-card widget-placeholder">
+        <h4>위젯 추가 예정</h4>
+        <p>이 공간에 다양한 위젯이<br>추가될 예정입니다.</p>
+    </div>
+  </aside>
+</div>
+
+<div id="pw-modal" class="modal"><div class="modal-content"><div id="pw-modal-msg">비밀번호가 확인되었습니다.</div><button id="pw-modal-btn">확인</button></div></div>
+
+<div id="profileAdModal" class="profile-modal">
+  <div class="profile-modal-content">
+    <button class="profile-modal-close">X</button>
+    <div class="profile-iframe-outer"><iframe src="..." frameborder="0"></iframe></div>
+  </div>
+</div>
+<div id="footer-container"></div>
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script src="js/profile.js"></script>

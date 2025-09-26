@@ -1,0 +1,332 @@
+/* --- 기본 & 공통 스타일 (home.css 스타일 적용) --- */
+:root {
+  --primary-color: #6366f1;
+  --primary-hover: #4f46e5;
+  
+  /* home.css 스타일에서 가져온 색상 및 그림자 변수 */
+  --body-bg: #f9fafb; /* 배경색 변경 */
+  --widget-bg: #ffffff;
+  --border-light: #e9e9e9; /* 내부 구분선 색상 */
+  --shadow-dark: #d0d3d5;
+  --shadow-light: #ffffff;
+
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --font-family: 'Noto Sans KR', sans-serif;
+  --btn-yellow: #FDC512;
+  --btn-yellow-hover: #EEDD0F;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+/* --- home.css에서 가져온 새 배너 스타일 --- */
+.profile-promo-banner {
+  width: 99%; /* 변경: 97% -> 98%로 너비 조정 */
+  height: 240px;
+  margin: 20px auto;
+  border-radius: 15px;
+  overflow: hidden;
+}
+.profile-ad-swiper,
+.profile-ad-swiper .swiper-wrapper {
+  width: 100%;
+  height: 100%;
+}
+.profile-ad-swiper .swiper-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  cursor: pointer;
+}
+.profile-ad-swiper-pagination.swiper-pagination-bullets {
+  bottom: 10px;
+  left: 0;
+  width: 100%;
+  position: absolute;
+}
+.profile-ad-swiper-pagination .swiper-pagination-bullet {
+  background: #FFFFFF;
+  opacity: 0.6;
+}
+.profile-ad-swiper-pagination .swiper-pagination-bullet-active {
+  opacity: 1;
+}
+
+/* --- home.css에서 가져온 모달 스타일 --- */
+.profile-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, .55);
+  z-index: 10000;
+}
+.profile-modal-content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 80vw;
+  height: 68vh;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  overflow: hidden;
+  border-radius: 5px;
+  z-index: 11000;
+  padding: 0;
+}
+.profile-iframe-outer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.profile-iframe-outer iframe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%) scale(0.9);
+  border: none;
+  background: transparent;
+  display: block;
+}
+.profile-modal-close {
+  z-index: 12000 !important;
+  position: absolute;
+  right: 18px;
+  top: 14px;
+  font-size: 1.8rem;
+  border: none;
+  background: none;
+  color: #555;
+  cursor: pointer;
+}
+.profile-modal-close:hover {
+  color: #000;
+}
+
+
+/* --- 대시보드 전체 레이아웃 (반응형으로 수정됨) --- */
+.dashboard-container {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) 3fr minmax(320px, 1.5fr); 
+  gap: 24px;
+  padding: 24px;
+  width: 99%; /* 변경: 95% -> 97%로 너비를 늘려 좌우 여백을 줄임 */
+  margin: 0 auto;
+}
+
+/* --- 왼쪽/메인 컬럼 카드 스타일 (home.css 스타일 적용) --- */
+.left-panel-card,
+.widget-card {
+  background: var(--widget-bg);
+  border-radius: 22px; /* 모서리를 더 둥글게 */
+  padding: 24px;
+  height: fit-content;
+  border: none; /* 기존 테두리 제거 */
+  /* 입체감을 주는 그림자 효과 추가 */
+  box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
+}
+
+.left-panel-card h2,
+.widget-card h2 {
+  margin-top: 0;
+  margin-bottom: 24px;
+  font-size: 1.1rem;
+}
+
+/* --- 왼쪽 컬럼 --- */
+.left-column { display: flex; flex-direction: column; gap: 24px; }
+
+/* 개인 프로필 카드 내부 */
+.profile-photo-section { text-align: center; margin-bottom: 24px; }
+.profile-photo-section #profileAvatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.profile-photo-section h3 { margin: 0; font-size: 1.25rem; }
+.profile-photo-section p { margin: 4px 0 0; color: var(--text-secondary); }
+
+.profile-details-section { margin-bottom: 24px; }
+.profile-details-section .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-light); } /* 구분선 색상 변경 */
+.detail-item:last-child { border-bottom: none; }
+.detail-item .label { font-weight: 500; color: var(--text-secondary); }
+.detail-item .value { font-weight: 500; }
+
+.profile-actions { display: flex; gap: 10px; margin-top: 24px; }
+.profile-actions .profile-action-btn { 
+  flex: 1; 
+  background: var(--body-bg);
+  color: var(--text-primary); 
+  border: none;
+  padding: 8px; 
+  border-radius: 8px; 
+  font-weight: 600; 
+  cursor: pointer; 
+  font-size: 0.8rem; 
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+}
+.profile-actions .profile-action-btn:hover { 
+    color: var(--primary-color);
+}
+.profile-actions .profile-action-btn:active {
+    box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
+}
+
+/* 구독 관리 카드 내부 */
+.subscription-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; }
+.subscription-actions .pw-btn { width: 100%; text-align: center; justify-content: center; text-decoration: none; box-sizing: border-box; }
+.subscription-actions .plan-btn { background-color: var(--body-bg); color: var(--text-primary); border: none; }
+/* --- 추가된 코드 시작 --- */
+.subscription-actions .plan-btn:hover { background-color: #e9e9e9; }
+/* --- 추가된 코드 종료 --- */
+
+.subscription-history-section { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border-light); }
+.subscription-history-section h4 { margin: 0 0 10px 0; font-size: 1rem; font-weight: 700; }
+
+/* --- 메인 콘텐츠 영역 --- */
+.main-content-area { display: flex; flex-direction: column; gap: 24px; }
+.content-header { display: flex; justify-content: space-between; align-items: center; }
+.content-header h1 { margin: 0; font-size: 1.8rem; }
+
+.content-widgets { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: start; }
+
+.info-row { display: flex; align-items: center; margin-bottom: 16px; gap: 16px; }
+.info-row:last-child { margin-bottom: 0; }
+.info-row label { width: 100px; font-weight: 500; flex-shrink: 0; }
+.info-row .input-group { display: flex; flex-grow: 1; gap: 8px; }
+
+.action-row-right { display: flex; justify-content: flex-end; margin-top: 24px; }
+
+/* --- 입력창 & 버튼 스타일 --- */
+input[type="text"], input[type="password"] { 
+  width: 100%; 
+  padding: 10px 14px;
+  border: none; /* 테두리 제거 */
+  border-radius: 8px; 
+  font-size: 0.9rem;
+  background-color: var(--body-bg); /* 배경색과 동일하게 */
+  /* 안으로 파인 듯한 효과 추가 */
+  box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -3px -3px 7px var(--shadow-light);
+  transition: box-shadow 0.2s ease;
+  color: var(--text-primary);
+}
+input:focus { 
+  outline: none;
+  box-shadow: inset 1px 1px 2px var(--shadow-dark), inset -1px -1px 2px var(--shadow-light);
+}
+
+.pw-btn { 
+    padding: 10px 18px; 
+    border: none; 
+    border-radius: 8px; 
+    background: var(--primary-color); 
+    color: #fff; 
+    font-size: 0.9rem; 
+    font-weight: 600; 
+    cursor: pointer; 
+    transition: all 0.2s ease;
+    box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+}
+.pw-btn:active {
+    background: var(--primary-hover);
+    box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
+}
+
+.input-group .pw-btn {
+  width: 40px; height: 40px; padding: 0;
+  font-size: 1.1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  background-color: var(--btn-yellow);
+  color: #111;
+}
+.input-group .pw-btn:active {
+    background-color: var(--btn-yellow-hover);
+}
+
+#academy-save-btn {
+    background-color: var(--body-bg);
+    color: var(--text-primary);
+}
+
+.subscribe-btn { background-color: #FEE500; color: #191919; }
+/* --- 추가된 코드 시작 --- */
+.subscribe-btn:hover { background-color: #FDD835; }
+/* --- 추가된 코드 종료 --- */
+.btn-cancel { background-color: #FFC1CC; color: #191919; }
+
+/* --- 오른쪽 컬럼 --- */
+.widget-placeholder { 
+    text-align: center; 
+    color: var(--text-secondary); 
+    min-height: 800px; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    border: 2px dashed var(--shadow-dark);
+    background-color: var(--body-bg);
+}
+.widget-placeholder h4 { margin: 0 0 8px 0; color: var(--text-primary); }
+
+.payment-history-list { list-style: none; padding: 0; margin: 0; max-height: 150px; overflow-y: auto; }
+.payment-history-list li { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 8px 4px; border-bottom: 1px solid var(--border-light); }
+.payment-history-list li:last-child { border-bottom: none; }
+
+.modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.55); z-index: 1000; }
+.modal-content { max-width: 380px; width: 90%; background: #fff; border-radius: 12px; padding: 32px 28px; text-align: center; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); display: none; align-items: center; justify-content: center; z-index: 2000; }
+.modal-overlay .modal-content { width: 90%; max-width: 900px; height: 85vh; padding: 20px; box-sizing: border-box; position: relative; display: flex; flex-direction: column; }
+.modal-close-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 2rem; color: #666; cursor: pointer; line-height: 1; }
+.modal-iframe { width: 100%; height: 100%; border: 1px solid var(--border-light); margin-top: 30px; }
+
+/* SweetAlert2 테마 보정 */
+.swal2-popup{
+  border-radius: 14px;
+  box-shadow: 0 18px 48px rgba(0,0,0,.18);
+  padding: 22px 22px 18px;
+}
+.swal2-title{ font-weight: 900; letter-spacing: -.2px; }
+.swal2-html-container{ font-size: .95rem; color: #555; }
+.swal2-styled.swal2-confirm{
+  border-radius: 9999px;
+  font-weight: 800;
+  color: #111;
+}
+
+/* 반응형 미디어 쿼리 (수정됨) */
+@media (max-width: 1280px) {
+  .dashboard-container {
+    grid-template-columns: minmax(300px, 1fr) 2.5fr; 
+  }
+  .actions-panel {
+    display: none;
+  }
+}
+
+@media (max-width: 960px) { 
+  .dashboard-container {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+  .content-widgets { 
+    grid-template-columns: 1fr; 
+  }
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .info-row label {
+    width: auto;
+  }
+}

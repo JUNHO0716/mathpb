@@ -1,0 +1,69 @@
+footer {
+  background-color: #f8f8f8; /* 아주 옅은 회색 배경 */
+  color: #777;
+  padding: 20px 20px 15px;   /* 상단 여백은 20px, 하단은 15px로 조정 */
+  font-size: 0.6rem;
+  border-top: 1px solid #eee;
+}
+
+.footer-container {
+  display: flex;
+  justify-content: space-around; /* ★★★ 이 부분을 변경하여 좌우로 최대한 퍼지게 합니다 ★★★ */
+  flex-wrap: wrap;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
+  margin: 0 auto 15px; /* 푸터 컨테이너와 하단 저작권 사이 여백 추가 */
+}
+
+.footer-section {
+  flex: 1;                  /* 각 섹션이 공간을 차지하도록 수정 */
+  min-width: 200px;         /* 최소 너비를 다시 확보 */
+  margin: 5px 15px;
+  text-align: left;
+}
+
+.footer-section h4 {
+  color: #555;
+  font-size: 0.7rem;
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.footer-section p {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-section li {
+  margin-bottom: 4px; /* 리스트 항목 간 여백 살짝 조정 */
+}
+
+.footer-section a {
+  color: #777;
+  text-decoration: none;
+  transition: color 0.2s;
+  font-size: 0.6rem;
+}
+
+.footer-section a:hover {
+  color: #333;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 0; /* 상단 패딩 제거 (footer-container의 margin-bottom으로 대체) */
+  font-size: 0.55rem;
+  color: #888;
+}
+
+.social-links a {
+  color: #777;
+  margin: 0 8px;
+  font-size: 1.0rem;
+}

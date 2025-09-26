@@ -1,0 +1,84 @@
+<section class="upload-page-banner">
+  <div class="upload-inner">
+    <h2>시험지 업로드</h2>
+    <p>시험지 PDF 파일을 업로드하면, 순서대로 작업됩니다.</p>
+  </div>
+</section>
+<div class="upload-main-wrapper">
+<div class="upload-left-panel">
+  <div id="upload-head-area">
+    <h3>Upload Files</h3>
+    <form class="upload-box" id="uploadForm" enctype="multipart/form-data" onsubmit="return false;">
+      <div id="drag-area">
+        <label for="fileInput">
+          <i class="fas fa-cloud-upload-alt fa-2x" style="margin-bottom:10px;"></i><br>
+          Drag and drop files<br>
+          <span style="font-size:0.85rem;color:#777;">or click to choose files (PDF, Max: 1GB, 최대 10개)</span>
+        </label>
+        <input type="file" id="fileInput" name="fileInput" multiple accept="application/pdf" style="display:none;"/>
+      </div>
+    </form>
+  </div>
+  <div id="preview-card-container"></div>
+  <div class="upload-preview-bottom-btns">
+    <button id="upload-btn" type="button">파일 업로드</button>
+    <button id="add-file-btn" type="button" style="display:none;">파일 추가</button>
+  </div>
+</div>
+  <div class="upload-right-panel">
+    <div class="upload-slider-tabs">
+      <div class="upload-tab-indicator"></div>
+      <button class="upload-tab-btn upload-active" data-filter="확인중">시험지 확인중</button>
+      <button class="upload-tab-btn" data-filter="제작중">시험지 제작중</button>
+      <button class="upload-tab-btn" data-filter="완료">제작 완료</button>
+      <button class="upload-tab-btn" data-filter="반려">반려</button>
+    </div>
+    
+    <div class="upload-content-area">
+      <div class="upload-section-header">
+        <h3 id="content-title" class="upload-section-title">업로드 파일</h3>
+        </div>
+      <div class="upload-card-container" id="upload-card-container"></div>
+      <div class="upload-rejected-section">
+        <table>
+          <thead>
+            <tr>
+              <th>파일명</th>
+              <th>반려 사유</th>
+            </tr>
+          </thead>
+          <tbody id="rejected-body">
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="delete-modal" class="upload-modal-overlay">
+  <div class="upload-modal-content">
+    <div class="upload-modal-icon"></div>
+    <h3>파일 삭제</h3>
+    <p>
+      선택한 파일을 정말 삭제하시겠습니까?<br>
+      이 작업은 되돌릴 수 없습니다.
+    </p>
+    <div class="upload-modal-buttons">
+      <button id="cancel-delete" class="upload-modal-btn upload-modal-btn-cancel">취소</button>
+      <button id="confirm-delete" class="upload-modal-btn upload-modal-btn-confirm">삭제</button>
+    </div>
+  </div>
+</div>
+
+<div class="details-slide-panel" id="details-panel">
+  <div class="details-panel-header">
+    <h2>상세 정보</h2>
+    <button class="details-panel-close-btn" id="details-panel-close">&times;</button>
+  </div>
+  <div class="details-panel-content" id="details-panel-content">
+    </div>
+</div>
+<div class="details-panel-overlay" id="details-overlay"></div>
+
+<div id="footer-container"></div>
+<script src="/js/upload.js"></script>

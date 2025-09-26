@@ -1,0 +1,408 @@
+       * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 0;
+            overflow: hidden;
+        }
+
+        .header {
+            background: #fff;
+            border-bottom: 1px solid #e9ecef;
+            padding: 30px 40px;
+        }
+
+        .blog-header .blog-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .title-input {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-bottom: 2px solid #e9ecef;
+            font-size: 20px;
+            outline: none;
+            background: #fff;
+            transition: border-color 0.2s;
+            font-family: 'Malgun Gothic', sans-serif;
+        }
+
+        .title-input:focus {
+            border-bottom-color: #03c75a;
+        }
+
+        .title-input::placeholder {
+            color: #999;
+        }
+
+        .editor-wrapper {
+            background: #fff;
+        }
+
+        /* Quill 에디터 커스터마이징 */
+        .ql-toolbar {
+            border: none !important;
+            border-bottom: 1px solid #e9ecef !important;
+            padding: 20px 20px !important;
+            background: #fff;
+            font-family: 'Malgun Gothic', sans-serif;
+        }
+
+        .ql-container {
+            border: none !important;
+            font-family: 'Malgun Gothic', sans-serif;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .ql-editor {
+            min-height: 500px;
+            padding: 20px;
+            color: #333;
+        }
+
+        .ql-editor.ql-blank::before {
+            content: '내용을 입력하세요...';
+            color: #999;
+            font-style: normal;
+            font-size: 16px;
+        }
+
+        /* 툴바 버튼 스타일링 */
+        .ql-toolbar .ql-formats {
+            margin-right: 15px;
+        }
+
+        .ql-toolbar button,
+        .ql-toolbar .ql-picker {
+            margin-right: 5px;
+        }
+
+        .ql-toolbar button:hover,
+        .ql-toolbar button.ql-active {
+            color: #03c75a !important;
+        }
+
+        .ql-toolbar .ql-stroke {
+            stroke: #666;
+        }
+
+        .ql-toolbar button:hover .ql-stroke,
+        .ql-toolbar button.ql-active .ql-stroke {
+            stroke: #03c75a !important;
+        }
+
+        .ql-toolbar .ql-fill {
+            fill: #666;
+        }
+
+        .ql-toolbar button:hover .ql-fill,
+        .ql-toolbar button.ql-active .ql-fill {
+            fill: #03c75a !important;
+        }
+
+        /* 이미지 스타일링 */
+        .ql-editor img {
+            max-width: 100%;
+            height: auto;
+            margin: 10px 0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .ql-editor img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .submit-area {
+            text-align: right;
+            padding: 20px;
+            background: #fff;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .submit-btn {
+            background: #03c75a;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 15px;
+            box-shadow: 0 2px 4px rgba(3, 199, 90, 0.3);
+        }
+
+        .submit-btn:hover {
+            background: #45a049;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(3, 199, 90, 0.4);
+        }
+
+        .cancel-btn {
+            background: #6c757d;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 15px;
+        }
+
+        .cancel-btn:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .preview-btn {
+            background: #17a2b8;
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preview-btn:hover {
+            background: #138496;
+            transform: translateY(-1px);
+        }
+
+        /* 미리보기 모달 */
+        .preview-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .preview-content {
+            background-color: #fefefe;
+            margin: 2% auto;
+            padding: 40px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 90%;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .preview-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #333;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 15px;
+        }
+
+        .preview-content-area {
+            line-height: 1.8;
+            color: #333;
+        }
+
+        /* 색상 팔레트 커스터마이징 */
+        .ql-color .ql-picker-options,
+        .ql-background .ql-picker-options {
+            width: 252px;
+        }
+
+        /* 이모지 패널 스타일링 */
+        .emoji-panel {
+            display: none;
+            position: fixed;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            max-width: 320px;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .emoji-panel.show {
+            display: grid;
+        }
+
+        .emoji-btn {
+            padding: 8px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 20px;
+            border-radius: 4px;
+            transition: background 0.2s;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emoji-btn:hover {
+            background: #f8f9fa;
+            transform: scale(1.1);
+        }
+
+        /* 일러스트 패널 스타일링 */
+        .illustration-panel {
+            display: none;
+            position: fixed;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            z-index: 1000;
+            max-width: 400px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .illustration-panel.show {
+            display: grid;
+        }
+
+        .illustration-item {
+            padding: 8px;
+            border: 2px solid #e9ecef;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            overflow: hidden;
+        }
+
+        .illustration-item:hover {
+            border-color: #17a2b8;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
+        }
+
+        .illustration-item img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+
+        /* 커스텀 이모지 버튼 컨테이너 */
+        .custom-toolbar {
+            padding: 10px 20px;
+            background: #fff;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: flex-end;
+            position: relative;
+        }
+
+        .emoji-toggle-btn {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .emoji-toggle-btn:hover {
+            background: #e9ecef;
+            border-color: #03c75a;
+            transform: translateY(-1px);
+        }
+
+        .emoji-toggle-btn.active {
+            background: #03c75a;
+            color: white;
+            border-color: #03c75a;
+        }
+
+        /* 일러스트 버튼 스타일링 */
+        .illustration-toggle-btn {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-left: 10px;
+        }
+
+        .illustration-toggle-btn:hover {
+            background: #e9ecef;
+            border-color: #17a2b8;
+            transform: translateY(-1px);
+        }
+
+        .illustration-toggle-btn.active {
+            background: #17a2b8;
+            color: white;
+            border-color: #17a2b8;
+        }

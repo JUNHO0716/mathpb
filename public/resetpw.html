@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta name="robots" content="noindex, nofollow">
+    <meta charset="UTF-8">
+    <title>비밀번호 재설정 | MathBee</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:400,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/resetpw.css">
+</head>
+<body>
+    <div class="reset-card">
+        <div id="step1-identify">
+            <h2>비밀번호 재설정</h2>
+            <p class="description">가입 시 사용한 아이디(이메일)를 입력하고<br>인증 방법을 선택해주세요.</p>
+            <input type="text" id="email" placeholder="아이디(이메일) 입력" autocomplete="email">
+            <div class="auth-method-select">
+                <button id="viaEmailBtn" class="auth-method-btn active" data-method="email">이메일로 인증</button>
+                <button id="viaPhoneBtn" class="auth-method-btn" data-method="phone">휴대폰으로 인증</button>
+            </div>
+            <button id="sendCodeBtn">인증번호 받기</button>
+            <div class="result-msg" id="step1-msg"></div>
+        </div>
+
+        <div id="step2-verify" style="display:none;">
+            <h2 id="verify-title">인증번호 입력</h2>
+            <p class="description" id="verify-desc">인증번호 6자리를 입력해주세요.</p>
+            <div class="input-group">
+                <input type="text" id="authCode" placeholder="인증번호 6자리" maxlength="6">
+                <span id="timer">03:00</span>
+                <button id="verifyCodeBtn">확인</button>
+            </div>
+            <div class="result-msg" id="step2-msg"></div>
+        </div>
+
+        <div id="step3-reset" style="display:none;">
+            <h2>새 비밀번호 설정</h2>
+            <p class="description">새로 사용할 비밀번호를 입력해주세요.</p>
+            <input type="password" id="newpw" placeholder="새 비밀번호" autocomplete="new-password">
+            <input type="password" id="newpw2" placeholder="새 비밀번호 확인" autocomplete="new-password">
+            <button id="resetPwBtn">비밀번호 변경</button>
+            <div class="result-msg" id="step3-msg"></div>
+        </div>
+        
+        <a href="login.html" class="back-link">로그인 화면으로 돌아가기</a>
+    </div>
+
+    <script src="js/resetpw.js"></script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+/* --- '내 책장' 페이지 레이아웃 --- */
+.bookcase-wrapper {
+  display: flex;
+  flex-direction: row; /* 명시적으로 가로 정렬 */
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+/* --- 메인 콘텐츠 (iframe) --- */
+#bookcaseMainIframe {
+  flex-grow: 1; /* 남는 공간을 모두 차지 */
+  height: 100%;
+  border: none;
+}
+
+/* --- 오른쪽 사이드바 --- */
+.bookcase-sidebar {
+  width: 550px;
+  background: #f9f9f9;
+  border-left: 1px solid #e0e0e0;
+  transition: width 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  padding-top: 20px;
+  overflow: hidden;
+  flex-shrink: 0; /* 너비가 줄어들지 않도록 고정 */
+}
+
+.bookcase-sidebar.collapsed {
+  width: 80px;
+}
+
+.bookcase-sidebar.collapsed .sidebar-downloads {
+  display: none;
+}
+
+/* --- (이하 아이콘, 테이블 등 나머지 스타일) --- */
+.bookcase-sidebar .menu-button {
+  background: none; border: none; color: #111; font-size: 24px;
+  cursor: pointer; padding: 10px; margin: 0 auto 40px;
+}
+.bookcase-sidebar .spacer { flex-grow: 1; }
+.bookcase-sidebar .rf-header { padding: 0 16px 12px; font-size: 0.95rem; font-weight: bold; }
+
+/* --- 오른쪽 사이드바 테이블 (home.css 스타일 적용) --- */
+.bookcase-sidebar .rf-table-wrap {
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 0 10px; /* 테이블 좌우 여백 추가 */
+}
+
+.bookcase-sidebar .rf-table {
+  width: 100%;
+  min-width: 0; /* 최소 너비 제거 */
+  border-collapse: collapse; /* 테두리 병합 */
+}
+
+/* thead 스타일 */
+.bookcase-sidebar .rf-table thead {
+  position: sticky;
+  top: 0;
+  background: #f7f7f7;
+  z-index: 1;
+}
+
+.bookcase-sidebar .rf-table thead th {
+  padding: 10px 14px;
+  font-size: .7rem;
+  color: #555;
+  text-align: center; /* 헤더 전체 중앙 정렬 */
+  font-weight: 700;
+  border-bottom: 1px solid #eee;
+}
+
+/* tbody 스타일 */
+.bookcase-sidebar .rf-table tbody tr:nth-child(even) {
+  background: #fafafa; /* 짝수 행 배경색 */
+}
+
+.bookcase-sidebar .rf-table tbody tr:hover {
+  background-color: #f2f2f2; /* 호버 시 배경색 */
+  transition: background-color 0.2s;
+}
+
+.bookcase-sidebar .rf-table td {
+  padding: 10px 14px;
+  font-size: .7rem;
+  border-bottom: 1px solid #eee;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle; /* 아이콘과 텍스트 정렬 */
+  text-align: center; /* <<<<<< 모든 셀 기본 중앙 정렬 */
+}
+
+/* 마지막 행 테두리 제거 */
+.bookcase-sidebar .rf-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* 아이콘 스타일 */
+.bookcase-sidebar .rf-table img {
+  height: 22px;
+  vertical-align: middle; /* 이미지 세로 정렬 */
+}
+
+.bookcase-sidebar .rf-table td a:first-child img {
+  margin-right: 5px;
+}
+
+/* 스크롤바 스타일 (선택사항 - home.css 스타일과 유사하게) */
+.bookcase-sidebar .rf-table-wrap::-webkit-scrollbar {
+  width: 6px;
+}
+.bookcase-sidebar .rf-table-wrap::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,.12);
+  border-radius: 4px;
+}
+.bookcase-sidebar .rf-table-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}

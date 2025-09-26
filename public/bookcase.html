@@ -1,0 +1,31 @@
+<div class="bookcase-wrapper">
+
+  <iframe src="/ready.html" id="bookcaseMainIframe"></iframe>
+
+  <div class="bookcase-sidebar collapsed" id="bookcaseSidebar">
+    <button class="menu-button" id="bookcaseToggleBtn">
+      <i class="fas fa-download" id="bookcaseMenuIcon"></i>
+    </button>
+    <div class="sidebar-downloads">
+      <div class="rf-header">
+        <i class="fas fa-download"></i>최근 다운로드
+      </div>
+      <div class="rf-table-wrap">
+        <table class="rf-table">
+          <thead>
+            <tr>
+              <th style="width: 50%;">파일명</th>
+              <th style="width: 23%;">일자</th>
+              <th style="width: 27%;">다운로드</th>
+            </tr>
+          </thead>
+          <tbody id="sidebarDownloadTbody">
+            </tbody>
+        </table>
+      </div>
+      <div class="spacer"></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/bookcase.js"></script>

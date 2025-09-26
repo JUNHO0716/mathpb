@@ -1,0 +1,466 @@
+// 날짜 표시
+const wk = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const mo = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function setToday() {
+  const t = new Date();
+  document.getElementById('todayTxt').textContent =
+    `${wk[t.getDay()]}  ${String(t.getDate()).padStart(2, '0')} ${mo[t.getMonth()]} ${t.getFullYear()}`;
+}
+
+let currentUser = null;
+
+// js/index.js 파일에서 이 함수를 통째로 바꿔주세요.
+
+async function loadContent(url) {
+  try {
+    const contentFrame = document.getElementById('contentFrame');
+    if (!contentFrame) return;
+
+    // URL에서 쿼리스트링(예: ?id=123)을 제거하여 순수 파일 이름만 얻습니다.
+    const pageUrl = url.split('?')[0];
+
+    const response = await fetch(url + (url.includes('?') ? '&' : '?') + 'ts=' + Date.now(), {
+      credentials: 'include',
+      cache: 'no-store'
+    });
+
+    if (response.status === 401) {
+      location.href = '/login.html';
+      return;
+    }
+    if (!response.ok) {
+      throw new Error('페이지를 불러올 수 없습니다.');
+    }
+
+    const htmlText = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlText, 'text/html');
+    contentFrame.innerHTML = doc.body.innerHTML;
+
+    const scripts = Array.from(doc.body.querySelectorAll('script'));
+    for (const oldScript of scripts) {
+      const newScript = document.createElement('script');
+      if (oldScript.src) {
+        newScript.src = oldScript.src;
+        newScript.async = false;
+        await new Promise((resolve) => {
+          newScript.onload = resolve;
+          newScript.onerror = resolve;
+          document.body.appendChild(newScript);
+        });
+      } else {
+        newScript.textContent = oldScript.textContent;
+        document.body.appendChild(newScript);
+        newScript.remove();
+      }
+    }
+
+    // ▼▼▼ 기존의 if 문들을 모두 지우고, 이 switch 문으로 교체합니다 ▼▼▼
+    // 불러온 페이지(url)에 따라 정확한 초기화 함수를 직접 호출해줍니다.
+    switch (pageUrl) {
+      case 'notice.html':
+        if (window.initializeNoticePage) window.initializeNoticePage(currentUser);
+        break;
+      case 'profile.html':
+        if (window.initializeProfilePage) window.initializeProfilePage(currentUser);
+        break;
+      case 'bookcase.html':
+        if (window.initializeBookcasePage) window.initializeBookcasePage(currentUser);
+        break;
+      case 'upload.html':
+        if (window.initializeUploadPage) window.initializeUploadPage(currentUser);
+        break;
+      case 'high.html':
+        if (window.initializeHighPage) window.initializeHighPage(currentUser);
+        break;
+      case 'home.html':
+        if (window.initializeHomePage) window.initializeHomePage(currentUser);
+        break;
+    }
+
+    // 한번 사용한 초기화 함수들은 전역(window)에서 깔끔하게 정리합니다.
+    delete window.initializeNoticePage;
+    delete window.initializeProfilePage;
+    delete window.initializeBookcasePage;
+    delete window.initializeUploadPage;
+    delete window.initializeHighPage;
+    delete window.initializeHomePage;
+
+  } catch (error) {
+    console.error('콘텐츠 로딩 실패:', error);
+    document.getElementById('contentFrame').innerHTML =
+      `<div style="padding:40px; text-align:center;">페이지를 불러오는 데 실패했습니다.</div>`;
+  }
+}
+
+
+/* [수정 1]
+  기존의 window.addEventListener('message', ...) 코드를 삭제하고,
+  그 역할을 대신할 이 함수를 새로 만들었습니다.
+  home.html 같은 페이지에서 이 함수를 호출하게 됩니다.
+*/
+window.handleChildNavigation = (data) => {
+  // "더보기" 버튼 클릭 시
+  if (data && data.type === 'goNoticeMore') {
+    document.querySelectorAll('.menu-item').forEach(i => {
+      i.classList.remove('active');
+      const icon = i.querySelector('.menu-icon');
+      if (icon) icon.src = icon.dataset.iconWhite;
+    });
+    const noticeMenu = document.getElementById('menu6');
+    noticeMenu.classList.add('active');
+    const icon = noticeMenu.querySelector('.menu-icon');
+    if (icon) icon.src = icon.dataset.iconWhite; // 수정됨
+    const pageTitle = document.getElementById('pageTitle');
+    if (pageTitle) pageTitle.innerHTML = `<span class="highlight">No</span>tice`;
+    loadContent('notice.html');
+  }
+
+  // "최근 업로드 더보기" 버튼 클릭 시
+  if (data && data.type === 'goUploadMore') {
+    document.querySelectorAll('.menu-item').forEach(i => {
+      i.classList.remove('active');
+      const icon = i.querySelector('.menu-icon');
+      if (icon) icon.src = icon.dataset.iconWhite;
+    });
+    const menu3 = document.getElementById('menu3');
+    menu3.classList.add('active');
+    const icon = menu3.querySelector('.menu-icon');
+    if (icon) icon.src = icon.dataset.iconWhite; // 수정됨
+    const pageTitle = document.getElementById('pageTitle');
+    if (pageTitle) pageTitle.innerHTML = `<span class="highlight">Te</span>st paper`;
+    loadContent('high.html');
+  }
+
+  // 특정 공지사항으로 바로 이동 시
+  if (data && data.type === 'goNotice') {
+    // ... (위와 동일한 메뉴 활성화/타이틀 변경 로직) ...
+    loadContent('notice.html?id=' + data.noticeId);
+  }
+};
+
+
+/* 로그인·프로필 바인딩 + 관리자 판별 */
+let IS_ADMIN = false;
+async function bindUser() {
+  try {
+    const res = await fetch('/check-auth?ts=' + Date.now(), {
+      credentials: 'include',
+      cache: 'no-store'
+    });
+    const d = await res.json();
+    if (!d.isLoggedIn) return;
+    const u = d.user || {};
+    currentUser = u;
+    const displayId = u.email ? u.email.split('@')[0] : (u.name || 'Guest');
+    document.getElementById('profileName').textContent = displayId;
+    const avatarEl = document.getElementById('avatar');
+    if (u.avatarUrl && u.avatarUrl.trim() !== "") {
+      avatarEl.src = u.avatarUrl;
+    } else {
+      avatarEl.src = 'icon_my_b.png';
+    }
+    avatarEl.alt = displayId;
+    document.getElementById('userBox').classList.remove('loading');
+    if (u.role === 'admin') {
+      document.getElementById('goAdminPage').style.display = 'block';
+    } else {
+      document.getElementById('goAdminPage').style.display = 'none';
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+// 프로필 드롭다운
+function initDropdown() {
+  const box = document.getElementById('userBox');
+  const menu = document.getElementById('dropdownMenu');
+  const arrow = document.getElementById('arrowIcon');
+  box.addEventListener('click', e => {
+    e.stopPropagation();
+    const open = menu.style.display === 'block';
+    menu.style.display = open ? 'none' : 'block';
+    arrow.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+  });
+  document.addEventListener('click', e => {
+    if (!menu.contains(e.target)) {
+      menu.style.display = 'none';
+      arrow.style.transform = 'rotate(0deg)';
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // 기본 UI 설정
+  setToday();
+  initDropdown();
+  
+  // 사용자 정보를 가져올 때까지 기다립니다.
+  await bindUser();
+
+  // 사용자 정보 로딩이 끝난 후, 첫 화면을 로딩합니다.
+  const first = document.getElementById('menu1');
+  first.classList.add('active');
+  const firstIcon = first.querySelector('.menu-icon');
+  firstIcon.src = firstIcon.dataset.iconWhite;
+  document.querySelectorAll('.menu-item:not(#menu1) .menu-icon').forEach(icon => {
+    icon.src = icon.dataset.iconWhite;
+  });
+  loadContent(first.dataset.url);
+
+  // 나머지 이벤트 리스너들을 설정합니다.
+  const sidebarLogout = document.getElementById('menu8');
+  if (sidebarLogout) sidebarLogout.addEventListener('click', async () => {
+    try {
+      await fetch('/logout', {
+        credentials: 'include'
+      });
+      location.href = '/login.html';
+    } catch (e) {
+      console.error('로그아웃 실패', e);
+    }
+  });
+  const dropdownLogout = document.getElementById('logoutBtn');
+  async function logout() {
+    await fetch('/logout', {
+      credentials: 'include'
+    });
+    location.href = '/login.html';
+  }
+  if (sidebarLogout) sidebarLogout.addEventListener('click', logout);
+  if (dropdownLogout) dropdownLogout.addEventListener('click', logout);
+  const payBtn = document.querySelector('.action-btn[href="pricing.html"]');
+  const paymentModal = document.getElementById('paymentModal');
+  const paymentIframe = document.getElementById('paymentIframe');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  if (payBtn) {
+    payBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      paymentModal.classList.add('show');
+      paymentIframe.src = "pricing.html";
+      document.body.style.overflow = "hidden";
+    });
+  }
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', function() {
+      paymentModal.classList.remove('show');
+      paymentIframe.src = "";
+      document.body.style.overflow = "";
+    });
+  }
+  paymentModal.addEventListener('click', function(e) {
+    if (e.target === paymentModal) {
+      paymentModal.classList.remove('show');
+      paymentIframe.src = "";
+      document.body.style.overflow = "";
+    }
+  });
+});
+
+// 메뉴 등장 애니메이션 순차적 적용
+window.addEventListener('DOMContentLoaded', () => {
+  const menuIds = ["menu1", "menu2", "menu3", "menu4", "menu5", "menu6", "menu7", "menu8"];
+  menuIds.forEach((id, idx) => {
+    const el = document.getElementById(id);
+    setTimeout(() => {
+      el.classList.add("show");
+    }, 300 + idx * 80);
+  });
+});
+
+function toggleSidebarAnim() {
+  const sb = document.getElementById('sidebar');
+  const btn = document.getElementById('toggleBtn');
+  sb.classList.toggle('collapsed');
+  btn.classList.toggle('active');
+}
+
+document.querySelectorAll('.menu-item').forEach(item => {
+  item.addEventListener('click', function() {
+    const url = this.dataset.url;
+    const menuId = this.id;
+    const t = menuTitles[menuId];
+
+    // '시험지 요청'(menu5) 클릭 시 권한 확인 로직
+    if (menuId === 'menu5') {
+      if (currentUser && currentUser.hasPaid) {
+        // 권한이 있으면 페이지 로드 및 메뉴 활성화
+        setActiveMenu(this);
+        if (t) setPageTitle(t.highlight, t.text);
+        loadContent(url);
+      } else {
+        // 권한이 없으면 모달창 표시 (메뉴는 활성화하지 않음)
+        Swal.fire({
+          html: `<img src="image_27e25c.png" style="width: 80px; height: 80px; border: none; margin-top: 20px;">`,
+          title: '이용 불가',
+          text: '해당 서비스는 결제한 사용자만 이용할 수 있습니다.',
+          confirmButtonText: '확인',
+          confirmButtonColor: '#ffcb2c',
+          background: '#222',
+          color: '#fff',
+          customClass: {
+            title: 'swal-title-custom',
+            htmlContainer: 'swal-html-custom',
+            popup: 'swal-popup-custom'
+          }
+        });
+      }
+    } else if (url) {
+      // 다른 메뉴 항목은 정상적으로 페이지 로드 및 메뉴 활성화
+      setActiveMenu(this);
+      if (t) setPageTitle(t.highlight, t.text);
+      loadContent(url);
+    }
+  });
+});
+
+// 메뉴 활성화 및 타이틀 변경을 위한 헬퍼 함수
+function setActiveMenu(activeItem) {
+  document.querySelectorAll('.menu-item').forEach(i => {
+    i.classList.remove('active');
+    var icon = i.querySelector('.menu-icon');
+    if (icon) icon.src = icon.dataset.iconWhite;
+  });
+  activeItem.classList.add('active');
+  var activeIcon = activeItem.querySelector('.menu-icon');
+  if (activeIcon) activeIcon.src = activeIcon.dataset.iconWhite; // 수정됨
+}
+
+function setPageTitle(highlight, text) {
+  const pageTitle = document.getElementById('pageTitle');
+  if (pageTitle) {
+    pageTitle.innerHTML = `<span class="highlight">${highlight}</span>${text}`;
+  }
+}
+
+
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const menuParam = params.get('menu');
+  if (menuParam === 'notice') {
+    document.querySelectorAll('.menu-item').forEach(i => {
+      i.classList.remove('active');
+      var icon = i.querySelector('.menu-icon');
+      if (icon) icon.src = icon.dataset.iconWhite;
+    });
+    const noticeMenu = document.getElementById('menu6');
+    noticeMenu.classList.add('active');
+    const icon = noticeMenu.querySelector('.menu-icon');
+    if (icon) icon.src = icon.dataset.iconWhite; // 수정됨
+    const pageTitle = document.getElementById('pageTitle');
+    pageTitle.innerHTML = `<span class="highlight">No</span>tice`;
+    
+    /* [수정 2] 버그 수정
+      .src 속성은 div에 없으므로 loadContent() 함수를 호출하도록 변경했습니다.
+    */
+    loadContent('notice.html');
+  }
+});
+
+(function() {
+  const sb = document.getElementById('sidebar');
+  const btn = document.getElementById('toggleBtn');
+  const willOpen = sb.classList.contains('collapsed');
+  sb.classList.toggle('collapsed');
+  btn.classList.toggle('active');
+  sb.classList.remove('expanded');
+  if (willOpen) {
+    setTimeout(() => sb.classList.add('expanded'), 300);
+  }
+});
+
+const menuTitles = {
+  menu1: {
+    highlight: "Ma",
+    text: "in home"
+  },
+  menu2: {
+    highlight: "Pr",
+    text: "oblem Bank"
+  },
+  menu3: {
+    highlight: "Te",
+    text: "st paper"
+  },
+  menu4: {
+    highlight: "My",
+    text: " Library"
+  },
+  menu5: {
+    highlight: "Up",
+    text: "load files"
+  },
+  menu6: {
+    highlight: "No",
+    text: "tice"
+  },
+  menu7: {
+    highlight: "My",
+    text: " Account"
+  },
+  menu8: {
+    highlight: "Lo",
+    text: "gout"
+  }
+};
+
+window.addEventListener('DOMContentLoaded', () => {
+  const fab = document.getElementById('helpFab');
+  const menu = document.getElementById('helpMenu');
+  fab.addEventListener('click', () => {
+    menu.classList.toggle('show');
+  });
+  document.addEventListener('click', e => {
+    if (!menu.contains(e.target) && !fab.contains(e.target)) {
+      menu.classList.remove('show');
+    }
+  });
+  menu.querySelectorAll('li').forEach(li => {
+    li.addEventListener('click', () => {
+      const url = li.dataset.url;
+      if (url) window.open(url, '_blank');
+      menu.classList.remove('show');
+    });
+  });
+});
+
+(function() {
+  const KEY = 'mathbee_intro_dismissed_until'; // 저장 키 이름을 용도에 맞게 변경
+
+  function qs(id) { return document.getElementById(id); }
+
+  function bindIntroModal() {
+    const overlay = qs('introOverlay');
+    if (!overlay) return;
+    // introTodayCloseBtn으로 ID 변경
+    const btnClose = qs('introCloseBtn'), btnOk = qs('introOkBtn'), btnTodayClose = qs('introTodayCloseBtn');
+    
+    function openIntro() { overlay.classList.add('show'); document.body.style.overflow = 'hidden'; }
+    function closeIntro(remember) {
+      overlay.classList.remove('show'); document.body.style.overflow = '';
+      if (remember) {
+        try {
+          // 영구 저장 대신, 현재 시간으로부터 24시간 뒤의 시간을 저장
+          const expiry = new Date().getTime() + (24 * 60 * 60 * 1000);
+          localStorage.setItem(KEY, expiry);
+        } catch (e) {}
+      }
+    }
+    
+    btnClose?.addEventListener('click', () => closeIntro(false));
+    btnOk?.addEventListener('click', () => closeIntro(false));
+    // introTodayCloseBtn으로 이벤트 리스너 변경
+    btnTodayClose?.addEventListener('click', () => closeIntro(true));
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeIntro(false); });
+    
+    // 저장된 시간이 현재 시간보다 미래인지 확인
+    const dismissedUntil = localStorage.getItem(KEY);
+    if (!dismissedUntil || new Date().getTime() > dismissedUntil) {
+      setTimeout(openIntro, 800);
+    }
+    
+    window.showIntro = function() { localStorage.removeItem(KEY); openIntro(); };
+  }
+  bindIntroModal();
+})();

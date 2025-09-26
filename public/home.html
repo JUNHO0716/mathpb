@@ -1,0 +1,138 @@
+<link rel="stylesheet" href="css/home.css">
+
+<section class="home-promo-banner">
+  <div class="swiper home-ad-swiper">
+    <div class="swiper-wrapper">
+      <div class="swiper-slide" data-url="promo1.html"><img src="image_banner/ad1.jpg" alt="배너 1"></div>
+      <div class="swiper-slide" data-url="promo2.html"><img src="image_banner/ad2.jpg" alt="배너 2"></div>
+      <div class="swiper-slide" data-url="promo3.html"><img src="image_banner/ad3.jpg" alt="배너 3"></div>
+      <div class="swiper-slide" data-url="promo4.html"><img src="image_banner/ad4.jpg" alt="배너 4"></div>
+    </div>
+   <div class="home-ad-swiper-pagination"></div>
+  </div>
+</section>
+
+<section class="home-carousel-notice-wrapper">
+    <div class="home-card-carousel-section">
+        <div class="home-slider-tabs">
+          <div class="home-tab-indicator"></div>
+          <button class="home-tab-btn home-active" data-tab="news">매쓰비소식</button>
+          <button class="home-tab-btn" data-tab="guide">이용방법</button>
+          <button class="home-tab-btn" data-tab="admission">입시정보</button>
+        </div>
+        <div class="swiper home-cardSwiper">
+            <div class="swiper-wrapper"></div>
+        </div>
+    </div>
+</section>
+
+<section class="home-dashboard-body">
+  <div class="home-user-row">
+    <div class="home-profile-card">
+        <div class="profile-main-collapsed">
+            <img id="profileAvatar" src="https://via.placeholder.com/74" alt="avatar">
+            <div class="home-info">
+                <h3 id="profileName">Guest</h3>
+                <div id="profileEmail">guest@example.com</div>
+            </div>
+        </div>
+        <div class="profile-main-expanded">
+            <img id="profileAvatarExpanded" src="https://via.placeholder.com/90" alt="avatar">
+            <h3 id="profileNameExpanded">Guest</h3>
+            <p class="home-profile-plan">GRADE</p>
+        </div>
+        <button class="home-profile-toggle-btn"><i class="fas fa-chevron-down"></i></button>
+        <div class="home-profile-details">
+            <div class="home-detail-item"><span class="home-label">ID</span><span class="home-value" id="profileIdValue">-</span></div>
+            <div class="home-detail-item"><span class="home-label">Email</span><span class="home-value" id="profileEmailValue">-</span></div>
+            <div class="home-detail-item"><span class="home-label">Phone number</span><span class="home-value" id="profilePhoneValue">-</span></div>
+        </div>
+    </div>
+    <div class="home-mysheet-right">
+      <div class="home-mysheet-requests-header">
+        <i class="fas fa-file-circle-question" style="color:#222; font-size:1.25em; margin-right:8px;"></i>시험지 요청
+      </div>
+      <div class="home-stats-container">
+          <div class="home-stat-card"><span class="home-stat-label">확인중</span><span class="home-stat-value" id="statPending">0</span></div>
+          <div class="home-stat-separator"></div>
+          <div class="home-stat-card"><span class="home-stat-label">제작중</span><span class="home-stat-value" id="statProducing">0</span></div>
+          <div class="home-stat-separator"></div>
+          <div class="home-stat-card"><span class="home-stat-label">완료</span><span class="home-stat-value" id="statCompleted">0</span></div>
+          <div class="home-stat-separator"></div>
+          <div class="home-stat-card"><span class="home-stat-label">반려</span><span class="home-stat-value" id="statRejected">0</span></div>
+      </div>
+      <div class="home-mysheet-scroll-wrap">
+        <table class="home-mysheet-table">
+          <thead><tr><th style="width:70%;">파일명</th><th style="width:30%;">작업 현황</th></tr></thead>
+          <tbody id="mysheetRequestTbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="home-downloads-card">
+      <div class="home-rf-header">
+        <i class="fas fa-download" style="color:#222; font-size:1.25em; margin-right:8px;"></i>최근 다운로드
+      </div>
+      <div class="home-stats-container">
+          <div class="home-stat-card"><span class="home-stat-label">총 시험지</span><span class="home-stat-value" id="statDownloadsTotal">0</span></div>
+          <div class="home-stat-separator"></div>
+          <div class="home-stat-card"><span class="home-stat-label">고등부</span><span class="home-stat-value" id="statDownloadsHigh">0</span></div>
+          <div class="home-stat-separator"></div>
+          <div class="home-stat-card"><span class="home-stat-label">중등부</span><span class="home-stat-value" id="statDownloadsMiddle">0</span></div>
+      </div>
+      <div class="home-rf-table-wrap">
+        <table class="home-rf-table">
+          <thead><tr><th style="width:50%; text-align:center;">파일명</th><th style="width:25%; text-align:center;">다운로드일</th><th style="width:25%; text-align:center;">다운로드</th></tr></thead>
+          <tbody id="recentDownloadsTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <section class="home-recent-files-row">
+    <div class="home-notice-card">
+        <button id="noticeMoreBtn" class="home-btn-plus" title="더보기"><i class="fas fa-plus"></i></button>
+        <div class="home-notice-head"><h2>공지사항</h2></div>
+        <div id="noticeList" class="home-notice-list"></div>
+    </div>
+    <div class="home-new-panel-ready">
+        <div class="home-user-stats-list">
+            <div class="home-stat-item"><span class="home-stat-label">회원가입 수</span><span class="home-stat-value" id="statTotalUsers">0</span></div>
+            <div class="home-stat-item"><span class="home-stat-label">구독이용 회원 수</span><span class="home-stat-value" id="statSubscribedUsers">0</span></div>
+            <div class="home-stat-item"><span class="home-stat-label">현재 이용중인 회원 수</span><span class="home-stat-value" id="statActiveUsers">0</span></div>
+        </div>
+        <a href="#" class="home-reviews-link">후기 바로가기 <i class="fas fa-arrow-right"></i></a>
+    </div>
+    <div class="home-uploads-card">
+      <div class="home-rf-header">
+        <i class="fas fa-upload"></i>최근 업로드
+        <button class="home-btn-plus" title="더보기" onclick="parent.postMessage({type:'goUploadMore'},'*')"><i class="fas fa-plus"></i></button>
+      </div>
+      <div class="home-rf-table-wrap">
+        <table class="home-rf-table">
+          <thead><tr><th style="width:70%;">파일명</th><th style="width:30%;">업로드일</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+  <div class="home-mysheet-board">
+    <h2>내 문제지</h2>
+    <div class="home-mysheet-split">
+      <div class="home-mysheet-left">
+        <div class="home-mysheet-mybox">
+            <div class="home-mybox-title"><i class="fas fa-folder-open" style="color:#9370db;font-size:1.6em;margin-right:10px;"></i>내 시험지</div>
+            <div class="home-mybox-ready">준비중</div>
+          </div>
+        </div>
+    </div>
+  </div>
+</section>
+<div id="adModal" class="home-modal">
+  <div class="home-modal-content">
+    <button class="home-modal-close">X</button>
+    <div class="home-iframe-outer"><iframe src="..." frameborder="0"></iframe></div>
+  </div>
+</div>
+
+<div id="footer-container"></div>
+
+<script src="js/home.js"></script>

@@ -1,0 +1,74 @@
+<link rel="stylesheet" href="css/high.css">
+
+<section class="page-banner">
+  <div class="inner">
+    <h2 class="with-toggle">
+      <span id="level-title"></span> <span class="bar-sep">|</span> 기출자료
+      <span class="level-toggle-container">
+        <label class="switch">
+          <input type="checkbox" id="levelToggle">
+          <span class="slider"></span>
+        </label>
+        <span id="levelText"></span>
+      </span>
+    </h2>
+    <p>전국 학교별 기출자료를 한 곳에서 확인하고, 필요한 자료를 쉽게 찾아보세요.</p>
+  </div>
+</section>
+
+<div class="content-panel">
+  <div class="toolbar">
+    <div class="filter-set">
+      <select id="region" class="filter"><option value="">지역</option></select>
+      <select id="district" class="filter"><option value="">구/군</option></select>
+      <input id="school" class="filter" placeholder="학교명">
+      <select id="grade" class="filter"><option value="">학년</option></select>
+      <select id="subject" class="filter">
+        <option value="">과목</option>
+        <option>국어</option><option>수학</option><option>영어</option><option>과학</option><option>사회/역사</option>
+      </select>
+      <input id="year" class="filter" placeholder="연도" type="number">
+      <select id="semester" class="filter"><option value="">학기</option><option>1학기중간</option><option>1학기기말</option><option>2학기중간</option><option>2학기기말</option></select>
+      <button id="searchBtn" class="btn btn--search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <div class="spinner"></div>
+         검색
+      </button>
+      </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+    <thead id="table-head">
+      <tr>
+        <th>No</th>
+        <th data-sort="title">자료명 <span class="sort-icon"></span></th>
+        <th data-sort="subject">과목 <span class="sort-icon"></span></th>
+        <th data-sort="grade">학년 <span class="sort-icon"></span></th>
+        <th>학기</th>
+        <th data-sort="year">연도 <span class="sort-icon"></span></th>
+        <th data-sort="uploaded_at">업로드일 <span class="sort-icon"></span></th>
+        <th>다운로드</th>
+      </tr>
+    </thead>
+      <tbody id="file-list"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="wrapper">
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<div class="details-slide-panel" id="details-panel">
+  <div class="details-panel-header">
+    <h2>상세 정보</h2>
+    <button class="details-panel-close-btn" id="details-panel-close">&times;</button>
+  </div>
+  <div class="details-panel-content" id="details-panel-content">
+    </div>
+</div>
+<div class="details-panel-overlay" id="details-overlay"></div>
+<div id="footer-container"></div>
+
+<script src="js/high.js"></script>

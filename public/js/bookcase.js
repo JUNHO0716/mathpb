@@ -1,0 +1,56 @@
+window.initializeBookcasePage = function(user) {
+  
+  const sidebar = document.getElementById('bookcaseSidebar');
+  const toggleButton = document.getElementById('bookcaseToggleBtn');
+  const menuIcon = document.getElementById('bookcaseMenuIcon');
+
+  // 너비 계산 로직 없이, 클래스와 아이콘만 변경하는 단순한 기능
+  function toggleSidebarAnim() {
+    if (!sidebar || !menuIcon) return;
+    const isCollapsed = sidebar.classList.contains('collapsed');
+    sidebar.classList.toggle('collapsed');
+
+    if (isCollapsed) {
+      menuIcon.classList.remove('fa-download');
+      menuIcon.classList.add('fa-xmark');
+    } else {
+      menuIcon.classList.remove('fa-xmark');
+      menuIcon.classList.add('fa-download');
+    }
+  }
+
+  async function loadRecentDownloads() {
+    const sideTbody = document.getElementById('sidebarDownloadTbody');
+    if (!user || !user.email) {
+      if(sideTbody) sideTbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#aaa;">로그인 필요</td></tr>`;
+      return;
+    }
+    try {
+      const res = await fetch('/api/downloads/recent', { credentials: 'include' });
+      const data = await res.json();
+      if (!sideTbody) return;
+      if (!Array.isArray(data) || data.length === 0) {
+        sideTbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#aaa;">없음</td></tr>`;
+      } else {
+        sideTbody.innerHTML = data.slice(0, 5).map(row => `
+          <tr>
+            <td title="${row.name}">${row.name}</td>
+            <td>${row.date ? row.date.split('T')[0] : ''}</td>
+            <td>
+              <a href="/api/download/${row.id}?type=hwp" title="한글 다운로드"><img src="/image_download/hwp_download.png" alt="HWP" /></a>
+              <a href="/api/download/${row.id}?type=pdf" title="PDF 다운로드"><img src="/image_download/pdf_download.png" alt="PDF" /></a>
+            </td>
+          </tr>`).join('');
+      }
+    } catch (e) {
+      console.error(e);
+      if(sideTbody) sideTbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:red;">불러오기 실패</td></tr>`;
+    }
+  }
+
+  if (toggleButton) {
+    toggleButton.onclick = toggleSidebarAnim;
+  }
+  
+  loadRecentDownloads();
+};
