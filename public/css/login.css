@@ -3,12 +3,12 @@ body {
   /* 페이지 전체 배경색 */
   background-color: #30313E; 
   transition: opacity 0.5s ease-in-out;
+  opacity: 0; /* ▼▼▼ 이 줄을 추가해주세요 ▼▼▼ */
 }
 
 body.fade-out {
   opacity: 0;
 }
-
 h1 {
   font-family: 'Roboto', sans-serif;
   /* 'LOGIN' 글씨 색상 */

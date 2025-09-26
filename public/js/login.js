@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
   // ▼ fetch 경로에서 맨 앞의 '/'를 제거하여 상대 경로로 수정했습니다.
+   document.body.style.opacity = 1;
+   
   fetch('footer.html')
     .then(response => {
       if (response.ok) return response.text();

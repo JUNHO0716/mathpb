@@ -12,11 +12,14 @@ let currentUser = null;
 // js/index.js 파일에서 이 함수를 통째로 바꿔주세요.
 
 async function loadContent(url) {
-  try {
-    const contentFrame = document.getElementById('contentFrame');
-    if (!contentFrame) return;
+  const contentFrame = document.getElementById('contentFrame');
+  if (!contentFrame) return;
 
-    // URL에서 쿼리스트링(예: ?id=123)을 제거하여 순수 파일 이름만 얻습니다.
+  // 1. 기존 내용을 지우고 로딩 스피너를 표시합니다.
+  contentFrame.innerHTML = '<div class="spinner"></div>';
+  contentFrame.classList.add('loading');
+
+  try {
     const pageUrl = url.split('?')[0];
 
     const response = await fetch(url + (url.includes('?') ? '&' : '?') + 'ts=' + Date.now(), {
@@ -33,8 +36,14 @@ async function loadContent(url) {
     }
 
     const htmlText = await response.text();
+    
+    // 2. 로딩이 완료되면 스피너 관련 클래스를 제거합니다.
+    contentFrame.classList.remove('loading');
+    
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlText, 'text/html');
+    
+    // 3. 가져온 페이지의 내용으로 교체합니다.
     contentFrame.innerHTML = doc.body.innerHTML;
 
     const scripts = Array.from(doc.body.querySelectorAll('script'));
@@ -55,7 +64,6 @@ async function loadContent(url) {
       }
     }
 
-    // ▼▼▼ 기존의 if 문들을 모두 지우고, 이 switch 문으로 교체합니다 ▼▼▼
     // 불러온 페이지(url)에 따라 정확한 초기화 함수를 직접 호출해줍니다.
     switch (pageUrl) {
       case 'notice.html':
@@ -88,7 +96,10 @@ async function loadContent(url) {
 
   } catch (error) {
     console.error('콘텐츠 로딩 실패:', error);
-    document.getElementById('contentFrame').innerHTML =
+    
+    // 에러 발생 시에도 스피너를 제거하고 에러 메시지를 표시합니다.
+    contentFrame.classList.remove('loading');
+    contentFrame.innerHTML =
       `<div style="padding:40px; text-align:center;">페이지를 불러오는 데 실패했습니다.</div>`;
   }
 }
