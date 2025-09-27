@@ -166,10 +166,10 @@ async function bindUser() {
     
     // ▼▼▼▼▼ [수정된 부분] ▼▼▼▼▼
     let displayName;
-    // 1. 카카오 유저인지 먼저 확인합니다 (user.name이 'Kakao'인지 체크).
-    if (u.name === 'Kakao') {
-      // 2. 카카오 유저가 맞다면, email 필드에 저장된 "닉네임"을 헤더에 표시합니다.
-      displayName = u.email;
+    // 1. 카카오 유저인지 먼저 확인합니다 (DB에 저장된 email이 'Kakao'인지 체크).
+    if (u.email === 'Kakao') {
+      // 2. 카카오 유저가 맞다면, DB에 저장된 name 필드(카카오 닉네임)를 헤더에 표시합니다.
+      displayName = u.name;
     } else {
       // 3. 다른 유저(일반, 구글, 네이버)는 기존 표시 규칙을 그대로 따릅니다.
       const processedId = (u.id && u.id.includes('@')) ? u.id.split('@')[0] : u.id;
