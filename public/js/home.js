@@ -390,12 +390,13 @@ function bindUser(user) {
 
   async function loadUserStats() {
     try {
-        const res = await fetch('/api/admin/users/stats', { credentials: 'include' });
+        // 👇 [수정] API 호출 주소를 관리자(admin) 경로가 없는 새 주소로 변경합니다.
+        const res = await fetch('/api/users/stats', { credentials: 'include' }); 
+
+        // 기존 코드는 그대로 유지됩니다.
         if (!res.ok) {
-            if (res.status === 403) {
-                const panel = document.querySelector('.home-new-panel-ready');
-                if(panel) panel.innerHTML = '<div style="text-align:center; color: #aaa; align-self: center;">관리자만 볼 수 있습니다.</div>';
-            }
+            console.error(`사용자 통계 로딩 실패 (상태 코드: ${res.status})`);
+            // API 호출 실패 시, 패널의 숫자들은 0으로 유지됩니다.
             return;
         }
         const stats = await res.json();

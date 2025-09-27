@@ -272,6 +272,7 @@ function toggleSidebarAnim() {
   btn.classList.toggle('active');
 }
 
+// ▼▼▼▼▼ 여기가 수정된 부분입니다 ▼▼▼▼▼
 document.querySelectorAll('.menu-item').forEach(item => {
   item.addEventListener('click', function() {
     const url = this.dataset.url;
@@ -288,17 +289,18 @@ document.querySelectorAll('.menu-item').forEach(item => {
       } else {
         // 권한이 없으면 모달창 표시 (메뉴는 활성화하지 않음)
         Swal.fire({
-          html: `<img src="image_27e25c.png" style="width: 80px; height: 80px; border: none; margin-top: 20px;">`,
+          icon: 'warning',
           title: '이용 불가',
-          text: '해당 서비스는 결제한 사용자만 이용할 수 있습니다.',
-          confirmButtonText: '확인',
-          confirmButtonColor: '#ffcb2c',
-          background: '#222',
-          color: '#fff',
+          text: '구독 회원만 이용 가능한 기능입니다.',
+          showCancelButton: true,
+          showConfirmButton: false,
+          cancelButtonText: '닫기',
+          cancelButtonColor: '#444',
+          background: '#1a1a1a',
+          color: '#ffffff',
+          iconColor: '#FDC512',
           customClass: {
-            title: 'swal-title-custom',
-            htmlContainer: 'swal-html-custom',
-            popup: 'swal-popup-custom'
+            actions: 'swal2-actions-center'
           }
         });
       }
@@ -310,6 +312,7 @@ document.querySelectorAll('.menu-item').forEach(item => {
     }
   });
 });
+// ▲▲▲▲▲ 여기가 수정된 부분입니다 ▲▲▲▲▲
 
 // 메뉴 활성화 및 타이틀 변경을 위한 헬퍼 함수
 function setActiveMenu(activeItem) {
