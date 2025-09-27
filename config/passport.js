@@ -4,25 +4,22 @@ import { Strategy as KakaoStrategy } from 'passport-kakao';
 import db from './database.js';
 
 export default function(passport) {
-  // GoogleStrategy 설정
+  // GoogleStrategy 설정 (변경 없음)
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: process.env.GOOGLE_CALLBACK_URL
   }, async (accessToken, refreshToken, profile, done) => {
     try {
-      // [수정] 숫자 ID를 문자열로 변경
       const id = String(profile.id);
       const email = profile.emails[0].value;
       const name = profile.displayName;
       const avatarUrl = profile.photos && profile.photos[0]?.value || null;
 
-      // [수정] id로 사용자를 먼저 찾도록 로직 변경
       const [rows] = await db.query('SELECT * FROM users WHERE id = ?', [id]);
       let user;
       if (rows.length) {
         user = rows[0];
-        // 이메일이나 이름이 다를 경우 업데이트 (선택적)
         if (user.email !== email || user.name !== name) {
             await db.query('UPDATE users SET email = ?, name = ? WHERE id = ?', [email, name, id]);
         }
@@ -32,7 +29,7 @@ export default function(passport) {
       } else {
         await db.query(
           'INSERT INTO users (id, email, name, password, phone, avatarUrl) VALUES (?, ?, ?, NULL, "", ?)',
-          [id, email, name, avatarUrl] // 수정된 id 변수 사용
+          [id, email, name, avatarUrl]
         );
       }
       
@@ -52,14 +49,13 @@ export default function(passport) {
     }
   }));
 
-  // NaverStrategy 설정
+  // NaverStrategy 설정 (변경 없음)
   passport.use(new NaverStrategy({
     clientID: process.env.NAVER_CLIENT_ID,
     clientSecret: process.env.NAVER_CLIENT_SECRET,
     callbackURL: process.env.NAVER_CALLBACK_URL
   }, async (accessToken, refreshToken, profile, done) => {
     try {
-      // [수정] 숫자 ID를 문자열로 변경
       const id = String(profile.id);
       const email = profile.emails[0].value;
       const name = profile.displayName;
@@ -98,17 +94,18 @@ export default function(passport) {
     }
   }));
 
-  // KakaoStrategy 설정
+  // [수정된 KakaoStrategy 설정]
   passport.use(new KakaoStrategy({
     clientID: process.env.KAKAO_CLIENT_ID,
     callbackURL: process.env.KAKAO_CALLBACK_URL
   }, async (accessToken, refreshToken, profile, done) => {
     try {
-      // [수정] 숫자 ID를 문자열로 변경
       const id = String(profile.id);
-      const emailForDb = profile.displayName;
-      const nameForDb = 'Kakao';
       const avatarUrl = profile._json.properties.profile_image || null;
+
+      // [수정] DB에 저장할 email과 name 값을 요청대로 서로 바꿨습니다.
+      const nameForDb = profile.displayName; // 카카오 닉네임을 -> DB name 컬럼에 저장
+      const emailForDb = 'Kakao';            // 'Kakao'라는 글자를 -> DB email 컬럼에 저장
 
       const [rows] = await db.query('SELECT * FROM users WHERE id = ?', [id]);
 
