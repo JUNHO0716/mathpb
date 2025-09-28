@@ -250,7 +250,7 @@ function E() {
 
 async function k(n) {
   try {
-    await (await $("test_ck_0RnYX2w532okP2MNZRyPVNeyqApQ")).payment({
+    await (await $(e)).payment({
       customerKey: n.customerKey
     }).requestBillingAuth({
       method: "CARD",
