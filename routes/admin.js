@@ -199,22 +199,6 @@ router.get('/uploads/:id/download', verifyOrigin, async (req, res, next) => {
   }
 });
 
-// 사용자 통계
-router.get('/users/stats', async (req, res) => {
-  try {
-    const [rows] = await db.query(
-      `SELECT
-          (SELECT COUNT(*) FROM users) AS totalUsers,
-          (SELECT COUNT(*) FROM users WHERE is_subscribed = 1) AS subscribedUsers,
-          (SELECT COUNT(*) FROM users WHERE last_login >= NOW() - INTERVAL 1 DAY) AS activeUsers`
-    );
-    res.json(rows[0] || { totalUsers: 0, subscribedUsers: 0, activeUsers: 0 });
-  } catch (e) {
-    console.error('users-stats 조회 오류:', e);
-    res.status(500).json({ msg: '통계 조회 실패' });
-  }
-});
-
 // 포인트 결제 요청 목록
 router.get('/payment-list', async (req, res) => {
   try {

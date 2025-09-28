@@ -206,15 +206,17 @@ function initDropdown() {
   const box = document.getElementById('userBox');
   const menu = document.getElementById('dropdownMenu');
   const arrow = document.getElementById('arrowIcon');
+
   box.addEventListener('click', e => {
     e.stopPropagation();
-    const open = menu.style.display === 'block';
-    menu.style.display = open ? 'none' : 'block';
-    arrow.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+    const isOpen = menu.classList.contains('show');
+    menu.classList.toggle('show');
+    arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
   });
+
   document.addEventListener('click', e => {
-    if (!menu.contains(e.target)) {
-      menu.style.display = 'none';
+    if (!menu.contains(e.target) && !box.contains(e.target)) {
+      menu.classList.remove('show');
       arrow.style.transform = 'rotate(0deg)';
     }
   });
@@ -224,6 +226,33 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 기본 UI 설정
   setToday();
   initDropdown();
+
+    // ▼▼▼ 모바일 드롭다운 '공지사항' 버튼 이벤트 (추가) ▼▼▼
+  const mobileNoticeBtn = document.getElementById('mobileNoticeBtn');
+  if (mobileNoticeBtn) {
+    mobileNoticeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+
+      // 1. 공지사항 페이지 로드
+      loadContent('notice.html');
+
+      // 2. 페이지 제목 변경
+      const t = menuTitles.menu6;
+      if (t) setPageTitle(t.highlight, t.text);
+
+      // 3. 하단 메뉴 활성화 모두 해제
+      document.querySelectorAll('.mobile-nav-item').forEach(i => {
+        i.classList.remove('active');
+      });
+
+      // 4. 드롭다운 닫기
+      const menu = document.getElementById('dropdownMenu');
+      const arrow = document.getElementById('arrowIcon');
+      menu.classList.remove('show');
+      arrow.style.transform = 'rotate(0deg)';
+    });
+  }
+  // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
   
   // 사용자 정보를 가져올 때까지 기다립니다.
   await bindUser();
@@ -259,6 +288,60 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   if (sidebarLogout) sidebarLogout.addEventListener('click', logout);
   if (dropdownLogout) dropdownLogout.addEventListener('click', logout);
+
+  // ▼▼▼▼▼ 모바일 하단 메뉴 이벤트 리스너 (추가) ▼▼▼▼▼
+  document.querySelectorAll('.mobile-nav-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+      e.preventDefault(); // a 태그의 기본 동작 방지
+      
+      const url = this.dataset.url;
+      const menuId = this.id.replace('mobile-', ''); // 'mobile-menu1' -> 'menu1'
+      const t = menuTitles[menuId];
+
+      // '시험지 요청'(menu5) 클릭 시 권한 확인 로직 (PC와 동일)
+      if (menuId === 'menu5') {
+        if (currentUser && currentUser.hasPaid) {
+          // 권한이 있으면 페이지 로드 및 메뉴 활성화
+          setMobileActiveMenu(this);
+          if (t) setPageTitle(t.highlight, t.text);
+          loadContent(url);
+        } else {
+          // 권한이 없으면 모달창 표시
+          Swal.fire({
+            icon: 'warning',
+            title: '이용 불가',
+            text: '구독 회원만 이용 가능한 기능입니다.',
+            showCancelButton: true,
+            showConfirmButton: false,
+            cancelButtonText: '닫기',
+            cancelButtonColor: '#444',
+            background: '#1a1a1a',
+            color: '#ffffff',
+            iconColor: '#FDC512',
+            customClass: {
+              actions: 'swal2-actions-center'
+            }
+          });
+        }
+      } else if (url) {
+        // 다른 메뉴 항목은 정상적으로 페이지 로드 및 메뉴 활성화
+        setMobileActiveMenu(this);
+        if (t) setPageTitle(t.highlight, t.text);
+        loadContent(url);
+      }
+    });
+  });
+
+  function setMobileActiveMenu(activeItem) {
+    document.querySelectorAll('.mobile-nav-item').forEach(i => {
+      i.classList.remove('active');
+    });
+    activeItem.classList.add('active');
+  }
+  // ▲▲▲▲▲ 모바일 하단 메뉴 이벤트 리스너 (추가) ▲▲▲▲▲
+
+
+
 });
 
 // 메뉴 등장 애니메이션 순차적 적용

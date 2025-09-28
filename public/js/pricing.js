@@ -1,122 +1,15 @@
 // pricing.js
 
-// 맨 앞에 있던 document.addEventListener("DOMContentLoaded",()=>{ 와
-// 맨 뒤에 있던 }); 를 제거했습니다.
-
-const e = typeof window < "u" && window.TOSS_CLIENT_KEY ? window.TOSS_CLIENT_KEY : "test_ck_0RnYX2w532okP2MNZRyPVNeyqApQ",
-  t = n => document.querySelector(n),
-  c = n => Array.from(document.querySelectorAll(n)),
-  o = t("#mBtn"),
-  r = t("#yBtn"),
-  s = c(".plan"),
-  u = t("#subscribeBtn"),
-  d = t("#agree"),
-  l = t("#chosen"),
-  p = c(".methods .chip");
-let f = "month",
-  y = null,
-  S = "toss",
-  L = !1;
-const P = n => Number(n).toLocaleString("ko-KR");
-p.forEach(n => {
-  n.addEventListener("click", () => {
-    p.forEach(i => i.classList.remove("active")), n.classList.add("active"), S = n.dataset.method || "toss"
-  })
-}), s.forEach(n => {
-  n.querySelector(".select-btn")?.addEventListener("click", () => {
-    s.forEach(a => a.classList.remove("selected")), n.classList.add("selected"), O()
-  })
-}), [o, r].forEach(n => {
-  n.addEventListener("click", () => {
-    const i = n === o;
-    f = i ? "month" : "year", o.classList.toggle("active", i), r.classList.toggle("active", !i), s.forEach(a => {
-      const w = a.querySelector(".price .num"),
-        N = a.querySelector(".price small");
-      if (w && N) {
-        const B = i ? a.dataset.month : a.dataset.year;
-        w.textContent = P(B), N.textContent = i ? "/ 월" : "/ 년"
-      }
-    }), O()
-  })
-});
-
-function O() {
-  const n = t(".plan.selected");
-  if (n) {
-    const i = n.dataset.plan,
-      a = Number(f === "year" ? n.dataset.year : n.dataset.month);
-    y = {
-      id: i,
-      price: a
-    };
-    const w = n.querySelector("h3")?.textContent.trim() || i;
-    l.textContent = `${w} - ${P(a)}원 / ${f==="year"?"년":"월"}`
-  } else y = null, l.textContent = "아직 선택하지 않았어요.";
-  E()
-}
-d.addEventListener("change", E);
-
-function E() {
-  u.disabled = !(d.checked && y)
-}
-async function k(n) {
-  try {
-    await (await $("test_ck_0RnYX2w532okP2MNZRyPVNeyqApQ")).payment({
-      customerKey: n.customerKey
-    }).requestBillingAuth({
-      method: "CARD",
-      successUrl: n.successUrl,
-      failUrl: n.failUrl
-    })
-  } catch (i) {
-    console.error("Toss billing open error:", i), i?.code === "USER_CANCEL" ? alert("결제가 취소되었습니다.") : alert(`결제창 호출 중 오류가 발생했습니다: ${i?.message||"알 수 없는 오류"}`)
-  }
-}
-u.addEventListener("click", async () => {
-  if (!(u.disabled || L)) {
-    if (S !== "toss") {
-      alert("지금은 토스 간편결제만 지원합니다.");
-      return
-    }
-    L = !0, u.disabled = !0;
-    try {
-      const n = await fetch("/api/billing/start", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          plan: y?.id,
-          cycle: f
-        })
-      });
-      if (n.status === 401) {
-        alert("로그인 후 이용해주세요."), location.href = "/login.html?next=/pricing.html";
-        return
-      }
-      if (!n.ok) {
-        const a = await n.text().catch(() => n.statusText);
-        throw new Error(a || "초기화 실패")
-      }
-      const i = await n.json();
-      await k(i)
-    } catch (n) {
-      console.error(n), alert("결제를 시작할 수 없습니다. 잠시 후 다시 시도해주세요.")
-    } finally {
-      L = !1, E()
-    }
-  }
-}), E();
-
-// TossPayments 객체를 로드하고 초기화하는 헬퍼 함수
-// (기존 pricing.js의 첫 부분에 있던 코드를 가져와서 사용합니다)
+// -------------------------------------------------------------------
+// 1. 토스페이먼츠 SDK 로더 (Toss Payments SDK Loader)
+// 이 부분은 라이브러리를 불러오는 역할만 하므로 그대로 둡니다.
+// -------------------------------------------------------------------
 var q = "https://js.tosspayments.com/v2/standard";
 
 function T(e, t) {
   if (!(e instanceof t)) throw new TypeError("Cannot call a class as a function")
 }
-
+// ... (SDK 로더의 나머지 코드는 변경 없이 그대로 둡니다) ...
 function R(e, t) {
   if (typeof t != "function" && t !== null) throw new TypeError("Super expression must either be null or a function");
   e.prototype = Object.create(t && t.prototype, {
@@ -275,3 +168,138 @@ function $(e) {
     return r(e)
   })
 }
+
+
+// -------------------------------------------------------------------
+// 2. 애플리케이션 로직 (Application Logic)
+// ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+// DOMContentLoaded 래퍼를 제거하여 코드가 바로 실행되도록 합니다.
+// ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+const e = typeof window < "u" && window.TOSS_CLIENT_KEY ? window.TOSS_CLIENT_KEY : "test_ck_0RnYX2w532okP2MNZRyPVNeyqApQ",
+  t = n => document.querySelector(n),
+  c = n => Array.from(document.querySelectorAll(n)),
+  o = t("#mBtn"),
+  r = t("#yBtn"),
+  s = c(".plan"),
+  u = t("#subscribeBtn"),
+  d = t("#agree"),
+  l = t("#chosen"),
+  p = c(".methods .chip");
+let f = "month",
+  y = null,
+  S = "toss",
+  L = !1;
+const P = n => Number(n).toLocaleString("ko-KR");
+
+// NodeList가 비어있지 않을 때만 forEach를 실행하도록 방어 코드 추가
+if (p && p.length > 0) {
+    p.forEach(n => {
+        n.addEventListener("click", () => {
+            p.forEach(i => i.classList.remove("active")), n.classList.add("active"), S = n.dataset.method || "toss"
+        })
+    });
+}
+if (s && s.length > 0) {
+    s.forEach(n => {
+        n.querySelector(".select-btn")?.addEventListener("click", () => {
+            s.forEach(a => a.classList.remove("selected")), n.classList.add("selected"), O()
+        })
+    });
+}
+// [o, r]은 #mBtn, #yBtn이므로 null일 수 있습니다. null 체크 추가
+if (o && r) {
+    [o, r].forEach(n => {
+        n.addEventListener("click", () => {
+            const i = n === o;
+            f = i ? "month" : "year", o.classList.toggle("active", i), r.classList.toggle("active", !i), s.forEach(a => {
+                const w = a.querySelector(".price .num"),
+                    N = a.querySelector(".price small");
+                if (w && N) {
+                    const B = i ? a.dataset.month : a.dataset.year;
+                    w.textContent = P(B), N.textContent = i ? "/ 월" : "/ 년"
+                }
+            }), O()
+        })
+    });
+}
+
+function O() {
+  const n = t(".plan.selected");
+  if (n) {
+    const i = n.dataset.plan,
+      a = Number(f === "year" ? n.dataset.year : n.dataset.month);
+    y = {
+      id: i,
+      price: a
+    };
+    const w = n.querySelector("h3")?.textContent.trim() || i;
+    l.textContent = `${w} - ${P(a)}원 / ${f==="year"?"년":"월"}`
+  } else y = null, l.textContent = "아직 선택하지 않았어요.";
+  E()
+}
+
+if (d) {
+    d.addEventListener("change", E);
+}
+
+function E() {
+  if (u) {
+    u.disabled = !(d && d.checked && y);
+  }
+}
+
+async function k(n) {
+  try {
+    await (await $("test_ck_0RnYX2w532okP2MNZRyPVNeyqApQ")).payment({
+      customerKey: n.customerKey
+    }).requestBillingAuth({
+      method: "CARD",
+      successUrl: n.successUrl,
+      failUrl: n.failUrl
+    })
+  } catch (i) {
+    console.error("Toss billing open error:", i), i?.code === "USER_CANCEL" ? alert("결제가 취소되었습니다.") : alert(`결제창 호출 중 오류가 발생했습니다: ${i?.message||"알 수 없는 오류"}`)
+  }
+}
+
+if (u) {
+    u.addEventListener("click", async () => {
+        if (!(u.disabled || L)) {
+            if (S !== "toss") {
+                alert("지금은 토스 간편결제만 지원합니다.");
+                return
+            }
+            L = !0, u.disabled = !0;
+            try {
+                const n = await fetch("/api/billing/start", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        plan: y?.id,
+                        cycle: f
+                    })
+                });
+                if (n.status === 401) {
+                    alert("로그인 후 이용해주세요."), location.href = "/login.html?next=/pricing.html";
+                    return
+                }
+                if (!n.ok) {
+                    const a = await n.text().catch(() => n.statusText);
+                    throw new Error(a || "초기화 실패")
+                }
+                const i = await n.json();
+                await k(i)
+            } catch (n) {
+                console.error(n), alert("결제를 시작할 수 없습니다. 잠시 후 다시 시도해주세요.")
+            } finally {
+                L = !1, E()
+            }
+        }
+    });
+}
+
+// 페이지 로드 시 버튼 상태 초기화
+E();

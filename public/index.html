@@ -3,6 +3,7 @@
 <head>
   <meta name="robots" content="noindex, nofollow">
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>매쓰비</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="image_logo/logo.png" />
@@ -113,6 +114,7 @@
           <i class="fa-solid fa-chevron-down" id="arrowIcon"></i>
         </div>
         <div class="dropdown" id="dropdownMenu">
+          <a href="#" id="mobileNoticeBtn" class="mobile-only-dropdown-item">공지사항</a>
           <a href="profile.html">내 프로필</a>
           <a href="#" id="logoutBtn">로그아웃</a>
           <a href="admin.html" id="goAdminPage" style="display:none;">관리자페이지</a>
@@ -230,5 +232,29 @@
 </div>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 <script src="js/index.js"></script>
+
+
+<nav class="mobile-nav" id="mobileNav">
+  <a href="#" class="mobile-nav-item active" id="mobile-menu1" data-url="home.html">
+    <img src="image_index/main_home_w.png" alt="메인홈">
+    <span>메인홈</span>
+  </a>
+  <a href="#" class="mobile-nav-item" id="mobile-menu3" data-url="high.html">
+    <img src="image_index/icon_school_w.png" alt="시험지">
+    <span>시험지</span>
+  </a>
+  <a href="#" class="mobile-nav-item" id="mobile-menu4" data-url="bookcase.html">
+    <img src="image_index/icon_bookcase_w.png" alt="내 책장">
+    <span>내 책장</span>
+  </a>
+  <a href="#" class="mobile-nav-item" id="mobile-menu5" data-url="upload.html">
+    <img src="image_index/icon_upload_w.png" alt="시험지 요청">
+    <span>시험지 요청</span>
+  </a>
+  <a href="#" class="mobile-nav-item" id="mobile-menu7" data-url="profile.html">
+    <img src="image_index/icon_my_w.png" alt="내 계정">
+    <span>내 계정</span>
+  </a>
+</nav>
 </body>
 </html>

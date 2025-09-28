@@ -224,4 +224,19 @@ router.delete('/api/uploads/:id', isLoggedIn, async (req, res) => {
   }
 });
 
+router.get('/api/users/stats', isLoggedIn, async (req, res) => {
+  try {
+    const [rows] = await db.query(
+      `SELECT
+          (SELECT COUNT(*) FROM users) AS totalUsers,
+          (SELECT COUNT(*) FROM users WHERE is_subscribed = 1) AS subscribedUsers,
+          (SELECT COUNT(*) FROM users WHERE last_login >= NOW() - INTERVAL 1 DAY) AS activeUsers`
+    );
+    res.json(rows[0] || { totalUsers: 0, subscribedUsers: 0, activeUsers: 0 });
+  } catch (e) {
+    console.error('users-stats 조회 오류:', e);
+    res.status(500).json({ msg: '통계 조회 실패' });
+  }
+});
+
 export default router;

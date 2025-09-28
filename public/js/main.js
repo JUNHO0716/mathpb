@@ -17,8 +17,21 @@ async function bindUser() {
 
     const u = d.user || {};
     currentUser = u;
-    const displayId = u.email ? u.email.split('@')[0] : (u.name || 'Guest');
-    document.getElementById('profileName').textContent = displayId;
+
+    // --- 이 부분이 index.js와 동일하게 수정된 핵심 로직입니다 ---
+    let displayName;
+    // 1. 카카오 유저인지 먼저 확인합니다 (DB에 저장된 email이 'Kakao'인지 체크).
+    if (u.email === 'Kakao') {
+      // 2. 카카오 유저가 맞다면, DB에 저장된 name 필드(카카오 닉네임)를 헤더에 표시합니다.
+      displayName = u.name;
+    } else {
+      // 3. 다른 유저(일반, 구글, 네이버)는 기존 표시 규칙을 그대로 따릅니다.
+      const processedId = (u.id && u.id.includes('@')) ? u.id.split('@')[0] : u.id;
+      displayName = processedId || u.name || (u.email ? u.email.split('@')[0] : 'Guest');
+    }
+    // --- 여기까지 ---
+
+    document.getElementById('profileName').textContent = displayName || 'Guest';
     
     const avatarEl = document.getElementById('avatar');
     if (u.avatarUrl && u.avatarUrl.trim() !== "") {
@@ -63,7 +76,6 @@ function initDropdown() {
   });
 }
 
-// ▼▼▼ [수정] 스크립트가 확실히 실행되도록 수정한 최종 loadContent 함수 ▼▼▼
 async function loadContent(url) {
   const contentFrame = document.getElementById('content-area');
   if (!contentFrame) return;
@@ -82,7 +94,6 @@ async function loadContent(url) {
     
     contentFrame.innerHTML = doc.body.innerHTML;
 
-    // script 태그들을 찾아 순차적으로 실행
     const scripts = Array.from(doc.body.querySelectorAll('script'));
     for (const oldScript of scripts) {
       const newScript = document.createElement('script');
@@ -91,8 +102,6 @@ async function loadContent(url) {
         newScript.setAttribute(attr.name, attr.value);
       });
       
-      // 외부 스크립트(src가 있는 경우)는 로드가 완료될 때까지 기다립니다.
-      // 스크립트 태그를 제거하지 않는 것이 중요합니다.
       if (oldScript.src) {
         await new Promise((resolve, reject) => {
           newScript.onload = resolve;
@@ -100,7 +109,6 @@ async function loadContent(url) {
           document.head.appendChild(newScript);
         });
       } else {
-        // 인라인 스크립트는 내용을 복사해서 바로 실행합니다.
         newScript.textContent = oldScript.textContent;
         document.body.appendChild(newScript).remove();
       }
