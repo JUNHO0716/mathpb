@@ -175,7 +175,7 @@ function $(e) {
 // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
 // DOMContentLoaded 래퍼를 제거하여 코드가 바로 실행되도록 합니다.
 // ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
-const e = typeof window < "u" && window.TOSS_CLIENT_KEY ? window.TOSS_CLIENT_KEY : "live_gck_ex6BJGQOVDJZMkxXRRMn8W4w2zNb",
+const e = typeof window < "u" && window.TOSS_CLIENT_KEY ? window.TOSS_CLIENT_KEY : "live_ck_E92LAa5PVb9m1m6oyObW37YmpXyJ",
   t = n => document.querySelector(n),
   c = n => Array.from(document.querySelectorAll(n)),
   o = t("#mBtn"),
