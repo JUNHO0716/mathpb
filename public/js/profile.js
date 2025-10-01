@@ -62,9 +62,10 @@ window.initializeProfilePage = function(user) {
     document.getElementById('cardProfileName').textContent = u.name; // ID를 cardProfileName으로 변경
     document.getElementById('profileTitle').textContent = u.tier || 'Free';
     
-    let displayId = u.id;
-    if (/^[0-9]{10,21}$/.test(u.id) && u.email && u.email.includes('@')) {
-      displayId = u.email.split('@')[0];
+     let displayId = u.id || '-';
+    // 이메일이 있고 '@'를 포함하면 @ 앞부분을 ID로 표시
+    if (u.email && u.email.includes('@')) {
+        displayId = u.email.split('@')[0];
     }
     document.getElementById('profileId').textContent = displayId;
     document.getElementById('profileEmail').textContent = u.email;

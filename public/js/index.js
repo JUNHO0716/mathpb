@@ -164,18 +164,16 @@ async function bindUser() {
     const u = d.user || {};
     currentUser = u;
     
-    // ▼▼▼▼▼ [수정된 부분] ▼▼▼▼▼
-    let displayName;
-    // 1. 카카오 유저인지 먼저 확인합니다 (DB에 저장된 email이 'Kakao'인지 체크).
-    if (u.email === 'Kakao') {
-      // 2. 카카오 유저가 맞다면, DB에 저장된 name 필드(카카오 닉네임)를 헤더에 표시합니다.
-      displayName = u.name;
-    } else {
-      // 3. 다른 유저(일반, 구글, 네이버)는 기존 표시 규칙을 그대로 따릅니다.
-      const processedId = (u.id && u.id.includes('@')) ? u.id.split('@')[0] : u.id;
-      displayName = processedId || u.name || (u.email ? u.email.split('@')[0] : 'Guest');
+    let displayName = u.name || 'Guest'; // 기본값은 이름으로 설정
+
+    // 카카오가 아닌 다른 사용자(구글, 네이버, 일반)이고 이메일이 있다면,
+    // 이메일의 @ 앞부분을 이름으로 사용합니다.
+    if (u.email && u.email !== 'Kakao') {
+        displayName = u.email.split('@')[0];
+    } else if (u.email === 'Kakao') {
+        // 카카오 사용자는 DB의 name 필드(카카오 닉네임)를 그대로 사용합니다.
+        displayName = u.name;
     }
-    // ▲▲▲▲▲ [수정된 부분] ▲▲▲▲▲
     
     document.getElementById('index-headerProfileName').textContent = displayName || 'Guest';
     const avatarEl = document.getElementById('index-headerAvatar');

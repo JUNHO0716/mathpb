@@ -222,7 +222,14 @@ function bindUser(user) {
 
     if(profileNameExpanded) profileNameExpanded.textContent = user.name || '-';
     if(profileAvatarExpanded) profileAvatarExpanded.src = user.avatarUrl || 'https://via.placeholder.com/90';
-    if(profileIdValue) profileIdValue.textContent = user.id || user.email || '-';
+        if(profileIdValue) {
+        let displayId = user.id || '-'; // 기본값은 전체 ID
+        // 이메일이 있고 '@'를 포함하면 @ 앞부분을 displayId로 사용
+        if (user.email && user.email.includes('@')) {
+            displayId = user.email.split('@')[0];
+        }
+        profileIdValue.textContent = displayId;
+    }
     if(profileEmailValue) profileEmailValue.textContent = user.email || '-';
     
     if(profilePhoneValue) profilePhoneValue.textContent = formatPhoneNumber(user.phone);
