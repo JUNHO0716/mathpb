@@ -301,8 +301,8 @@ window.initializeProfilePage = function(user) {
         document.getElementById('new-email').value = '';
     } else { alert(d.msg || '이메일 변경에 실패했습니다.'); }
   };
-  
-  const cancelBtn = document.getElementById('btn-cancel');
+    
+const cancelBtn = document.getElementById('btn-cancel');
   if(cancelBtn) {
     cancelBtn.addEventListener('click', async ()=>{
       if(!confirm('해지하시겠습니까? (기간 종료일까지 이용 가능, 다음 결제부터 미과금)')) return;
@@ -311,14 +311,35 @@ window.initializeProfilePage = function(user) {
     });
   }
   
-  const openModalBtn = document.getElementById('openPricingModalBtn');
-  if (openModalBtn) {
-    openModalBtn.addEventListener('click', () => {
-      if (window.parent && window.parent.openPaymentModal) {
-        window.parent.openPaymentModal();
+  // --- 요금제 안내 모달 이벤트 핸들러 ---
+  const pricingModal = document.getElementById('pricingInfoModal');
+  const openPricingModalBtn = document.getElementById('openPricingModalBtn');
+  const closePricingModalBtn = document.getElementById('pricingModalCloseBtn');
+
+  if (openPricingModalBtn) {
+    openPricingModalBtn.addEventListener('click', () => {
+      if (pricingModal) {
+        pricingModal.style.display = 'flex';
       }
     });
   }
+
+  if (closePricingModalBtn) {
+    closePricingModalBtn.addEventListener('click', () => {
+      if (pricingModal) {
+        pricingModal.style.display = 'none';
+      }
+    });
+  }
+
+  if (pricingModal) {
+    pricingModal.addEventListener('click', (e) => {
+      if (e.target === pricingModal) {
+        pricingModal.style.display = 'none';
+      }
+    });
+  }
+
 
   const subscribeBtn = document.getElementById('subscribeBtn');
   if (subscribeBtn) {
