@@ -149,6 +149,7 @@ body {
   background-color: #fff;
 }
 
+/* ===== 탭 버튼 스타일 (home.css와 100% 동일하게 수정) ===== */
 .upload-slider-tabs {
   position: relative;
   display: flex;
@@ -159,7 +160,9 @@ body {
 .upload-tab-indicator {
   position: absolute;
   height: 100%;
-  background-color: var(--upload-btn-bg);
+  /* home.css와 동일한 파란색 배경 및 불빛(그림자) 효과 */
+  background-color: #007BFF; 
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2); 
   border-radius: 999px;
   transition: left 0.4s cubic-bezier(0.22, 1, 0.36, 1), width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 1;
@@ -175,17 +178,20 @@ body {
   color: var(--upload-text-sub);
   border-radius: 999px;
   cursor: pointer;
+  /* home.css와 동일하게 그림자 전환 효과 추가 */
   transition: color 0.3s, box-shadow 0.3s;
+  /* home.css와 동일한 입체 그림자 효과 */
   box-shadow: 4px 4px 8px #d0d3d5, -4px -4px 8px #ffffff;
 }
 .upload-tab-btn.upload-active {
-  color: var(--upload-text-main);
+  /* home.css와 동일한 흰색 글씨 */
+  color: #ffffff; 
+  /* home.css와 동일한 활성 탭 입체 그림자 효과 */
   box-shadow: inset 2px 2px 4px #d0d3d5, inset -2px -2px 4px #ffffff;
 }
 .upload-tab-btn:not(.upload-active):hover {
   color: var(--upload-text-main);
 }
-
 .upload-content-area {
   background: var(--upload-background-color2);
   border-radius: 22px;
@@ -407,23 +413,29 @@ th {
   color: #333; 
 }
 #upload-btn {
-  padding: 10px 18px;
+  padding: 12px 18px; /* 패딩을 살짝 늘려 안정감 부여 */
   border: none;
   border-radius: 8px;
-  background: #FEE500;
-  color: #191919;
+  background-color: #3B82F6; /* 파란색으로 변경 */
+  color: #FFFFFF;           /* 흰색 글씨 */
   font-size: 1.0rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 3px 3px 6px var(--upload-shadow-dark), -3px -3px 6px var(--upload-shadow-light);
+  /* 세련된 그림자로 변경 */
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
   width: 100%;
 }
+
 #upload-btn:hover {
-  background-color: #FDD835;
+  background-color: #2563EB; /* 더 진한 파란색 */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.35);
 }
+
 #upload-btn:active {
-  box-shadow: inset 2px 2px 4px var(--upload-shadow-dark), inset -2px -2px 4px var(--upload-shadow-light);
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 #upload-head-area { margin-top: 130px; }
 .upload-card-statusbox[data-status="확인중"] { box-shadow: 0 4px 12px rgba(255,213,79,0.5); }
@@ -585,3 +597,110 @@ th {
     opacity: 1;
     visibility: visible;
 }
+.details-section {
+    margin-bottom: 28px;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 24px;
+}
+.details-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 10px;
+}
+.details-filename {
+    font-size: 1.2rem; /* 글자 크기 줄임 */
+    font-weight: 700;
+    color: #111;
+    margin: 4px 0 0 0; /* 라벨과의 간격을 위해 위쪽 여백 추가 */
+    line-height: 1.4;
+    word-break: break-all;
+}
+.details-section-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #007BFF;
+    margin-top: 0;
+    margin-bottom: 16px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #007BFF;
+    display: inline-block;
+}
+.details-info-grid {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 12px;
+    font-size: 0.95rem;
+}
+.details-info-label {
+    color: #5f5f5f;
+    font-weight: 500;
+}
+.details-info-value {
+    color: #111;
+    font-weight: 500;
+}
+.details-memo-description {
+    font-size: 0.85rem;
+    color: #777;
+    margin-top: -10px;
+    margin-bottom: 12px;
+}
+.details-memo-textarea {
+    width: 100%;
+    min-height: 120px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.9rem;
+    font-family: 'Noto Sans KR', sans-serif;
+    resize: vertical;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.details-memo-textarea:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+.details-button-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+.details-save-btn {
+    padding: 9px 18px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    background-color: #6366f1;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.details-save-btn:hover {
+    background-color: #4f52c4;
+    transform: translateY(-2px);
+}
+.details-save-btn:disabled {
+    background-color: #a5a6f6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.details-file-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #5f5f5f;
+    display: block;
+}
+
+.details-filename-text {
+    font-size: 0.95rem; /* 글자 크기 */
+    font-weight: 400;  /* 보통 굵기 */
+    color: #111;
+    margin: -8px 0 0 0; /* 제목과의 간격을 줄이기 위한 음수 마진 */
+    line-height: 1.5;
+    word-break: break-all; /* 긴 파일명 자동 줄바꿈 */
+}
+

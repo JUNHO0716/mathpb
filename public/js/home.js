@@ -317,15 +317,31 @@ function bindUser(user) {
         return;
       }
       tbody.innerHTML = data.slice(0, 15).map(row => {
-        let icon = '';
-        if(row.status === '확인중') icon = '<i class="fas fa-hourglass-half ani-wave"></i>';
-        else if(row.status === '제작중') icon = '<i class="fas fa-spinner fa-spin"></i>';
-        else if(row.status === '완료') icon = '<i class="fas fa-circle-check"></i>';
-        else if(row.status === '반려') icon = '<i class="fas fa-ban"></i>';
+        // status 값(예: "확인중", "제작중", "완료", "반려")에 따라 처리
+        let badgeClass = '';
+        let iconHtml = '';
+        const statusText = row.status || '';
 
+        if (statusText === '확인중') {
+            badgeClass = 'pending';
+            iconHtml = '<i class="fas fa-hourglass-half"></i>';
+        } else if (statusText === '제작중') {
+            badgeClass = 'producing'; // CSS 클래스 이름에 맞춰 producing으로 변경
+            iconHtml = '<i class="fas fa-spinner fa-spin"></i>';
+        } else if (statusText === '완료') {
+            badgeClass = 'completed';
+            iconHtml = '<i class="fas fa-check"></i>';
+        } else if (statusText === '반려') {
+            badgeClass = 'rejected';
+            iconHtml = '<i class="fas fa-ban"></i>';
+        }
+
+        // 최종적으로 반환하는 HTML 구조를 새로운 배지 형태로 변경
         return `<tr>
           <td class="home-title" title="${(row.filename || '-').replace(/"/g, '&quot;')}">${row.filename || '-'}</td>
-          <td>${icon} <span>${row.status || ''}</span></td>
+          <td>
+            <span class="status-badge ${badgeClass}">${iconHtml} ${statusText}</span>
+          </td>
         </tr>`;
       }).join('');
     } catch(e) { console.error("내 문제지 요청 로딩 실패:", e); }

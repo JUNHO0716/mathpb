@@ -19,24 +19,84 @@ window.initializeHighPage = function(user) {
   const gradeOptions = { '중등': ['중1', '중2', '중3'], '고등': ['고1', '고2', '고3'] };
 
   // ▼▼▼ [추가] 상세보기 패널 제어 함수 ▼▼▼
-  function openDetailsPanel(fileData) {
-    detailsPanelContent.innerHTML = `
-      <p style="margin-top:0;"><strong>자료명:</strong><br>${fileData.title}</p>
-      <p><strong>학교:</strong> ${fileData.school || '정보 없음'}</p>
-      <p><strong>학년:</strong> ${fileData.grade}</p>
-      <p><strong>과목:</strong> ${fileData.subject || '-'}</p>
-      <p><strong>연도/학기:</strong> ${fileData.year} / ${fileData.semester}</p>
-      <p><strong>업로드일:</strong> ${formatDate(fileData.uploaded_at)}</p>
-    `;
-    detailsPanel.classList.add('is-open');
-    detailsOverlay.classList.add('is-open');
-  }
+function openDetailsPanel(fileData) {
+  const uploadedDate = fileData.uploaded_at ? new Date(fileData.uploaded_at).toLocaleDateString('ko-KR') : '정보 없음';
+  const memoButtonText = fileData.memo ? '메모 수정' : '메모 저장';
+
+  detailsPanelContent.innerHTML = `
+    <div class="details-section">
+      <h4 class="details-section-title">파일명</h4>
+      <p class="details-filename-text" title="${fileData.title}">${fileData.title}</p>
+    </div>
+
+    <div class="details-section">
+      <h4 class="details-section-title">시험지 정보</h4>
+      <div class="details-info-grid">
+        <span class="details-info-label">학교</span>
+        <span class="details-info-value">${fileData.school || '정보 없음'}</span>
+        <span class="details-info-label">학년</span>
+        <span class="details-info-value">${fileData.grade}</span>
+        <span class="details-info-label">과목</span>
+        <span class="details-info-value">${fileData.subject || '-'}</span>
+        <span class="details-info-label">연도/학기</span>
+        <span class="details-info-value">${fileData.year} / ${fileData.semester}</span>
+        <span class="details-info-label">업로드일</span>
+        <span class="details-info-value">${uploadedDate}</span>
+      </div>
+    </div>
+
+    <div class="details-section">
+      <h4 class="details-section-title">요청사항 (메모)</h4>
+      <textarea id="details-memo-textarea" class="details-memo-textarea" placeholder="관리자에게 전달할 메모를 남겨주세요.">${fileData.memo || ''}</textarea>
+      <div class="details-button-wrapper">
+        <button id="details-memo-save-btn" class="details-save-btn" data-id="${fileData.id}">${memoButtonText}</button>
+      </div>
+    </div>
+  `;
+  detailsPanel.classList.add('is-open');
+  detailsOverlay.classList.add('is-open');
+}
 
   function closeDetailsPanel() {
     detailsPanel.classList.remove('is-open');
     detailsOverlay.classList.remove('is-open');
   }
-  // ▲▲▲ [추가] 상세보기 패널 제어 함수 ▲▲▲
+
+// [신규 추가] 메모 저장 함수
+async function saveMemo(fileId) {
+  const memoTextarea = document.getElementById('details-memo-textarea');
+  const saveButton = document.getElementById('details-memo-save-btn');
+  if (!memoTextarea || !saveButton) return;
+
+  const memo = memoTextarea.value;
+  saveButton.disabled = true;
+  saveButton.innerText = '저장 중...';
+
+  try {
+    const response = await fetch(`/api/files/${fileId}/memo`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ memo })
+    });
+
+    if (response.ok) {
+      alert('메모가 성공적으로 저장되었습니다.');
+      const updatedFile = fileData.find(file => file.id == fileId);
+      if (updatedFile) updatedFile.memo = memo;
+      saveButton.innerText = '메모 수정';
+    } else {
+      alert('메모 저장에 실패했습니다.');
+    }
+  } catch (error) {
+    console.error('Memo save error:', error);
+    alert('메모 저장 중 오류가 발생했습니다.');
+  } finally {
+    saveButton.disabled = false;
+    if (saveButton.innerText !== '메모 수정') {
+      saveButton.innerText = memo ? '메모 수정' : '메모 저장';
+    }
+  }
+}
 
   function switchLevel(level) {
     currentLevel = level;
@@ -333,9 +393,16 @@ window.initializeHighPage = function(user) {
     }
   });
 
-  // ▼▼▼ [추가] 상세보기 패널 닫기 이벤트 리스너 ▼▼▼
   detailsPanelClose.addEventListener('click', closeDetailsPanel);
   detailsOverlay.addEventListener('click', closeDetailsPanel);
+
+  // [추가] 상세보기 패널 내부 '메모 저장' 버튼 클릭 이벤트
+  detailsPanelContent.addEventListener('click', (event) => {
+      if (event.target && event.target.id === 'details-memo-save-btn') {
+          const fileId = event.target.dataset.id;
+          saveMemo(fileId);
+      }
+  });
   // ▲▲▲ [추가] 상세보기 패널 닫기 이벤트 리스너 ▲▲▲
 
   populateRegions();

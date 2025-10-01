@@ -1,0 +1,313 @@
+/* =================================
+   고객센터 (cs.css)
+==================================== */
+
+/* 기존 디자인 시스템 변수 참조 */
+:root {
+    --cs-body-bg: #f0f3ff;
+    --cs-widget-bg: #ffffff;
+    --cs-border-light: #e9e9e9;
+    --cs-shadow-dark: #d0d3d5;
+    --cs-shadow-light: #ffffff;
+    --cs-text-primary: #111;
+    --cs-text-secondary: #5f5f5f;
+    --cs-accent-color: #FDC512; /* 기존 포인트 색상 */
+    --cs-accent-hover: #D9A90F;
+}
+
+body {
+    background-color: var(--cs-body-bg);
+    font-family: 'Noto Sans KR', sans-serif;
+    margin: 0;
+}
+
+/* 1. 페이지 상단 배너 */
+.cs-page-banner {
+    margin: 24px 24px 0 24px;
+    background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url('image_banner/image.jpg') no-repeat center center;
+    background-size: cover;
+    border-radius: 18px;
+    padding: 40px 50px;
+    box-sizing: border-box;
+    color: #ffffff;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.cs-page-banner .cs-inner h2 {
+    font-size: 1.9rem;
+    font-weight: 900;
+    margin: 0 0 16px 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.cs-page-banner .cs-inner p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #e0e0e0;
+    margin: 0;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+/* 2. 메인 콘텐츠 레이아웃 */
+.cs-main-container {
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 24px;
+    margin: 24px;
+    box-sizing: border-box;
+}
+
+.cs-content-area {
+    flex: 6 1 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+}
+
+.cs-side-panel {
+    flex: 1 1 340px;
+    position: sticky;
+    top: 24px;
+    align-self: flex-start;
+}
+
+/* 3. 위젯 카드 스타일 */
+.cs-widget-card {
+    background: var(--cs-widget-bg);
+    border-radius: 22px;
+    padding: 28px;
+    box-shadow: 8px 8px 16px var(--cs-shadow-dark), -8px -8px 16px var(--cs-shadow-light);
+}
+
+.cs-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--cs-border-light);
+}
+
+.cs-card-header i {
+    font-size: 1.4rem;
+    color: var(--cs-accent-color);
+}
+
+.cs-card-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--cs-text-primary);
+}
+
+/* 4. FAQ 아코디언 스타일 */
+.faq-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.faq-item {
+    border-bottom: 1px solid var(--cs-border-light);
+}
+.faq-item:last-child {
+    border-bottom: none;
+}
+
+.faq-question {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 8px;
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--cs-text-primary);
+    cursor: pointer;
+}
+.faq-question:hover {
+    color: var(--cs-accent-color);
+}
+
+.faq-question i {
+    font-size: 0.9rem;
+    color: var(--cs-text-secondary);
+    transition: transform 0.3s ease;
+}
+
+.faq-item.open .faq-question i.rotate {
+    transform: rotate(180deg);
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-out;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+}
+.faq-answer p {
+    padding: 20px;
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--cs-text-secondary);
+}
+
+/* 5. 1:1 문의하기 폼 스타일 */
+.inquiry-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.inquiry-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    align-items: center;
+    gap: 16px;
+}
+
+.inquiry-row label {
+    font-weight: 600;
+    color: var(--cs-text-secondary);
+}
+
+.inquiry-row input[type="text"],
+.inquiry-row select,
+.inquiry-row textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background-color: var(--cs-body-bg);
+    box-shadow: inset 2px 2px 5px var(--cs-shadow-dark), inset -3px -3px 7px var(--cs-shadow-light);
+    color: var(--cs-text-primary);
+    box-sizing: border-box;
+}
+
+.inquiry-row textarea {
+    resize: vertical;
+    min-height: 150px;
+}
+
+.inquiry-action {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+/* ▼▼▼ [수정됨] 문의하기 버튼을 입체 스타일로 변경합니다. ▼▼▼ */
+.cs-submit-btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    background: var(--cs-accent-color);
+    color: var(--cs-text-primary);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    /* 입체 효과를 위한 그림자 추가 */
+    box-shadow: 4px 4px 8px var(--cs-shadow-dark), -4px -4px 8px var(--cs-shadow-light);
+}
+.cs-submit-btn:hover {
+    background: var(--cs-accent-hover);
+}
+/* 클릭 시 눌리는 효과 추가 */
+.cs-submit-btn:active {
+    background: var(--cs-accent-hover);
+    box-shadow: inset 2px 2px 4px var(--cs-shadow-dark), inset -2px -2px 4px var(--cs-shadow-light);
+}
+/* ▲▲▲ 수정 완료 ▲▲▲ */
+
+/* 6. 오른쪽 사이드 패널 (연락처) 스타일 */
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.contact-item i {
+    font-size: 1.2rem;
+    color: var(--cs-text-secondary);
+    width: 30px;
+    text-align: center;
+}
+
+.contact-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.contact-label {
+    font-size: 0.85rem;
+    color: var(--cs-text-secondary);
+    margin-bottom: 2px;
+}
+
+.contact-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--cs-text-primary);
+}
+
+/* ▼▼▼ [수정됨] 카카오톡 버튼을 입체 스타일로 변경합니다. ▼▼▼ */
+.cs-kakao-btn {
+    width: 100%;
+    padding: 12px 10px; /* 세로 간격 조정 */
+    margin-top: 28px;
+    border: none; /* 테두리 제거 */
+    border-radius: 8px;
+    background-color: #FEE500;
+    color: #191919;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+    /* 입체 효과를 위한 그림자 추가 */
+    box-shadow: 4px 4px 8px var(--cs-shadow-dark), -4px -4px 8px var(--cs-shadow-light);
+}
+/* 호버 효과 추가 */
+.cs-kakao-btn:hover {
+    background-color: #FDD835;
+}
+/* 클릭 시 눌리는 효과 추가 */
+.cs-kakao-btn:active {
+    background-color: #FDD835;
+    box-shadow: inset 2px 2px 4px var(--cs-shadow-dark), inset -2px -2px 4px var(--cs-shadow-light);
+}
+/* ▲▲▲ 수정 완료 ▲▲▲ */
+
+/* 반응형 스타일 */
+@media (max-width: 768px) {
+    .inquiry-row {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .cs-page-banner, .cs-main-container {
+        margin: 16px;
+        gap: 16px;
+    }
+
+    .cs-page-banner {
+        padding: 30px 25px;
+    }
+}

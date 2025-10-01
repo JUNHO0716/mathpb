@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/cs.css">
+</head>
+<body>
+
+    <section class="cs-page-banner">
+        <div class="cs-inner">
+            <h2>고객센터</h2>
+            <p>궁금한 점이 있으신가요? 무엇이든 물어보세요.<br>Mathbee가 신속하고 친절하게 답변해 드리겠습니다.</p>
+        </div>
+    </section>
+
+    <div class="cs-main-container">
+
+        <main class="cs-content-area">
+
+            <div class="cs-widget-card">
+                <div class="cs-card-header">
+                    <i class="fas fa-question-circle"></i>
+                    <h2>자주 묻는 질문 (FAQ)</h2>
+                </div>
+                <div class="faq-container">
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            <span>Q. 구독은 어떻게 하나요? 결제 방법을 알려주세요.</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <p>답변: 우측 상단의 '결제하기' 버튼을 통해 원하시는 요금제를 선택하고 결제를 진행할 수 있습니다. 카드 결제 및 간편 결제를 지원합니다.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            <span>Q. 시험지 요청은 어떻게 하나요?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <p>답변: 로그인 후 '시험지 요청' 메뉴에서 보유하고 계신 시험지 PDF 파일을 업로드해주시면 됩니다. 업로드된 파일은 순서대로 확인 후 제작에 들어갑니다.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            <span>Q. 구독을 해지하고 싶어요.</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <p>답변: '내 계정' 페이지의 '구독 관리' 섹션에서 '구독 해지' 버튼을 통해 언제든지 해지할 수 있습니다. 다음 결제일부터는 요금이 청구되지 않습니다.</p>
+                        </div>
+                    </div>
+                     <div class="faq-item">
+                        <button class="faq-question">
+                            <span>Q. 요청한 시험지는 언제쯤 받을 수 있나요?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="faq-answer">
+                            <p>답변: 요청량에 따라 다르지만, 보통 영업일 기준 1~3일 이내에 제작이 완료됩니다. '시험지 요청' 페이지에서 실시간 작업 현황을 확인하실 수 있습니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cs-widget-card">
+                 <div class="cs-card-header">
+                    <i class="fas fa-paper-plane"></i>
+                    <h2>1:1 문의하기</h2>
+                </div>
+                <form class="inquiry-form">
+                    <div class="inquiry-row">
+                        <label for="inquiry-type">문의 유형</label>
+                        <select id="inquiry-type" name="inquiry-type">
+                            <option value="payment">결제/환불 문의</option>
+                            <option value="error">오류/장애 신고</option>
+                            <option value="feature">기능 제안</option>
+                            <option value="etc">기타 문의</option>
+                        </select>
+                    </div>
+                    <div class="inquiry-row">
+                        <label for="inquiry-title">제목</label>
+                        <input type="text" id="inquiry-title" name="inquiry-title" placeholder="문의 제목을 입력해주세요." required>
+                    </div>
+                    <div class="inquiry-row">
+                        <label for="inquiry-content">내용</label>
+                        <textarea id="inquiry-content" name="inquiry-content" rows="8" placeholder="궁금하신 내용을 자세하게 작성해주세요." required></textarea>
+                    </div>
+                     <div class="inquiry-row">
+                        <label for="inquiry-file">파일 첨부</label>
+                        <input type="file" id="inquiry-file" name="inquiry-file">
+                    </div>
+                    <div class="inquiry-action">
+                        <button type="submit" class="cs-submit-btn">문의 접수</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+
+        <aside class="cs-side-panel">
+            <div class="cs-widget-card">
+                <div class="cs-card-header">
+                    <i class="fas fa-headset"></i>
+                    <h2>Contact Us</h2>
+                </div>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <i class="fas fa-phone-alt"></i>
+                        <div class="contact-details">
+                            <span class="contact-label">대표 번호</span>
+                            <span class="contact-value">1588-XXXX</span>
+                        </div>
+                    </div>
+                     <div class="contact-item">
+                        <i class="fas fa-envelope"></i>
+                        <div class="contact-details">
+                            <span class="contact-label">이메일</span>
+                            <span class="contact-value">contact@mathbee.com</span>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-clock"></i>
+                        <div class="contact-details">
+                            <span class="contact-label">운영 시간</span>
+                            <span class="contact-value">평일 10:00 ~ 18:00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="cs-kakao-btn">
+                  <i class="fas fa-comment"></i>
+                  카카오톡 채널 문의
+                </div>
+            </div>
+        </aside>
+
+    </div>
+    
+    <script type="module" src="/js/cs.js"></script>
+
+</body>
+</html>

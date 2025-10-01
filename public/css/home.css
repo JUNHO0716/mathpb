@@ -644,7 +644,8 @@
   .home-tab-indicator {
     position: absolute;
     height: 100%;
-    background-color: var(--btn-bg);
+    background-color: #007BFF;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
     border-radius: 999px;
     transition: left 0.4s cubic-bezier(0.22, 1, 0.36, 1), width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
     z-index: 1;
@@ -664,7 +665,7 @@
     box-shadow: 4px 4px 8px #d0d3d5, -4px -4px 8px #ffffff;
   }
   .home-tab-btn.home-active {
-    color: var(--text-main);
+    color: #ffffff; /* 흰색으로 변경 */
     box-shadow: inset 2px 2px 4px #d0d3d5, inset -2px -2px 4px #ffffff;
   }
   .home-tab-btn:not(.home-active):hover {
@@ -705,10 +706,7 @@
     padding: 0 20px;
   }
   .home-stat-separator {
-    width: 1px;
-    background-color: var(--border-light);
-    align-self: center;
-    height: 40px;
+    display: none; /* 구분선을 보이지 않게 처리 */
   }
   .home-stats-container .home-stat-label {
     display: block;
@@ -723,22 +721,51 @@
     color: var(--text-main);
   }
 
-  #statPending { color: #FDC512; }
-  #statProducing { color: #00C273; }
-  #statCompleted { color: #1ECBE1; }
-  #statRejected { color: #dc3545; }
+  #statPending { color: #F59E0B; }
+  #statProducing { color: #10B981; }
+  #statCompleted { color: #3B82F6; }
+  #statRejected { color: #EF4444; }
 
-  /* 작업 현황 아이콘 및 텍스트 색상 추가 */
-.home-mysheet-table .fa-circle-check, .home-mysheet-table .fa-circle-check + span { 
-  color: #1ECBE1; 
+/* ===== 작업 현황 '배지(Badge)' 스타일 (수정 후) ===== */
+.home-mysheet-table .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
   font-weight: 600;
+  flex-shrink: 0;
 }
-.home-mysheet-table .fa-hourglass-half, .home-mysheet-table .fa-hourglass-half + span { 
-  color: #FDC512; 
+
+.home-mysheet-table .status-badge i {
+  font-size: 0.75rem;
 }
-.home-mysheet-table .fa-spinner, .home-mysheet-table .fa-spinner + span { 
-  color: #00C273; 
+
+/* --- 상태별 배지 색상 (세련된 톤으로 변경) --- */
+
+/* 확인중: 차분한 연회색톤 */
+.home-mysheet-table .status-badge.pending {
+  background-color: #F3F4F6; /* 옅은 회색 배경 */
+  color: #4B5563;           /* 진한 회색 글씨 */
 }
-.home-mysheet-table .fa-ban, .home-mysheet-table .fa-ban + span { 
-  color: #dc3545; 
+
+/* 제작중: 신뢰감을 주는 슬레이트톤 */
+.home-mysheet-table .status-badge.producing {
+  background-color: #E2E8F0; /* 옅은 슬레이트 배경 */
+  color: #475569;           /* 진한 슬레이트 글씨 */
 }
+
+/* 완료: 명확한 브랜드 블루 */
+.home-mysheet-table .status-badge.completed {
+  background-color: #3B82F6; /* 기존보다 살짝 톤 다운된 파란색 */
+  color: #FFFFFF;           /* 흰색 글씨 */
+}
+
+/* 반려: 주의를 끄는 톤 다운된 붉은색 */
+.home-mysheet-table .status-badge.rejected {
+  background-color: #FEE2E2; /* 옅은 붉은색 배경 */
+  color: #B91C1C;           /* 톤 다운된 붉은색 글씨 */
+}
+
+

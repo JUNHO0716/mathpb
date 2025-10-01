@@ -30,6 +30,7 @@ import boardRoutes from './routes/board.js';
 import paymentRoutes from './routes/payment.js';
 import adminRoutes from './routes/admin.js';
 import noticeRoutes from './routes/notices.js';
+import inquiryRoutes from './routes/inquiry.js';
 
 const app = express();
 const PROD = process.env.NODE_ENV === 'production';
@@ -91,6 +92,7 @@ app.use('/api/board', boardRoutes);
 app.use('/api/billing', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notices', noticeRoutes);
+app.use('/api/inquiry', inquiryRoutes);
 
 // --- 특수 라우트 (Toss 프록시, DB 핑) ---
 app.get('/ping-db', async (req, res) => {
@@ -126,7 +128,7 @@ app.get('/toss/v2.js', async (req, res) => {
 
 // --- 정적 페이지 라우팅 및 접근 제어 ---
 const PUBLIC_PAGES = ['login.html', 'resetpw.html', 'signup.html', 'terms.html', 'privacy.html', 'refund.html', 'finance.html'];
-const MEMBER_ONLY_PAGES = ['index.html', 'home.html', 'problem_bank.html', 'high.html', 'middle.html', 'bookcase.html', 'notice.html', 'profile.html'];
+const MEMBER_ONLY_PAGES = ['index.html', 'home.html', 'problem_bank.html', 'high.html', 'middle.html', 'bookcase.html', 'notice.html', 'profile.html', 'cs.html'];
 const ADMIN_PAGES = ['admin.html', 'admin_files.html', 'admin_Membership.html', 'admin_payment.html', 'admin_upload_review.html', 'admin_review.html', 'admin_upload.html'];
 
 PUBLIC_PAGES.forEach(page => app.get('/' + page, (req, res) => res.sendFile(path.join(__dirname, 'public', page))));

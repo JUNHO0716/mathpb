@@ -37,7 +37,7 @@ body {
 /* ===== 사이드바 스타일 ===== */
 .sidebar {
   width: var(--sb-open);
-  background: #2a2a35;
+  background: #1C2A3A;
   border-top-right-radius: 30px;
   border-bottom-right-radius: 30px;
   overflow: hidden;
@@ -353,9 +353,9 @@ body {
   width: 100%;
   height: 6px;
   border-radius: 3px;
-  background: linear-gradient(145deg, #FFDE6B, #FDC512);
-  box-shadow: 2px 2px 4px #d4d5d9, 
-              -2px -2px 4px #ffffff;
+  background: #007BFF; 
+  /* 선명한 색상에 어울리게 그림자도 살짝 변경하면 좋습니다 */
+  box-shadow: 0 2px 6px rgba(0, 123, 255, 0.25);
 }
 .user-box.loading * { visibility: hidden; }
 

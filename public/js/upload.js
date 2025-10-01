@@ -1,106 +1,3 @@
-window.initializeUploadPage = function(user) {
-  // --- 기본 요소 변수 선언 ---
-  const modal = document.getElementById('delete-modal');
-  if (modal) {
-    document.body.appendChild(modal);
-  }
-  const confirmDeleteBtn = document.getElementById('confirm-delete');
-  const cancelDeleteBtn = document.getElementById('cancel-delete');
-  const fileInput = document.getElementById('fileInput');
-  const previewCardContainer = document.getElementById('preview-card-container');
-  const uploadBtn = document.getElementById('upload-btn');
-  const addFileBtn = document.getElementById('add-file-btn');
-  const dragArea = document.getElementById('drag-area');
-  const uploadHeadArea = document.getElementById('upload-head-area');
-  const leftPanel = document.querySelector('.upload-left-panel');
-  const uploadCardContainer = document.getElementById('upload-card-container');
-  const rejectedBody = document.getElementById('rejected-body');
-  const rejectedSection = document.querySelector('.upload-rejected-section');
-  const contentTitle = document.getElementById('content-title');
-  const tabButtons = document.querySelectorAll('.upload-tab-btn');
-  const tabIndicator = document.querySelector('.upload-tab-indicator');
-  
-  // --- 상세보기 패널 관련 요소 ---
-  const detailsPanel = document.getElementById('details-panel');
-  const detailsPanelContent = document.getElementById('details-panel-content');
-  const detailsPanelClose = document.getElementById('details-panel-close');
-  const detailsOverlay = document.getElementById('details-overlay');
-
-  // --- 상태 변수 ---
-  let selectedFiles = [];
-  let activeFilter = '확인중';
-  let allUploads = [];
-  let cardIdToDelete = null; // 개별 삭제를 위한 ID 저장 변수
-
-  // --- 함수 정의 ---
-
-  // 상세보기 패널 열기
-  function openDetailsPanel(cardData) {
-    detailsPanelContent.innerHTML = `
-      <p><strong>파일 ID:</strong> ${cardData.id}</p>
-      <p><strong>파일명:</strong> ${cardData.filename}</p>
-      <p><strong>상태:</strong> ${cardData.status}</p>
-      <p><strong>요청일:</strong> ${new Date(cardData.created_at).toLocaleString()}</p>
-      ${cardData.reject_reason ? `<p><strong>반려사유:</strong> ${cardData.reject_reason}</p>` : ''}
-      `;
-    detailsPanel.classList.add('is-open');
-    detailsOverlay.classList.add('is-open');
-  }
-
-  // 상세보기 패널 닫기
-  function closeDetailsPanel() {
-    detailsPanel.classList.remove('is-open');
-    detailsOverlay.classList.remove('is-open');
-  }
-  
-  // 탭 표시기 이동
-  function moveIndicator(target) {
-    if (!target || !tabIndicator) return;
-    tabIndicator.style.width = `${target.offsetWidth}px`;
-    tabIndicator.style.left = `${target.offsetLeft}px`;
-  }
-
-  // (이하 기존 함수들은 내용이 길어 생략... 바로 아래 전체 코드에 포함되어 있습니다)
-
-
-  // --- 이벤트 리스너 ---
-
-  // 카드 컨테이너에 이벤트 위임 방식으로 클릭 리스너 추가
-  uploadCardContainer.addEventListener('click', (event) => {
-    const target = event.target;
-    const detailsButton = target.closest('.card-btn-details');
-    const deleteButton = target.closest('.card-btn-delete');
-
-    if (detailsButton) {
-      const cardId = detailsButton.dataset.id;
-      const cardData = allUploads.find(item => item.id == cardId);
-      if (cardData) {
-        openDetailsPanel(cardData);
-      }
-    }
-
-    if (deleteButton) {
-      cardIdToDelete = deleteButton.dataset.id;
-      modal.style.display = 'flex';
-    }
-  });
-  
-  // (이하 기존 이벤트 리스너들은 내용이 길어 생략... 바로 아래 전체 코드에 포함되어 있습니다)
-
-  // --- 초기화 ---
-  renderPreviewCards();
-  fetchDataAndRender();
-  setInterval(fetchDataAndRender, 5000);
-  
-  const initialActiveTab = document.querySelector('.upload-tab-btn.upload-active');
-  if(initialActiveTab) {
-      setTimeout(() => {
-          moveIndicator(initialActiveTab);
-      }, 100);
-  }
-};
-
-
 // ----------------- [아래는 전체 코드입니다] -----------------
 
 window.initializeUploadPage = function(user) {
@@ -142,22 +39,96 @@ window.initializeUploadPage = function(user) {
   // --- 함수 정의 ---
 
   // 상세보기 패널 열기
-  function openDetailsPanel(cardData) {
-    detailsPanelContent.innerHTML = `
-      <p style="margin-top:0;"><strong>파일 ID:</strong> ${cardData.id}</p>
-      <p><strong>파일명:</strong><br>${cardData.filename}</p>
-      <p><strong>상태:</strong> ${cardData.status}</p>
-      <p><strong>요청일:</strong> ${new Date(cardData.created_at).toLocaleString('ko-KR')}</p>
-      ${cardData.reject_reason ? `<p><strong>반려사유:</strong> ${cardData.reject_reason}</p>` : ''}
-    `;
-    detailsPanel.classList.add('is-open');
-    detailsOverlay.classList.add('is-open');
+function openDetailsPanel(cardData) {
+  // 패널 헤더의 제목을 '문제지 상세보기'로 변경합니다.
+  const detailsHeaderTitle = document.querySelector('.details-panel-header h2');
+  if (detailsHeaderTitle) {
+      detailsHeaderTitle.innerText = '문제지 상세보기';
   }
+
+  // 1. 완료 예정일 표시 로직: cardData.completion_date 값이 있으면 날짜를, 없으면 안내 문구를 표시
+  const completionDateText = cardData.completion_date
+    ? new Date(cardData.completion_date).toLocaleString('ko-KR')
+    : '확인 후 안내';
+
+  // 2. 메모 버튼 텍스트 로직: cardData.memo 값이 있으면 '메모 수정', 없으면 '메모 저장'
+  const memoButtonText = cardData.memo ? '메모 수정' : '메모 저장';
+
+  detailsPanelContent.innerHTML = `
+    <div class="details-section">
+      <h4 class="details-section-title">파일명</h4>
+      <p class="details-filename-text" title="${cardData.filename}">${cardData.filename}</p>
+    </div>
+
+    <div class="details-section">
+      <h4 class="details-section-title">기본 정보</h4>
+      <div class="details-info-grid">
+        <span class="details-info-label">상태</span>
+        <span class="details-info-value">${cardData.status}</span>
+
+        <span class="details-info-label">요청일</span>
+        <span class="details-info-value">${new Date(cardData.created_at).toLocaleString('ko-KR')}</span>
+
+        <span class="details-info-label">완료 예정일</span>
+        <span class="details-info-value">${completionDateText}</span>
+      </div>
+    </div>
+
+    <div class="details-section">
+      <h4 class="details-section-title">요청사항</h4>
+      <p class="details-memo-description">관리자에게 전달할 메모를 남길 수 있습니다.</p>
+      <textarea id="details-memo-textarea" class="details-memo-textarea" placeholder="예) 3번 문제는 제외하고 작업해주세요.">${cardData.memo || ''}</textarea>
+      <div class="details-button-wrapper">
+        <button id="details-memo-save-btn" class="details-save-btn" data-id="${cardData.id}">${memoButtonText}</button>
+      </div>
+    </div>
+  `;
+  detailsPanel.classList.add('is-open');
+  detailsOverlay.classList.add('is-open');
+}
 
   // 상세보기 패널 닫기
   function closeDetailsPanel() {
     detailsPanel.classList.remove('is-open');
     detailsOverlay.classList.remove('is-open');
+  }
+
+    async function saveMemo(cardId) {
+    const memoTextarea = document.getElementById('details-memo-textarea');
+    const saveButton = document.getElementById('details-memo-save-btn');
+    if (!memoTextarea || !saveButton) return;
+
+    const memo = memoTextarea.value;
+
+    saveButton.disabled = true;
+    saveButton.innerText = '저장 중...';
+
+    try {
+      const response = await fetch(`/api/uploads/${cardId}/memo`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memo: memo })
+      });
+
+      if (response.ok) {
+        alert('메모가 성공적으로 저장되었습니다.');
+        const updatedCard = allUploads.find(item => item.id == cardId);
+        if(updatedCard) updatedCard.memo = memo;
+        saveButton.innerText = '메모 수정';
+      } else {
+        const errorData = await response.json();
+        alert(`메모 저장에 실패했습니다: ${errorData.msg || '서버 오류'}`);
+      }
+    } catch (error) {
+      console.error('Memo save error:', error);
+      alert('메모 저장 중 네트워크 오류가 발생했습니다.');
+    } finally {
+      saveButton.disabled = false;
+      if (!saveButton.innerText.includes('수정')) {
+        const cardData = allUploads.find(item => item.id == cardId);
+        saveButton.innerText = cardData && cardData.memo ? '메모 수정' : '메모 저장';
+      }
+    }
   }
   
   // 탭 표시기 이동
@@ -404,6 +375,13 @@ window.initializeUploadPage = function(user) {
   // 상세보기 패널 닫기
   detailsPanelClose.addEventListener('click', closeDetailsPanel);
   detailsOverlay.addEventListener('click', closeDetailsPanel);
+
+    detailsPanelContent.addEventListener('click', (event) => {
+    if (event.target && event.target.id === 'details-memo-save-btn') {
+      const cardId = event.target.dataset.id;
+      saveMemo(cardId); // saveMemo 함수 호출
+    }
+  });
 
   // --- 초기화 ---
   renderPreviewCards();

@@ -173,7 +173,7 @@ router.post('/api/user-upload', isSubscribed, fileUpload.array('fileInput', 10),
 router.get('/api/my-uploads', isLoggedIn, async (req, res) => {
   try {
     const [rows] = await db.query(`
-       SELECT id, filename, status, reject_reason, uploaded_at AS created_at, completed_at
+       SELECT id, filename, status, reject_reason, uploaded_at AS created_at, completed_at, memo
       FROM uploads
       WHERE user_id = ?
       ORDER BY uploaded_at DESC
@@ -236,6 +236,37 @@ router.get('/api/users/stats', isLoggedIn, async (req, res) => {
   } catch (e) {
     console.error('users-stats 조회 오류:', e);
     res.status(500).json({ msg: '통계 조회 실패' });
+  }
+});
+
+// [신규 추가] 내 업로드 메모 저장/수정
+router.patch('/api/uploads/:id/memo', isLoggedIn, async (req, res) => {
+  try {
+    const uploadId = req.params.id;         // URL에서 파일 ID 가져오기
+    const userId = req.session.user.id;     // 세션에서 현재 로그인한 사용자 ID 가져오기
+    const { memo } = req.body;              // 요청 본문에서 메모 내용 가져오기
+
+    if (memo === undefined) {
+      return res.status(400).json({ msg: '메모 내용이 없습니다.' });
+    }
+
+    // SQL Injection을 방지하고, 본인의 업로드만 수정 가능하도록 user_id를 함께 확인합니다.
+    const [result] = await db.query(
+      'UPDATE uploads SET memo = ? WHERE id = ? AND user_id = ?',
+      [memo, uploadId, userId]
+    );
+
+    // 업데이트된 행이 없으면, 해당 파일이 없거나 수정 권한이 없는 것입니다.
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ msg: '해당 업로드 파일을 찾을 수 없거나 수정 권한이 없습니다.' });
+    }
+
+    // 성공적으로 업데이트된 경우
+    res.json({ msg: '메모가 성공적으로 저장되었습니다.' });
+
+  } catch (err) {
+    console.error('PATCH /api/uploads/:id/memo error:', err);
+    res.status(500).json({ msg: '메모 저장 중 서버 오류가 발생했습니다.' });
   }
 });
 

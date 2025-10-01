@@ -364,3 +364,96 @@ input:checked + .slider:before {transform: translateX(24px);}
     visibility: visible;
 }
 /* ▲▲▲ [추가] 상세보기 슬라이드 패널 CSS ▲▲▲ */
+
+.details-section {
+    margin-bottom: 28px;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 24px;
+}
+.details-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 10px;
+}
+.details-section-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #007BFF;
+    margin-top: 0;
+    margin-bottom: 16px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #007BFF;
+    display: inline-block;
+}
+.details-filename-text {
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: #111;
+    margin: -8px 0 0 0;
+    line-height: 1.5;
+    word-break: break-all;
+}
+.details-info-grid {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 12px;
+    font-size: 0.95rem;
+}
+.details-info-label {
+    color: #5f5f5f;
+    font-weight: 500;
+}
+.details-info-value {
+    color: #111;
+    font-weight: 500;
+    word-break: break-all;
+}
+.details-placeholder-text {
+    font-size: 0.9rem;
+    color: #777;
+    margin-top: -8px;
+}
+
+.details-memo-textarea {
+    width: 100%;
+    min-height: 120px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.9rem;
+    font-family: 'Noto Sans KR', sans-serif;
+    resize: vertical;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin-top: -8px;
+}
+.details-memo-textarea:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+.details-button-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+.details-save-btn {
+    padding: 9px 18px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    background-color: #6366f1;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.details-save-btn:hover {
+    background-color: #4f52c4;
+    transform: translateY(-2px);
+}
+.details-save-btn:disabled {
+    background-color: #a5a6f6;
+    cursor: not-allowed;
+    transform: none;
+}

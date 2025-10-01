@@ -36,6 +36,7 @@ router.get('/api/files', isLoggedInJson, verifyOrigin, async (req, res) => {
       title: r.title,
       level: r.level,
       uploaded_at: r.uploaded_at,
+      memo: r.memo,
       files: {
         pdf: !!r.pdf_filename,
         hwp: !!r.hwp_filename
@@ -170,6 +171,33 @@ router.get('/api/uploads/recent', isLoggedIn, verifyOrigin, async (req, res) => 
     res.json(rows);
   } catch (e) {
     res.status(500).json({ message: '업로드 목록 오류', error: e.message });
+  }
+});
+
+// [신규 추가] 자료실 파일 메모 저장/수정
+router.patch('/api/files/:id/memo', isLoggedIn, async (req, res) => {
+  try {
+    const fileId = req.params.id;
+    const { memo } = req.body;
+
+    if (memo === undefined) {
+      return res.status(400).json({ msg: '메모 내용이 없습니다.' });
+    }
+
+    const [result] = await db.query(
+      'UPDATE files SET memo = ? WHERE id = ?',
+      [memo, fileId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ msg: '해당 파일을 찾을 수 없습니다.' });
+    }
+
+    res.json({ msg: '메모가 성공적으로 저장되었습니다.' });
+
+  } catch (err) {
+    console.error('PATCH /api/files/:id/memo error:', err);
+    res.status(500).json({ msg: '메모 저장 중 서버 오류가 발생했습니다.' });
   }
 });
 
