@@ -19,54 +19,71 @@ body {
   background-color: #f8f9fa;
 }
 
-/* ▼▼▼ [수정됨] 페이지 배너에 이미지 배경 및 입체 효과 적용 ▼▼▼ */
+/* ▼▼▼ [수정됨] 페이지 배너 스타일 (notice와 100% 동일하게) ▼▼▼ */
 .upload-page-banner {
   margin: 24px 12px;
-  /* 여기에 사용하고 싶은 .jpg 이미지의 경로를 넣어주세요. */
-  background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url('path/to/your/image.jpg') no-repeat center center, #4a69bd;
-  background-size: cover;
-  border-radius: 18px;
-  padding: 24px 30px 24px 65px;
-  min-height: 230px;
+  /* 수정: 아주 옅은 노란색 그라데이션으로 변경 */
+  background: linear-gradient(135deg, #FFFFF0 0%, #FFFDEB 100%);
+  border-radius: 24px;
+  padding: 30px 50px;
+  min-height: 150px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  border-bottom: none;
+  justify-content: space-between;
+  align-items: center;
   box-sizing: border-box;
-  color: #ffffff;
   position: relative;
-  /* 입체적인 느낌을 위한 그림자 */
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25),
-              0 -4px 15px rgba(255, 255, 255, 0.1) inset,
-              0 4px 15px rgba(0, 0, 0, 0.15) inset;
-  transform: translateY(0);
+  /* 수정: 배경색에 어울리도록 그림자 색을 따뜻한 계열로 변경 */
+  box-shadow: 0 8px 25px rgba(227, 215, 180, 0.45), 
+              inset 1px 1px 2px #ffffffa0;
   transition: all 0.3s ease-in-out;
 }
 
-/* 마우스 호버 시 떠오르는 효과 */
 .upload-page-banner:hover {
     transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35),
-                0 -6px 20px rgba(255, 255, 255, 0.15) inset,
-                0 6px 20px rgba(0, 0, 0, 0.2) inset;
+    box-shadow: 0 12px 30px rgba(180, 200, 220, 0.5),
+                inset 1px 1px 2px #ffffffa0;
+}
+
+/* 아래 코드 블록 전체 추가: notice와 구조를 맞추기 위함 */
+.upload-banner-content {
+  flex: 1;
+}
+
+.upload-banner-image {
+  width: 200px;
+  height: 120px;
+  flex-shrink: 0;
+  /* 아래 추가: notice와 동일하게 이미지 정렬을 위해 flex 설정 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 아래 코드 블록 전체 추가: notice의 .banner-img-element와 100% 동일 */
+.banner-img-element {
+  max-width: 170px;
+  height: auto;
+  opacity: 0.85;
+  position: relative;
+  right: 20px;
+  transition: all 0.3s ease;
 }
 
 .upload-page-banner h2 {
   font-size: 1.9rem;
   font-weight: 900;
-  color: #ffffff;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-  margin-bottom: 16px;
+  color: #403b39;
+  text-shadow: none;
+  margin-bottom: 8px;
 }
 
 .upload-page-banner p {
   font-size: 1.1rem;
   line-height: 1.6;
-  opacity: .98;
-  color: #e0e0e0;
-  margin-top: 14px;
+  color: #635b58;
+  margin-top: 10px;
   text-align: left;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+  text-shadow: none;
 }
 /* ▲▲▲ 수정된 부분 끝 ▲▲▲ */
 
@@ -673,17 +690,18 @@ th {
     font-weight: 600;
     border: none;
     border-radius: 8px;
-    background-color: #6366f1;
+    background-color: #007BFF; /* 선명한 파란색으로 변경 */
     color: #fff;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 .details-save-btn:hover {
-    background-color: #4f52c4;
+    background-color: #0056b3; /* 더 진한 파란색으로 변경 */
     transform: translateY(-2px);
 }
+
 .details-save-btn:disabled {
-    background-color: #a5a6f6;
+    background-color: #a0c7ff; /* 비활성 색상도 파란색 계열로 변경 */
     cursor: not-allowed;
     transform: none;
 }

@@ -57,61 +57,88 @@ body {
   opacity: 1;
 }
 
-/* --- home.css에서 가져온 모달 스타일 --- */
+/* 모달창 뒷 배경 */
 .profile-modal {
   position: fixed;
   inset: 0;
-  display: none;
+  display: none; /* JS로 التحكم */
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, .55);
-  z-index: 10000;
-}
-.profile-modal-content {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  width: 80vw;
-  height: 68vh;
-  transform: translate(-50%, -50%);
-  background: #fff;
-  overflow: hidden;
-  border-radius: 5px;
-  z-index: 11000;
-  padding: 0;
-}
-.profile-iframe-outer {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-.profile-iframe-outer iframe {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  height: 100%;
-  transform: translate(-50%, -50%) scale(0.9);
-  border: none;
-  background: transparent;
-  display: block;
-}
-.profile-modal-close {
-  z-index: 12000 !important;
-  position: absolute;
-  right: 18px;
-  top: 14px;
-  font-size: 1.8rem;
-  border: none;
-  background: none;
-  color: #555;
-  cursor: pointer;
-}
-.profile-modal-close:hover {
-  color: #000;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px); /* 배경 블러 효과 */
+  z-index: 1000;
 }
 
+/* 모달창 본문 (iframe을 감싸는 컨테이너) */
+.profile-modal .profile-modal-content {
+  position: relative;
+  background: #fff;
+  /* --- 변경: 창 크기 조절 및 둥근 모서리 적용 --- */
+  width: 90%;
+  max-width: 1100px; /* 창의 최대 너비 */
+  height: 52vh;      /* 창의 높이를 화면의 85%로 설정 */
+  border-radius: 16px; /* 모서리를 둥글게 */
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  overflow: hidden;  /* 둥근 모서리 밖으로 내용이 나가지 않도록 함 */
+  display: flex;
+  flex-direction: column;
+}
+
+/* iframe을 감싸는 div */
+.profile-modal .profile-iframe-outer {
+  flex-grow: 1; /* 남는 공간을 모두 차지하도록 설정 */
+  border-radius: inherit; /* 부모의 둥근 모서리를 상속 */
+}
+
+/* iframe 스타일 */
+.profile-modal .profile-iframe-outer iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+
+/* --- 변경: 닫기 버튼(X) 고급스럽게 변경 --- */
+.profile-modal .profile-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;  /* 버튼 크기 */
+  height: 32px; /* 버튼 크기 */
+  background: rgba(0, 0, 0, 0.4); /* 반투명 배경 */
+  border: none;
+  border-radius: 50%; /* 원형 버튼 */
+  cursor: pointer;
+  z-index: 10;
+  font-size: 0; /* 기존 'X' 글자 숨기기 */
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+/* 마우스 올렸을 때 스타일 */
+.profile-modal .profile-modal-close:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: rotate(90deg); /* 살짝 회전하는 효과 */
+}
+
+/* 가상요소로 X 모양 만들기 */
+.profile-modal .profile-modal-close::before,
+.profile-modal .profile-modal-close::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px; /* X 선 길이 */
+  height: 2px;  /* X 선 굵기 */
+  background-color: #fff; /* X 색상 */
+}
+
+.profile-modal .profile-modal-close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.profile-modal .profile-modal-close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
 
 /* --- 대시보드 전체 레이아웃 (반응형으로 수정됨) --- */
 .dashboard-container {
@@ -229,7 +256,7 @@ input:focus {
     padding: 10px 18px; 
     border: none; 
     border-radius: 8px; 
-    background: var(--primary-color); 
+    background: #007BFF; /* 파란색으로 변경 */
     color: #fff; 
     font-size: 0.9rem; 
     font-weight: 600; 
@@ -238,18 +265,18 @@ input:focus {
     box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
 }
 .pw-btn:active {
-    background: var(--primary-hover);
+    background: #0056b3; /* 더 진한 파란색 */
     box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
 }
 
 .input-group .pw-btn {
   width: 40px; height: 40px; padding: 0;
   font-size: 1.1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  background-color: var(--btn-yellow);
-  color: #111;
+  background-color: #007BFF; /* 파란색 배경으로 변경 */
+  color: #ffffff; /* 흰색 아이콘/글씨 */
 }
 .input-group .pw-btn:active {
-    background-color: var(--btn-yellow-hover);
+    background-color: #0056b3; /* 더 진한 파란색 */
 }
 
 #academy-save-btn {
@@ -257,9 +284,20 @@ input:focus {
     color: var(--text-primary);
 }
 
-.subscribe-btn { background-color: #FEE500; color: #191919; }
-/* --- 추가된 코드 시작 --- */
-.subscribe-btn:hover { background-color: #FDD835; }
+.subscribe-btn { 
+  background-color: #007BFF;
+  color: #ffffff;
+  /* --- 아래 2줄 추가 --- */
+  box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+  transition: all 0.2s ease;
+}
+.subscribe-btn:hover { 
+  background-color: #0056b3;
+}
+/* --- active 상태 추가 --- */
+.subscribe-btn:active {
+    box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
+}
 /* --- 추가된 코드 종료 --- */
 .btn-cancel { background-color: #FFC1CC; color: #191919; }
 

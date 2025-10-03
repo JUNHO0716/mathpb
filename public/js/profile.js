@@ -340,17 +340,6 @@ const cancelBtn = document.getElementById('btn-cancel');
     });
   }
 
-
-  const subscribeBtn = document.getElementById('subscribeBtn');
-  if (subscribeBtn) {
-    subscribeBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (window.parent && window.parent.openPaymentModal) {
-        window.parent.openPaymentModal();
-      }
-    });
-  }
-
   async function loadFooter() {
     try {
       const response = await fetch('footer.html');

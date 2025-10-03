@@ -7,7 +7,7 @@
   --text-main: #111;
   --text-sub: #5f5f5f;
   --sb-open: 210px; 
-  --sb-collapsed: 76px;
+  --sb-collapsed: 78px;
 }
 
 * {
@@ -242,8 +242,8 @@ body {
 }
 
 .menu-icon {
-  width: 20px;
-  height: 20px;
+  width: 25px;
+  height: 25px;
   margin-right: 15px;
   object-fit: contain;
   margin-left: 11px;
@@ -411,7 +411,7 @@ body.swal2-shown { height: 100% !important; overflow: hidden !important; }
 .intro-modal{width:min(920px,95vw);background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.22);overflow:hidden;transform:translateY(8px);opacity:0;animation:introPop .28s ease-out .02s forwards}
 @keyframes introPop{to{opacity:1;transform:translateY(0)}}
 .intro-head{display:flex;gap:14px;align-items:center;padding:22px 24px;border-bottom:1px solid var(--border-light)}
-.intro-badge{width:34px;height:34px;border-radius:10px;background:var(--btn-bg);display:flex;align-items:center;justify-content:center;font-weight:900;color:#111}
+.intro-badge{width:34px;height:34px;border-radius:10px;background:#007BFF;display:flex;align-items:center;justify-content:center;font-weight:900;color:#FFFFFF}
 .intro-title{font-size:1.22rem;font-weight:900;color:#111;letter-spacing:-.2px}
 .intro-sub{font-size:.92rem;color:#5f5f5f;margin-top:2px}
 .intro-body{padding:18px 22px 8px}
@@ -489,14 +489,14 @@ body.swal2-shown { height: 100% !important; overflow: hidden !important; }
     border-color: rgba(255, 255, 255, 0.8);
 }
 .intro-footer .btn-primary {
-    background: rgba(253, 197, 18, 0.7);
-    border: 1px solid rgba(253, 197, 18, 0.9);
-    color: #4D3800;
+    background: #007BFF; /* 파란색으로 변경 */
+    border: none; /* 테두리 제거 */
+    color: #FFFFFF; /* 흰색 글씨 */
     font-weight: 700;
 }
 .intro-footer .btn-primary:hover {
-    background: rgba(217, 169, 15, 0.8);
-    border-color: rgba(253, 197, 18, 1);
+    background: #0056b3; /* 더 진한 파란색 */
+    border-color: transparent; /* 호버 시 테두리 색상 제거 */
 }
 
 /* ===== 페이지 로딩 스피너 스타일 ===== */

@@ -1,132 +1,177 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+
 :root {
   --bg: #ffffff;
   --text: #111;
   --sub: #555;
   --line: #e9e9e9;
-  --brand: #5E70E7;
+  --brand: #5E70E7; /* 브랜드 메인 색상 */
+  --brand-light: #7a8aff;
   --card: #fff;
   --success: #22c55e;
+  --dark-text: #1a202c;
+  --light-text: #4a5568;
   --z-shadow-1: 0 8px 18px rgba(0, 0, 0, .08), 0 2px 6px rgba(0, 0, 0, .05);
 }
 
 * {
-  box-sizing: border-box
+  box-sizing: border-box;
 }
 
 html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Noto Sans KR', sans-serif
+  color: var(--dark-text);
+  font-family: 'Noto Sans KR', sans-serif;
+  /* --- 변경: 은은한 그라데이션 배경 추가 --- */
+  background: linear-gradient(170deg, #f7f8fa, #eef1f5);
 }
 
 .wrap {
-  max-width: 1320px;
+  max-width: 1024px; /* --- 변경: 너비를 살짝 줄여 집중도 향상 --- */
   margin: 0 auto;
-  padding: 24px;
+  padding: 48px 24px; /* --- 변경: 상하 여백 추가 --- */
 }
 
 .hero {
-  margin: 8px 0 16px;
+  margin: 0 0 40px; /* --- 변경: 하단 여백 증가 --- */
   text-align: center;
 }
 
 .hero h1 {
-  font-size: 1.5rem;
+  font-size: 2rem; /* --- 변경: 폰트 크기 증가 --- */
   margin: 0;
   font-weight: 900;
-  letter-spacing: -.3px
+  letter-spacing: -0.5px;
 }
 
 .hero p {
-  margin: 6px 0 0;
-  color: var(--sub)
+  margin: 8px 0 0;
+  color: var(--light-text);
+  font-size: 1rem;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 22px;
-  margin-top: 14px;
+  gap: 30px; /* --- 변경: 카드 간 간격 증가 --- */
+  align-items: center; /* --- 추가: 카드 세로 정렬 --- */
 }
 
 @media (max-width:980px) {
   .grid {
-    grid-template-columns: 1fr
+    grid-template-columns: 1fr;
   }
 }
 
 .plan {
-  background: linear-gradient(180deg, #ffffff, #fafbff);
+  background: var(--card);
   border-radius: 18px;
-  border: 1px solid #eef0f6;
-  box-shadow: var(--z-shadow-1);
-  padding: 20px 18px;
+  border: 1px solid #e2e8f0;
+  /* --- 변경: 그림자 효과 강화 --- */
+  box-shadow: 0 4px 6px rgba(0,0,0,0.04), 0 10px 20px rgba(0,0,0,0.04);
+  padding: 28px; /* --- 변경: 내부 여백 증가 --- */
   position: relative;
   overflow: hidden;
+  /* --- 추가: 부드러운 전환 효과 --- */
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
 }
 
-.plan::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: inherit;
-  background: linear-gradient(180deg, rgba(255, 255, 255, .85), transparent 55%);
-  opacity: .6;
-}
-
-.plan.popular::after {
-  content: '가장 인기';
-  position: absolute;
-  top: 12px;
-  right: -32px;
-  transform: rotate(35deg);
-  background: var(--brand);
-  color: #fff;
-  font-size: .72rem;
-  padding: 6px 40px;
-  font-weight: 700;
+/* --- 추가: 마우스 호버 시 카드 부상 효과 --- */
+.plan:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 8px 15px rgba(0,0,0,0.06), 0 20px 30px rgba(0,0,0,0.08);
 }
 
 .plan header {
   display: flex;
-  align-items: flex-end;
+  align-items: baseline; /* --- 변경: 정렬 기준선 변경 --- */
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 12px
+  margin-bottom: 24px; /* --- 변경: 여백 증가 --- */
+  border-bottom: 1px solid #f1f5f9; /* --- 추가: 구분선 --- */
+  padding-bottom: 16px;
 }
 
 .plan h3 {
   margin: 0;
-  font-size: 1.15rem
+  font-size: 1.25rem;
+  font-weight: 700;
 }
 
 .price {
   font-weight: 900;
-  font-size: 1.45rem
+  font-size: 2rem; /* --- 변경: 가격 폰트 크기 증가 --- */
+  color: var(--brand);
 }
 
 .price small {
-  font-weight: 600;
-  color: var(--sub);
-  font-size: .9rem
+  font-weight: 400;
+  color: var(--light-text);
+  font-size: 1rem;
 }
 
 .feature {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  margin: 8px 0;
-  color: #222
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+  color: var(--dark-text);
+  font-size: 0.95rem;
 }
 
-.feature .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--success);
-  margin-top: 6px
+/* --- 변경: .dot 대신 아이콘 스타일 지정 --- */
+.feature i {
+  color: var(--success);
+  font-size: 1.2em;
+}
+
+
+/* --- '가장 인기' 요금제 특별 스타일 --- */
+.plan.popular {
+  /* --- 변경: 브랜드 색상 그라데이션 배경 --- */
+  background: linear-gradient(135deg, var(--brand), var(--brand-light));
+  color: #fff;
+  border: none;
+  /* --- 변경: 기본 크기를 살짝 키워 강조 --- */
+  transform: scale(1.05);
+}
+
+.plan.popular:hover {
+  transform: scale(1.05) translateY(-8px); /* 호버 시에도 크기 유지 */
+  box-shadow: 0 12px 25px rgba(94, 112, 231, 0.3), 0 25px 40px rgba(94, 112, 231, 0.2);
+}
+
+.plan.popular .price {
+  color: #fff;
+}
+
+.plan.popular .price small,
+.plan.popular .feature,
+.plan.popular h3 {
+  color: #fff;
+}
+
+.plan.popular .feature i {
+  color: #fff;
+}
+
+/* '가장 인기' 태그 스타일 (기존 rotate 방식 대신 사용) */
+.plan.popular::before {
+  content: '가장 인기';
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+/* 기존 after 선택자 제거 */
+.plan.popular::after {
+  display: none;
 }

@@ -121,7 +121,7 @@ window.handleChildNavigation = (data) => {
     const noticeMenu = document.getElementById('menu6');
     noticeMenu.classList.add('active');
     const icon = noticeMenu.querySelector('.menu-icon');
-    if (icon) icon.src = icon.dataset.iconWhite; // 수정됨
+    if (icon) icon.src = icon.dataset.iconWhite.replace('_w.png', '_b.png');
     const pageTitle = document.getElementById('pageTitle');
     if (pageTitle) pageTitle.innerHTML = `<span class="highlight">No</span>tice`;
     loadContent('notice.html');
@@ -259,7 +259,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const first = document.getElementById('menu1');
   first.classList.add('active');
   const firstIcon = first.querySelector('.menu-icon');
-  firstIcon.src = firstIcon.dataset.iconWhite;
+  // 아이콘 변경: 첫 메뉴를 선택된 아이콘(_b.png)으로 설정
+  firstIcon.src = firstIcon.dataset.iconWhite.replace('_w.png', '_b.png');
   document.querySelectorAll('.menu-item:not(#menu1) .menu-icon').forEach(icon => {
     icon.src = icon.dataset.iconWhite;
   });
@@ -404,14 +405,17 @@ document.querySelectorAll('.menu-item').forEach(item => {
 
 // 메뉴 활성화 및 타이틀 변경을 위한 헬퍼 함수
 function setActiveMenu(activeItem) {
+  // 모든 메뉴를 비활성화하고 아이콘을 흰색(_w.png)으로 변경
   document.querySelectorAll('.menu-item').forEach(i => {
     i.classList.remove('active');
     var icon = i.querySelector('.menu-icon');
     if (icon) icon.src = icon.dataset.iconWhite;
   });
+  // 클릭한 메뉴를 활성화
   activeItem.classList.add('active');
   var activeIcon = activeItem.querySelector('.menu-icon');
-  if (activeIcon) activeIcon.src = activeIcon.dataset.iconWhite; // 수정됨
+  // 활성화된 메뉴의 아이콘을 검은색(_b.png)으로 변경
+  if (activeIcon) activeIcon.src = activeIcon.dataset.iconWhite.replace('_w.png', '_b.png');
 }
 
 function setPageTitle(highlight, text) {
@@ -434,7 +438,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const noticeMenu = document.getElementById('menu6');
     noticeMenu.classList.add('active');
     const icon = noticeMenu.querySelector('.menu-icon');
-    if (icon) icon.src = icon.dataset.iconWhite; // 수정됨
+    if (icon) icon.src = icon.dataset.iconWhite.replace('_w.png', '_b.png');
     const pageTitle = document.getElementById('pageTitle');
     pageTitle.innerHTML = `<span class="highlight">No</span>tice`;
     

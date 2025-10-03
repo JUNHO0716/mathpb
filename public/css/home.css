@@ -269,7 +269,7 @@
   .home-notice-card{
     width: 340px;
     flex-shrink: 0;
-    background: #fffdf5;
+    background: var(--background-color2); /* 다른 카드와 동일한 흰색 배경으로 변경 */
     border: none;
     border-radius:22px;
     box-shadow: 8px 8px 16px #d0d3d5, -8px -8px 16px #ffffff;
@@ -306,7 +306,8 @@
   }
   .home-notice-item:hover{background:#f5faf8;}
   .home-notice-num{
-    min-width:16px;height:16px;background:#111;color:#fff;
+    min-width:16px;height:16px;background:#3B82F6; /* 파란색 배경으로 변경 */
+    color:#fff;
     border-radius:50px;font-size:.6rem;font-weight:700;
     display:flex;align-items:center;justify-content:center;
     margin-right:6px;
@@ -452,13 +453,13 @@
     z-index: 10;
   }
   .home-btn-plus i {
-    color: #fdc512;
+    color: #3B82F6; /* 파란색 아이콘으로 변경 */
     font-size: 1.1rem;
     transition: color 0.18s;
   }
   .home-btn-plus:hover i,
   .home-btn-plus:focus i {
-    color: #d9a90f;
+    color: #2563EB; /* 더 진한 파란색 */
   }
   .home-mysheet-split {
     display: flex; gap: 24px; margin-top:10px;

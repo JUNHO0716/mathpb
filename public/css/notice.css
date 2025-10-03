@@ -18,53 +18,72 @@ body {
 
 /* ▼▼▼ 페이지 배너 스타일 ▼▼▼ */
 .notice-page-banner {
-  margin: 24px 12px;
-  /* 여기에 사용하고 싶은 .jpg 이미지의 경로를 넣어주세요. */
-  background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url('path/to/your/image.jpg') no-repeat center center, #4a69bd;
-  background-size: cover;
-  border-radius: 18px;
-  padding: 24px 30px 24px 65px;
-  min-height: 230px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  border-bottom: none;
+  justify-content: space-between;
+  align-items: center;
+  margin: 24px 12px;
+  /* 수정: 아주 옅은 보라색 그라데이션으로 변경 */
+  background: linear-gradient(135deg, #F7F5FF 0%, #F2F0FF 100%);
+  border-radius: 24px;
+  padding: 30px 50px;
+  min-height: 150px;
   box-sizing: border-box;
-  color: #ffffff;
   position: relative;
-  /* 입체적인 느낌을 위한 그림자 */
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25),
-              0 -4px 15px rgba(255, 255, 255, 0.1) inset,
-              0 4px 15px rgba(0, 0, 0, 0.15) inset;
-  transform: translateY(0);
+  /* 수정: 배경색에 어울리도록 그림자 색을 보라색 계열로 변경 */
+  box-shadow: 0 8px 25px rgba(200, 190, 220, 0.5), 
+              inset 1px 1px 2px #ffffffa0;
   transition: all 0.3s ease-in-out;
+  overflow: hidden;
 }
 
 .notice-page-banner:hover {
     transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35),
-                0 -6px 20px rgba(255, 255, 255, 0.15) inset,
-                0 6px 20px rgba(0, 0, 0, 0.2) inset;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* HTML에 추가된 div를 위한 스타일 */
+.banner-content {
+  flex: 1;
 }
 
 .notice-page-banner h2 {
   font-size: 1.9rem;
   font-weight: 900;
-  color: #ffffff;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  color: #403b39; /* 어두운 텍스트 색상으로 변경 */
+  text-shadow: none; /* 텍스트 그림자 제거 */
   margin-bottom: 8px;
 }
 
 .notice-page-banner p {
-  font-size: 1.1rem;
+  font-size: 1rem;
   line-height: 1.6;
-  opacity: .98;
-  color: #e0e0e0;
+  color: #635b58; /* 어두운 텍스트 색상으로 변경 */
   margin-top: 10px;
   text-align: left;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+  text-shadow: none; /* 텍스트 그림자 제거 */
+  max-width: 500px;
 }
-/* ▲▲▲ 페이지 배너 스타일 끝 ▲▲▲ */
+
+/* HTML에 추가된 이미지 영역 스타일 */
+.banner-image {
+  width: 200px;
+  height: 120px;
+  flex-shrink: 0;
+  /* 아래 추가: 이미지 정렬을 위해 flex 설정 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 아래 코드 블록 전체 추가 */
+.banner-img-element {
+  max-width: 210px; /* 크기: 150px -> 170px로 키움 */
+  height: auto;
+  opacity: 0.7; /* 불투명도: 85%로 설정 */
+  position: relative;
+  right: 100px; /* 위치: 오른쪽 기준으로 20px 왼쪽으로 이동 */
+  transition: all 0.3s ease; /* 부드러운 효과를 위한 트랜지션 */
+}
 
 
 /* ▼▼▼ 세로 탭 레이아웃 스타일 ▼▼▼ */
@@ -110,7 +129,7 @@ body {
 }
 
 .tab-btn.active {
-  color: var(--text-main);
+  color: #ffffff; /* 흰색 글씨로 변경 */
   box-shadow: inset 2px 2px 4px #dce1e4, inset -2px -2px 4px #ffffff;
 }
 
@@ -122,12 +141,13 @@ body {
   position: absolute;
   width: 100%;
   left: 0;
-  background-color: var(--btn-bg);
+  background-color: #007BFF; /* 파란색 배경으로 변경 */
   border-radius: 12px;
   z-index: 1;
   transition: top 0.4s cubic-bezier(0.22, 1, 0.36, 1), height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  /* 은은한 불빛 효과 추가 */
+  box-shadow: 0 4px 14px rgba(0, 123, 255, 0.25);
 }
-/* ▲▲▲ 세로 탭 레이아웃 스타일 끝 ▲▲▲ */
 
 
 /* ▼▼▼ 공지사항 테이블 ▼▼▼ */
