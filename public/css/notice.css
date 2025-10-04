@@ -16,24 +16,20 @@ body {
   margin: 0;
 }
 
-/* ▼▼▼ 페이지 배너 스타일 ▼▼▼ */
 .notice-page-banner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin: 24px 12px;
-  /* 수정: 아주 옅은 보라색 그라데이션으로 변경 */
   background: linear-gradient(135deg, #F7F5FF 0%, #F2F0FF 100%);
   border-radius: 24px;
   padding: 30px 50px;
-  min-height: 150px;
+  height: 180px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   box-sizing: border-box;
   position: relative;
-  /* 수정: 배경색에 어울리도록 그림자 색을 보라색 계열로 변경 */
-  box-shadow: 0 8px 25px rgba(200, 190, 220, 0.5), 
+  box-shadow: 0 8px 25px rgba(180, 200, 220, 0.4), 
               inset 1px 1px 2px #ffffffa0;
   transition: all 0.3s ease-in-out;
-  overflow: hidden;
 }
 
 .notice-page-banner:hover {
@@ -64,27 +60,23 @@ body {
   max-width: 500px;
 }
 
-/* HTML에 추가된 이미지 영역 스타일 */
-.banner-image {
-  width: 200px;
-  height: 120px;
+.notice-banner-image {
   flex-shrink: 0;
-  /* 아래 추가: 이미지 정렬을 위해 flex 설정 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 아래 코드 블록 전체 추가 */
-.banner-img-element {
-  max-width: 210px; /* 크기: 150px -> 170px로 키움 */
-  height: auto;
-  opacity: 0.7; /* 불투명도: 85%로 설정 */
+  width: 250px; 
+  height: 100%;
   position: relative;
-  right: 100px; /* 위치: 오른쪽 기준으로 20px 왼쪽으로 이동 */
-  transition: all 0.3s ease; /* 부드러운 효과를 위한 트랜지션 */
 }
 
+.notice-banner-img-element {
+  position: absolute; 
+  width: 270px;       
+  height: auto;
+  bottom: -68px;      
+  right: 30px;        
+  opacity: 0.9;
+  transition: all 0.3s ease;
+  z-index: 1; 
+}
 
 /* ▼▼▼ 세로 탭 레이아웃 스타일 ▼▼▼ */
 .notice-main-container {

@@ -1,57 +1,5 @@
 window.initializeProfilePage = function(user) {
 
-  let adSwiper = null; // adSwiper 변수를 함수 스코프 상단에 선언
-  
-  // --- 광고 배너 Swiper 초기화 (home.js와 동일하게 수정) ---
-  if (typeof Swiper !== 'undefined') {
-    adSwiper = new Swiper('.profile-ad-swiper', { // 클래스 이름을 새 HTML 구조에 맞게 변경
-      loop: true,
-      grabCursor: true,
-      autoplay: { 
-        delay: 5000 
-      },
-      pagination: {
-        el: '.profile-ad-swiper-pagination', // 페이지네이션 요소 지정
-        clickable: true,
-      },
-    });
-  }
-
-  // --- 모달창 기능 함수 (home.js에서 가져옴) ---
-  function setupModal(swiperInstance) {
-      const modal = document.getElementById('profileAdModal'); // 모달 ID
-      if (!modal) return; // 모달이 없으면 함수 종료
-
-      const modalBox = modal.querySelector('.profile-modal-content');
-      const closeBtn = modal.querySelector('.profile-modal-close');
-      
-      if (!modalBox || !closeBtn || !swiperInstance) {
-        console.error("모달 초기화에 필요한 요소를 찾을 수 없습니다.");
-        return;
-      }
-
-      document.querySelectorAll('.profile-ad-swiper .swiper-slide').forEach(slide => {
-          slide.addEventListener('click', () => {
-              const url = slide.dataset.url;
-              if (!url) return;
-              
-              const frame = modalBox.querySelector('iframe');
-              if (frame) frame.src = url;
-              modal.style.display = 'flex';
-              swiperInstance.autoplay.stop(); // 모달 열리면 자동재생 멈춤
-          });
-      });
-
-      const hideModal = () => {
-          const frame = modalBox.querySelector('iframe');
-          if (frame) frame.src = 'about:blank';
-          modal.style.display = 'none';
-          swiperInstance.autoplay.start(); // 모달 닫히면 자동재생 시작
-      };
-      closeBtn.onclick = hideModal;
-      modal.onclick = e => { if (e.target === modal) hideModal(); };
-  }
-
   // --- 사용자 정보 설정 (전달받은 데이터 사용) ---
   function setProfileInfo(u) {
     if (!u) {
@@ -355,5 +303,4 @@ const cancelBtn = document.getElementById('btn-cancel');
   loadSubStatus();
   loadSubHistory();
   loadFooter();
-  setupModal(adSwiper); // 추가: 모달 기능 활성화
 };

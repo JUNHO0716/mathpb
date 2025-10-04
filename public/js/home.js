@@ -252,22 +252,55 @@ function bindUser(user) {
     loadRecentDownloads(user); // 👈 (user) 전달
 }
 
+ // 이 함수 전체를 복사해서 기존 함수와 교체해 주세요.
   async function fetchNotices() {
       let noticeData = [];
       try {
           const res = await fetch('/api/notices');
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+          }
           noticeData = await res.json();
+
       } catch (e) {
-          noticeData = [{ id: 0, title: '공지사항을 불러올 수 없습니다.' }];
+          console.error("공지사항 API 호출 실패:", e);
+          noticeData = [
+              { id: 1, title: '[공지] 시험지 PDF 업로드 시 -> 해설 포함 한글(HWP) 파일로 변환...' },
+              { id: 2, title: '[업데이트] 수학지니 정식 오픈!! 선생님들을 위한 문제은행 플랫폼' },
+              { id: 3, title: '[수정] 일부 문제에서 발생한 오타 수정 안내' },
+              { id: 4, title: '일반 공지사항 테스트입니다.' },
+              { id: 5, title: '[공지] 서버 안정화 작업 안내 (10/5)' }
+          ];
       }
 
       const listEl = document.getElementById('noticeList');
       if (!listEl) return;
-      listEl.innerHTML = noticeData.slice(0, 7).map((n, i) => `
-      <div class="home-notice-item">
-        <span class="home-notice-num">${i + 1}</span>
-        <span class="home-notice-title">${n.title}</span>
-      </div>`).join('');
+      listEl.innerHTML = noticeData.slice(0, 7).map((n, i) => {
+        
+        let tagHtml = '';
+        // ▼▼▼ 여기가 수정된 최종 코드입니다 ▼▼▼
+        let displayTitle = n.title.trim();
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+
+        if (displayTitle.startsWith('[공지]')) {
+          tagHtml = '<span class="notice-tag notice-tag-notice">공지</span>';
+          displayTitle = displayTitle.replace('[공지]', '').trim();
+        } else if (displayTitle.startsWith('[업데이트]')) {
+          tagHtml = '<span class="notice-tag notice-tag-update">업데</span>';
+          displayTitle = displayTitle.replace('[업데이트]', '').trim();
+        } else if (displayTitle.startsWith('[수정]')) {
+          tagHtml = '<span class="notice-tag notice-tag-fix">수정</span>';
+          displayTitle = displayTitle.replace('[수정]', '').trim();
+        }
+
+        return `
+        <div class="home-notice-item">
+          <span class="home-notice-num">${i + 1}</span>
+          ${tagHtml}
+          <span class="home-notice-title">${displayTitle}</span>
+        </div>`;
+
+      }).join('');
   }
 
   async function loadRecentUploads() {

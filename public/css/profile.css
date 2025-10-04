@@ -24,38 +24,69 @@ body {
   font-size: 14px;
 }
 
-/* --- home.css에서 가져온 새 배너 스타일 --- */
-.profile-promo-banner {
-  width: 99%; /* 변경: 97% -> 98%로 너비 조정 */
-  height: 240px;
-  margin: 20px auto;
-  border-radius: 15px;
-  overflow: hidden;
+/* ▼▼▼ 페이지 배너 스타일 (다른 페이지와 100% 동일하게) ▼▼▼ */
+.profile-page-banner {
+  margin: 24px 12px;
+  background: linear-gradient(135deg, #FAFAFA 0%, #F3F3F3 100%);
+  border-radius: 24px;
+  padding: 30px 50px;
+  height: 180px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  position: relative;
+  box-shadow: 0 8px 25px rgba(180, 200, 220, 0.4), 
+              inset 1px 1px 2px #ffffffa0;
+  transition: all 0.3s ease-in-out;
 }
-.profile-ad-swiper,
-.profile-ad-swiper .swiper-wrapper {
-  width: 100%;
+
+.profile-page-banner:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(180, 200, 220, 0.5), 
+                inset 1px 1px 2px #ffffffa0;
+}
+
+.profile-banner-content {
+  flex: 1;
+}
+
+.profile-banner-image {
+  flex-shrink: 0;
+  width: 250px; 
   height: 100%;
+  position: relative;
 }
-.profile-ad-swiper .swiper-slide img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  cursor: pointer;
+
+.profile-banner-img-element {
+  position: absolute; 
+  width: 260px;       
+  height: auto;
+  bottom: -62px;      
+  right: 30px;        
+  opacity: 0.9;
+  transition: all 0.3s ease;
+  z-index: 1; 
 }
-.profile-ad-swiper-pagination.swiper-pagination-bullets {
-  bottom: 10px;
-  left: 0;
-  width: 100%;
-  position: absolute;
+
+.profile-page-banner h2 {
+  font-size: 1.9rem;
+  font-weight: 900;
+  margin: 0 0 8px 0; 
+  color: #403b39;
+  text-shadow: none;
 }
-.profile-ad-swiper-pagination .swiper-pagination-bullet {
-  background: #FFFFFF;
-  opacity: 0.6;
+
+.profile-page-banner p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #635b58;
+  margin: 10px 0 0 0; 
+  text-align: left;
+  text-shadow: none;
 }
-.profile-ad-swiper-pagination .swiper-pagination-bullet-active {
-  opacity: 1;
-}
+/* ▲▲▲ 수정된 부분 끝 ▲▲▲ */
+
 
 /* 모달창 뒷 배경 */
 .profile-modal {
@@ -153,13 +184,22 @@ body {
 /* --- 왼쪽/메인 컬럼 카드 스타일 (home.css 스타일 적용) --- */
 .left-panel-card,
 .widget-card {
-  background: var(--widget-bg);
+  /* ▼ 유리 재질 효과 적용 (home.css와 동일) ▼ */
+  background: linear-gradient(
+    160deg,
+    rgba(250, 250, 250, 0.7) 0%, 
+    rgba(245, 245, 245, 0.4) 70%,
+    rgba(220, 237, 255, 0.3) 85%, 
+    rgba(244, 224, 255, 0.3) 100% 
+  );
+  border: 1px solid rgba(209, 213, 219, 0.7);
+  box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(8px); 
+  -webkit-backdrop-filter: blur(8px);
+  
   border-radius: 22px; /* 모서리를 더 둥글게 */
   padding: 24px;
   height: fit-content;
-  border: none; /* 기존 테두리 제거 */
-  /* 입체감을 주는 그림자 효과 추가 */
-  box-shadow: 8px 8px 16px var(--shadow-dark), -8px -8px 16px var(--shadow-light);
 }
 
 .left-panel-card h2,

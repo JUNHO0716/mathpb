@@ -235,22 +235,21 @@ tbody tr:hover{
 }
 
 .high-banner-image {
-  width: 200px;
   flex-shrink: 0;
-  /* 추가: 이미지 정렬을 위해 flex 설정 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 250px; 
+  height: 100%;
+  position: relative;
 }
 
-/* 아래 코드 블록 전체 추가: 다른 페이지의 이미지와 100% 동일한 스타일 */
-.banner-img-element {
-  max-width: 170px;
+.high-banner-img-element {
+  position: absolute; 
+  width: 245px;       
   height: auto;
-  opacity: 0.85;
-  position: relative;
-  right: 20px;
+  bottom: -62px;      
+  right: 30px;        
+  opacity: 0.9;
   transition: all 0.3s ease;
+  z-index: 1; 
 }
 
 .high-page-banner h2 {

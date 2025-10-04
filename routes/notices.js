@@ -9,11 +9,12 @@ const router = express.Router();
 
 // 1. 공지사항 목록 보기 (GET /api/notices) - 누구나
 router.get('/', async (req, res) => {
-  const type = req.query.type || '공지';
   try {
+    // ▼▼▼ WHERE category = ? 조건 삭제 ▼▼▼
     const [rows] = await db.query(
-      'SELECT * FROM notices WHERE category = ? ORDER BY id DESC', [type]
+      'SELECT * FROM notices ORDER BY id DESC'
     );
+    // ▲▲▲ 카테고리 필터링 제거 ▲▲▲
     res.json(rows);
   } catch (err) {
     console.error(err);

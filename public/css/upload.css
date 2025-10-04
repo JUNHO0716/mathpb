@@ -19,20 +19,17 @@ body {
   background-color: #f8f9fa;
 }
 
-/* ▼▼▼ [수정됨] 페이지 배너 스타일 (notice와 100% 동일하게) ▼▼▼ */
 .upload-page-banner {
   margin: 24px 12px;
-  /* 수정: 아주 옅은 노란색 그라데이션으로 변경 */
   background: linear-gradient(135deg, #FFFFF0 0%, #FFFDEB 100%);
   border-radius: 24px;
   padding: 30px 50px;
-  min-height: 150px;
+  height: 180px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-sizing: border-box;
   position: relative;
-  /* 수정: 배경색에 어울리도록 그림자 색을 따뜻한 계열로 변경 */
   box-shadow: 0 8px 25px rgba(227, 215, 180, 0.45), 
               inset 1px 1px 2px #ffffffa0;
   transition: all 0.3s ease-in-out;
@@ -50,23 +47,21 @@ body {
 }
 
 .upload-banner-image {
-  width: 200px;
-  height: 120px;
   flex-shrink: 0;
-  /* 아래 추가: notice와 동일하게 이미지 정렬을 위해 flex 설정 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 250px; 
+  height: 100%;
+  position: relative;
 }
 
-/* 아래 코드 블록 전체 추가: notice의 .banner-img-element와 100% 동일 */
-.banner-img-element {
-  max-width: 170px;
+.upload-banner-img-element {
+  position: absolute; 
+  width: 255px;       
   height: auto;
-  opacity: 0.85;
-  position: relative;
-  right: 20px;
+  bottom: -68px;      
+  right: 30px;        
+  opacity: 0.9;
   transition: all 0.3s ease;
+  z-index: 1; 
 }
 
 .upload-page-banner h2 {

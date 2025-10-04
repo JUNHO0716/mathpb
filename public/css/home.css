@@ -11,7 +11,13 @@
     --background-color3: #F7F8FA;
   }
   *{box-sizing:border-box;font-family:'Noto Sans KR',sans-serif;margin:0;}
-  body{background: var(--background-color);min-height:100vh;display:flex;flex-direction:column;}
+  body{
+    /* 원래의 밝은 회색 배경으로 복구 */
+    background: var(--background-color);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
   @media(max-width:1180px){
     .home-promo-banner.img-only{padding-top:38%;}
   }
@@ -156,7 +162,7 @@
     align-items: stretch;
   }
   .home-profile-card{
-    width: 340px;
+    width: 360px;
     flex-shrink: 0;
     background: var(--background-color2);
     border-radius: 22px;
@@ -266,14 +272,27 @@
     font-weight: 500;
     color: var(--text-main);
   }
-  .home-notice-card{
-    width: 340px;
+  .home-notice-card {
+    width: 450px;
+    height: 430px;
     flex-shrink: 0;
-    background: var(--background-color2); /* 다른 카드와 동일한 흰색 배경으로 변경 */
-    border: none;
-    border-radius:22px;
-    box-shadow: 8px 8px 16px #d0d3d5, -8px -8px 16px #ffffff;
+    
+    /* ▼ 경계선이 더 명확해진 Frosted Glass 효과 ▼ */
+    background: linear-gradient(
+      160deg,
+      rgba(250, 250, 250, 0.7) 0%, 
+      rgba(245, 245, 245, 0.4) 70%,
+      rgba(220, 237, 255, 0.3) 85%, 
+      rgba(244, 224, 255, 0.3) 100% 
+    );
+    border-radius: 22px;
+    border: 1px solid rgba(209, 213, 219, 0.7); /* 경계를 위해 옅은 회색 테두리로 변경 */
+    box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.15); /* 그림자를 조금 더 진하게 하여 입체감 강화 */
+    backdrop-filter: blur(8px); 
+    -webkit-backdrop-filter: blur(8px);
+    
     padding: 24px 15px;
+    margin-left: auto;
   }
   .home-notice-card h2{
     font-size:1.0rem;
@@ -281,14 +300,24 @@
     margin:0 0 10px 0;
   }
   .home-mysheet-board{
-    flex:1 1 420px;
-    background:#fff;
-    border:1px solid var(--border-light);
-    border-radius:22px;
-    box-shadow:0 4px 12px rgba(0,0,0,.04);
-    padding:28px;
-    min-height:420px;
-  }
+  flex:1 1 420px;
+  padding:28px;
+  min-height:420px;
+  
+  /* ▼ 유리 재질 효과 적용 ▼ */
+  background: linear-gradient(
+    160deg,
+    rgba(250, 250, 250, 0.7) 0%, 
+    rgba(245, 245, 245, 0.4) 70%,
+    rgba(220, 237, 255, 0.3) 85%, 
+    rgba(244, 224, 255, 0.3) 100% 
+  );
+  border-radius: 22px;
+  border: 1px solid rgba(209, 213, 219, 0.7);
+  box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(8px); 
+  -webkit-backdrop-filter: blur(8px);
+}
   .home-mysheet-board h2{font-size:1em; font-weight:900;margin-bottom:22px;}
   .home-notice-head{
     display:flex;align-items:center;justify-content:space-between;
@@ -324,36 +353,62 @@
     align-items: stretch;
   }
   .home-uploads-card {
-    flex: 1.2;
-    min-width: 280px;
-    background: var(--background-color2);
-    border-radius: 22px;
-    box-shadow: 8px 8px 16px #d0d3d5, -8px -8px 16px #ffffff;
-    padding: 28px;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-  }
+  flex: 1.2;
+  min-width: 280px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 450px; 
+
+  /* ▼ 유리 재질 효과 적용 ▼ */
+  background: linear-gradient(
+    160deg,
+    rgba(250, 250, 250, 0.7) 0%, 
+    rgba(245, 245, 245, 0.4) 70%,
+    rgba(220, 237, 255, 0.3) 85%, 
+    rgba(244, 224, 255, 0.3) 100% 
+  );
+  border-radius: 22px;
+  border: 1px solid rgba(209, 213, 219, 0.7);
+  box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(8px); 
+  -webkit-backdrop-filter: blur(8px);
+}
   .home-uploads-card .home-rf-header {
       flex-shrink: 0;
   }
+
+
+  
   .home-rf-table-wrap{
   flex:1;
   max-height: 175px; /* 5개 항목 높이에 맞춰 스크롤 생성 */
   overflow-y:auto;
 }
-  .home-new-panel-ready {
-    flex: 0.7;
-    min-width: 240px;
-    background: var(--background-color2);
-    border-radius: 22px;
-    box-shadow: 8px 8px 16px #d0d3d5, -8px -8px 16px #ffffff;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 28px;
-    min-height: 270px; /* <<<< 높이 수정 */
-  }
+.home-new-panel-ready {
+  width: 360px;
+  height: 430px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 28px;
+  min-height: 290px; 
+  
+  /* ▼ 유리 재질 효과 적용 ▼ */
+  background: linear-gradient(
+    160deg,
+    rgba(250, 250, 250, 0.7) 0%, 
+    rgba(245, 245, 245, 0.4) 70%,
+    rgba(220, 237, 255, 0.3) 85%, 
+    rgba(244, 224, 255, 0.3) 100% 
+  );
+  border-radius: 22px;
+  border: 1px solid rgba(209, 213, 219, 0.7);
+  box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(8px); 
+  -webkit-backdrop-filter: blur(8px);
+}
   .home-user-stats-list {
     width: 100%;
     display: flex;
@@ -388,12 +443,13 @@
     gap: 8px;
     font-size: 0.9rem;
     font-weight: 700;
-    color: var(--text-sub);
+    color: #81D4FA; /* << 옅은 하늘색으로 변경 */
     text-decoration: none;
     transition: color 0.2s;
   }
+
   .home-reviews-link:hover {
-    color: var(--text-main);
+    color: #4FC3F7; /* << 마우스를 올렸을 때 조금 더 진한 하늘색으로 변경 */
   }
   .home-downloads-card{flex:1.2;}
   .home-rf-table-wrap{
@@ -401,9 +457,9 @@
     max-height: 245px; /* <<<< 높이 수정 */
     overflow-y:auto;
   }
-  .home-rf-table{
-    width:100%;min-width:460px;border-collapse:collapse;
-  }
+  .home-uploads-card .home-rf-table {
+      min-width: auto; /* << '최근 업로드' 테이블의 최소 너비 제한을 해제합니다. */
+    }
   .home-rf-table thead{position:sticky;top:0;background:#f7f7f7;z-index:1;}
   .home-rf-table thead th { color:#555; }
   .home-rf-table th,.home-rf-table td{
@@ -536,7 +592,7 @@
     transition: background-color 0.2s;
   }
   .home-mysheet-scroll-wrap {
-    max-height: 245px;
+    max-height: 360px;
     overflow-y: auto;
     overflow-x: hidden;
     border-radius: 10px;
@@ -558,16 +614,27 @@
     100% { transform: rotate(0deg)  scale(1);}
   }
   .home-mysheet-right, .home-downloads-card {
-    height: 420px;
-    flex: 1.1;
-    min-width: 280px;
-    background: var(--background-color2);
-    border-radius: 22px;
-    box-shadow: 8px 8px 16px #d0d3d5, -8px -8px 16px #ffffff;
-    padding: 28px;
-    display: flex;
-    flex-direction: column;
-  }
+  height: 550px;
+  flex: 1.1;
+  min-width: 280px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  
+  /* ▼ 유리 재질 효과 적용 ▼ */
+  background: linear-gradient(
+    160deg,
+    rgba(250, 250, 250, 0.7) 0%, 
+    rgba(245, 245, 245, 0.4) 70%,
+    rgba(220, 237, 255, 0.3) 85%, 
+    rgba(244, 224, 255, 0.3) 100% 
+  );
+  border-radius: 22px;
+  border: 1px solid rgba(209, 213, 219, 0.7);
+  box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(8px); 
+  -webkit-backdrop-filter: blur(8px);
+}
   .home-uploads-card .home-rf-table td.home-title {
     max-width: 240px;
     overflow: hidden;
@@ -769,4 +836,68 @@
   color: #B91C1C;           /* 톤 다운된 붉은색 글씨 */
 }
 
+.home-notice-card {
+  margin-left: auto;
+}
 
+/* '최근 업로드' 패널 내부 컨텐츠를 가로로 배치하는 컨테이너 */
+.home-uploads-content-row {
+  display: flex;
+  flex: 1;
+  gap: 24px;
+  align-items: stretch;
+  margin-top: 18px;
+}
+
+.home-rf-table-wrap {
+  max-height: 330px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* 2. '최근 다운로드' 테이블에만 독립적으로 적용될 스타일을 새로 추가합니다. */
+.home-downloads-card .home-rf-table-wrap {
+  max-height: 360px; /* << '최근 다운로드' 테이블 높이만 300px로 설정 */
+}
+
+/* '준비중' 영역이 2/3를 차지하도록 설정 */
+.home-preparing-box {
+  flex: 2; 
+  background: #faf7ff;
+  border: 2px dashed #c6b8f6;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  box-shadow: 0 2px 8px rgba(160, 140, 255, 0.07);
+}
+
+/* 공지사항 태그 기본 스타일 */
+.notice-tag {
+  margin-right: 8px;
+  padding: 3px 7px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 4px;
+  line-height: 1;
+  flex-shrink: 0; /* 너비가 줄어들지 않도록 설정 */
+}
+
+/* [공지] 태그 스타일 */
+.notice-tag-notice {
+  background-color: #27272a; /* 검정색 */
+  color: white;
+}
+
+/* [업데] 태그 스타일 (형광 느낌) */
+.notice-tag-update {
+  background-color: #fde047; /* 촌스럽지 않은 노란색 */
+  color: #1f2937; /* 검정색 계열 */
+}
+
+/* [수정] 태그 스타일 (형광 느낌) */
+.notice-tag-fix {
+  background-color: #f43f5e; /* 촌스럽지 않은 붉은색 */
+  color: white;
+}
