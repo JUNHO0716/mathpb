@@ -98,6 +98,12 @@
 
 <div class="main-content" id="mainContent">
   <header class="page-header">
+
+    <div class="mobile-header-logo">
+      <img src="image_logo/logo.png" alt="Company Logo" />
+      <span>MathBee</span>
+    </div>
+
     <div class="header-titles">
       <h1 id="pageTitle"><span class="highlight">Ma</span>in home</h1>
       <div class="sub-date" id="todayTxt"></div>
@@ -115,6 +121,7 @@
         </div>
         <div class="dropdown" id="dropdownMenu">
           <a href="#" id="mobileNoticeBtn" class="mobile-only-dropdown-item">공지사항</a>
+          <a href="main.html?menu=pricing" class="mobile-only-dropdown-item">결제하기</a>
           <a href="profile.html">내 프로필</a>
           <a href="#" id="logoutBtn">로그아웃</a>
           <a href="admin.html" id="goAdminPage" style="display:none;">관리자페이지</a>
@@ -236,23 +243,23 @@
 
 <nav class="mobile-nav" id="mobileNav">
   <a href="#" class="mobile-nav-item active" id="mobile-menu1" data-url="home.html">
-    <img src="image_index/main_home_w.png" alt="메인홈">
+    <i class="fa-solid fa-house"></i>
     <span>메인홈</span>
   </a>
   <a href="#" class="mobile-nav-item" id="mobile-menu3" data-url="high.html">
-    <img src="image_index/icon_school_w.png" alt="시험지">
+    <i class="fa-solid fa-file-lines"></i>
     <span>시험지</span>
   </a>
   <a href="#" class="mobile-nav-item" id="mobile-menu4" data-url="bookcase.html">
-    <img src="image_index/icon_bookcase_w.png" alt="내 책장">
+    <i class="fa-solid fa-book"></i>
     <span>내 책장</span>
   </a>
   <a href="#" class="mobile-nav-item" id="mobile-menu5" data-url="upload.html">
-    <img src="image_index/icon_upload_w.png" alt="시험지 요청">
+    <i class="fa-solid fa-arrow-up-from-bracket"></i>
     <span>시험지 요청</span>
   </a>
   <a href="#" class="mobile-nav-item" id="mobile-menu7" data-url="profile.html">
-    <img src="image_index/icon_my_w.png" alt="내 계정">
+    <i class="fa-solid fa-user"></i>
     <span>내 계정</span>
   </a>
 </nav>

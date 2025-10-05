@@ -25,13 +25,12 @@
           <span class="text-xl font-bold text-black">MathBee</span>
         </a>
 
-        <nav class="flex space-x-8 ml-16">
-          <a href="#" class="nav-link" data-page="pricing.html">구독(결제) 하기</a>
-          <a href="#" class="nav-link" data-page="story.html">스토리</a>
-          <a href="#" class="nav-link" data-page="review.html">후기남기기</a>
-          <a href="#" class="nav-link" data-page="cs.html">고객센터</a>
-        </nav>
-      </div>
+        <nav class="hidden lg:flex space-x-8 ml-16">
+        <a href="#" class="nav-link" data-page="pricing.html">구독(결제) 하기</a>
+        <a href="#" class="nav-link" data-page="story.html">스토리</a>
+        <a href="#" class="nav-link" data-page="review.html">후기남기기</a>
+        <a href="#" class="nav-link" data-page="cs.html">고객센터</a>
+      </nav>
 
       <div class="user-wrapper" id="userWrapper">
         <div class="user-box loading" id="userBox">
@@ -40,7 +39,7 @@
           <i class="fa-solid fa-chevron-down" id="arrowIcon" style="transition: transform 0.2s;"></i>
         </div>
         <div class="dropdown" id="dropdownMenu">
-          <a href="#" class="nav-link" data-page="profile.html">내 프로필</a>
+          <a href="#" class="nav-link pc-only-item" data-page="profile.html">내 프로필</a>
           <a href="#" id="logoutBtn">로그아웃</a>
           <a href="admin.html" id="goAdminPage" style="display:none;">관리자페이지</a>
         </div>
@@ -54,6 +53,25 @@
       <p class="mt-2">상단 메뉴를 클릭하여 원하시는 서비스를 확인해보세요.</p>
     </div>
   </main>
+
+<nav class="mobile-nav lg:hidden">
+  <a href="#" class="mobile-nav-item nav-link" data-page="pricing.html">
+    <i class="fas fa-credit-card"></i>
+    <span>구독하기</span>
+  </a>
+  <a href="#" class="mobile-nav-item nav-link" data-page="story.html">
+    <i class="fas fa-book-open"></i>
+    <span>스토리</span>
+  </a>
+  <a href="#" class="mobile-nav-item nav-link" data-page="review.html">
+    <i class="fas fa-pen-to-square"></i>
+    <span>후기</span>
+  </a>
+  <a href="#" class="mobile-nav-item nav-link" data-page="cs.html">
+    <i class="fas fa-headset"></i>
+    <span>고객센터</span>
+  </a>
+</nav>
 
 </body>
 </html>

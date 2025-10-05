@@ -407,4 +407,24 @@ input:focus {
   .info-row label {
     width: auto;
   }
+    .profile-page-banner {
+    height: auto; /* 높이를 내용에 맞게 자동 조절 */
+    padding: 24px;  /* 내부 여백 축소 */
+    margin: 16px;   /* 상하좌우 여백 조정 */
+    text-align: left;
+  }
+  .profile-page-banner h2 {
+    font-size: 1.5rem; /* 제목 글씨 크기 축소 */
+  }
+  .profile-page-banner p {
+    font-size: 0.9rem; /* 설명 글씨 크기 축소 */
+  }
+  .profile-banner-image {
+    display: none; /* 모바일에서는 배너 오른쪽 이미지 숨기기 */
+  }
+
+    /* ▼▼▼ '요금제 보기' 모달창 모바일 높이 조정 (추가) ▼▼▼ */
+  .profile-modal .profile-modal-content {
+    height: 70vh; /* 기존 52vh에서 70vh로 높이를 늘립니다. */
+  }
 }

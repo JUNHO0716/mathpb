@@ -538,9 +538,83 @@ PC / 모바일 분기점
   display: none !important;
 }
 
+/* PC에서는 모바일 로고를 항상 숨깁니다. */
+.mobile-header-logo {
+  display: none;
+}
 
 /* ▼▼▼ 화면 너비가 768px 이하일 때 적용될 모바일 전용 스타일 ▼▼▼ */
 @media (max-width: 768px) {
+  /* 3. 모바일용 로고는 보이도록 설정하고 스타일을 지정합니다. */
+  .mobile-header-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+.mobile-header-logo img { height: 28px; }
+.mobile-header-logo span { font-size: 1.2rem; font-weight: 700; color: #111; }
+
+  /* 2. 기존 PC용 헤더 제목 숨기기 */
+  .header-titles {
+    display: none;
+  }
+    #goAdminPage {
+    display: none !important;
+  }
+  
+  /* 3. 상단바에 글래스모피즘 효과 적용 */
+.page-header {
+  display: flex;
+  justify-content: space-between; /* 로고는 왼쪽, 프로필은 오른쪽으로! */
+  align-items: center;
+
+  /* 기존 글래스모피즘 스타일은 유지합니다. */
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  padding: 8px 20px 10px;
+  min-width: unset;
+}
+.page-header::after {
+  display: none; /* 기존 밑줄선 제거 */
+}
+  
+  /* ▲▲▲ 여기까지 추가/수정 ▲▲▲ */
+
+
+  /* ▼▼▼ 도움말 버튼 및 메뉴 모바일 스타일 (수정 및 추가) ▼▼▼ */
+  .help-container {
+    bottom: 16px;
+    right: 16px;
+  }
+
+  .help-fab {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .help-menu {
+    /* 1. ? 버튼 바로 위에 위치하도록 bottom 값 조정 */
+    bottom: 48px; /* 기존 72px에서 대폭 수정 */
+    
+    /* 2. 자연스러운 애니메이션을 위한 속성 변경 */
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+    transform-origin: bottom right; /* 애니메이션이 우측 하단에서 시작 */
+    transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.2s ease-out;
+  }
+
+  .help-menu.show {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+
   /* 1. 기존 PC용 사이드바 숨기기 */
   .sidebar {
     display: none;
@@ -557,26 +631,41 @@ PC / 모바일 분기점
     min-width: unset;
   }
   
-  /* 헤더의 액션 버튼들 숨기기 */
-  .header-actions .action-btn {
-    display: none;
-  }
+    /* 4. 프로필을 담고 있는 오른쪽 컨테이너입니다. */
+    .header-actions {
+        display: flex;
+        align-items: center;
+    }
+
+    /* 5. PC용 버튼들('결제하기' 등)은 확실히 숨깁니다. */
+    .header-actions .action-btn {
+      display: none;
+    }
 
   /* 3. 모바일 하단 메뉴 스타일 */
   .mobile-nav {
     display: flex;
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 65px;
-    background-color: #2a2a35;
-    align-items: center;
+    /* 화면 하단에 약간의 여유 공간을 줍니다. */
+    bottom: 16px;
+    left: 16px;
+    right: 16px;
+    height: 60px;
+    /* 흰색 배경과 그림자, 둥근 테두리를 추가해 사진처럼 만듭니다. */
+    background-color: #ffffff;
     z-index: 1000;
-    box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+    border-radius: 30px; /* 아주 둥글게 처리 */
     justify-content: space-around;
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
+    align-items: center;
+    transform: translateY(0);
+    transition: transform 0.4s ease-in-out;
+  }
+
+    /* ▼▼▼ 메뉴를 숨기기 위한 새 클래스를 추가해주세요 ▼▼▼ */
+  .mobile-nav--hidden {
+    transform: translateY(150%);
   }
 
   .mobile-nav-item {
@@ -584,31 +673,35 @@ PC / 모바일 분기점
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #e0e0e0;
+    /* 기본 아이콘과 텍스트 색상을 어두운 회색으로 변경합니다. */
+    color: #868e96;
     text-decoration: none;
-    opacity: 0.7;
-    transition: opacity 0.2s;
     flex: 1;
+    /* 투명도 대신 색상으로 상태를 구분하므로 opacity 제거 */
+    transition: color 0.2s ease-in-out;
   }
 
-  .mobile-nav-item img {
-    width: 22px;
-    height: 22px;
-    margin-bottom: 4px;
+  /* Font Awesome 아이콘의 스타일을 지정합니다. */
+  .mobile-nav-item i {
+    font-size: 20px;
+    margin-bottom: 3px;
+    transition: all 0.2s ease-in-out;
   }
 
   .mobile-nav-item span {
     font-size: 0.7rem;
+    font-weight: 500;
   }
-  
+
+  /* 활성화된 메뉴 아이템의 스타일입니다. */
   .mobile-nav-item.active {
-    opacity: 1;
-    color: #FFD400;
-    font-weight: 600;
+    /* 활성화 시 아이콘과 텍스트를 파란색으로 변경합니다. */
+    color: #007BFF;
   }
-  
+
+  /* 하단 메뉴가 화면 일부를 차지하므로, 콘텐츠가 가려지지 않도록 여백을 추가합니다. */
   #contentFrame {
-    padding-bottom: 70px;
+    padding-bottom: 90px;
   }
 
   /* 모바일 모달창 스타일 */

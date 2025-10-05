@@ -271,32 +271,111 @@ tbody tr:hover{
   /* max-width와 줄바꿈 관련 속성을 모두 제거하여 글자가 항상 보이도록 수정 */
 }
 
-@media (max-width: 768px) {
-  .page-banner {
-    padding: 24px 35px;
-    border-radius: 14px; /* 반응형에서도 둥글기 유지 */
-  }
-  .page-banner h2 {
-    font-size: 1.7rem;
-  }
-  .page-banner p {
-    font-size: 1.05rem;
-  }
+.download-btn img {
+  width: 28px;
+  height: 28px;
 }
 
-@media (max-width: 480px) {
-  .page-banner {
-    padding: 24px 20px;
-    min-height: auto;
-    border-radius: 12px;
+@media (max-width: 768px) {
+  /* --- 1. 페이지 배너 스타일 조정 --- */
+  .high-page-banner {
+    padding: 24px;
+    height: auto; /* 높이를 내용에 맞게 자동 조절 */
+    text-align: left;
   }
-  .page-banner h2 {
-    font-size: 1.5rem;
+  .high-page-banner h2 {
+    font-size: 1.5rem; /* 제목 글씨 크기 축소 */
   }
-  .page-banner p {
-    font-size: 1rem;
+  .high-page-banner p {
+    font-size: 0.85rem !important; /* [수정] !important 추가 */
   }
+  .high-banner-image {
+    display: none; /* 모바일에서는 배너 오른쪽 이미지 숨기기 */
+  }
+
+  /* --- 2. 중등/고등 토글 버튼 크기 조정 --- */
+  .level-toggle-container {
+    font-size: 0.9rem !important; /* [수정] !important 추가 */
+    gap: 8px;
+  }
+  .switch {
+    width: 44px; /* 스위치 너비 축소 */
+    height: 24px; /* 스위치 높이 축소 */
+  }
+  .slider {
+    border-radius: 24px;
+  }
+  .slider:before {
+    height: 18px; /* 스위치 내부 원 크기 축소 */
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+  }
+  input:checked + .slider:before {
+    transform: translateX(20px); /* 원 이동 거리 조정 */
+  }
+
+    /* 1. 불필요한 열(과목, 학년, 학기, 연도, 업로드일) 숨기기 */
+  #table-head th:nth-child(3),
+  #table-head th:nth-child(4),
+  #table-head th:nth-child(5),
+  #table-head th:nth-child(6),
+  #table-head th:nth-child(7),
+  #file-list td:nth-child(3),
+  #file-list td:nth-child(4),
+  #file-list td:nth-child(5),
+  #file-list td:nth-child(6),
+  #file-list td:nth-child(7) {
+    display: none;
+  }
+
+  /* 2. 남은 열(No, 자료명, 다운로드)의 너비를 모바일에 맞게 재조정 */
+  #table-head th:nth-child(1) { width: 15%; } /* No. */
+  #table-head th:nth-child(2) { width: 60%; } /* 자료명 */
+  #table-head th:nth-child(8) { width: 25%; } /* 다운로드 */
+  
+  /* 1. 파일명 글씨 크기 축소 */
+  .file-title-link {
+    font-size: 0.8rem;
+  }
+
+  /* 2. 다운로드 아이콘 크기 축소 */
+  .download-btn img {
+    width: 24px;
+    height: 24px;
+  }
+
+    /* 1. 테이블의 파일명이 길어지면 ...으로 생략 */
+  #file-list .file-title-link {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* 2. 상세 정보 패널(모달) 스타일 변경 */
+  .details-slide-panel {
+    /* [수정] 가로폭을 줄이고 좌우 여백을 줍니다. */
+    width: auto;
+    left: 10px;
+    right: 10px;
+
+    /* [수정] 높이를 내용물에 딱 맞게 조절하고, 최대 높이 제한을 제거합니다. */
+    height: auto;
+    max-height: unset; 
+    
+    /* [수정] 화면 맨 아래에 붙도록 bottom: 0 으로 설정합니다. */
+    top: auto;
+    bottom: 0;
+    border-radius: 16px 16px 0 0; /* 모서리를 좀 더 부드럽게 */
+    transform: translateY(100%);
+  }
+  .details-slide-panel.is-open {
+    transform: translateY(0);
+  }
+
 }
+
 
 .bar-sep {color: #007BFF;font-weight: 1000;}
 .level-toggle-container {display: inline-flex;align-items: center;margin-left: 20px;gap: 10px;font-size: 0.98rem;font-weight: 700;}

@@ -225,6 +225,31 @@ document.addEventListener('DOMContentLoaded', async () => {
   setToday();
   initDropdown();
 
+    // ▼▼▼ 여기에 스크롤 감지 코드를 추가하세요 ▼▼▼
+  const contentFrame = document.getElementById('contentFrame');
+  const mobileNav = document.getElementById('mobileNav');
+
+  if (contentFrame && mobileNav) {
+    let lastScrollTop = 0; // 마지막 스크롤 위치를 저장
+
+    // AJAX 콘텐츠 영역인 contentFrame의 스크롤을 감지합니다.
+    contentFrame.addEventListener('scroll', function() {
+      // 뷰포트 너비가 768px 이하일 때만 동작 (모바일에서만)
+      if (window.innerWidth <= 768) {
+        let scrollTop = contentFrame.scrollTop; // 현재 스크롤 위치
+
+        // 아래로 스크롤하고, 스크롤 위치가 50px 이상일 때
+        if (scrollTop > lastScrollTop && scrollTop > 50) {
+          mobileNav.classList.add('mobile-nav--hidden'); // 메뉴 숨기기
+        } else {
+          mobileNav.classList.remove('mobile-nav--hidden'); // 메뉴 보이기
+        }
+        lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+      }
+    });
+  }
+  // ▲▲▲ 여기까지 추가 ▲▲▲
+
     // ▼▼▼ 모바일 드롭다운 '공지사항' 버튼 이벤트 (추가) ▼▼▼
   const mobileNoticeBtn = document.getElementById('mobileNoticeBtn');
   if (mobileNoticeBtn) {

@@ -283,13 +283,13 @@ async function saveMemo(fileId) {
       const pdfButton = hasPdf ? `
         <button class="download-btn" title="PDF 다운로드" onclick="downloadFile('${file.id}','pdf')"
             style="background:none;border:none;cursor:pointer;">
-            <img src="image_download/pdf_download.png" alt="PDF 다운로드" style="width:28px;height:28px;">
+            <img src="image_download/pdf_download.png" alt="PDF 다운로드">
         </button>` : '';
 
       const hwpButton = hasHwp ? `
         <button class="download-btn" title="HWP 다운로드" onclick="downloadFile('${file.id}','hwp')"
             style="background:none;border:none;cursor:pointer;">
-            <img src="image_download/hwp_download.png" alt="HWP 다운로드" style="width:28px;height:28px;">
+            <img src="image_download/hwp_download.png" alt="HWP 다운로드">
         </button>` : '';
       
       // ▼▼▼ [수정] 자료명을 a 태그로 감싸고, class와 data-id 추가 ▼▼▼
@@ -349,10 +349,30 @@ async function saveMemo(fileId) {
 
   async function loadFooter() {
     try {
-      const res = await fetch('footer.html');
-      const data = await res.text();
-      document.getElementById('footer-container').innerHTML = data;
-    } catch(e) { console.error(e); }
+      const response = await fetch('footer.html');
+      const footerHtml = await response.text();
+      const footerContainer = document.getElementById('footer-container');
+      if (!footerContainer) return;
+      
+      // footer.html 내용을 삽입합니다.
+      footerContainer.innerHTML = footerHtml;
+
+      // --- ▼ [추가] 모바일 푸터 아코디언 기능 ---
+      const header = footerContainer.querySelector('.footer-collapsible-header');
+      const parent = footerContainer.querySelector('.footer-collapsible');
+      if (header && parent) {
+        header.addEventListener('click', () => {
+          // 모바일 화면(768px 이하)에서만 작동합니다.
+          if (window.innerWidth <= 768) {
+            parent.classList.toggle('expanded');
+          }
+        });
+      }
+      // --- ▲ 여기까지 추가 ---
+
+    } catch (error) {
+      console.error('Footer loading failed:', error);
+    }
   }
   
   // ▼▼▼ [추가] 이벤트 리스너: 파일명 클릭 시 상세보기 패널 열기 ▼▼▼

@@ -901,3 +901,225 @@
   background-color: #f43f5e; /* 촌스럽지 않은 붉은색 */
   color: white;
 }
+
+.mobile-date {
+  display: none;
+}
+
+/* ▼▼▼ 모바일 화면에서 광고 배너 숨기기 (추가) ▼▼▼ */
+@media (max-width: 768px) {
+  .home-promo-banner {
+    /* display: none; 코드를 삭제하고 아래 스타일로 교체합니다. */
+    width: auto;      /* 좌우 여백을 고려하여 너비를 자동으로 설정 */
+    height: 150px;    /* 모바일에서 배너 높이를 줄임 */
+    margin: 16px;     /* 상하좌우 여백을 16px로 조정 */
+    border-radius: 12px;
+  }
+  /* 1. 구분선 위로 올리기 (전체적인 상단 여백 및 간격 조정) */
+  .home-dashboard-body {
+    padding-top: 24px;
+    margin: 0 16px 60px;
+    gap: 24px;
+  }
+  
+  /* 2. 프로필 패널과 사용자 통계 패널을 가로로 배치하기 위한 설정 */
+  .home-user-row {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    /* [핵심 수정 1] 각 패널이 자신의 내용만큼만 높이를 갖도록 변경 */
+    align-items: flex-start; 
+  }
+
+   /* 3. 프로필 패널 재디자인 (펼치기 기능 제거 및 크기 축소) */
+  .home-profile-card {
+    flex: 0.8;
+    /* [핵심 수정 2] 위아래 여백 최소화 및 내용물 세로 중앙 정렬 */
+    padding: 40px 10px; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: auto;
+  }
+  .home-profile-main-collapsed {
+    flex-direction: column;
+    text-align: center;
+    gap: 6px;
+  }
+  /* 1. 펼치기 버튼 숨기기 */
+  .home-profile-toggle-btn {
+    display: none;
+  }
+
+  /* 2. 펼쳐졌을 때의 높이 증가 방지 */
+  .home-profile-card.home-expanded {
+    min-height: unset;
+  }
+
+  /* 3. 펼쳐졌을 때 나타나는 큰 프로필과 상세 정보 항상 숨기기 */
+  .home-profile-main-expanded,
+  .home-profile-details {
+    display: none !important;
+  }
+
+  /* 4. 펼쳐지더라도 작은 프로필은 계속 보이도록 강제 */
+  .home-profile-card.home-expanded .home-profile-main-collapsed {
+    display: flex;
+  }
+
+  .home-profile-main-collapsed img {
+    width: 43px;
+    height: 43px;
+    margin-bottom: 4px;
+  }
+  .home-profile-main-collapsed .home-info h3 {
+    font-size: 0.7rem;
+  }
+  .home-profile-main-collapsed .home-info div {
+    font-size: 0.6rem; 
+  }
+
+  /* 4. 사용자 통계 패널 배치 및 내부 스타일 조정 */
+  .home-new-panel-ready {
+    flex: 1.2;
+    padding: 10px 10px;
+    justify-content: center;
+    height: auto;
+    min-height: unset; /* ✨ [핵심 수정] PC의 최소 높이 제한을 제거합니다. */
+  }
+  .home-new-panel-ready .home-stat-item {
+    padding-bottom: 4px; /* 항목 간 여백 최소화 */
+  }
+  .home-new-panel-ready .home-stat-label {
+    font-size: 0.6rem;
+  }
+  .home-new-panel-ready .home-stat-value {
+    font-size: 0.9rem;
+  }
+  .home-new-panel-ready .home-reviews-link {
+    margin-top: 4px; /* 하단 링크 여백 최소화 */
+    font-size: 0.6rem;
+  }
+
+  /* 5. 모바일에서는 공지사항 패널을 숨겨서 레이아웃 단순화 */
+  .home-notice-card {
+    display: none;
+  }
+
+    /* 1. 상단 통계 섹션 (확인중, 제작중 등) */
+  .home-mysheet-right .home-stats-container {
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+  }
+  .home-mysheet-right .home-stat-label {
+    font-size: 0.7rem; /* 라벨 글자 크기 축소 */
+    margin-bottom: 6px;
+  }
+  .home-mysheet-right .home-stat-value {
+    font-size: 1.3rem; /* 숫자 크기 축소 */
+  }
+
+  /* 2. 하단 표(테이블) 섹션 */
+  .home-mysheet-table .home-title {
+    /* 파일명이 길어지면 ...으로 생략되도록 설정 */
+    display: inline-block;
+    max-width: 210px; /* 모바일 화면에 맞는 최대 너비 지정 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle; /* 세로 정렬을 위해 추가 */
+  }
+  
+  .home-mysheet-table .status-badge i {
+    display: none; /* 아이콘 숨기기 */
+  }
+
+  .home-mysheet-table .status-badge {
+    font-size: 0.75rem; /* 글자 크기 축소 */
+    padding: 4px 8px;   /* 패딩을 줄여 줄바꿈 방지 */
+    gap: 0;
+  }
+
+    /* ▼▼▼ 최근 다운로드 패널 모바일 스타일 (이 블록을 추가하세요) ▼▼▼ */
+
+  /* 1. 상단 통계 부분 (글자/숫자 크기 축소) */
+  .home-downloads-card .home-stats-container {
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+  }
+  .home-downloads-card .home-stat-label {
+    font-size: 0.7rem; /* 라벨 글자 크기 축소 */
+  }
+  .home-downloads-card .home-stat-value {
+    font-size: 1.3rem; /* 숫자 크기 축소 */
+  }
+
+  /* 2. 하단 표(테이블) 부분 */
+  .home-downloads-card .home-rf-table .home-title {
+    /* 파일명이 길어지면 ...으로 생략되도록 설정 */
+    display: inline-block;
+    max-width: 170px; /* 모바일 화면에 맞는 최대 너비 지정 */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+  }
+  
+  /* 2-1. 날짜 표시 방법 변경 */
+  .home-downloads-card .pc-date {
+    display: none; /* PC용 날짜(년도포함) 숨기기 */
+  }
+  .home-downloads-card .mobile-date {
+    display: inline; /* 모바일용 날짜(월.일) 보여주기 */
+  }
+
+  /* 2-2. 다운로드 아이콘 줄바꿈 방지 */
+  .home-downloads-card .home-download-icons-cell {
+    white-space: nowrap;
+  }
+
+  /* ▲▲▲ 여기까지 추가 ▲▲▲ */
+
+  /* ▼▼▼ 최근 업로드 패널 모바일 스타일 (이 블록을 추가하세요) ▼▼▼ */
+
+  /* 1. 패널의 고정 높이를 제거하여 내용물(테이블)에 맞게 조절되도록 변경 */
+  /* ▼▼▼ 최근 업로드 패널 모바일 스타일 (이 블록으로 교체하세요) ▼▼▼ */
+
+  /* 1. 패널 높이를 내용물에 맞게 자동 조절 */
+  .home-uploads-card {
+    height: auto;
+    min-height: 200px;
+  }
+  .home-uploads-card .home-preparing-box {
+    display: none;
+  }
+  .home-uploads-card .home-rf-table-wrap {
+    flex-basis: 100%;
+  }
+
+  /* 2. 테이블 레이아웃 고정 */
+  .home-uploads-card .home-rf-table {
+    table-layout: fixed;
+    width: 100%;
+  }
+  
+  /* 3. 파일명 칸(td) 너비 지정 */
+  .home-uploads-card .home-rf-table td:first-child {
+    width: 65%;
+  }
+
+  /* 4. 파일명을 감싸는 div에 생략 스타일 적용 */
+  .home-uploads-card .home-rf-table .home-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* 5. 업로드일 칸(td) 너비 및 스타일 지정 */
+  .home-uploads-card .home-rf-table td:last-child {
+    width: 35%;
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+}

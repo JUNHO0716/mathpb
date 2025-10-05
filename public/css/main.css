@@ -104,3 +104,55 @@ body {
 .user-box.loading * {
   visibility: hidden;
 }
+
+/* 1. 모바일 하단 메뉴 스타일 */
+.mobile-nav {
+  display: flex;
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  height: 60px;
+  background-color: #ffffff;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+  border-radius: 30px;
+  justify-content: space-around;
+  align-items: center;
+}
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #868e96;
+  text-decoration: none;
+  flex: 1;
+  transition: color 0.2s ease-in-out;
+}
+.mobile-nav-item i {
+  font-size: 20px;
+  margin-bottom: 3px;
+}
+.mobile-nav-item span {
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+.mobile-nav-item.active,
+.mobile-nav-item:hover {
+  color: #007BFF;
+}
+
+/* 2. 모바일 화면 반응형 스타일 */
+@media (max-width: 1023px) { /* Tailwind의 lg breakpoint와 맞춤 */
+  /* 드롭다운에서 '내 프로필' 숨기기 */
+  .dropdown .pc-only-item {
+    display: none;
+  }
+  
+  /* 메인 콘텐츠가 하단 메뉴에 가려지지 않도록 여백 추가 */
+  main {
+    padding-bottom: 90px;
+  }
+}

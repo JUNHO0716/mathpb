@@ -8,7 +8,24 @@ document.addEventListener('DOMContentLoaded', function () {
       return Promise.resolve('');
     })
     .then(data => {
-      if (data) document.body.insertAdjacentHTML('beforeend', data);
+      if (data) {
+        // 1. 푸터 내용을 페이지에 삽입합니다.
+        document.body.insertAdjacentHTML('beforeend', data);
+
+        // --- ▼▼▼ [핵심] 푸터 기능 활성화 코드를 여기에 추가합니다 ▼▼▼ ---
+        const header = document.querySelector('.footer-collapsible-header');
+        const parent = document.querySelector('.footer-collapsible');
+
+        if (header && parent) {
+          header.addEventListener('click', () => {
+            // 모바일 화면(768px 이하)에서만 작동합니다.
+            if (window.innerWidth <= 768) {
+              parent.classList.toggle('expanded');
+            }
+          });
+        }
+        // --- ▲▲▲ 여기까지 추가 ▲▲▲ ---
+      }
     })
     .catch(error => console.error('Footer loading failed:', error));
 

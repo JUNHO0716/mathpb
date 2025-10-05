@@ -292,7 +292,25 @@ const cancelBtn = document.getElementById('btn-cancel');
     try {
       const response = await fetch('footer.html');
       const footerHtml = await response.text();
-      document.getElementById('footer-container').innerHTML = footerHtml;
+      const footerContainer = document.getElementById('footer-container');
+      if (!footerContainer) return;
+      
+      // footer.html 내용을 삽입합니다.
+      footerContainer.innerHTML = footerHtml;
+
+      // --- ▼ [추가] 모바일 푸터 아코디언 기능 ---
+      const header = footerContainer.querySelector('.footer-collapsible-header');
+      const parent = footerContainer.querySelector('.footer-collapsible');
+      if (header && parent) {
+        header.addEventListener('click', () => {
+          // 모바일 화면(768px 이하)에서만 작동합니다.
+          if (window.innerWidth <= 768) {
+            parent.classList.toggle('expanded');
+          }
+        });
+      }
+      // --- ▲ 여기까지 추가 ---
+
     } catch (error) {
       console.error('Footer loading failed:', error);
     }

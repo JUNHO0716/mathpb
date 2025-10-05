@@ -63,6 +63,19 @@ body {
   .grid {
     grid-template-columns: 1fr;
   }
+
+  /* ▼▼▼ 모바일 헤더 텍스트 크기 조정 (아래 코드 추가) ▼▼▼ */
+  .hero h1 {
+    font-size: 1.3rem; /* 제목 글씨 크기 축소 */
+  }
+  .hero p {
+    font-size: 0.65rem; /* 설명 글씨 크기 축소 */
+  }
+  .plan.popular::before {
+    font-size: 0.6rem;
+    padding: 7px 10px;
+  }
+
 }
 
 .plan {

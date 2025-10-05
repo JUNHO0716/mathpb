@@ -89,14 +89,24 @@ window.initializeHomePage = function(user) {
       swiperWrapper.innerHTML = slidesHtml;
 
       cardSwiper = new Swiper('.home-cardSwiper', {
+        // --- 기본 (모바일) 설정 ---
         slidesPerView: 'auto',
-        spaceBetween: 30,
+        spaceBetween: 15,          // 모바일에서 카드 사이 간격을 줄입니다.
+        centeredSlides: true,       // ✨ 모바일에서 슬라이드를 가운데로 정렬하는 핵심 옵션입니다.
         loop: slidesData.length > 3,
         grabCursor: true,
         autoplay: {
           delay: 3000,
           disableOnInteraction: false,
         },
+
+        // --- 데스크탑 설정 (769px 이상일 때 적용) ---
+        breakpoints: {
+          769: {
+            spaceBetween: 30,       // 데스크탑에서는 원래 간격으로 복원합니다.
+            centeredSlides: false,    // 데스크탑에서는 가운데 정렬을 비활성화합니다.
+          }
+        }
       });
     }
 
@@ -184,7 +194,25 @@ window.initializeHomePage = function(user) {
     try {
       const response = await fetch('footer.html');
       const footerHtml = await response.text();
-      document.getElementById('footer-container').innerHTML = footerHtml;
+      const footerContainer = document.getElementById('footer-container');
+      if (!footerContainer) return;
+      
+      // footer.html 내용을 삽입합니다.
+      footerContainer.innerHTML = footerHtml;
+
+      // --- ▼ [추가] 모바일 푸터 아코디언 기능 ---
+      const header = footerContainer.querySelector('.footer-collapsible-header');
+      const parent = footerContainer.querySelector('.footer-collapsible');
+      if (header && parent) {
+        header.addEventListener('click', () => {
+          // 모바일 화면(768px 이하)에서만 작동합니다.
+          if (window.innerWidth <= 768) {
+            parent.classList.toggle('expanded');
+          }
+        });
+      }
+      // --- ▲ 여기까지 추가 ---
+
     } catch (error) {
       console.error('Footer loading failed:', error);
     }
@@ -315,14 +343,16 @@ function bindUser(user) {
       }
       tbody.innerHTML = data.map(file => `
         <tr>
-          <td class="home-title" title="${(file.name || '-').replace(/"/g, '&quot;')}">${file.name}</td>
+          <td>
+            <div class="home-title" title="${(file.name || '-').replace(/"/g, '&quot;')}">${file.name}</div>
+          </td>
           <td>${file.date}</td>
         </tr>
       `).join('');
     } catch(e) { console.error("최근 업로드 로딩 실패:", e); }
   }
 
-  async function loadRecentDownloads(user) { // 👈 (user) 추가
+  async function loadRecentDownloads(user) {
     try {
       if (!user || !user.email) return;
       const res = await fetch('/api/downloads/recent', { credentials: 'include' });
@@ -333,16 +363,26 @@ function bindUser(user) {
         tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#aaa;">최근 다운로드 내역이 없습니다.</td></tr>`;
         return;
       }
-      tbody.innerHTML = data.map(row => `
+      tbody.innerHTML = data.map(row => {
+        const date = new Date(row.date);
+        // [수정] PC용 날짜와 모바일용(MM.DD) 날짜를 둘 다 준비합니다.
+        const pcDate = date.toLocaleDateString();
+        const mobileDate = `${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+
+        return `
         <tr>
           <td style="text-align:left;" class="home-title" title="${(row.name || '-').replace(/"/g, '&quot;')}">${row.name || '-'}</td>
-          <td style="text-align:center;">${new Date(row.date).toLocaleDateString()}</td>
-          <td style="text-align:center;">
+          <td style="text-align:center;" class="home-download-date-cell">
+            <span class="pc-date">${pcDate}</span>
+            <span class="mobile-date">${mobileDate}</span>
+          </td>
+          <td style="text-align:center;" class="home-download-icons-cell">
             <img src="image_download/hwp_download.png" alt="HWP" style="width:24px;cursor:pointer;" onclick="window.parent.downloadFile('${row.id}', 'hwp')">
             <img src="image_download/pdf_download.png" alt="PDF" style="width:24px;cursor:pointer;" onclick="window.parent.downloadFile('${row.id}', 'pdf')">
           </td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
     } catch (e) { console.error("최근 다운로드 로딩 실패:", e); }
   }
 
