@@ -118,11 +118,40 @@ async function loadContent(url) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-  const navLinks = document.querySelectorAll('.nav-link');
-
+  const navLinks = document.querySelectorAll('header .nav-link, .mobile-bottom-nav .nav-link');
   bindUser();
   initDropdown();
-  
+
+  // 모바일 하단 메뉴 활성화 전용 함수
+  function setActiveMobileMenu(page) {
+    document.querySelectorAll('.mobile-bottom-nav .icon-button').forEach(btn => {
+      if (btn.dataset.page === page) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+  }
+
+  // 모바일 하단 메뉴 스크롤 기능
+  const contentArea = document.getElementById('content-area');
+  const mobileNav = document.querySelector('.mobile-bottom-nav');
+  if (contentArea && mobileNav) {
+    let lastScrollTop = 0;
+    contentArea.addEventListener('scroll', function() {
+      if (window.innerWidth <= 1023) {
+        let scrollTop = contentArea.scrollTop;
+        if (scrollTop > lastScrollTop && scrollTop > 50) {
+          mobileNav.classList.add('mobile-bottom-nav--hidden');
+        } else {
+          mobileNav.classList.remove('mobile-bottom-nav--hidden');
+        }
+        lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+      }
+    });
+  }
+
+  // 로그아웃 버튼 이벤트
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async (e) => {
@@ -137,25 +166,46 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // ▼▼▼ [핵심 수정] 내비게이션 링크 클릭 이벤트 핸들러 ▼▼▼
   navLinks.forEach(link => {
     link.addEventListener('click', function (e) {
-      e.preventDefault(); 
-      navLinks.forEach(item => item.classList.remove('active'));
-      this.classList.add('active');
+      e.preventDefault();
+      
+      // 1. 클릭된 링크에서 pageToLoad 변수를 가져옵니다.
       const pageToLoad = this.getAttribute('data-page');
+
       if (pageToLoad) {
+        // 2. 콘텐츠를 로드합니다.
         loadContent(pageToLoad);
+
+        // 3. 모든 메뉴의 활성 상태를 초기화합니다.
+        navLinks.forEach(item => item.classList.remove('active'));
+        
+        // 4. 클릭된 메뉴와 동일한 data-page를 가진 모든 링크(PC+모바일)를 활성화합니다.
+        document.querySelectorAll(`.nav-link[data-page="${pageToLoad}"]`).forEach(btn => {
+          btn.classList.add('active');
+        });
+
+        // 5. 모바일 하단 메뉴 아이콘의 활성 상태를 별도로 관리합니다.
+        setActiveMobileMenu(pageToLoad);
       }
     });
   });
 
+  // 페이지 처음 로드 시 URL 파라미터 확인
   const params = new URLSearchParams(window.location.search);
   const menuToActivate = params.get('menu');
-
   if (menuToActivate) {
-    const buttonToClick = document.querySelector(`.nav-link[data-page="${menuToActivate}.html"]`);
+    const pageToLoad = `${menuToActivate}.html`;
+    const buttonToClick = document.querySelector(`.nav-link[data-page="${pageToLoad}"]`);
+    
     if (buttonToClick) {
-      buttonToClick.click();
+      loadContent(pageToLoad);
+      navLinks.forEach(item => item.classList.remove('active'));
+      document.querySelectorAll(`.nav-link[data-page="${pageToLoad}"]`).forEach(btn => {
+        btn.classList.add('active');
+      });
+      setActiveMobileMenu(pageToLoad);
     }
   }
 });

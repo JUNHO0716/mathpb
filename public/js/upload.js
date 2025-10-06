@@ -211,7 +211,7 @@ function openDetailsPanel(cardData) {
         if (status === '반려') {
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td title="${filename}">${filename.length > 20 ? filename.slice(0,20) + '…' : filename}</td>
+            <td class="rejected-filename" title="${filename}">${filename}</td>
             <td>${reject_reason || '사유 없음'}</td>
           `;
           rejectedBody.appendChild(tr);

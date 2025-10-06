@@ -105,54 +105,82 @@ body {
   visibility: hidden;
 }
 
-/* 1. 모바일 하단 메뉴 스타일 */
-.mobile-nav {
-  display: flex;
-  position: fixed;
-  bottom: 16px;
-  left: 16px;
-  right: 16px;
-  height: 60px;
-  background-color: #ffffff;
-  z-index: 1000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e9ecef;
-  border-radius: 30px;
-  justify-content: space-around;
-  align-items: center;
-}
-.mobile-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #868e96;
-  text-decoration: none;
-  flex: 1;
-  transition: color 0.2s ease-in-out;
-}
-.mobile-nav-item i {
-  font-size: 20px;
-  margin-bottom: 3px;
-}
-.mobile-nav-item span {
-  font-size: 0.7rem;
-  font-weight: 500;
-}
-.mobile-nav-item.active,
-.mobile-nav-item:hover {
-  color: #007BFF;
-}
 
-/* 2. 모바일 화면 반응형 스타일 */
 @media (max-width: 1023px) { /* Tailwind의 lg breakpoint와 맞춤 */
   /* 드롭다운에서 '내 프로필' 숨기기 */
   .dropdown .pc-only-item {
     display: none;
   }
-  
-  /* 메인 콘텐츠가 하단 메뉴에 가려지지 않도록 여백 추가 */
-  main {
+
+  /* [수정] 메인 콘텐츠 영역이 스크롤되도록 설정 */
+  main#content-area {
+    overflow-y: auto;
     padding-bottom: 90px;
+  }
+  /* ▼▼▼ [추가] 새로운 하단 메뉴 스타일 ▼▼▼ */
+  .mobile-bottom-nav {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;   /* [수정] 좌우 여백을 주어 전체 폭 축소 */
+    right: 24px;  /* [수정] 좌우 여백을 주어 전체 폭 축소 */
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;    /* [수정] 뒤로가기 버튼과 메뉴 풍선 사이 간격 축소 */
+    padding: 0;   /* [수정] 내부 패딩 제거 */
+    z-index: 1000;
+    transition: transform 0.4s ease-in-out; /* 애니메이션 효과 */
+  }
+    .mobile-bottom-nav--hidden {
+    transform: translateY(150%);
+  }
+  .back-button {
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #333;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+  .nav-bubble {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* [수정] 아이콘들을 가운데로 모음 */
+    gap: 20px;               /* [추가] 아이콘들 사이의 간격을 직접 지정 */
+    flex-grow: 1;
+    height: 56px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 999px;
+    padding: 0 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+  .icon-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.1rem;
+    color: #333;
+    border: none; /* [수정] 테두리 제거 */
+    transition: all 0.2s ease;
+  }
+  .icon-button.active {
+    color: #007BFF; /* [수정] 활성화 시 아이콘 색상만 변경 */
+  }
+
+    #goAdminPage {
+    display: none !important;
   }
 }

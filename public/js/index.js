@@ -535,7 +535,14 @@ window.addEventListener('DOMContentLoaded', () => {
   menu.querySelectorAll('li').forEach(li => {
     li.addEventListener('click', () => {
       const url = li.dataset.url;
-      if (url) window.open(url, '_blank');
+      if (url) {
+        // [수정] 문의 게시판 링크는 현재 창에서 이동하도록 변경
+        if (url.includes('main.html?menu=cs')) {
+          window.location.href = url;
+        } else {
+          window.open(url, '_blank'); // 나머지는 새 창으로 열기
+        }
+      }
       menu.classList.remove('show');
     });
   });

@@ -228,8 +228,22 @@ window.initializeNoticePage = function(user) {
 
   function updateIndicator(selectedTab) {
     if (indicator) {
-        indicator.style.height = `${selectedTab.offsetHeight}px`;
-        indicator.style.top = `${selectedTab.offsetTop}px`;
+        // [핵심 수정] 모바일인지 PC인지 확인하여 다르게 동작하도록 변경
+        if (window.innerWidth <= 768) {
+            // 모바일: 가로 이동 (upload 탭과 동일한 방식)
+            indicator.style.width = `${selectedTab.offsetWidth}px`;
+            indicator.style.left = `${selectedTab.offsetLeft}px`;
+            // 모바일에서는 세로 위치/높이 속성 초기화
+            indicator.style.height = '100%';
+            indicator.style.top = '0';
+        } else {
+            // PC: 세로 이동 (기존 방식)
+            indicator.style.height = `${selectedTab.offsetHeight}px`;
+            indicator.style.top = `${selectedTab.offsetTop}px`;
+            // PC에서는 가로 위치/너비 속성 초기화
+            indicator.style.width = '100%';
+            indicator.style.left = '0';
+        }
     }
   }
 

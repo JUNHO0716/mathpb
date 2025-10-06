@@ -295,3 +295,60 @@ body {
   justify-content: center;
   height: 36px;
 }
+
+@media (max-width: 768px) {
+  /* --- 1. 페이지 배너 모바일 스타일 --- */
+  .notice-page-banner {
+    height: auto;
+    padding: 24px;
+    margin: 16px;
+    text-align: left;
+  }
+  .notice-page-banner h2 {
+    font-size: 1.5rem;
+  }
+  .notice-page-banner p {
+    font-size: 0.9rem;
+  }
+  .notice-banner-image {
+    display: none;
+  }
+
+  /* --- 2. 메인 레이아웃 및 탭 버튼 재배치 --- */
+  .notice-main-container {
+    flex-direction: column; /* PC의 좌우 배치를 세로로 변경 */
+    padding: 0 16px;
+    gap: 24px;
+  }
+  
+  .slider-tabs {
+    flex-direction: row; /* 탭 버튼을 가로로 정렬 */
+    justify-content: center; /* 탭들을 가운데 정렬 */
+    width: 100%;
+  }
+
+  .tab-btn {
+    font-size: 0.85rem;  /* 글씨 크기 축소 */
+    padding: 8px 14px;  /* 버튼 내부 여백 축소 */
+    white-space: nowrap; /* 버튼 내 글자 줄바꿈 방지 */
+  }
+    .tab-indicator {
+    box-shadow: none;
+    /* ▼▼▼ [핵심 수정] 파란색 배경으로 다시 변경 (JS와 연동) ▼▼▼ */
+    background-color: #007BFF;
+    /* ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲ */
+  }
+
+  /* 3. 테이블 글씨 크기 조정 */
+  .notice-table {
+    font-size: 0.85rem;
+  }
+  .notice-table th,
+  .notice-table td {
+    padding: 12px 6px; /* 테이블 셀 내부 여백 조정 */
+  }
+  .notice-table .col-num,
+  .notice-table .col-date {
+    font-size: 0.8rem;
+  }
+}

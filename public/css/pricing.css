@@ -160,7 +160,6 @@ a{color:var(--brand);text-decoration:none}
 .toggle button.active{ color:var(--brand-ink); }
 
 .grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:22px; margin-top:14px; }
-@media (max-width:980px){ .grid{ grid-template-columns:1fr } }
 
 /* 카드(요금제/요약) 공통 3D 베이스 */
 .plan, .card{
@@ -209,7 +208,6 @@ a{color:var(--brand);text-decoration:none}
 
 /* 하단 요약/약관 패널은 고정(볼록/hover 없음) */
 .summary{ display:grid; grid-template-columns:1.1fr .9fr; gap:18px; margin-top:18px; }
-@media (max-width:980px){ .summary{ grid-template-columns:1fr } }
 .summary .card,
 .summary .card:hover{ transform:none; box-shadow:var(--z-shadow-1); }
 
@@ -327,4 +325,118 @@ a{color:var(--brand);text-decoration:none}
 .chip.active{
   outline:2px solid var(--brand);
   background:#f7f8ff;
+}
+
+@media (max-width: 980px) {
+  /* --- 기본 레이아웃 조정 --- */
+  .wrap {
+    padding: 0 16px;
+  }
+  .grid, .summary { 
+    grid-template-columns: 1fr;
+  }
+
+    /* ▼▼▼ [추가] 하단 패널 내부 모바일 스타일 ▼▼▼ */
+  .summary .card {
+    padding: 16px; /* 모든 하단 패널의 내부 여백 축소 */
+  }
+  
+  /* '결제 수단' 글씨/버튼 크기 축소 */
+  .methods .chip {
+    font-size: 0.8rem;
+    padding: 8px 10px;
+  }
+
+  /* '약관' 관련 글씨 크기 축소 */
+  .legal {
+    font-size: 0.8rem;
+  }
+  .legal ul {
+    margin: 6px 0 0 16px;
+  }
+  .agree {
+    font-size: 0.75rem;
+    margin-top: 10px;
+  }
+  .agree input {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* 내부 구분선(hr) 여백 축소 */
+  .hr {
+    margin: 10px 0;
+  }
+  
+  /* 하단 작은 안내 문구 크기 축소 */
+  .mini {
+    font-size: 0.75rem;
+  }
+  /* ▲▲▲ 여기까지 추가 ▲▲▲ */
+
+  /* --- [수정] 페이지 배너 → 텍스트만 표시 --- */
+  .pricing-page-banner {
+    background: none;
+    border: none;
+    box-shadow: none;
+    height: auto;
+    padding: 0;
+    margin: 24px 0 16px 0;
+    text-align: center; /* 텍스트를 가운데 정렬 */
+  }
+  .pricing-page-banner h2 {
+    font-size: 1.3rem; /* 글씨 크기 추가 축소 */
+  }
+  .pricing-page-banner p {
+    font-size: 0.85rem; /* 글씨 크기 추가 축소 */
+  }
+  .pricing-banner-image {
+    display: none;
+  }
+  
+  /* --- [수정] 컨트롤 영역(hero) 재설정 --- */
+  .hero {
+    display: flex !important; /* [핵심] hero 영역이 확실히 보이도록 강제 */
+    flex-direction: row;
+    justify-content: space-between; /* h1은 왼쪽, 토글은 오른쪽으로 배치 */
+    align-items: center;
+    gap: 16px;
+  }
+  .hero h1 {
+    font-size: 1.2rem;
+    text-align: left;
+    margin: 0; /* 불필요한 여백 제거 */
+  }
+
+  .perks {
+    display: none; /* 모바일에서는 perks 영역 숨김 처리로 단순화 */
+  }
+
+  /* --- 요금제 카드 모바일 스타일 --- */
+  .plan.popular {
+    transform: none;
+  }
+  .plan {
+    padding: 24px;
+  }
+  .plan h3 {
+    font-size: 1.1rem;
+  }
+  .price {
+    font-size: 1.3rem;
+  }
+  .feature {
+    font-size: 0.9rem;
+  }
+  
+  /* --- 하단 요약 및 결제 버튼 --- */
+  .cta {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .cta .btn {
+    width: 100%;
+    justify-content: center;
+  }
 }

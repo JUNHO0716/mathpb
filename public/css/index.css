@@ -720,4 +720,8 @@ PC / 모바일 분기점
   .mobile-only-dropdown-item {
     display: block !important;
   }
+
+   .pc-only-item {
+    display: none !important; /* [수정] !important 추가 */
+  }
 }

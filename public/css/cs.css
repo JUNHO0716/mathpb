@@ -331,19 +331,54 @@ body {
 }
 /* ▲▲▲ 수정 완료 ▲▲▲ */
 
-/* 반응형 스타일 */
 @media (max-width: 768px) {
+    /* --- 기존 스타일 유지 --- */
     .inquiry-row {
         grid-template-columns: 1fr;
         gap: 8px;
     }
-    
-    .cs-page-banner, .cs-main-container {
+    .cs-main-container {
         margin: 16px;
         gap: 16px;
     }
-
-    .cs-page-banner {
-        padding: 30px 25px;
+        .inquiry-row label {
+        font-size: 0.8rem; /* 라벨 글씨 크기 축소 */
     }
+    .inquiry-row textarea {
+        min-height: 100px; /* '내용' 입력 칸 높이 축소 */
+    }
+    
+
+    /* ▼▼▼ [수정] 페이지 배너 스타일 (다른 페이지와 동일하게) ▼▼▼ */
+    .cs-page-banner {
+      height: auto;
+      padding: 24px;
+      margin: 16px;
+      text-align: left;
+    }
+    .cs-page-banner h2 {
+      font-size: 1.5rem;
+    }
+    .cs-page-banner p {
+      font-size: 0.8rem;
+    }
+    .cs-banner-image {
+      display: none;
+    }
+    /* ▲▲▲ 페이지 배너 수정 끝 ▲▲▲ */
+
+
+    /* ▼▼▼ [추가] '자주 묻는 질문' 글씨 크기 축소 ▼▼▼ */
+    .cs-card-header h2 {
+        font-size: 1.0rem;
+    }
+    .faq-question {
+        font-size: 0.75rem;
+        padding: 14px 5px;
+    }
+    .faq-answer p {
+        font-size: 0.75rem;
+        padding: 16px;
+    }
+    /* ▲▲▲ '자주 묻는 질문' 수정 끝 ▲▲▲ */
 }

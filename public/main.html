@@ -5,6 +5,7 @@
   <meta content="width=device-width, initial-scale=1.0" name="viewport" />
   <title>매쓰비</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link rel="icon" type="image/png" href="image_logo/logo.png" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
   
@@ -12,25 +13,27 @@
   
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/pricing.css">
-  <link rel="stylesheet" href="css/cs.css"> <script src="js/main.js" defer></script>
+  <link rel="stylesheet" href="css/cs.css"> 
+  <script src="js/main.js" defer></script>
 </head>
 
 <body class="flex flex-col min-h-screen">
   
   <header class="bg-white/80 backdrop-blur-sm shadow-md sticky top-0 z-50">
-    <div class="container mx-auto px-8 py-4 flex justify-between items-center">
-      <div class="flex items-center">
-        <a href="index.html" class="flex items-center space-x-2">
-          <img src="image_logo/logo.png" alt="MathBee Logo" class="h-8" /> 
-          <span class="text-xl font-bold text-black">MathBee</span>
-        </a>
+    <div class="container mx-auto px-8 py-4 flex items-center">
+      <a href="index.html" class="flex items-center space-x-2">
+        <img src="image_logo/logo.png" alt="MathBee Logo" class="h-8" /> 
+        <span class="text-xl font-bold text-black">MathBee</span>
+      </a>
 
-        <nav class="hidden lg:flex space-x-8 ml-16">
+      <nav class="hidden lg:flex space-x-8 ml-16">
         <a href="#" class="nav-link" data-page="pricing.html">구독(결제) 하기</a>
         <a href="#" class="nav-link" data-page="story.html">스토리</a>
         <a href="#" class="nav-link" data-page="review.html">후기남기기</a>
         <a href="#" class="nav-link" data-page="cs.html">고객센터</a>
       </nav>
+
+      <div class="flex-grow"></div>
 
       <div class="user-wrapper" id="userWrapper">
         <div class="user-box loading" id="userBox">
@@ -45,7 +48,7 @@
         </div>
       </div>
     </div>
-    </header>
+  </header>
   
   <main id="content-area" class="flex-grow container mx-auto p-8">
     <div class="text-center text-gray-500 pt-20">
@@ -54,24 +57,25 @@
     </div>
   </main>
 
-<nav class="mobile-nav lg:hidden">
-  <a href="#" class="mobile-nav-item nav-link" data-page="pricing.html">
-    <i class="fas fa-credit-card"></i>
-    <span>구독하기</span>
-  </a>
-  <a href="#" class="mobile-nav-item nav-link" data-page="story.html">
-    <i class="fas fa-book-open"></i>
-    <span>스토리</span>
-  </a>
-  <a href="#" class="mobile-nav-item nav-link" data-page="review.html">
-    <i class="fas fa-pen-to-square"></i>
-    <span>후기</span>
-  </a>
-  <a href="#" class="mobile-nav-item nav-link" data-page="cs.html">
-    <i class="fas fa-headset"></i>
-    <span>고객센터</span>
-  </a>
-</nav>
+  <nav class="mobile-bottom-nav lg:hidden">
+    <a href="index.html" class="back-button">
+      <i class="fas fa-chevron-left"></i>
+    </a>
+    <div class="nav-bubble">
+      <a href="#" class="icon-button nav-link" data-page="pricing.html">
+        <i class="fas fa-credit-card"></i>
+      </a>
+      <a href="#" class="icon-button nav-link" data-page="story.html">
+        <i class="fas fa-book-open"></i>
+      </a>
+      <a href="#" class="icon-button nav-link" data-page="review.html">
+        <i class="fas fa-pen-to-square"></i>
+      </a>
+      <a href="#" class="icon-button nav-link" data-page="cs.html">
+        <i class="fas fa-headset"></i>
+      </a>
+    </div>
+  </nav>
 
 </body>
 </html>

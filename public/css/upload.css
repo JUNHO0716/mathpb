@@ -782,4 +782,22 @@ th {
     padding: 0;
     margin-top: 16px; /* 업로드 영역과 버튼 사이에 여백 추가 */
   }
+  /* ▼▼▼ [수정] '반려' 테이블 스타일 (선택자 우선순위 해결) ▼▼▼ */
+  .upload-rejected-section table {
+    table-layout: fixed;
+    width: 100%;
+  }
+  
+  /* [핵심] 선택자를 더 구체적으로(#rejected-body) 변경하여 우선순위 확보 */
+  #rejected-body td.rejected-filename {
+    width: 80%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+  }
+
+  #rejected-body td:not(.rejected-filename) {
+    width: 20%;
+  }
 }
