@@ -137,8 +137,12 @@
           <li><span class="badge">3</span>시험지 요청하기</li>
           <li><span class="badge">4</span>시험지 출제하기(준비중)</li>
         </ul>
-        <button class="help-fab" id="helpFab" aria-label="도움말">?</button>
-      </div>
+          <!-- ✅ 새로 추가: Chat 버튼 (Help 위에) -->
+  <button class="chat-fab" id="chatFab" aria-label="챗봇 열기">Chat</button>
+
+  <!-- 기존 Help 버튼 그대로 유지 -->
+  <button class="help-fab" id="helpFab" aria-label="도움말">?</button>
+</div>
 
 <div id="paymentModal" class="modal-overlay">
   <div class="modal-content">
@@ -237,6 +241,31 @@
     </div>
   </div>
 </div>
+
+<!-- ✅ 챗봇 박스 추가 -->
+<div id="chatbotBox" class="chatbot-box">
+  <div class="chatbot-header">
+    <span>챗봇과 대화중</span>
+    <button id="closeChatbot">×</button>
+  </div>
+
+  <div class="chatbot-date">
+    <span id="chatbotDate"></span>
+  </div>
+
+  <div class="chatbot-banner">
+    <p>📢 MathPB 구독형 서비스 리뉴얼 완료! 새로운 기능을 만나보세요!</p>
+  </div>
+
+  <div id="chatbotMessages" class="chatbot-messages"></div>
+
+  <form id="chatbotForm" class="chatbot-form">
+   <textarea id="chatInput" placeholder="무엇을 도와드릴까요?" autocomplete="off" rows="1"></textarea>
+    <button type="button" id="chatSend">전송</button>
+  </form>
+</div>
+<!-- ✅ 챗봇 박스 추가 끝 -->
+
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 <script src="js/index.js"></script>
 

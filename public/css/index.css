@@ -391,7 +391,7 @@ body {
   box-shadow: inset 4px 4px 8px #d6a80e, 
               inset -4px -4px 8px #ffe278;
 }
-.help-menu{list-style:none;margin:0;padding:0;position:absolute;bottom:72px;right:0;background:#ffffff;width:280px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.18);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(10px);transition:all .25s}
+.help-menu{list-style:none;margin:0;padding:0;position:absolute;bottom:40px;right:52px;background:#ffffff;width:240px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.18);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(10px);transition:all .25s}
 .help-menu.show{opacity:1;pointer-events:auto;transform:translateY(0)}
 .help-menu li{padding:14px 20px;font-size:14px;cursor:pointer;display:flex;gap:8px;align-items:center;transition:background .15s}
 .help-menu li:not(:last-child){border-bottom:1px solid #f0f0f0}
@@ -542,6 +542,336 @@ PC / 모바일 분기점
 .mobile-header-logo {
   display: none;
 }
+
+/* 🟡 Chatbot Button */
+.chatbot-btn {
+  background: #000;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.chatbot-btn:hover {
+  background: #ffcc00;
+  color: #000;
+}
+
+/* 🧠 챗봇 메인 박스 */
+/* 기본은 숨김(시각/포커스 불가) + 살짝 아래/축소 상태 */
+.chatbot-box {
+  position: fixed;
+  bottom: 145px;
+  right: 30px;
+  width: 480px;           /* 기존보다 조금 더 길게(가로) */
+  height: 720px;          /* 세로도 약간 크게 */
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+  display: flex;                 /* ← display:none 제거 (애니메이션 위해) */
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 9999;
+  font-family: 'Noto Sans KR', sans-serif;
+
+  opacity: 0;                    /* 숨김 */
+  visibility: hidden;            /* 숨김 (전환 지연) */
+  transform: translateY(16px) scale(0.98);
+  transform-origin: bottom right;
+  pointer-events: none;          /* 포커스/클릭 방지 */
+
+  /* 부드러운 오픈/클로즈 전환 */
+  transition:
+    transform  .45s cubic-bezier(.2,.8,.2,1),
+    opacity    .45s ease,
+    clip-path  .45s cubic-bezier(.2,.8,.2,1),
+    visibility 0s linear .45s;
+  clip-path: inset(100% 0 0 0 round 16px);
+}
+
+/* 열림 상태 */
+.chatbot-box.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+  transition:
+    transform .45s cubic-bezier(.16,1,.3,1),
+    opacity   .45s ease,
+    clip-path .45s cubic-bezier(.16,1,.3,1),
+    visibility 0s;
+  /* 아래에서 위로 펼쳐지는 느낌 */
+  clip-path: inset(0 0 0 0 round 16px);
+}
+
+/* ▶ 메시지 영역은 남은 공간을 차지하고 자체 스크롤 */
+#chatbotMessages {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+
+/* 모션 최소화 환경 지원 */
+@media (prefers-reduced-motion: reduce) {
+  .chatbot-box,
+  .chatbot-box.open {
+    transition: none;
+    transform: none;
+    clip-path: none;
+  }
+}
+
+/* 상단 헤더 */
+.chatbot-header {
+  background: #000;
+  color: #fff;
+  padding: 14px 18px;                 /* 살짝 더 두툼하게 */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.chatbot-header > span {
+  font-size: 17px;                    /* ← 글씨 키움(기존 대비 +2~3px 수준) */
+  font-weight: 900;
+  letter-spacing: .2px;
+}
+.chatbot-header button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  opacity: .9;
+}
+.chatbot-header button:hover { opacity: 1; }
+
+/* 날짜 표시 */
+.chatbot-date {
+  text-align: center;
+  background: #f5f5f5;
+  color: #444;
+  padding: 6px 0;
+  font-size: 12px;
+}
+
+/* 배너 */
+.chatbot-banner {
+  background: #eee;
+  padding: 10px 15px;
+  font-size: 13px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* 메시지 영역 */
+.chatbot-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  background: #fafafa;
+}
+
+/* 챗봇 메시지 (좌측) */
+.bot-message {
+  display: flex;
+  align-items: flex-start;
+  margin: 14px 0;
+}
+
+.bot-message .avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #e5e5e5 url('/image_logo/mybot.png') center/90% no-repeat;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+
+.bot-message .bubble {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: #000;
+  max-width: 70%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* 사용자 메시지 (우측) */
+.user-message {
+  display: flex;
+  justify-content: flex-end;
+  margin: 14px 0; /* 말풍선 간격 증가 */
+}
+
+.user-message .bubble {
+  background: #000;
+  color: #fff;
+  border-radius: 16px;
+  padding: 10px 14px;
+  font-size: 14px;
+  max-width: 75%;
+  line-height: 1.4;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* 로딩 점 */
+.loading-dots {
+  display: inline-block;
+  margin: 5px;
+  font-size: 20px;
+  animation: blink 1.5s infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+/* 입력창 */
+.chatbot-form {
+  flex-shrink: 0;
+  border-top: 1px solid #eee;
+  background: #fff;
+
+  display: flex;
+  /* align-items: flex-end; */   /* ← 이 줄 지우고 */
+  align-items: stretch;           /* ← 이 줄로 교체 */
+  gap: 8px;
+  padding: 8px 10px;
+}
+
+#chatSend {
+  background: #000;
+  color: #fff;
+  border: none;
+  padding: 0 18px;
+  cursor: pointer;
+  font-weight: 600;
+  border-radius: 10px; /* ← 살짝 둥글게 */
+}
+
+
+/* 🟣 Chat FAB 버튼 */
+.chat-fab {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;                         /* 둥근 원 → 살짝 각진 정사각형 버튼 */
+  border: 1px solid #171717;                   /* 테두리로 선명함 */
+  background: linear-gradient(#2b2b2b, #0c0c0c);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* 입체감: 바깥 그림자 + 안쪽 하이라이트 */
+  box-shadow:
+    0 10px 18px rgba(0,0,0,.35),
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 -2px 6px rgba(0,0,0,.35);
+
+  transition: transform .18s cubic-bezier(.2,.8,.2,1),
+              box-shadow .18s ease, background .18s ease, filter .18s ease;
+  margin-bottom: 12px;
+  backdrop-filter: saturate(120%);
+}
+.chat-fab:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(#323232, #0f0f0f);
+  box-shadow:
+    0 14px 24px rgba(0,0,0,.42),
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 -2px 8px rgba(0,0,0,.4);
+  filter: brightness(1.05);
+}
+.chat-fab:active {
+  transform: translateY(0);
+  background: linear-gradient(#1e1e1e, #0a0a0a);
+  box-shadow:
+    0 8px 14px rgba(0,0,0,.32) inset,
+    inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.suggest-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 16px; /* 아래쪽으로 여백 늘림 */
+}
+
+/* 입력창: 자동 높이 + 3줄까지 확장, 이후 스크롤 */
+#chatInput {
+  resize: none;          
+  /* ▼ 핵심: 3줄까지는 자연 확장, 그 이후는 스크롤 */
+  overflow-y: auto;      
+  max-width: 100%;
+  width: 100%;
+  line-height: 1.4;
+
+  /* 자연스러운 시작 높이(1~2줄) + 자동 확장 */
+  height: auto !important;
+  min-height: calc(1.4em * 1.9);          /* 시작 높이(약 2줄 기준) */
+  max-height: calc(1.4em * 3 + 24px);     /* 패딩 포함 3줄까지만 보이기 */
+
+  /* 입력창이 행을 넘길 때 너비/레이아웃 안정화 */
+  flex: 1;
+  border: none;
+  padding: 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+/* === 봇 타이핑 대기 말풍선 === */
+.bot-message.typing .bubble {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;        /* 너무 눌리지 않게 최소 높이 */
+  padding: 10px 12px;
+}
+
+/* 점 3개: 작게 + 간격 좁게 */
+.bubble.typing .dots {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 10px;            /* 파도 높이 기준 */
+}
+
+.bubble.typing .dots i {
+  width: 6px;              /* 🔹작게 */
+  height: 6px;             /* 🔹작게 */
+  border-radius: 50%;
+  background: currentColor; /* 말풍선 글자색과 통일 */
+  opacity: .65;
+  animation: dotWave 900ms ease-in-out infinite;
+}
+
+/* 위아래로 파도처럼 */
+@keyframes dotWave {
+  0%   { transform: translateY(0);       opacity: .35; }
+  25%  { transform: translateY(-3px);    opacity: .8;  }
+  50%  { transform: translateY(0);       opacity: .6;  }
+  75%  { transform: translateY(3px);     opacity: .5;  }
+  100% { transform: translateY(0);       opacity: .65; }
+}
+
+/* 점 간 파동 시차 */
+.bubble.typing .dots i:nth-child(2) { animation-delay: .12s; }
+.bubble.typing .dots i:nth-child(3) { animation-delay: .24s; }
+
+/* 모션 최소화 환경 */
+@media (prefers-reduced-motion: reduce) {
+  .bubble.typing .dots i { animation: none; }
+}
+
 
 /* ▼▼▼ 화면 너비가 768px 이하일 때 적용될 모바일 전용 스타일 ▼▼▼ */
 @media (max-width: 768px) {

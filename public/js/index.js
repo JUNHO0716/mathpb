@@ -587,3 +587,442 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   bindIntroModal();
 })();
+
+// 🕒 날짜 자동 표시
+const today = new Date();
+const dateEl = document.getElementById("chatbotDate");
+if (dateEl) {
+  dateEl.textContent = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
+}
+
+// 🟡 Chat 버튼 클릭 시 챗봇 열기/닫기 (애니메이션 버전)
+const chatButton = document.getElementById("chatFab");
+const chatbotBox = document.getElementById("chatbotBox");
+const closeBtn   = document.getElementById("closeChatbot");
+const chatInput  = document.getElementById("chatInput");
+
+function openChat() {
+  chatbotBox.classList.add("open");
+  if (chatButton) chatButton.setAttribute("aria-expanded", "true");
+
+  // 살짝 딜레이 후 포커스(전개 애니메이션과 겹치지 않게)
+  setTimeout(() => chatInput?.focus(), 120);
+  renderHistoryOnce(); // ← 추가
+}
+function closeChat() {
+  chatbotBox.classList.remove("open");
+  if (chatButton) chatButton.setAttribute("aria-expanded", "false");
+}
+
+if (chatButton && chatbotBox) {
+  chatButton.setAttribute("aria-controls", "chatbotBox");
+  chatButton.setAttribute("aria-expanded", "false");
+
+  chatButton.addEventListener("click", () => {
+    if (chatbotBox.classList.contains("open")) closeChat();
+    else openChat();
+  });
+}
+
+if (closeBtn) {
+  closeBtn.addEventListener("click", closeChat);
+}
+
+// ESC로 닫기
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && chatbotBox.classList.contains("open")) {
+    closeChat();
+  }
+});
+
+// ✅ 챗봇 초기 인사
+const messages = document.getElementById("chatbotMessages");
+function addMessage(role, text) {
+  const div = document.createElement("div");
+  div.className = role === "user" ? "user-message" : "bot-message";
+
+  if (role === "bot") {
+    div.innerHTML = `
+      <div class="avatar"></div>
+      <div class="bubble">${text}</div>
+    `;
+  } else {
+    div.innerHTML = `<div class="bubble">${text}</div>`;
+  }
+
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+// ===== 자동 스크롤 보정: 사용자가 위로 올려볼 땐 강제 스크롤 금지
+let _autoStickToBottom = true;
+function isNearBottom(el) {
+  return el.scrollHeight - el.scrollTop - el.clientHeight < 20;
+}
+function maybeScrollToBottom() {
+  if (_autoStickToBottom) messages.scrollTop = messages.scrollHeight;
+}
+messages.addEventListener('scroll', () => {
+  _autoStickToBottom = isNearBottom(messages);
+});
+
+// 🧠 로딩 표시
+function showLoading() {
+  const loading = document.createElement("div");
+  loading.className = "bot-message";
+  loading.id = "loading";
+  loading.innerHTML = `<div class="bubble"><span class="loading-dots">●●●</span></div>`;
+  messages.appendChild(loading);
+  messages.scrollTop = messages.scrollHeight;
+}
+function hideLoading() {
+  const loading = document.getElementById("loading");
+  if (loading) loading.remove();
+}
+
+// 인사 및 추천 버튼 표시
+addMessage("bot", "안녕하세요 👋 MathPB 도우미입니다.<br>무엇을 도와드릴까요?");
+messages.lastElementChild.style.marginBottom = "12px"; // 👈 추가
+const suggestionBox = document.createElement("div");
+suggestionBox.innerHTML = `
+  <button class="suggest-btn">시험지 요청</button>
+  <button class="suggest-btn">공지사항 보기</button>
+  <button class="suggest-btn">결제 상태 확인</button>
+`;
+suggestionBox.style.display = "flex";
+suggestionBox.style.flexWrap = "wrap";
+suggestionBox.style.gap = "6px";
+suggestionBox.style.marginTop = "8px";
+messages.appendChild(suggestionBox);
+
+let firstUserSent = false;
+document.querySelectorAll(".suggest-btn").forEach(btn => {
+  btn.style.border = "1px solid #ddd";
+  btn.style.borderRadius = "20px";
+  btn.style.padding = "6px 10px";
+  btn.style.fontSize = "13px";
+  btn.style.background = "#fff";
+  btn.style.cursor = "pointer";
+
+  btn.addEventListener("click", () => {
+    const text = btn.textContent;
+
+    // 첫 사용자 입력 시 칩과 말풍선 사이 간격 확보
+    if (!firstUserSent) {
+      const spacer = document.createElement("div");
+      spacer.style.height = "8px";
+      messages.appendChild(spacer);
+      firstUserSent = true;
+    }
+
+    addMessage("user", text);
+    showLoading();
+    setTimeout(() => {
+      hideLoading();
+      addMessage("bot", `${text} 관련 안내를 드리겠습니다.`);
+    }, 900);
+  });
+});
+
+// Enter → 전송, Shift+Enter → 줄바꿈, 새로고침/새창 방지
+// ============================
+const chatForm = document.getElementById('chatbotForm');
+const chatSendBtn = document.getElementById('chatSend');
+
+// 폼 기본 제출(페이지 이동) 방지
+if (chatForm) {
+  chatForm.addEventListener('submit', (e) => e.preventDefault());
+}
+
+// 입력창: IME 조합 중(한글 입력) Enter는 무시, 일반 Enter는 전송
+if (chatInput) {
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.isComposing) return;          // 한글 조합 중이면 전송 금지
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();               // 폼 제출/개행 방지
+      sendChatMessage();                // 전송
+    }
+    // Shift+Enter는 기본 동작으로 개행됨 (e.preventDefault() 안 함)
+  });
+}
+
+// 전송 버튼 클릭 시도 동일 동작
+if (chatSendBtn) {
+  chatSendBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    sendChatMessage();
+  });
+}
+
+// 실제 전송 함수 (우선 동작 검증용: 서버 스트림을 받아 텍스트로 붙임)
+// ※ 3번(타자치는 효과), 4번(로딩 점 스타일/프로필/파도 효과)은 이후 단계에서 개선
+async function sendChatMessage() {
+  if (!chatInput) return;
+  const text = chatInput.value.trim();
+  if (!text) return;
+
+  addMessage('user', text);
+
+  chatHistory.push({ role: 'user', content: text, ts: Date.now() });
+  saveChatHistory(chatHistory);
+  chatInput.value = '';
+  showLoading();
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: text }] })
+    });
+
+    // 서버가 text/event-stream으로 보내므로 스트림에서 한 덩어리씩 읽어서 합침
+    const reader = res.body?.getReader?.();
+    let botText = '';
+    if (reader) {
+      const decoder = new TextDecoder('utf-8');
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        // line 단위로 분리해 "data: {...}" 만 파싱
+        for (const line of chunk.split('\n')) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') continue;
+          try {
+            const json = JSON.parse(data);
+            botText += (json.output_text || '');
+          } catch {}
+        }
+      }
+    }
+    finishBotTypingWith((botText && botText.trim()) ? botText : '(응답이 비어있습니다)');
+    chatHistory.push({ role: 'bot', content: botText || '(응답이 비어있습니다)', ts: Date.now() });
+    saveChatHistory(chatHistory);
+
+    } catch (err) {
+    finishBotTypingWith('(서버 연결에 실패했습니다. 잠시 후 다시 시도하세요)');
+    chatHistory.push({ role: 'bot', content: '(서버 연결에 실패했습니다. 잠시 후 다시 시도하세요)', ts: Date.now() });
+    saveChatHistory(chatHistory);
+
+    console.error(err);
+  }
+}
+
+// ============================
+// [입력창 자동 높이] 최대 3줄까지 확장, 그 이후는 스크롤
+// ============================
+function autoResizeChatInput() {
+  if (!chatInput) return;
+
+  // 먼저 auto로 풀어 실제 scrollHeight를 정확히 측정
+  chatInput.style.height = 'auto';
+
+  const cs = window.getComputedStyle(chatInput);
+  const lineHeight = parseFloat(cs.lineHeight) || 20;
+  const paddingY =
+    (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+  const borderY =
+    (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.borderBottomWidth) || 0);
+
+  // 최대 3줄까지
+  const maxHeight = lineHeight * 3 + paddingY + borderY;
+
+  // 실제 필요한 높이
+  const needed = chatInput.scrollHeight;
+
+  // 높이/스크롤 모드 반영
+  chatInput.style.height = Math.min(needed, maxHeight) + 'px';
+  chatInput.style.overflowY = needed > maxHeight ? 'auto' : 'hidden';
+}
+
+// 입력 변화 시 자동 리사이즈
+if (chatInput) {
+  // 기존 keydown(Enter/Shift+Enter) 로직은 그대로 두고,
+  // 'input' 이벤트에서만 높이 갱신
+  chatInput.addEventListener('input', autoResizeChatInput);
+
+  // 초기 1회 세팅
+  requestAnimationFrame(autoResizeChatInput);
+}
+
+// 메시지 전송 후 입력창 초기화 시에도 높이 재계산
+const _origSendChatMessage = typeof sendChatMessage === 'function' ? sendChatMessage : null;
+if (_origSendChatMessage) {
+  window.sendChatMessage = async function(...args) {
+    await _origSendChatMessage.apply(this, args);
+    // 전송 과정에서 chatInput.value=''가 실행되므로 높이 축소
+    autoResizeChatInput();
+  }
+}
+
+// 챗봇 오픈 시 살짝 딜레이 후 포커스 + 높이 보정
+// (openChat 함수가 위에 있다면 그 안에 아래 두 줄이 이미 있을 수 있습니다.)
+if (typeof openChat === 'function') {
+  const _origOpenChat = openChat;
+  window.openChat = function(...args) {
+    _origOpenChat.apply(this, args);
+    setTimeout(() => {
+      chatInput?.focus();
+      autoResizeChatInput();
+    }, 120);
+  }
+}
+
+// ============================
+// [타자 효과 유틸] HTML 태그는 한 번에, 텍스트는 한 글자씩
+// ============================
+function splitHTMLTokens(html) {
+  const tokens = [];
+  const regex = /(<[^>]+>)/g;
+  let last = 0, m;
+  while ((m = regex.exec(html)) !== null) {
+    if (m.index > last) tokens.push({ type: 'text', value: html.slice(last, m.index) });
+    tokens.push({ type: 'tag', value: m[1] });
+    last = regex.lastIndex;
+  }
+  if (last < html.length) tokens.push({ type: 'text', value: html.slice(last) });
+  return tokens;
+}
+
+function typeHTMLInto(el, html, speed = 18) {
+  const tokens = splitHTMLTokens(html);
+  let i = 0, j = 0, current = '';
+  function step() {
+    if (i >= tokens.length) return;
+    const t = tokens[i];
+    if (t.type === 'tag') {
+      el.insertAdjacentHTML('beforeend', t.value);
+      i++; j = 0;
+      messages.scrollTop = messages.scrollHeight;
+      requestAnimationFrame(step);
+    } else {
+      current = t.value;
+      if (j < current.length) {
+        el.insertAdjacentText('beforeend', current[j]);
+        j++;
+        messages.scrollTop = messages.scrollHeight;
+        setTimeout(step, speed);
+      } else {
+        i++; j = 0;
+        requestAnimationFrame(step);
+      }
+    }
+  }
+  step();
+}
+
+// ============================
+// [봇 메시지 + 타자 효과로 출력]
+// ============================
+function addBotMessageTyping(text, speed = 18) {
+  const div = document.createElement('div');
+  div.className = 'bot-message';
+  div.innerHTML = `<div class="avatar"></div><div class="bubble"></div>`;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+
+  const bubble = div.querySelector('.bubble');
+  // 개행 보정: \n → <br>
+  const html = (text || '').replace(/\n/g, '<br>');
+  typeHTMLInto(bubble, html, speed);
+}
+
+// ============================
+// [봇 타이핑 대기 말풍선 관리]
+// - showBotTyping(): 프로필+말풍선(+작은 점 파도) 추가
+// - finishBotTypingWith(text): 같은 말풍선 안에 글자 타자치듯 출력
+// - cancelBotTyping(): 말풍선 제거(실패 등)
+// ============================
+let _typingContainer = null; // .bot-message.typing
+let _typingBubble = null;    // .bubble.typing
+
+function showBotTyping() {
+  // 중복 생성 방지
+  if (_typingContainer && _typingBubble && document.body.contains(_typingContainer)) return;
+
+  const div = document.createElement('div');
+  div.className = 'bot-message typing';
+  div.innerHTML = `
+    <div class="avatar"></div>
+    <div class="bubble typing">
+      <span class="dots"><i></i><i></i><i></i></span>
+    </div>
+  `;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+
+  _typingContainer = div;
+  _typingBubble = div.querySelector('.bubble.typing');
+}
+
+function finishBotTypingWith(text, speed = 18) {
+  if (_typingContainer && _typingBubble) {
+    // 로딩 점 제거, typing 클래스 해제 후 같은 말풍선에 타자 효과
+    _typingContainer.classList.remove('typing');
+    _typingBubble.classList.remove('typing');
+    _typingBubble.innerHTML = ''; // 점 삭제
+    const html = (text || '').replace(/\n/g, '<br>');
+    typeHTMLInto(_typingBubble, html, speed);
+
+    // 사용 종료
+    _typingContainer = null;
+    _typingBubble = null;
+  } else {
+    // 혹시 로딩 말풍선이 없으면 새로 추가해서 출력
+    addBotMessageTyping(text, speed);
+  }
+}
+
+function cancelBotTyping() {
+  if (_typingContainer) {
+    _typingContainer.remove();
+    _typingContainer = null;
+    _typingBubble = null;
+  }
+}
+
+// ===== 채팅 기록 저장/복원 (로컬스토리지) =====
+const CHAT_HISTORY_KEY_BASE = 'mathpb_chat_history_v1';
+function getChatUserKey() {
+  // 로그인 사용자를 알 수 있으면 여기에 넣으세요. (예: window.__USER_ID)
+  const user = window.__USER_ID || document.body?.dataset?.user || 'anon';
+  // 페이지별로 분리 저장 (페이지가 여러 곳에서 챗봇을 쓸 수 있을 때 충돌 방지)
+  return `${CHAT_HISTORY_KEY_BASE}:${user}:${location.pathname}`;
+}
+function loadChatHistory() {
+  try {
+    const raw = localStorage.getItem(getChatUserKey());
+    const arr = raw ? JSON.parse(raw) : [];
+    if (Array.isArray(arr)) return arr;
+  } catch (e) { console.warn('history load failed', e); }
+  return [];
+}
+function saveChatHistory(arr) {
+  try {
+    // 용량 방지를 위해 최근 200개까지만
+    const trimmed = arr.slice(-200);
+    localStorage.setItem(getChatUserKey(), JSON.stringify(trimmed));
+  } catch (e) { console.warn('history save failed', e); }
+}
+let chatHistory = [];            // {role:'user'|'bot', content:'...', ts:number}[]
+let _historyRendered = false;
+
+function renderHistoryOnce() {
+  if (_historyRendered) return;
+  chatHistory = loadChatHistory();
+  // 히스토리는 즉시 렌더(타자효과 X)
+  chatHistory.forEach(m => {
+    addMessage(m.role === 'user' ? 'user' : 'bot', m.content);
+  });
+  _historyRendered = true;
+  // 렌더 후 하단 정렬(사용자가 올려 보기 전까지만)
+  messages.scrollTop = messages.scrollHeight;
+}
+
+// 기존 showLoading/hideLoading 이 있었다면, 아래 두 개로 대체 사용:
+function showLoading() { showBotTyping(); }
+function hideLoading() { cancelBotTyping(); }
+
+

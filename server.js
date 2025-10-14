@@ -31,6 +31,7 @@ import paymentRoutes from './routes/payment.js';
 import adminRoutes from './routes/admin.js';
 import noticeRoutes from './routes/notices.js';
 import inquiryRoutes from './routes/inquiry.js';
+import chatRoutes from './routes/chat.js';
 
 const app = express();
 const PROD = process.env.NODE_ENV === 'production';
@@ -93,6 +94,7 @@ app.use('/api/billing', paymentRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notices', noticeRoutes);
 app.use('/api/inquiry', inquiryRoutes);
+app.use("/api/chat", chatRoutes);
 
 // --- 특수 라우트 (Toss 프록시, DB 핑) ---
 app.get('/ping-db', async (req, res) => {

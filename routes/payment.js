@@ -4,9 +4,20 @@ import db from '../config/database.js';
 import { isLoggedIn, isAdmin, needAuthJson } from '../middleware/auth.js';
 import { getPrice, resolvePlan, resolveCycle } from '../utils/pricing.js';
 import { tossAuthHeader } from '../utils/toss.js';
+import fetch from 'node-fetch';
 
 const router = express.Router();
 const BASE_URL = process.env.BASE_URL || 'https://mathpb.com';
+
+// --- 카카오페이 API 호출 헬퍼 함수 ---
+const callKakaoApi = async (url, body) => {
+  const headers = {
+    'Authorization': `SECRET_KEY ${process.env.KAKAO_ADMIN_KEY}`,
+    'Content-Type': 'application/json',
+  };
+  const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
+  return response.json();
+};
 
 // 구독 상태
 router.get('/subscription/status', needAuthJson, async (req, res) => {
@@ -41,25 +52,58 @@ router.post('/subscription/cancel', needAuthJson, async (req, res) => {
 router.post('/start', isLoggedIn, async (req, res) => {
   try {
     const user = req.session.user;
-    const { plan, cycle } = req.body || {};
+    const { plan, cycle, method } = req.body || {};
     const planKey  = resolvePlan(plan);
     const cycleKey = resolveCycle(cycle);
     const price    = getPrice(planKey, cycleKey);
     const customerKey = `u_${user.id}`;
     const orderId = `bill_${crypto.randomUUID()}`;
-    const successUrl = `${BASE_URL}/api/billing/callback/success`;
-    const failUrl    = `${BASE_URL}/api/billing/callback/fail`;
-    req.session._subMeta = { plan: planKey, price, cycle: cycleKey };
-    res.json({
-      customerKey, orderId, amount: 0, orderName: `${planKey} ${cycleKey}`, successUrl, failUrl
-    });
+
+    req.session._subMeta = { plan: planKey, price, cycle: cycleKey, orderId };
+
+    if (method === 'kakao') {
+      // --- 카카오페이 결제 준비 ---
+      const kakaoBody = {
+        cid: process.env.KAKAO_CID_SUBSCRIPTION,
+        partner_order_id: orderId,
+        partner_user_id: customerKey,
+        item_name: `${planKey} ${cycleKey} 정기결제`,
+        quantity: 1,
+        total_amount: 0, // 첫 결제는 인증이므로 0원
+        tax_free_amount: 0,
+        approval_url: `${BASE_URL}/api/billing/callback/kakao/approve`,
+        cancel_url: `${BASE_URL}/api/billing/callback/kakao/cancel`,
+        fail_url: `${BASE_URL}/api/billing/callback/kakao/fail`,
+      };
+      const data = await callKakaoApi('https://open-api.kakaopay.com/online/v1/payment/ready', kakaoBody);
+      
+console.log('카카오페이 응답:', data);
+
+      if (data.tid) {
+        req.session._subMeta.tid = data.tid;
+        res.json({
+          method: 'kakao',
+          redirectUrl: data.next_redirect_pc_url
+        });
+      } else {
+        throw new Error(data.msg || '카카오페이 준비 실패');
+      }
+    } else {
+      // --- 기존 토스페이먼츠 로직 ---
+      const successUrl = `${BASE_URL}/api/billing/callback/success`;
+      const failUrl    = `${BASE_URL}/api/billing/callback/fail`;
+      res.json({
+        method: 'toss',
+        customerKey, orderId, amount: 0, orderName: `${planKey} ${cycleKey}`, successUrl, failUrl
+      });
+    }
   } catch (e) {
     console.error('billing/start error', e);
     res.status(500).json({ msg: '초기화 실패' });
   }
 });
 
-// 등록 성공 콜백
+// 토스페이먼츠 등록 성공 콜백
 router.get('/callback/success', isLoggedIn, async (req, res) => {
   try {
     const { customerKey, authKey } = req.query;
@@ -83,10 +127,10 @@ router.get('/callback/success', isLoggedIn, async (req, res) => {
     delete req.session._subMeta;
 
     await db.query(`
-      INSERT INTO billing_keys (user_id, customer_key, billing_key, plan, cycle, price)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO billing_keys (user_id, provider, customer_key, billing_key, plan, cycle, price)
+      VALUES (?, 'toss', ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
-        customer_key = VALUES(customer_key), billing_key  = VALUES(billing_key),
+        provider = 'toss', customer_key = VALUES(customer_key), billing_key  = VALUES(billing_key),
         plan = VALUES(plan), cycle = VALUES(cycle), price = VALUES(price)
     `, [req.session.user.id, customerKey, billingKey, meta.plan || null, meta.cycle || null, meta.price || null]);
 
@@ -111,7 +155,68 @@ router.get('/callback/success', isLoggedIn, async (req, res) => {
   }
 });
 
-// 등록 실패 콜백
+// 카카오페이 정기결제 승인 콜백
+router.get('/callback/kakao/approve', isLoggedIn, async (req, res) => {
+    const { pg_token } = req.query;
+    const meta = req.session._subMeta || {};
+    const customerKey = `u_${req.session.user.id}`;
+
+    if (!pg_token || !meta.tid) {
+        return res.status(400).send('카카오페이 승인 실패: 필수 정보 누락');
+    }
+    try {
+        const approveBody = {
+            cid: process.env.KAKAO_CID_SUBSCRIPTION,
+            tid: meta.tid,
+            partner_order_id: meta.orderId,
+            partner_user_id: customerKey,
+            pg_token: pg_token,
+        };
+        const data = await callKakaoApi('https://open-api.kakaopay.com/online/v1/payment/approve', approveBody);
+
+        if (data.sid) {
+            await db.query(`
+              INSERT INTO billing_keys (user_id, provider, customer_key, billing_key, plan, cycle, price)
+              VALUES (?, 'kakao', ?, ?, ?, ?, ?)
+              ON DUPLICATE KEY UPDATE
+                provider = 'kakao', customer_key = VALUES(customer_key), billing_key = VALUES(billing_key),
+                plan = VALUES(plan), cycle = VALUES(cycle), price = VALUES(price)
+            `, [req.session.user.id, customerKey, data.sid, meta.plan || null, meta.cycle || null, meta.price || null]);
+
+            const startDate = new Date();
+            const endDate = new Date();
+            if (meta.cycle === 'year') {
+                endDate.setFullYear(startDate.getFullYear() + 1);
+            } else {
+                endDate.setMonth(startDate.getMonth() + 1);
+            }
+            const startDateStr = startDate.toISOString().split('T')[0];
+            const endDateStr = endDate.toISOString().split('T')[0];
+
+            await db.query(`
+              UPDATE users SET is_subscribed = 1, subscription_start = ?, subscription_end = ? WHERE id = ?
+            `, [startDateStr, endDateStr, req.session.user.id]);
+
+            delete req.session._subMeta;
+            return res.redirect('/index.html?payment_success=true');
+        } else {
+            throw new Error(data.msg || `승인 실패 코드: ${data.code}`);
+        }
+    } catch (e) {
+        console.error('Kakao approve callback error', e);
+        return res.status(500).send('서버 오류: 카카오페이 승인 실패');
+    }
+});
+
+// 카카오페이 실패/취소 콜백
+router.get('/callback/kakao/fail', isLoggedIn, (req, res) => {
+    res.status(400).send(`카카오페이 등록 실패`);
+});
+router.get('/callback/kakao/cancel', isLoggedIn, (req, res) => {
+    res.redirect('/pricing.html');
+});
+
+// 토스페이먼츠 등록 실패 콜백
 router.get('/callback/fail', isLoggedIn, (req, res) => {
   const { code, message } = req.query;
   res.status(400).send(`결제수단 등록 실패 [${code}] ${message || ''}`);

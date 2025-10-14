@@ -172,9 +172,7 @@ function $(e) {
 
 // -------------------------------------------------------------------
 // 2. 애플리케이션 로직 (Application Logic)
-// ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
-// DOMContentLoaded 래퍼를 제거하여 코드가 바로 실행되도록 합니다.
-// ▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼▼
+// -------------------------------------------------------------------
 const e = typeof window < "u" && window.TOSS_CLIENT_KEY ? window.TOSS_CLIENT_KEY : "live_ck_E92LAa5PVb9m1m6oyObW37YmpXyJ",
   t = n => document.querySelector(n),
   c = n => Array.from(document.querySelectorAll(n)),
@@ -191,7 +189,6 @@ let f = "month",
   L = !1;
 const P = n => Number(n).toLocaleString("ko-KR");
 
-// NodeList가 비어있지 않을 때만 forEach를 실행하도록 방어 코드 추가
 if (p && p.length > 0) {
     p.forEach(n => {
         n.addEventListener("click", () => {
@@ -206,7 +203,6 @@ if (s && s.length > 0) {
         })
     });
 }
-// [o, r]은 #mBtn, #yBtn이므로 null일 수 있습니다. null 체크 추가
 if (o && r) {
     [o, r].forEach(n => {
         n.addEventListener("click", () => {
@@ -248,6 +244,7 @@ function E() {
   }
 }
 
+// 토스 결제창 호출 함수 (변경 없음)
 async function k(n) {
   try {
     await (await $(e)).payment({
@@ -262,41 +259,58 @@ async function k(n) {
   }
 }
 
+// 구독 시작 버튼 클릭 이벤트 (수정된 부분)
 if (u) {
     u.addEventListener("click", async () => {
-        if (!(u.disabled || L)) {
-            if (S !== "toss") {
-                alert("지금은 토스 간편결제만 지원합니다.");
-                return
+        if (u.disabled || L) return;
+
+        L = true;
+        u.disabled = true;
+
+        try {
+            const response = await fetch("/api/billing/start", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                    plan: y?.id,
+                    cycle: f,
+                    method: S // 'toss', 'kakao' 등 선택된 결제수단(S)을 보냄
+                })
+            });
+
+            if (response.status === 401) {
+                alert("로그인 후 이용해주세요.");
+                location.href = "/login.html?next=/pricing.html";
+                return;
             }
-            L = !0, u.disabled = !0;
-            try {
-                const n = await fetch("/api/billing/start", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    credentials: "include",
-                    body: JSON.stringify({
-                        plan: y?.id,
-                        cycle: f
-                    })
-                });
-                if (n.status === 401) {
-                    alert("로그인 후 이용해주세요."), location.href = "/login.html?next=/pricing.html";
-                    return
-                }
-                if (!n.ok) {
-                    const a = await n.text().catch(() => n.statusText);
-                    throw new Error(a || "초기화 실패")
-                }
-                const i = await n.json();
-                await k(i)
-            } catch (n) {
-                console.error(n), alert("결제를 시작할 수 없습니다. 잠시 후 다시 시도해주세요.")
-            } finally {
-                L = !1, E()
+            if (!response.ok) {
+                const errorText = await response.text().catch(() => response.statusText);
+                throw new Error(errorText || "결제 초기화에 실패했습니다.");
             }
+            
+            const data = await response.json();
+
+            // 백엔드 응답에 따라 분기
+            if (data.method === 'kakao' && data.redirectUrl) {
+                // 카카오페이는 받은 URL로 페이지 이동
+                window.location.href = data.redirectUrl;
+            } else if (data.method === 'toss') {
+                // 토스페이먼츠는 SDK 호출
+                await k(data);
+            } else {
+                // 네이버페이 등 다른 결제수단 추가 시 여기에 로직 구현
+                alert(S + " 결제는 현재 지원하지 않습니다.");
+            }
+
+        } catch (error) {
+            console.error(error);
+            alert("결제를 시작할 수 없습니다. 잠시 후 다시 시도해주세요.");
+        } finally {
+            // 카카오페이는 페이지가 이동하므로 이 코드가 실행되지 않을 수 있으나,
+            // 오류 발생 시 버튼 상태를 복구하기 위해 남겨둡니다.
+            L = false;
+            E();
         }
     });
 }

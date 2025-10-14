@@ -8,19 +8,40 @@ footer {
 
 .footer-container {
   display: flex;
-  justify-content: space-around; /* ★★★ 이 부분을 변경하여 좌우로 최대한 퍼지게 합니다 ★★★ */
+  justify-content: space-around;
   flex-wrap: wrap;
   padding-bottom: 15px;
   border-bottom: 1px solid #e0e0e0;
-  margin: 0 auto 15px; /* 푸터 컨테이너와 하단 저작권 사이 여백 추가 */
+  margin: 0 auto 15px;
 }
 
 .footer-section {
-  flex: 1;                  /* 각 섹션이 공간을 차지하도록 수정 */
-  min-width: 200px;         /* 최소 너비를 다시 확보 */
+  flex: 1;
+  min-width: 200px;
   margin: 5px 15px;
   text-align: left;
 }
+
+/* ▼▼▼ [수정됨] PC 버전 레이아웃을 위한 기본 스타일 ▼▼▼ */
+.footer-section-group {
+  display: flex;  /* '정책'과 '고객 지원' 섹션을 가로로 배치 */
+  flex: 2;        /* '회사 정보' 섹션보다 더 넓은 공간을 차지하도록 설정 */
+}
+
+/* PC에서는 '회사 정보'가 펼쳐진 상태로 고정 */
+.footer-collapsible-content {
+  max-height: 200px; /* PC에서는 항상 내용이 보이도록 높이를 충분히 확보 */
+}
+
+.footer-collapsible-header {
+  cursor: default; /* PC에서는 클릭할 수 없도록 기본 커서로 변경 */
+}
+
+.footer-chevron {
+  display: none;   /* PC에서는 드롭다운 화살표(v)를 숨김 */
+}
+/* ▲▲▲ PC 버전 스타일 끝 ▲▲▲ */
+
 
 .footer-section h4 {
   color: #555;
@@ -41,7 +62,7 @@ footer {
 }
 
 .footer-section li {
-  margin-bottom: 4px; /* 리스트 항목 간 여백 살짝 조정 */
+  margin-bottom: 4px;
 }
 
 .footer-section a {
@@ -57,46 +78,45 @@ footer {
 
 .footer-bottom {
   text-align: center;
-  padding-top: 0; /* 상단 패딩 제거 (footer-container의 margin-bottom으로 대체) */
+  padding-top: 0;
   font-size: 0.55rem;
   color: #888;
 }
 
-.social-links a {
-  color: #777;
-  margin: 0 8px;
-  font-size: 1.0rem;
-}
-
-/* ▼▼▼ 모바일 푸터 스타일 (이 블록을 추가하세요) ▼▼▼ */
+/* ▼▼▼ 모바일 푸터 스타일 (768px 이하) ▼▼▼ */
 @media (max-width: 768px) {
   .footer-container {
     flex-direction: column; /* 섹션들을 세로로 쌓음 */
     gap: 0;
   }
 
-  /* '정책', '고객 지원'을 감싸는 그룹을 가로로 배치 */
   .footer-section-group {
     display: flex;
     width: 100%;
     border-top: 1px solid #e0e0e0;
     padding-top: 15px;
+    flex: 1; /* PC에서 설정한 flex 값 초기화 */
   }
+
   .footer-section-group .footer-section {
     flex: 1;
     min-width: 0;
   }
   
-  /* '회사 정보' 아코디언 스타일 */
+  /* '회사 정보' 아코디언(접고 펴기) 스타일 */
   .footer-collapsible-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    cursor: pointer;
+    cursor: pointer; /* 모바일에서는 클릭 가능하도록 커서 변경 */
   }
+
   .footer-chevron {
+    display: block; /* 모바일에서 숨겨진 화살표를 다시 표시 */
     transition: transform 0.3s ease-out;
   }
+
+  /* 모바일에서는 기본적으로 내용을 숨김 */
   .footer-collapsible-content {
     max-height: 0;
     overflow: hidden;
@@ -104,11 +124,12 @@ footer {
     transition: max-height 0.4s ease-out, padding-top 0.4s ease-out;
   }
 
-  /* 펼쳐졌을 때의 스타일 */
+  /* JavaScript로 expanded 클래스가 추가되었을 때 펼쳐짐 */
   .footer-collapsible.expanded .footer-collapsible-content {
     max-height: 200px; /* 내용이 충분히 들어갈 높이 */
     padding-top: 8px;
   }
+
   .footer-collapsible.expanded .footer-chevron {
     transform: rotate(180deg);
   }
