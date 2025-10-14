@@ -680,135 +680,6 @@ function hideLoading() {
   if (loading) loading.remove();
 }
 
-// 인사 및 추천 버튼 표시
-addMessage("bot", "안녕하세요 👋 MathPB 도우미입니다.<br>무엇을 도와드릴까요?");
-messages.lastElementChild.style.marginBottom = "12px"; // 👈 추가
-const suggestionBox = document.createElement("div");
-suggestionBox.innerHTML = `
-  <button class="suggest-btn">시험지 요청</button>
-  <button class="suggest-btn">공지사항 보기</button>
-  <button class="suggest-btn">결제 상태 확인</button>
-`;
-suggestionBox.style.display = "flex";
-suggestionBox.style.flexWrap = "wrap";
-suggestionBox.style.gap = "6px";
-suggestionBox.style.marginTop = "8px";
-messages.appendChild(suggestionBox);
-
-let firstUserSent = false;
-document.querySelectorAll(".suggest-btn").forEach(btn => {
-  btn.style.border = "1px solid #ddd";
-  btn.style.borderRadius = "20px";
-  btn.style.padding = "6px 10px";
-  btn.style.fontSize = "13px";
-  btn.style.background = "#fff";
-  btn.style.cursor = "pointer";
-
-  btn.addEventListener("click", () => {
-    const text = btn.textContent;
-
-    // 첫 사용자 입력 시 칩과 말풍선 사이 간격 확보
-    if (!firstUserSent) {
-      const spacer = document.createElement("div");
-      spacer.style.height = "8px";
-      messages.appendChild(spacer);
-      firstUserSent = true;
-    }
-
-    addMessage("user", text);
-    showLoading();
-    setTimeout(() => {
-      hideLoading();
-      addMessage("bot", `${text} 관련 안내를 드리겠습니다.`);
-    }, 900);
-  });
-});
-
-// Enter → 전송, Shift+Enter → 줄바꿈, 새로고침/새창 방지
-// ============================
-const chatForm = document.getElementById('chatbotForm');
-const chatSendBtn = document.getElementById('chatSend');
-
-// 폼 기본 제출(페이지 이동) 방지
-if (chatForm) {
-  chatForm.addEventListener('submit', (e) => e.preventDefault());
-}
-
-// 입력창: IME 조합 중(한글 입력) Enter는 무시, 일반 Enter는 전송
-if (chatInput) {
-  chatInput.addEventListener('keydown', (e) => {
-    if (e.isComposing) return;          // 한글 조합 중이면 전송 금지
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();               // 폼 제출/개행 방지
-      sendChatMessage();                // 전송
-    }
-    // Shift+Enter는 기본 동작으로 개행됨 (e.preventDefault() 안 함)
-  });
-}
-
-// 전송 버튼 클릭 시도 동일 동작
-if (chatSendBtn) {
-  chatSendBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    sendChatMessage();
-  });
-}
-
-// 실제 전송 함수 (우선 동작 검증용: 서버 스트림을 받아 텍스트로 붙임)
-// ※ 3번(타자치는 효과), 4번(로딩 점 스타일/프로필/파도 효과)은 이후 단계에서 개선
-async function sendChatMessage() {
-  if (!chatInput) return;
-  const text = chatInput.value.trim();
-  if (!text) return;
-
-  addMessage('user', text);
-
-  chatHistory.push({ role: 'user', content: text, ts: Date.now() });
-  saveChatHistory(chatHistory);
-  chatInput.value = '';
-  showLoading();
-
-  try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: text }] })
-    });
-
-    // 서버가 text/event-stream으로 보내므로 스트림에서 한 덩어리씩 읽어서 합침
-    const reader = res.body?.getReader?.();
-    let botText = '';
-    if (reader) {
-      const decoder = new TextDecoder('utf-8');
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        // line 단위로 분리해 "data: {...}" 만 파싱
-        for (const line of chunk.split('\n')) {
-          if (!line.startsWith('data: ')) continue;
-          const data = line.slice(6).trim();
-          if (data === '[DONE]') continue;
-          try {
-            const json = JSON.parse(data);
-            botText += (json.output_text || '');
-          } catch {}
-        }
-      }
-    }
-    finishBotTypingWith((botText && botText.trim()) ? botText : '(응답이 비어있습니다)');
-    chatHistory.push({ role: 'bot', content: botText || '(응답이 비어있습니다)', ts: Date.now() });
-    saveChatHistory(chatHistory);
-
-    } catch (err) {
-    finishBotTypingWith('(서버 연결에 실패했습니다. 잠시 후 다시 시도하세요)');
-    chatHistory.push({ role: 'bot', content: '(서버 연결에 실패했습니다. 잠시 후 다시 시도하세요)', ts: Date.now() });
-    saveChatHistory(chatHistory);
-
-    console.error(err);
-  }
-}
 
 // ============================
 // [입력창 자동 높이] 최대 3줄까지 확장, 그 이후는 스크롤
@@ -1025,4 +896,182 @@ function renderHistoryOnce() {
 function showLoading() { showBotTyping(); }
 function hideLoading() { cancelBotTyping(); }
 
+// --- 챗봇 UI 요소 참조 및 이벤트 리스너 ---
+const chatForm = document.getElementById('chatbotForm');
+// const chatInput = document.getElementById('chatInput'); // 이미 상단에 선언되어 있으므로 주석 처리
+const chatSuggestBtn = document.getElementById('chat-suggest-btn');
+const suggestionPanel = document.getElementById('suggestion-panel');
+const closeSuggestPanelBtn = document.getElementById('close-suggest-panel');
 
+if (chatInput && chatForm) {
+  chatInput.addEventListener('input', () => {
+    const hasText = chatInput.value.trim().length > 0;
+    chatForm.classList.toggle('has-text', hasText);
+    // autoResizeChatInput 함수는 이미 상단에 input 이벤트 리스너가 있으므로 여기서 호출할 필요 없음
+  });
+}
+
+if (chatSuggestBtn && suggestionPanel) {
+  chatSuggestBtn.addEventListener('click', () => suggestionPanel.classList.add('show'));
+}
+
+if (closeSuggestPanelBtn && suggestionPanel) {
+  closeSuggestPanelBtn.addEventListener('click', () => suggestionPanel.classList.remove('show'));
+}
+
+document.querySelectorAll('.suggest-chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const text = btn.textContent;
+    addMessage("user", text);
+    sendChatMessage(text);
+    suggestionPanel.classList.remove('show');
+  });
+});
+
+if (chatForm) {
+  chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendChatMessage();
+  });
+}
+
+if (chatForm) {
+  chatForm.addEventListener('submit', (e) => {
+    e.preventDefault(); // form의 기본 제출 동작 방지
+    sendChatMessage();
+  });
+}
+
+if (chatInput) {
+  chatInput.addEventListener('keydown', (e) => {
+    // 한글 등 조합 문자 입력 중에는 Enter 키 무시
+    if (e.isComposing) return;
+
+    // Shift 키 없이 Enter만 눌렀을 때
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault(); // textarea의 기본 동작(줄바꿈)을 막음
+      sendChatMessage();    // 메시지 전송 함수 호출
+    }
+    // Shift + Enter를 누르면 이 조건문이 실행되지 않으므로, 기본 동작인 줄바꿈이 일어남
+  });
+}
+
+// --- 메시지 전송 함수 (오류 수정 및 기능 통합 버전) ---
+async function sendChatMessage(predefinedText = null) {
+  if (!chatInput) return;
+  const text = predefinedText || chatInput.value.trim();
+  if (!text) return;
+
+  if (!predefinedText) {
+    addMessage('user', text);
+  }
+
+  chatHistory.push({ role: 'user', content: text, ts: Date.now() });
+  saveChatHistory(chatHistory);
+  
+  if (!predefinedText) {
+    chatInput.value = '';
+    chatForm.classList.remove('has-text');
+    autoResizeChatInput(); // 입력창 높이 원상 복구
+  }
+  
+  showBotTyping();
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: text }] })
+    });
+
+    const reader = res.body?.getReader?.();
+    let botText = '';
+    if (reader) {
+      const decoder = new TextDecoder('utf-8');
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        for (const line of chunk.split('\n')) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') continue;
+          try {
+            const json = JSON.parse(data);
+            botText += (json.output_text || '');
+          } catch {}
+        }
+      }
+    }
+
+    // 봇 응답을 채팅 기록에 저장
+    chatHistory.push({ role: 'bot', content: botText || '(응답이 비어있습니다)', ts: Date.now() });
+    saveChatHistory(chatHistory);
+    
+    // 화면에 결과 표시
+    if (botText.startsWith('[SEARCH_RESULTS]')) {
+      const jsonString = botText.replace('[SEARCH_RESULTS]', '').replace('[/SEARCH_RESULTS]', '');
+      try {
+        const files = JSON.parse(jsonString);
+        cancelBotTyping();
+        addFileResultsMessage(files);
+      } catch (e) {
+        console.error("Failed to parse search results:", e);
+        finishBotTypingWith("검색 결과를 처리하는 중 오류가 발생했습니다.");
+      }
+    } else {
+      finishBotTypingWith((botText && botText.trim()) ? botText : '(응답이 비어있습니다)');
+    }
+
+  } catch (err) {
+    const errorMsg = '(서버 연결에 실패했습니다. 잠시 후 다시 시도하세요)';
+    finishBotTypingWith(errorMsg);
+    chatHistory.push({ role: 'bot', content: errorMsg, ts: Date.now() });
+    saveChatHistory(chatHistory);
+    console.error(err);
+  }
+}
+
+// --- 파일 검색 결과 표시 함수 ---
+function addFileResultsMessage(files) {
+  const div = document.createElement("div");
+  div.className = "bot-message";
+
+  const filesContainer = document.createElement("div");
+  filesContainer.className = "file-list-container";
+  
+  const intro = document.createElement('p');
+  intro.className = 'file-list-intro';
+  intro.innerHTML = `요청하신 조건으로 <strong>${files.length}개의 시험지</strong>를 찾았어요.`;
+  filesContainer.appendChild(intro);
+
+  files.forEach(file => {
+    const fileItem = document.createElement("div");
+    fileItem.className = "file-item";
+    
+    const pdfBtn = file.files.pdf ? `
+      <a href="/api/download/${file.id}?type=pdf" class="download-btn pdf" aria-label="PDF 다운로드" download>
+        <img src="image_download/pdf_download.png" alt="PDF">
+      </a>` : '';
+      
+    const hwpBtn = file.files.hwp ? `
+      <a href="/api/download/${file.id}?type=hwp" class="download-btn hwp" aria-label="HWP 다운로드" download>
+        <img src="image_download/hwp_download.png" alt="HWP">
+      </a>` : '';
+
+    fileItem.innerHTML = `
+      <span class="file-name">${file.name}</span>
+      <div class="download-actions">${pdfBtn}${hwpBtn}</div>
+    `;
+    filesContainer.appendChild(fileItem);
+  });
+  
+  div.innerHTML = `<div class="avatar"></div>`;
+  div.appendChild(filesContainer);
+  
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+// --- 챗봇 초기 인사 메시지 ---
+addMessage("bot", "안녕하세요 👋 MathPB 도우미입니다.<br>무엇을 도와드릴까요?");

@@ -1055,3 +1055,218 @@ PC / 모바일 분기점
     display: none !important; /* [수정] !important 추가 */
   }
 }
+
+/* --- 챗봇 입력창 리디자인 --- */
+
+.chatbot-form {
+  position: relative;
+  flex-shrink: 0;
+  border-top: 1px solid #eee;
+  background: #fff;
+  display: flex;
+  align-items: flex-end; /* 여러 줄일 때 하단 정렬 */
+  gap: 8px;
+  padding: 8px 10px;
+}
+
+/* 입력창 스타일 */
+#chatInput {
+  flex: 1;
+  border: 1px solid #f0f0f0;
+  border-radius: 20px;
+  padding: 10px 16px;
+  font-size: 15px;
+  line-height: 1.5;
+  resize: none;
+  overflow-y: hidden;
+  background: #f5f5f5;
+  transition: background .2s;
+  min-height: calc(1.5em + 22px);
+  max-height: calc(1.5em * 4 + 22px); /* 4줄까지 확장 */
+}
+#chatInput:focus {
+  background: #fff;
+  border-color: #ddd;
+}
+
+/* 좌우 아이콘 버튼 공통 스타일 */
+.chat-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: none;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background .2s, color .2s;
+  flex-shrink: 0; /* 크기 고정 */
+}
+.chat-icon-btn:hover {
+  background: #f0f0f0;
+}
+
+/* 전송 버튼 활성화 스타일 */
+#chat-send-btn.send {
+  background: #FDC512; /* 카카오톡 노란색과 유사하게 */
+  color: #191919;
+}
+#chat-send-btn.send:hover {
+  background: #e9b510;
+}
+
+/* 입력 상태에 따른 버튼 보이기/숨기기 */
+.chat-input-actions {
+  display: flex;
+  align-items: center;
+}
+
+/* 초기 상태: 전송 버튼 숨김 */
+#chat-send-btn {
+  display: none;
+}
+/* 입력 시: +, # 버튼 숨김 & 전송 버튼 표시 */
+.chatbot-form.has-text #chat-suggest-btn {
+  display: none;
+}
+.chatbot-form.has-text #chat-send-btn {
+  display: flex;
+}
+
+
+/* --- 추천 질문 패널 --- */
+.suggestion-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #f7f8fa;
+  border-top: 1px solid #e9e9e9;
+  z-index: 10;
+  padding: 12px 16px 16px;
+  
+  /* 숨김 상태 (아래로) */
+  transform: translateY(100%);
+  visibility: hidden;
+  transition: transform .35s cubic-bezier(.2, .8, .2, 1), visibility 0s linear .35s;
+}
+
+/* 보임 상태 (슬라이드 업) */
+.suggestion-panel.show {
+  transform: translateY(0);
+  visibility: visible;
+  transition: transform .35s cubic-bezier(.2, .8, .2, 1), visibility 0s;
+}
+
+.suggestion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  color: #666;
+  font-size: 13px;
+  font-weight: 600;
+}
+#close-suggest-panel {
+    background: none; border: none; font-size: 20px; color: #888; cursor: pointer;
+}
+
+.suggestion-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.suggest-chip {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 18px;
+  padding: 8px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+  color: #333;
+}
+.suggest-chip:hover {
+  background: #f9f9f9;
+  border-color: #ccc;
+}
+
+
+/* --- 챗봇 파일 검색 결과 스타일 --- */
+
+.file-list-container {
+  background: #f9f9f9;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: #000;
+  max-width: 90%; /* 너비 조정 */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.file-list-intro {
+  font-size: 14px;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+  color: #333;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 4px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.file-item:last-child {
+  border-bottom: none;
+  padding-bottom: 4px;
+}
+
+.file-name {
+  flex-grow: 1;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #202124;
+  white-space: normal;
+  word-break: keep-all;
+  margin-right: 12px;
+}
+
+.download-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #333;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.download-btn:hover {
+  background-color: #f5f5f5;
+  border-color: #ccc;
+  transform: translateY(-1px);
+}
+
+.download-btn i {
+  font-size: 14px;
+}
+
+.download-btn.pdf { color: #D93025; }
+.download-btn.hwp { color: #3264D4; }

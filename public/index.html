@@ -259,10 +259,36 @@
 
   <div id="chatbotMessages" class="chatbot-messages"></div>
 
-  <form id="chatbotForm" class="chatbot-form">
-   <textarea id="chatInput" placeholder="무엇을 도와드릴까요?" autocomplete="off" rows="1"></textarea>
-    <button type="button" id="chatSend">전송</button>
-  </form>
+<form id="chatbotForm" class="chatbot-form">
+  <button type="button" id="chat-attach-btn" class="chat-icon-btn" aria-label="파일 첨부">
+    <i class="fa-solid fa-plus"></i>
+  </button>
+
+  <textarea id="chatInput" placeholder="무엇을 도와드릴까요?" autocomplete="off" rows="1"></textarea>
+
+  <div class="chat-input-actions">
+    <button type="button" id="chat-suggest-btn" class="chat-icon-btn" aria-label="추천 질문 보기">
+      <i class="fa-solid fa-hashtag"></i>
+    </button>
+    <button type="submit" id="chat-send-btn" class="chat-icon-btn send" aria-label="전송">
+      <i class="fa-solid fa-arrow-up"></i>
+    </button>
+  </div>
+</form>
+
+<div id="suggestion-panel" class="suggestion-panel">
+  <div class="suggestion-header">
+    <span>추천 질문</span>
+    <button id="close-suggest-panel" aria-label="닫기">&times;</button>
+  </div>
+  <div class="suggestion-grid">
+    <button class="suggest-chip">시험지 요청</button>
+    <button class="suggest-chip">공지사항 보기</button>
+    <button class="suggest-chip">결제상태 확인</button>
+    <button class="suggest-chip">시험지 찾기</button>
+    <button class="suggest-chip">내 책장 사용법</button>
+    <button class="suggest-chip">구독 플랜 안내</button>
+  </div>
 </div>
 <!-- ✅ 챗봇 박스 추가 끝 -->
 
