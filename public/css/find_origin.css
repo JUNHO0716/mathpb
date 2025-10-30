@@ -1,0 +1,29 @@
+.find-origin-container {
+  max-width: 600px;
+  margin: 40px auto;
+  text-align: center;
+}
+#previewArea {
+  position: relative;
+  margin-top: 20px;
+}
+#previewImg {
+  max-width: 100%;
+  border-radius: 6px;
+}
+#selectCanvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  cursor: crosshair;
+}
+#result {
+  margin-top: 30px;
+  text-align: left;
+}
+.result-item {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+}

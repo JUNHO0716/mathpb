@@ -1,0 +1,299 @@
+/* ===== 상단 두 칼럼 레이아웃: 왼쪽 광고 / 오른쪽 비움 ===== */
+.home-hero-row{
+  width:97%;
+  margin:20px auto;
+  display:grid;
+  grid-template-columns: minmax(520px,640px) 1fr;
+  gap:4px; /* 🔸 광고와 오른쪽 콘텐츠 간격 거의 붙음 */
+}
+@media (max-width:900px){
+  .home-hero-row{ grid-template-columns:1fr; }
+}
+.home-hero-left{ height:260px; }
+.home-hero-right{ min-height:260px; }
+
+/* ===== 스택형 카드 캐러셀 (GIF 느낌) ===== */
+.ad-stack-root, .ad-stack{ width:100%; height:100%; }
+
+/* 레이아웃 */
+.home-hero-row{
+  width:97%; margin:20px auto;
+  display:grid; gap:24px;
+  grid-template-columns: minmax(520px,640px) 1fr;
+}
+@media (max-width:900px){ .home-hero-row{ grid-template-columns:1fr; } }
+.home-hero-left{ height:260px; position:relative; overflow:hidden; }
+
+/* 스택형 캐러셀 */
+.ad-stack-root, .ad-stack{ width:100%; height:100%; }
+.ad-stack{
+  position: relative;
+  perspective: 1000px;        /* 살짝 원근감 */
+  transform-style: preserve-3d;
+  height: 100%;
+}
+
+/* 모든 카드 공통 스타일 */
+.ad-card{
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 70%;
+  height: 95%;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #f7f7fb;
+  box-shadow: 0 12px 24px rgba(0,0,0,.15);
+  transform-origin: bottom right;
+  opacity: 0;
+  transition: transform .7s cubic-bezier(.25,1,.35,1), opacity .7s;
+  will-change: transform, opacity;
+}
+
+/* 계단 구조 */
+/* 맨 아래(가장 작음) – 오른쪽·아래 쪽에 근접 */
+.ad-card.is-tail {
+  transform: translate(-2%, 18px) scale(.84) rotateY(4deg);
+  opacity: .88; z-index: 1;
+}
+
+/* 두 번째 – tail보다 약간 왼쪽·위로, 크기는 중간 */
+.ad-card.is-next {
+  transform: translate(-5%, 8px) scale(.92) rotateY(2deg);
+  opacity: .93; z-index: 2;
+}
+
+/* 맨 위(가장 큼) – 살짝만 왼쪽·위로, 너무 나가지 않게 조정 */
+.ad-card.is-active {
+  transform: translate(-8%, -2px) scale(1) rotateY(0deg);
+  opacity: 1; z-index: 3;
+}
+
+/* 이미지 꽉 채움 */
+.ad-card img{
+  width:100%; height:100%; object-fit:cover; display:block;
+}
+
+/* 도트 동일 */
+.ad-dots{
+  position:absolute; left:14px; bottom:14px; display:flex; gap:8px; z-index:5;
+}
+.ad-dot{
+  width:8px; height:8px; border-radius:999px; border:none; cursor:pointer;
+  background:rgba(255,255,255,.6);
+  transition: transform .2s, background .2s;
+}
+.ad-dot.is-active{ background:#fff; transform:scale(1.2); }
+
+/* 모바일에서는 오프셋 축소 */
+@media (max-width: 900px){
+  .ad-card.is-next{
+    transform: translate(12px, 8px) translateZ(-20px) rotateY(-2.5deg) rotateZ(0.1deg) scale(.985);
+  }
+  .ad-card.is-tail{
+    transform: translate(22px, 14px) translateZ(-36px) rotateY(-4.5deg) rotateZ(0.2deg) scale(.96);
+  }
+  #AdBannerRoot .ad-card:not(.is-active):not(.is-next):not(.is-tail){
+    transform: translate(32px, 18px) translateZ(-50px) rotateY(-6deg) rotateZ(0.3deg) scale(.94);
+  }
+}
+
+
+/* 도트 */
+.ad-dots{
+  position:absolute; left:14px; bottom:14px; display:flex; gap:8px; z-index:5;
+}
+.ad-dot{
+  width:8px; height:8px; border-radius:999px; border:0; cursor:pointer;
+  background:rgba(255,255,255,.65);
+  transition: transform .2s, background .2s;
+}
+.ad-dot.is-active{ background:#fff; transform:scale(1.2); }
+
+/* 하드닝: 전역 CSS 간섭 방지 */
+#AdBannerRoot .ad-cards{ position:absolute !important; inset:0 !important; }
+#AdBannerRoot .ad-card{ position:absolute !important; inset:0 !important; }
+
+
+.ad-dots{
+  position:absolute; left:14px; bottom:14px;
+  display:flex; gap:8px; z-index:5;
+}
+.ad-dot{
+  width:8px; height:8px; border-radius:999px; border:none; cursor:pointer;
+  background:rgba(255,255,255,.6);
+  transition: transform .2s, background .2s;
+}
+.ad-dot.is-active{ background:#fff; transform:scale(1.2); }
+
+/* --- 배너 패널: 높이/잘림 보정 --- */
+.home-hero-left {
+  height: 320px;          /* 300 → 320 : 하단 잘림 방지 */
+  position: relative;
+  overflow: visible;      /* 카드가 안 잘리도록 */
+}
+
+/* --- 스택 전체 왼쪽 이동(필요시 수치 미세조정) --- */
+#AdBannerRoot,
+#AdBannerRoot .ad-stack {
+  position: relative;
+  height: 100%;
+  left: -72px;            /* 전체 스택 이동량 (예: -60 ~ -90px 사이 조정) */
+}
+
+/* =========================
+   오른쪽 영역(문구 + 로고 + 아이콘 메뉴)
+   ========================= */
+.home-hero-right{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:24px 16px 24px 0;
+  transform: translateX(-50px); /* 🔸 왼쪽으로 20px 이동 */
+}
+
+/* 큰 문구 + 로고 */
+.hero-text-section{
+  display:flex;
+  align-items:center;
+  gap:100px;
+  margin-bottom:70px;
+}
+.hero-text-section h1{
+  font-size: clamp(28px, 3.1vw, 44px);
+  font-weight: 800;
+  color:#222;
+  line-height:1.22;
+  letter-spacing:-0.02em;
+}
+.hero-logo{
+  width:100px;
+  height:auto;
+  object-fit:contain;
+}
+
+/* 아이콘 메뉴 리스트 */
+.hero-menu-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:24px 45px;
+}
+.hero-menu{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  background:none;
+  border:0;
+  padding:0;
+  cursor:pointer;
+  transition: transform .15s ease;
+}
+.hero-menu img{
+  width:48px;
+  height:48px;
+  object-fit:contain;
+  display:block;
+}
+.hero-menu span{
+  font-size:.92rem;
+  color:#333;
+}
+.hero-menu:hover{ transform: scale(1.06); }
+
+/* 반응형: 900px 이하에서는 위아래로 쌓이도록 */
+@media (max-width:900px){
+  .home-hero-right{
+    padding:16px 6px 0;
+  }
+  .hero-text-section{
+    gap:10px; margin-bottom:16px;
+  }
+  .hero-logo{ width:64px; }
+  .hero-menu-list{ gap:16px 20px; }
+}
+
+
+#AdBannerRoot .ad-cards { position: absolute !important; inset: 0 !important; }
+
+#AdBannerRoot .ad-card {
+  position: absolute !important;
+  /* inset 강제 제거하고, 우리가 쓰는 bottom/right 기준을 보존 */
+  top: auto !important;
+  left: auto !important;
+  /* bottom/right는 위에서 이미 지정되어 있으므로 그대로 유지됨 */
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(0,0,0,.12);
+  transition: transform .55s cubic-bezier(.22,1,.36,1), opacity .55s;
+  will-change: transform, opacity;
+}
+
+
+#AdBannerRoot .ad-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hero-tagbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 32px;
+}
+
+.hero-tagbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 32px;
+}
+
+/* 공통 버튼 스타일 */
+.tag-btn {
+  border-radius: 999px;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* ① 왼쪽 첫번째: 파란색 꽉찬 */
+.tag-btn.primary {
+  background: #2563eb; /* 진한 파랑 */
+  color: #fff;
+  border: 1.8px solid #2563eb;
+}
+
+/* ② 두번째: 하늘색 외곽선형 */
+.tag-btn.outline {
+  background: #f0f7ff;
+  color: #2563eb;
+  border: 1.8px solid #a9c8ff;
+}
+
+/* ③ 나머지: 회색 배경 */
+.tag-btn.light {
+  background: #f5f6f9;
+  color: #333;
+  border: 1.8px solid transparent;
+}
+
+/* hover 공통 효과 */
+.tag-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* 구분선 */
+.tag-divider {
+  width: 1px;
+  height: 24px;
+  background: #d1d5db;
+  margin: 0 6px;
+}

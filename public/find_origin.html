@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>문제 출처 찾기 | MathPB</title>
+  <link rel="stylesheet" href="/css/find_origin.css" />
+</head>
+<body>
+  <div class="find-origin-container">
+    <h2>📷 문제 출처 찾기</h2>
+
+    <form id="uploadForm">
+      <input type="file" id="fileInput" accept="image/*" />
+      <button type="submit">문제 영역 설정 후 검색</button>
+    </form>
+
+    <div id="previewArea">
+      <img id="previewImg" alt="문제 미리보기" />
+      <canvas id="selectCanvas"></canvas>
+    </div>
+
+    <div id="result"></div>
+  </div>
+
+  <script src="/js/find_origin.js"></script>
+</body>
+</html>

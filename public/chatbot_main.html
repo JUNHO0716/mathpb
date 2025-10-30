@@ -1,0 +1,781 @@
+<link rel="stylesheet" href="css/chatbot-main.css">
+
+<div class="chatbot-layout">
+  <!-- ▷ 최초 방문 로딩 오버레이 -->
+  <div id="chatLoading" class="loading-overlay" aria-busy="true" role="status" style="display:none">
+    <div class="loading-card">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">챗봇 불러오는 중…</div>
+    </div>
+  </div>
+
+  <aside class="chat-history">
+    <div class="history-head">
+      <h3>이전 대화</h3>
+      <button id="newChatBtn" type="button" class="new-chat-btn" aria-label="새 대화">+ 새 대화</button>
+    </div>
+    <div id="chatHistoryList"></div>
+  </aside>
+  <section class="chat-main">
+  <!-- 📢 상단 공지 -->
+  <div class="chat-top-banner">
+    <div class="banner-icon">📢</div>
+    <div class="banner-text">
+      MathPB 구독형 서비스 리뉴얼 완료! 새로운 기능을 만나보세요!
+      <span class="banner-date" id="bannerDate"></span>
+    </div>
+  </div>
+
+  <div class="chat-center" id="chatMessages"></div>
+    <!-- 채팅 시작 후: 하단 고정 입력 -->
+  <div id="chatBottom" class="chat-bottom">
+  <form id="chatFormBottom" class="chatbot-form">
+    <button type="button" id="chat-attach-btn" class="chat-icon-btn" aria-label="파일 첨부">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+
+    <textarea id="chatInputBottom" placeholder="메시지를 입력하세요" autocomplete="off" rows="1"></textarea>
+
+    <div class="chat-input-actions">
+      <button type="button" id="chat-suggest-btn" class="chat-icon-btn chat-suggest-btn" aria-label="추천 질문 보기">
+        <i class="fa-solid fa-hashtag"></i>
+      </button>
+      <button type="submit" id="chat-send-btn" class="chat-icon-btn send" aria-label="전송">
+        <i class="fa-solid fa-arrow-up"></i>
+      </button>
+    </div>
+  </form>
+  <div id="bottom-suggest-panel" class="suggestion-panel" aria-hidden="true">
+  <div class="suggestion-header">
+    <span>추천 질문</span>
+    <button id="bottom-close-suggest" aria-label="닫기">&times;</button>
+  </div>
+  <div class="suggestion-grid" id="bottom-suggest-grid"></div>
+</div>
+</div>
+
+
+<script>
+(async function(){
+  // --- ✅ 로그인 사용자 식별 보강: __USER_ID가 없으면 직접 채움
+async function ensureUserId() {
+  if (window.__USER_ID) return window.__USER_ID;
+  try {
+    const r = await fetch('/check-auth?ts=' + Date.now(), {
+      credentials: 'include',
+      cache: 'no-store'
+    });
+    const d = await r.json();
+    const u = d?.user || {};
+    window.__USER_ID = `u_${u.id ?? ((u.email || '').split('@')[0] || 'unknown')}`;
+    return window.__USER_ID;
+  } catch {
+    // 비로그인 대비: 게스트 아이디라도 고정
+    let gid = localStorage.getItem('mathpb_guest_id');
+    if (!gid) {
+      gid = 'g_' + Math.random().toString(36).slice(2,10);
+      localStorage.setItem('mathpb_guest_id', gid);
+    }
+    window.__USER_ID = gid;
+    return gid;
+  }
+}
+
+// --- ✅ anon → 사용자 키로 1회 승격(있을 때만)
+function migrateAnonToUserIfNeeded() {
+  try {
+    const user = window.__USER_ID;
+    if (!user || user.startsWith('g_')) return; // 게스트면 패스
+    const anonIndexKey = `mathpb_chat_history_v1:anon:/index.html`;
+    const userIndexKey = `mathpb_chat_history_v1:${user}:/index.html`;
+    const raw = localStorage.getItem(anonIndexKey);
+    if (raw && !localStorage.getItem(userIndexKey)) {
+      localStorage.setItem(userIndexKey, raw);
+      // 필요하면 anon 키 제거:
+      // localStorage.removeItem(anonIndexKey);
+    }
+  } catch {}
+}
+
+await ensureUserId();          // ✅ 사용자 식별 먼저 확보
+migrateAnonToUserIfNeeded();   // ✅ anon 기록이 있으면 사용자 키로 승격
+
+// ✅ 사용자별 스레드 저장 키
+const THREADS_BASE = 'mathpb_threads_v1';
+function getThreadKeys() {
+  const user = window.__USER_ID || 'anon';
+  return {
+    LIST_KEY:   `${THREADS_BASE}:${user}:list`,
+    ACTIVE_KEY: `${THREADS_BASE}:${user}:active`,
+    // 구버전 단일 기록(마이그레이션용)
+    OLD_INDEX_KEY: `mathpb_chat_history_v1:${user}:/index.html`,
+    OLD_THIS_KEY:  `mathpb_chat_history_v1:${user}:${location.pathname}`
+  };
+}
+
+function loadAllThreads() {
+  const { LIST_KEY } = getThreadKeys();
+  try {
+    const raw = localStorage.getItem(LIST_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch { return []; }
+}
+function saveAllThreads(list) {
+  const { LIST_KEY } = getThreadKeys();
+  try { localStorage.setItem(LIST_KEY, JSON.stringify(list.slice(-200))); } catch {}
+}
+
+function getActiveThreadId() {
+  const { ACTIVE_KEY } = getThreadKeys();
+  return localStorage.getItem(ACTIVE_KEY);
+}
+function setActiveThreadId(id) {
+  const { ACTIVE_KEY } = getThreadKeys();
+  localStorage.setItem(ACTIVE_KEY, id || '');
+}
+
+function getActiveThread() {
+  const id = getActiveThreadId();
+  const list = loadAllThreads();
+  return list.find(t => t.id === id) || null;
+}
+function upsertThread(thread) {
+  const list = loadAllThreads();
+  const i = list.findIndex(t => t.id === thread.id);
+  if (i >= 0) list[i] = thread; else list.push(thread);
+  saveAllThreads(list);
+}
+
+function startNewThread() {
+  // ▶ 아직 사용자가 아무것도 안 친 상태: draft=true
+  const t = { id: 'thread_' + Date.now(), title: '새 대화', created: Date.now(), messages: [], draft: true };
+  upsertThread(t);
+  setActiveThreadId(t.id);
+  return t;
+}
+
+// ⬇ 구버전 단일 기록 → 스레드 1개로 1회 승격
+function migrateSingleHistoryToThreadsOnce() {
+  const threads = loadAllThreads();
+  if (threads.length) return; // 이미 스레드 사용 중
+
+  const { OLD_INDEX_KEY, OLD_THIS_KEY } = getThreadKeys();
+  const raw = localStorage.getItem(OLD_INDEX_KEY) || localStorage.getItem(OLD_THIS_KEY);
+  if (!raw) return;
+
+  try {
+    const msgs = JSON.parse(raw);
+    if (!Array.isArray(msgs) || !msgs.length) return;
+    const firstUser = msgs.find(m => m.role === 'user');
+    const title = (firstUser?.content || '이전 대화').split('\n')[0].slice(0, 30);
+    const t = {
+      id: 'thread_' + Date.now(),
+      title, created: msgs[0]?.time || Date.now(),
+      messages: msgs
+    };
+    saveAllThreads([t]);
+    setActiveThreadId(t.id);
+  } catch {}
+}
+
+  const msgBox    = document.getElementById('chatMessages');
+  const formBot   = document.getElementById('chatFormBottom');
+  const bottomBar = document.getElementById('chatBottom');
+  const list      = document.getElementById('chatHistoryList');
+  const loadingEl = document.getElementById('chatLoading');
+
+ function getBotAvatar(){
+  return localStorage.getItem('mathpb_bot_avatar')
+         || '/image_logo/mybot.png'; // ← index와 동일 기본값
+}
+
+  /* ▷ 입력창: 비었을 때 + / 내용 있으면 ↑ 토글 + 자동 높이 */
+  function wireFormBehavior(form){
+    if(!form) return;
+    const ta = form.querySelector('textarea');
+    const update = ()=>{
+      const has = !!ta.value.trim();
+      form.classList.toggle('has-text', has);  // css/chatbot-main.css의 .has-text 규칙 사용
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 4*24 + 22) + 'px';
+    };
+    ta.addEventListener('input', update);
+    update();
+  }
+
+  /* ▷ 로딩 오버레이/스켈레톤 */
+  function showLoading(){
+    if(loadingEl) loadingEl.style.display = 'flex';
+
+    // 좌측 리스트 스켈레톤
+    list.innerHTML = Array.from({length:6}).map(()=>(
+      `<div class="skeleton-item">
+         <div class="skel skel-line" style="width:60%"></div>
+         <div class="skel skel-line" style="width:80%"></div>
+       </div>`
+    )).join('');
+
+    // 우측 메시지 스켈레톤
+    msgBox.innerHTML =
+      `<div class="chat-skel-row"><div class="skel skel-line" style="width:70%"></div></div>
+       <div class="chat-skel-row"><div class="skel skel-line" style="width:55%"></div></div>
+       <div class="chat-skel-row"><div class="skel skel-line" style="width:62%"></div></div>`;
+  }
+  function hideLoading(){ if(loadingEl) loadingEl.style.display = 'none'; }
+
+// === typewriter 유틸 ===
+function escapeHTML(s){ return (s||"").replace(/[&<>]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c])); }
+function createTypewriter(targetEl, { speed=16 } = {}) {
+  let buf = "";
+  let tick = null;
+  const pump = () => {
+    if (!buf.length) return;
+    const ch = buf[0];
+    buf = buf.slice(1);
+    targetEl.insertAdjacentHTML('beforeend', ch === '\n' ? '<br>' : escapeHTML(ch));
+  };
+  tick = setInterval(pump, speed);
+  return {
+    push(text){ if (text) buf += text; },
+    async done(){
+      return new Promise((res)=>{
+        const wait = setInterval(()=>{
+          if (!buf.length){
+            clearInterval(wait); clearInterval(tick);
+            res();
+          }
+        }, speed);
+      });
+    }
+  };
+}
+
+
+async function renderMessages() {
+  let t = getActiveThread();
+  if (!t) t = startNewThread();
+
+  msgBox.innerHTML = '';
+
+  // 빈 스레드면 히어로 입력창
+  if (!t.messages.length) {
+    bottomBar.style.display = 'none';
+    msgBox.innerHTML = `
+      <div class="chat-hero">
+        <h1 class="hero-title">어디서부터 시작할까요?</h1>
+        <form id="chatFormCenter" class="chatbot-form hero-form" autocomplete="off">
+          <button type="button" id="hero-attach-btn" class="chat-icon-btn" aria-label="파일 첨부">＋</button>
+          <textarea id="chatInputCenter" rows="1" placeholder="무엇을 도와드릴까요?" autocomplete="off"></textarea>
+          <div class="chat-input-actions hero-actions">
+            <button type="button" id="hero-suggest-btn" class="chat-icon-btn chat-suggest-btn" aria-label="추천">#</button>
+            <button type="submit" id="hero-send-btn" class="chat-icon-btn chat-send-btn" aria-label="전송"><span class="arrow-up">↑</span></button>
+          </div>
+        </form>
+      </div>`;
+    // 히어로 폼 초기화 직후
+    const nf = msgBox.querySelector('#chatFormCenter');
+    const ni = msgBox.querySelector('#chatInputCenter');
+    wireFormBehavior(nf);
+    bindSuggest(nf);
+
+    // ✅ Enter=전송 / Shift+Enter=줄바꿈
+    ni.addEventListener('keydown', (e) => {
+      if (e.isComposing) return;
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const v = ni.value.trim();
+        if (v) { ni.value = ''; send(v); }
+      }
+    });
+
+    // 버튼(↑) 전송도 동일 동작
+    nf.addEventListener('submit', e => { 
+      e.preventDefault(); 
+      const v = ni.value.trim(); 
+      if (!v) return;
+      ni.value = ''; 
+      send(v); 
+    });
+    return;
+  }
+
+  // 메시지 렌더
+  bottomBar.style.display = 'block';
+  const avatarUrl = getBotAvatar();
+  t.messages.forEach(m => {
+    const row = document.createElement('div');
+    if (m.role === 'user') {
+      row.className = 'chat-message user';
+      row.innerHTML = `<div class="bubble">${m.content}</div>`;
+    } else {
+      row.className = 'chat-message bot';
+      row.innerHTML = `<div class="avatar" style="background-image:url('${avatarUrl}');"></div>
+                       <div class="bubble">${m.content}</div>`;
+    }
+    msgBox.appendChild(row);
+  });
+
+  requestAnimationFrame(()=>{ msgBox.scrollTop = msgBox.scrollHeight; });
+}
+
+function renderHistoryList() {
+  // ▶ user / bot 메시지가 모두 있고 draft=false 인 것만 노출
+  const threads = loadAllThreads()
+    .filter(t => !t.draft && t.messages?.some(m=>m.role==='user') && t.messages?.some(m=>m.role==='bot'))
+    .sort((a,b)=>b.created - a.created);
+  const activeId = getActiveThreadId();
+
+  if (!threads.length) {
+    list.innerHTML = `<div class="chat-thread empty">이전 대화가 없습니다</div>`;
+    return;
+  }
+
+  list.innerHTML = threads.map(t => {
+    const first = t.messages.find(m=>m.role==='user') || t.messages[0] || {};
+    const sub = (first?.content || '').replace(/\n/g,' ').slice(0, 42);
+    const time = new Date(t.created).toLocaleString();
+    const active = t.id === activeId ? ' active' : '';
+    return `
+      <div class="chat-thread${active}" data-id="${t.id}">
+        <div class="t-main">
+          <div class="t-title" title="${t.title}">${t.title}</div>
+          <div class="t-sub">${sub}</div>
+          <div class="t-time">${time}</div>
+        </div>
+        <div class="item-actions">
+          <button class="icon-btn rename" title="제목 바꾸기" aria-label="제목 바꾸기">✎</button>
+          <button class="icon-btn delete" title="삭제" aria-label="삭제">🗑</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // 항목 클릭 → 스레드 열기
+  list.querySelectorAll('.chat-thread').forEach(el => {
+    const id = el.dataset.id;
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('.item-actions')) return; // 버튼 영역 클릭은 무시
+      setActiveThreadId(id);
+      renderMessages();
+      renderHistoryList();
+    });
+  });
+
+  // 제목 바꾸기
+  list.querySelectorAll('.icon-btn.rename').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const wrap = btn.closest('.chat-thread');
+      const id = wrap.dataset.id;
+      const threads = loadAllThreads();
+      const t = threads.find(x=>x.id===id); if(!t) return;
+      const name = prompt('새 제목을 입력하세요', t.title);
+      if (!name) return;
+      t.title = name.trim().slice(0, 60) || t.title;
+      saveAllThreads(threads);
+      renderHistoryList();
+    });
+  });
+
+  // 삭제
+  list.querySelectorAll('.icon-btn.delete').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const wrap = btn.closest('.chat-thread');
+      const id = wrap.dataset.id;
+      if (!confirm('이 대화를 삭제할까요?')) return;
+
+      const threads = loadAllThreads().filter(x=>x.id!==id);
+      saveAllThreads(threads);
+
+      if (getActiveThreadId()===id) {
+        setActiveThreadId(threads[0]?.id || '');
+        if (!threads.length) startNewThread();
+      }
+      renderMessages();
+      renderHistoryList();
+    });
+  });
+}
+
+async function send(text){
+  if(!text || !text.trim()) return;
+  const q = text.trim();
+
+  // 활성 스레드 확보
+  let t = getActiveThread();
+  if (!t) t = startNewThread();
+
+  // 첫 사용자 메시지 → 제목 자동
+  if (t.title === '새 대화') {
+    t.title = q.split('\n')[0].slice(0, 30) || '새 대화';
+  }
+
+  // 사용자 메시지 저장
+  t.messages.push({ role:'user', content:q, time:Date.now() });
+  upsertThread(t);
+  renderMessages(); renderHistoryList();
+
+  try {
+    // 타이핑(…)
+    const typingEl = document.createElement('div');
+    typingEl.className = 'chat-message bot typing';
+    typingEl.innerHTML = `<div class="avatar" style="background-image:url('${getBotAvatar()}');"></div>
+                          <div class="bubble typing"><span class="dots"><i></i><i></i><i></i></span></div>`;
+    msgBox.appendChild(typingEl);
+    msgBox.scrollTop = msgBox.scrollHeight;
+
+// ✅ 올바른 바디 형식으로 전송
+const res = await fetch('/api/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  credentials: 'include',
+  body: JSON.stringify({ messages: [{ role: 'user', content: q }] })
+});
+
+let botText = '';
+const reader = res.body && res.body.getReader ? res.body.getReader() : null;
+
+const bubble = typingEl.querySelector('.bubble');
+typingEl.classList.remove('typing');
+bubble.classList.remove('typing');
+bubble.innerHTML = '';
+const tw = createTypewriter(bubble, { speed: 16 });
+
+// 다양한 서버 포맷을 수용하는 추출기
+const pick = (j) => {
+  if (j == null) return '';
+  if (typeof j === 'string') return j;
+  if (j.output_text) return j.output_text;
+  if (j.text) return j.text;
+  if (j.content) return j.content;
+  if (j.message && j.message.content) return j.message.content;
+  if (j.delta && j.delta.content) return j.delta.content;
+  if (Array.isArray(j.choices) && j.choices[0]) {
+    const c = j.choices[0];
+    if (c.delta && c.delta.content) return c.delta.content;
+    if (c.message && c.message.content) return c.message.content;
+    if (c.text) return c.text;
+  }
+  return '';
+};
+
+if (reader) {
+  const decoder = new TextDecoder('utf-8');
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value, { stream: true });
+    for (const line of chunk.split('\n')) {
+      if (!line.startsWith('data: ')) continue;
+      const data = line.slice(6).trim();
+      if (!data || data === '[DONE]') continue;
+      try {
+        const j = JSON.parse(data);
+        const piece = pick(j);
+        if (piece) { botText += piece; tw.push(piece); }
+      } catch {}
+    }
+  }
+} else {
+  const j = await res.json();
+  botText = pick(j);
+  if (botText) tw.push(botText);
+}
+
+
+// 남은 버퍼 모두 출력될 때까지 대기
+await tw.done();
+
+const finalOut = botText?.trim() ? botText : '응답이 없습니다.';
+// 저장/히스토리 갱신은 기존 로직 그대로 아래 유지
+
+
+    // ✅ 저장
+    t = getActiveThread() || t;
+    t.messages.push({ role:'bot', content: finalOut, time: Date.now() }); // ⬅ finalOut 사용
+    t.draft = false;
+    upsertThread(t);
+    renderMessages(); renderHistoryList();
+
+
+  } catch (e) {
+    t.messages.push({ role:'bot', content:'서버 오류가 발생했어요.', time:Date.now() });
+    // ▶ 오류 메시지라도 ‘답변을 받은 경우’로 간주 → draft 해제
+    t.draft = false;
+    upsertThread(t);
+    renderMessages(); renderHistoryList();
+  }
+}
+
+  if(formBot){
+    wireFormBehavior(formBot);
+    formBot.addEventListener('submit',e=>{
+      e.preventDefault();
+      const ta=formBot.querySelector('textarea');
+      const v = ta.value.trim();
+      if (!v) return;
+      ta.value = '';
+      formBot.classList.remove('has-text');   // ⬅ 전송 후 # 아이콘 다시 보이게
+      send(v);
+    });
+  }
+
+    // ✅ Enter로 전송, Shift+Enter로 줄바꿈
+  const chatInput = document.getElementById('chatInputBottom');
+  if (chatInput) {
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        const form = document.getElementById('chatFormBottom');
+        const ta = form.querySelector('textarea');
+        const text = ta.value.trim();
+        if (text) {
+          ta.value = '';
+          form.classList.remove('has-text');
+          send(text);
+        }
+      }
+    });
+  }
+  
+// ▼ 전역 드롭다운 1개만 재사용
+let __suggestDD = null;
+let __ddClickBound = false;
+const SUGG_KEY = 'mathpb_suggestions_v1';
+
+function ensureDropdown(){
+  if (!__suggestDD) {
+    __suggestDD = document.getElementById('hero-suggest-dropdown');
+    if (!__suggestDD) {
+      __suggestDD = document.createElement('div');
+      __suggestDD.id = 'hero-suggest-dropdown';
+      __suggestDD.className = 'hero-suggest-dropdown';
+      __suggestDD.hidden = true;
+    }
+  }
+  // ✅ 항상 body 직속 + 고정 좌표계
+  if (__suggestDD.parentElement !== document.body) {
+    document.body.appendChild(__suggestDD);
+  }
+  __suggestDD.style.position = 'fixed';
+  return __suggestDD;
+}
+
+
+function getSuggestions(){
+  try {
+    const raw = localStorage.getItem(SUGG_KEY);
+    const arr = raw ? JSON.parse(raw) : null;
+    return (Array.isArray(arr) && arr.length) ? arr :
+      ["시험지 요청","공지사항 보기","결제상태 확인","시험지 찾기","내 책장 사용법","구독 플랜 안내"];
+  } catch {
+    return ["시험지 요청","공지사항 보기","결제상태 확인","시험지 찾기","내 책장 사용법","구독 플랜 안내"];
+  }
+}
+
+function bindSuggest(form){
+  if (!form) return;
+  const input = form.querySelector('textarea');
+  const btn   = form.querySelector('.chat-suggest-btn, #chat-suggest-btn'); // ⬅ id/클래스 모두 대응
+  if (!input || !btn) return;
+
+// ▼ 하단 입력창도 전역 드롭다운 재사용 (히어로와 동일한 dd 사용)
+if (form.id === 'chatFormBottom') {
+  const dd = ensureDropdown();          // body 직속, position:fixed
+  let _bound = false;
+
+  function openBottomDD(){
+    const items = getSuggestions();
+    dd.innerHTML = items.map(t => `<button class="hero-suggest-chip" data-t="${t}">${t}</button>`).join('');
+
+    dd.hidden = false;
+    dd.style.position = 'fixed';
+    dd.style.opacity = '0';
+    dd.style.transform = 'translateY(6px)';
+    dd.style.transition = 'opacity .18s ease, transform .18s ease';
+
+    const r = btn.getBoundingClientRect();
+
+    requestAnimationFrame(()=>{
+      const h = dd.offsetHeight || 0;
+      const w = dd.offsetWidth  || 0;
+
+      // ▶ 패널 우하단을 # 버튼 위쪽에 맞춤 (오른쪽 정렬)
+      let left = Math.round(r.right - w);
+      left = Math.max(16, Math.min(left, window.innerWidth - w - 16));
+
+      dd.style.left = left + 'px';
+      dd.style.top  = Math.max(8, Math.round(r.top - h - 8)) + 'px';
+      dd.style.opacity = '1';
+      dd.style.transform = 'translateY(0)';
+    });
+
+    dd.querySelectorAll('.hero-suggest-chip').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        input.value = b.dataset.t;
+        form.classList.add('has-text'); // # → ↑ 토글
+        input.focus();
+        closeBottomDD();
+      });
+    });
+
+    if (!_bound) {
+      document.addEventListener('click', (ev)=>{
+        const clickedBtn = ev.target.closest('.chat-suggest-btn, #chat-suggest-btn'); // ✅ 버튼 내부 아이콘도 허용
+        if (!dd.hidden && !dd.contains(ev.target) && !clickedBtn) {
+          closeBottomDD();
+        }
+      });
+      _bound = true;
+    }
+  }
+
+  function closeBottomDD(){
+    dd.style.opacity = '0';
+    dd.style.transform = 'translateY(6px)';
+    setTimeout(()=>{ dd.hidden = true; }, 180);
+  }
+
+  btn.addEventListener('click', (e)=>{
+    e.preventDefault();
+    (dd.hidden ? openBottomDD : closeBottomDD)();
+  });
+
+  // ⛔ 패널 방식 반환 제거 (전역 dd 로직도 이어서 사용)
+  return;
+}
+  
+const chatForm = document.getElementById('chatFormBottom');
+const chatInput = document.getElementById('chatInputBottom');
+
+if (chatInput && chatForm) {
+  chatInput.addEventListener('input', () => {
+    const hasText = chatInput.value.trim().length > 0;
+    chatForm.classList.toggle('has-text', hasText);
+  });
+}
+
+const dd = ensureDropdown();
+let __ddClickBound = false;
+
+function openDropdown(){
+  const items = getSuggestions();
+  dd.innerHTML = items.map(t => `<button class="hero-suggest-chip" data-t="${t}">${t}</button>`).join('');
+
+  dd.hidden = false;
+  dd.style.position = 'fixed';
+  dd.style.right = '';      // ✅ 혹시 남아있을 값 초기화
+  dd.style.bottom = '';
+  dd.style.opacity = '0';
+  dd.style.transform = 'translateY(6px)';
+  dd.style.transition = 'opacity .18s ease, transform .18s ease';
+
+  const r = btn.getBoundingClientRect();
+
+  requestAnimationFrame(()=>{
+    const h = dd.offsetHeight || 0;
+    const w = dd.offsetWidth  || 0;
+
+    // 오른쪽 정렬: 패널 right == 버튼 right
+    let left = Math.round(r.right - w);
+    // 화면 밖으로 튀지 않도록 클램프
+    left = Math.max(16, Math.min(left, window.innerWidth - w - 16));
+
+    dd.style.left = left + 'px';
+    dd.style.top  = Math.max(8, Math.round(r.top - h - 8)) + 'px'; // 버튼 위 8px
+    dd.style.opacity = '1';
+    dd.style.transform = 'translateY(0)';
+  });
+
+
+  // 선택시 입력창으로 반영
+  dd.querySelectorAll('.hero-suggest-chip').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      input.value = b.dataset.t;
+      form.classList.add('has-text');
+      input.focus();
+      closeDropdown();
+    });
+  });
+
+  // 바깥 클릭으로 닫기 (1회만 바인딩)
+  if (!__ddClickBound) {
+    document.addEventListener('click', (ev)=>{
+      const clickedBtn = ev.target.closest('.chat-suggest-btn, #chat-suggest-btn'); // ✅ 버튼 내부 클릭 예외
+      if (!dd.hidden && !dd.contains(ev.target) && !clickedBtn) {
+        closeDropdown();
+      }
+    });
+    __ddClickBound = true;
+  }
+}
+
+function closeDropdown(){
+  dd.style.opacity = '0';
+  dd.style.transform = 'translateY(6px)';
+  setTimeout(()=>{ dd.hidden = true; }, 180);
+}
+
+btn.addEventListener('click', (e)=>{
+  e.preventDefault();
+  dd.hidden ? openDropdown() : closeDropdown();
+});
+
+}
+
+// (이 줄을 showLoading() 호출 "앞"에 넣어주세요)
+const SESSION_FLAG = `mathpb_chat_session_started:${window.__USER_ID}`;
+if (!sessionStorage.getItem(SESSION_FLAG)) {
+  startNewThread();                       // ← 이제 스코프 안이라 참조 가능
+  sessionStorage.setItem(SESSION_FLAG, '1');
+}
+
+// (IIFE 내부의 가장 마지막 쪽, storage 리스너 등록 이후 등)에 넣기
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest('#newChatBtn');
+  if (!btn) return;
+  e.preventDefault();
+
+  startNewThread();        // ← 스코프 OK
+  renderMessages();
+  renderHistoryList();
+  setTimeout(()=> document.getElementById('chatInputCenter')?.focus(), 0);
+});
+
+// ▷ 최초 진입 시: 하단 폼에도 바인딩
+bindSuggest(document.getElementById('chatFormBottom'));
+
+  // 최초 진입: 로딩 → 렌더 → 로딩 종료
+  showLoading();
+  await renderMessages();
+  renderHistoryList();
+  hideLoading();
+  // ✅ index/다른 탭에서 변경되면 즉시 갱신 (스레드 키 기준)
+  window.addEventListener('storage', (e) => {
+    const k = e.key || '';
+    if (k.startsWith(THREADS_BASE)) {
+      try {
+        renderMessages();
+        renderHistoryList();
+      } catch {}
+    }
+  });
+
+  })();
+
+  // 배너 날짜 세팅
+  (function(){
+    const dateEl = document.getElementById('bannerDate');
+    if (!dateEl) return;
+    const today = new Date();
+    const formatted = today.getFullYear() + '.' +
+                      String(today.getMonth()+1).padStart(2,'0') + '.' +
+                      String(today.getDate()).padStart(2,'0');
+    dateEl.textContent = formatted;
+  })();
+
+
+</script>
+

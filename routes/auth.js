@@ -62,7 +62,7 @@ router.post('/login', async (req, res, next) => {
       email: user.email,
       name: user.name,
       role: user.role || 'user',
-      avatarUrl: user.avatarUrl || '/icon_my_b.png'
+      avatarUrl: user.avatarUrl || '/image_index/profile.svg'
     };
 
     req.login(userForSession, async (err) => {
@@ -122,7 +122,7 @@ router.get('/check-auth', async (req, res) => {
       [req.session.user.id]
     );
     const u = rows[0] || {};
-    const avatarUrl    = u.avatarUrl    || '/icon_my_b.png';
+    const avatarUrl    = u.avatarUrl    || '/image_index/profile.svg';
     const hasPaid      = req.session.user.role === 'admin' || u.is_subscribed == 1;
     const phone        = u.phone        || '-';
     const bizNum       = u.bizNum       || '';

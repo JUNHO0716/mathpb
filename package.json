@@ -27,6 +27,7 @@
     "multer": "^2.0.2",
     "multer-s3": "^2.10.0",
     "mysql2": "^3.14.1",
+    "natural": "^8.1.0",
     "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.3",
     "openai": "^6.3.0",

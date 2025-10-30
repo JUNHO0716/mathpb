@@ -32,6 +32,7 @@ import adminRoutes from './routes/admin.js';
 import noticeRoutes from './routes/notices.js';
 import inquiryRoutes from './routes/inquiry.js';
 import chatRoutes from './routes/chat.js';
+import problemOCR from "./routes/problem_ocr.js";
 
 const app = express();
 const PROD = process.env.NODE_ENV === 'production';
@@ -127,6 +128,8 @@ app.get('/toss/v2.js', async (req, res) => {
   }
 });
 
+app.use("/api", problemOCR);
+app.use(express.static("public"));
 
 // --- 정적 페이지 라우팅 및 접근 제어 ---
 const PUBLIC_PAGES = ['login.html', 'resetpw.html', 'signup.html', 'terms.html', 'privacy.html', 'refund.html', 'finance.html'];

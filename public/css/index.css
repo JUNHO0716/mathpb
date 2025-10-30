@@ -359,45 +359,6 @@ body {
 }
 .user-box.loading * { visibility: hidden; }
 
-/* Help FAB */
-.help-container{position:fixed;bottom:24px;right:24px;z-index:999}
-.help-fab {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  border: none;
-  background: linear-gradient(145deg, #FFDE6B, #FDC512);
-  color: #4D3800;
-  font-size: 24px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 5px 5px 10px #d4d5d9, 
-              -5px -5px 10px #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease-in-out;
-}
-
-.help-fab:hover {
-  transform: translateY(-2px);
-  box-shadow: 7px 7px 15px #d4d5d9, 
-              -7px -7px 15px #ffffff;
-}
-
-.help-fab:active {
-  transform: translateY(1px);
-  background: #FDC512;
-  box-shadow: inset 4px 4px 8px #d6a80e, 
-              inset -4px -4px 8px #ffe278;
-}
-.help-menu{list-style:none;margin:0;padding:0;position:absolute;bottom:40px;right:52px;background:#ffffff;width:240px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,.18);overflow:hidden;opacity:0;pointer-events:none;transform:translateY(10px);transition:all .25s}
-.help-menu.show{opacity:1;pointer-events:auto;transform:translateY(0)}
-.help-menu li{padding:14px 20px;font-size:14px;cursor:pointer;display:flex;gap:8px;align-items:center;transition:background .15s}
-.help-menu li:not(:last-child){border-bottom:1px solid #f0f0f0}
-.help-menu li:hover{background:#f7f7f7}
-.help-menu .badge{width:24px;height:24px;border-radius:50%;background:#eef0f4;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
-
 /* 모달 스타일 */
 body.swal2-shown { height: 100% !important; overflow: hidden !important; }
 .modal-overlay { display: none; position: fixed; z-index: 9999; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.38); justify-content: center; align-items: center; }
@@ -543,262 +504,6 @@ PC / 모바일 분기점
   display: none;
 }
 
-/* 🟡 Chatbot Button */
-.chatbot-btn {
-  background: #000;
-  color: #fff;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.chatbot-btn:hover {
-  background: #ffcc00;
-  color: #000;
-}
-
-/* 🧠 챗봇 메인 박스 */
-/* 기본은 숨김(시각/포커스 불가) + 살짝 아래/축소 상태 */
-.chatbot-box {
-  position: fixed;
-  bottom: 145px;
-  right: 30px;
-  width: 480px;           /* 기존보다 조금 더 길게(가로) */
-  height: 720px;          /* 세로도 약간 크게 */
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
-  display: flex;                 /* ← display:none 제거 (애니메이션 위해) */
-  flex-direction: column;
-  overflow: hidden;
-  z-index: 9999;
-  font-family: 'Noto Sans KR', sans-serif;
-
-  opacity: 0;                    /* 숨김 */
-  visibility: hidden;            /* 숨김 (전환 지연) */
-  transform: translateY(16px) scale(0.98);
-  transform-origin: bottom right;
-  pointer-events: none;          /* 포커스/클릭 방지 */
-
-  /* 부드러운 오픈/클로즈 전환 */
-  transition:
-    transform  .45s cubic-bezier(.2,.8,.2,1),
-    opacity    .45s ease,
-    clip-path  .45s cubic-bezier(.2,.8,.2,1),
-    visibility 0s linear .45s;
-  clip-path: inset(100% 0 0 0 round 16px);
-}
-
-/* 열림 상태 */
-.chatbot-box.open {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
-  transition:
-    transform .45s cubic-bezier(.16,1,.3,1),
-    opacity   .45s ease,
-    clip-path .45s cubic-bezier(.16,1,.3,1),
-    visibility 0s;
-  /* 아래에서 위로 펼쳐지는 느낌 */
-  clip-path: inset(0 0 0 0 round 16px);
-}
-
-/* ▶ 메시지 영역은 남은 공간을 차지하고 자체 스크롤 */
-#chatbotMessages {
-  flex: 1;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-
-/* 모션 최소화 환경 지원 */
-@media (prefers-reduced-motion: reduce) {
-  .chatbot-box,
-  .chatbot-box.open {
-    transition: none;
-    transform: none;
-    clip-path: none;
-  }
-}
-
-/* 상단 헤더 */
-.chatbot-header {
-  background: #000;
-  color: #fff;
-  padding: 14px 18px;                 /* 살짝 더 두툼하게 */
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-}
-.chatbot-header > span {
-  font-size: 17px;                    /* ← 글씨 키움(기존 대비 +2~3px 수준) */
-  font-weight: 900;
-  letter-spacing: .2px;
-}
-.chatbot-header button {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 22px;
-  cursor: pointer;
-  opacity: .9;
-}
-.chatbot-header button:hover { opacity: 1; }
-
-/* 날짜 표시 */
-.chatbot-date {
-  text-align: center;
-  background: #f5f5f5;
-  color: #444;
-  padding: 6px 0;
-  font-size: 12px;
-}
-
-/* 배너 */
-.chatbot-banner {
-  background: #eee;
-  padding: 10px 15px;
-  font-size: 13px;
-  border-bottom: 1px solid #ddd;
-}
-
-/* 메시지 영역 */
-.chatbot-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 15px;
-  background: #fafafa;
-}
-
-/* 챗봇 메시지 (좌측) */
-.bot-message {
-  display: flex;
-  align-items: flex-start;
-  margin: 14px 0;
-}
-
-.bot-message .avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: #e5e5e5 url('/image_logo/mybot.png') center/90% no-repeat;
-  margin-right: 8px;
-  flex-shrink: 0;
-}
-
-
-.bot-message .bubble {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  padding: 10px 14px;
-  color: #000;
-  max-width: 70%;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-/* 사용자 메시지 (우측) */
-.user-message {
-  display: flex;
-  justify-content: flex-end;
-  margin: 14px 0; /* 말풍선 간격 증가 */
-}
-
-.user-message .bubble {
-  background: #000;
-  color: #fff;
-  border-radius: 16px;
-  padding: 10px 14px;
-  font-size: 14px;
-  max-width: 75%;
-  line-height: 1.4;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* 로딩 점 */
-.loading-dots {
-  display: inline-block;
-  margin: 5px;
-  font-size: 20px;
-  animation: blink 1.5s infinite;
-}
-@keyframes blink {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 1; }
-}
-
-/* 입력창 */
-.chatbot-form {
-  flex-shrink: 0;
-  border-top: 1px solid #eee;
-  background: #fff;
-
-  display: flex;
-  /* align-items: flex-end; */   /* ← 이 줄 지우고 */
-  align-items: stretch;           /* ← 이 줄로 교체 */
-  gap: 8px;
-  padding: 8px 10px;
-}
-
-#chatSend {
-  background: #000;
-  color: #fff;
-  border: none;
-  padding: 0 18px;
-  cursor: pointer;
-  font-weight: 600;
-  border-radius: 10px; /* ← 살짝 둥글게 */
-}
-
-
-/* 🟣 Chat FAB 버튼 */
-.chat-fab {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;                         /* 둥근 원 → 살짝 각진 정사각형 버튼 */
-  border: 1px solid #171717;                   /* 테두리로 선명함 */
-  background: linear-gradient(#2b2b2b, #0c0c0c);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: .2px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  /* 입체감: 바깥 그림자 + 안쪽 하이라이트 */
-  box-shadow:
-    0 10px 18px rgba(0,0,0,.35),
-    inset 0 1px 0 rgba(255,255,255,.08),
-    inset 0 -2px 6px rgba(0,0,0,.35);
-
-  transition: transform .18s cubic-bezier(.2,.8,.2,1),
-              box-shadow .18s ease, background .18s ease, filter .18s ease;
-  margin-bottom: 12px;
-  backdrop-filter: saturate(120%);
-}
-.chat-fab:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(#323232, #0f0f0f);
-  box-shadow:
-    0 14px 24px rgba(0,0,0,.42),
-    inset 0 1px 0 rgba(255,255,255,.12),
-    inset 0 -2px 8px rgba(0,0,0,.4);
-  filter: brightness(1.05);
-}
-.chat-fab:active {
-  transform: translateY(0);
-  background: linear-gradient(#1e1e1e, #0a0a0a);
-  box-shadow:
-    0 8px 14px rgba(0,0,0,.32) inset,
-    inset 0 1px 0 rgba(255,255,255,.06);
-}
-
 .suggest-row {
   display: flex;
   flex-wrap: wrap;
@@ -914,37 +619,6 @@ PC / 모바일 분기점
   display: none; /* 기존 밑줄선 제거 */
 }
   
-  /* ▲▲▲ 여기까지 추가/수정 ▲▲▲ */
-
-
-  /* ▼▼▼ 도움말 버튼 및 메뉴 모바일 스타일 (수정 및 추가) ▼▼▼ */
-  .help-container {
-    bottom: 16px;
-    right: 16px;
-  }
-
-  .help-fab {
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-  }
-
-  .help-menu {
-    /* 1. ? 버튼 바로 위에 위치하도록 bottom 값 조정 */
-    bottom: 48px; /* 기존 72px에서 대폭 수정 */
-    
-    /* 2. 자연스러운 애니메이션을 위한 속성 변경 */
-    opacity: 0;
-    transform: scale(0.95) translateY(10px);
-    transform-origin: bottom right; /* 애니메이션이 우측 하단에서 시작 */
-    transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.2s ease-out;
-  }
-
-  .help-menu.show {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-
   /* 1. 기존 PC용 사이드바 숨기기 */
   .sidebar {
     display: none;
@@ -1056,217 +730,118 @@ PC / 모바일 분기점
   }
 }
 
-/* --- 챗봇 입력창 리디자인 --- */
-
-.chatbot-form {
-  position: relative;
-  flex-shrink: 0;
-  border-top: 1px solid #eee;
-  background: #fff;
-  display: flex;
-  align-items: flex-end; /* 여러 줄일 때 하단 정렬 */
-  gap: 8px;
-  padding: 8px 10px;
-}
-
-/* 입력창 스타일 */
-#chatInput {
-  flex: 1;
-  border: 1px solid #f0f0f0;
-  border-radius: 20px;
-  padding: 10px 16px;
-  font-size: 15px;
-  line-height: 1.5;
-  resize: none;
-  overflow-y: hidden;
-  background: #f5f5f5;
-  transition: background .2s;
-  min-height: calc(1.5em + 22px);
-  max-height: calc(1.5em * 4 + 22px); /* 4줄까지 확장 */
-}
-#chatInput:focus {
-  background: #fff;
-  border-color: #ddd;
-}
-
-/* 좌우 아이콘 버튼 공통 스타일 */
-.chat-icon-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  border: none;
-  background: none;
-  color: #555;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background .2s, color .2s;
-  flex-shrink: 0; /* 크기 고정 */
-}
-.chat-icon-btn:hover {
-  background: #f0f0f0;
-}
-
-/* 전송 버튼 활성화 스타일 */
-#chat-send-btn.send {
-  background: #FDC512; /* 카카오톡 노란색과 유사하게 */
-  color: #191919;
-}
-#chat-send-btn.send:hover {
-  background: #e9b510;
-}
-
-/* 입력 상태에 따른 버튼 보이기/숨기기 */
-.chat-input-actions {
-  display: flex;
-  align-items: center;
-}
-
-/* 초기 상태: 전송 버튼 숨김 */
-#chat-send-btn {
-  display: none;
-}
-/* 입력 시: +, # 버튼 숨김 & 전송 버튼 표시 */
-.chatbot-form.has-text #chat-suggest-btn {
-  display: none;
-}
-.chatbot-form.has-text #chat-send-btn {
-  display: flex;
-}
-
-
-/* --- 추천 질문 패널 --- */
-.suggestion-panel {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #f7f8fa;
-  border-top: 1px solid #e9e9e9;
-  z-index: 10;
-  padding: 12px 16px 16px;
-  
-  /* 숨김 상태 (아래로) */
-  transform: translateY(100%);
-  visibility: hidden;
-  transition: transform .35s cubic-bezier(.2, .8, .2, 1), visibility 0s linear .35s;
-}
-
-/* 보임 상태 (슬라이드 업) */
-.suggestion-panel.show {
-  transform: translateY(0);
-  visibility: visible;
-  transition: transform .35s cubic-bezier(.2, .8, .2, 1), visibility 0s;
-}
-
-.suggestion-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-  color: #666;
-  font-size: 13px;
-  font-weight: 600;
-}
-#close-suggest-panel {
-    background: none; border: none; font-size: 20px; color: #888; cursor: pointer;
-}
-
-.suggestion-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.suggest-chip {
-  background: #fff;
-  border: 1px solid #e8e8e8;
-  border-radius: 18px;
-  padding: 8px 14px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background .2s, border-color .2s;
-  color: #333;
-}
-.suggest-chip:hover {
-  background: #f9f9f9;
-  border-color: #ccc;
-}
-
-
-/* --- 챗봇 파일 검색 결과 스타일 --- */
-
-.file-list-container {
-  background: #f9f9f9;
-  border: 1px solid #e5e5e5;
-  border-radius: 12px;
-  padding: 12px 16px;
-  color: #000;
-  max-width: 90%; /* 너비 조정 */
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
-
-.file-list-intro {
-  font-size: 14px;
-  margin: 0 0 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #eee;
-  color: #333;
-}
-
-.file-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 4px;
-  border-bottom: 1px solid #f0f0f0;
-}
-.file-item:last-child {
-  border-bottom: none;
-  padding-bottom: 4px;
-}
-
-.file-name {
-  flex-grow: 1;
-  font-size: 13px;
-  line-height: 1.4;
-  color: #202124;
-  white-space: normal;
-  word-break: keep-all;
-  margin-right: 12px;
-}
-
-.download-actions {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.download-btn {
+/* 🧮 매쓰비 에디터 - 아이콘 + 글씨만 볼록 효과 */
+.editor-link {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  background: #fff;
-  color: #333;
-  font-size: 12px;
+  gap: -2px; /* 아이콘과 글씨 사이 간격 */
   font-weight: 600;
+  font-size: 0.8rem;
+  color: #333;
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.2s;
-}
-.download-btn:hover {
-  background-color: #f5f5f5;
-  border-color: #ccc;
-  transform: translateY(-1px);
+  padding: 6px 10px;
+  margin-right: 24px; /* ✅ 결제하기 버튼과의 간격 추가 */
+  transition: transform 0.2s ease-in-out;
 }
 
-.download-btn i {
-  font-size: 14px;
+.editor-link img {
+  width: 25px; /* ✅ 아이콘 크기 조금 키움 (기존 18 → 22) */
+  height: 25px;
+  object-fit: contain;
+  transition: transform 0.2s ease-in-out;
 }
 
-.download-btn.pdf { color: #D93025; }
-.download-btn.hwp { color: #3264D4; }
+.editor-link span {
+  display: inline-block;
+  transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+/* hover 시 아이콘 + 글씨만 위로 살짝 떠오르는 효과 */
+.editor-link:hover img,
+.editor-link:hover span {
+  transform: translateY(-2px);
+}
+
+/* 색상 강조 효과 */
+.editor-link:hover span {
+  color: #007BFF;
+}
+
+/* 🔍 출처 찾기 버튼 (매쓰비 에디터와 동일 스타일) */
+.find-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px; /* 아이콘과 글씨 간격 */
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: #333;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 6px 10px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.find-link img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  transition: transform 0.2s ease-in-out;
+}
+
+.find-link span {
+  display: inline-block;
+  transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+/* hover 시 아이콘 + 글씨만 위로 살짝 떠오르는 효과 */
+.find-link:hover img,
+.find-link:hover span {
+  transform: translateY(-2px);
+}
+
+/* 색상 강조 효과 */
+.find-link:hover span {
+  color: #007BFF;
+}
+
+/* 🤖 매쓰비 챗봇 버튼 (헤더용) */
+.chatbot-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;                /* 아이콘-텍스트 간격 */
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: #333;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 6px 10px;
+  transition: transform 0.2s ease-in-out;
+  /* 필요시 출처찾기와 간격 조절하려면 margin-right 사용 */
+  /* margin-right: 8px; */
+}
+.chatbot-link img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  transition: transform 0.2s ease-in-out;
+}
+.chatbot-link span {
+  display: inline-block;
+  transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+.chatbot-link:hover img,
+.chatbot-link:hover span {
+  transform: translateY(-2px);
+}
+.chatbot-link:hover span {
+  color: #007BFF;
+}
+
+@media (max-width: 768px) {
+  .header-actions .chatbot-link,
+  .header-actions .find-link,
+  .header-actions .editor-link {
+    display: none;
+  }
+}

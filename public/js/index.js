@@ -163,6 +163,14 @@ async function bindUser() {
     if (!d.isLoggedIn) return;
     const u = d.user || {};
     currentUser = u;
+
+    // ✅ 로그인한 사용자의 챗봇 저장 키를 계정별로 고정
+    window.__USER_ID = `u_${u.id ?? ((u.email || '').split('@')[0] || 'unknown')}`;
+
+    // (선택) 과거 공용키('anon')로 저장된 기록은 노출 방지 차원에서 한 번만 지웁니다.
+    try {
+      localStorage.removeItem('mathpb_chat_history_v1:anon:' + location.pathname);
+    } catch (e) {}
     
     let displayName = u.name || 'Guest'; // 기본값은 이름으로 설정
 
@@ -182,7 +190,7 @@ async function bindUser() {
       if (u.avatarUrl && u.avatarUrl.trim() !== "") {
         avatarEl.src = u.avatarUrl;
       } else {
-        avatarEl.src = 'icon_my_b.png';
+        avatarEl.src = 'image_index/profile.png';
       }
       avatarEl.alt = displayName;
     }
@@ -521,33 +529,6 @@ const menuTitles = {
   }
 };
 
-window.addEventListener('DOMContentLoaded', () => {
-  const fab = document.getElementById('helpFab');
-  const menu = document.getElementById('helpMenu');
-  fab.addEventListener('click', () => {
-    menu.classList.toggle('show');
-  });
-  document.addEventListener('click', e => {
-    if (!menu.contains(e.target) && !fab.contains(e.target)) {
-      menu.classList.remove('show');
-    }
-  });
-  menu.querySelectorAll('li').forEach(li => {
-    li.addEventListener('click', () => {
-      const url = li.dataset.url;
-      if (url) {
-        // [수정] 문의 게시판 링크는 현재 창에서 이동하도록 변경
-        if (url.includes('main.html?menu=cs')) {
-          window.location.href = url;
-        } else {
-          window.open(url, '_blank'); // 나머지는 새 창으로 열기
-        }
-      }
-      menu.classList.remove('show');
-    });
-  });
-});
-
 (function() {
   const KEY = 'mathbee_intro_dismissed_until'; // 저장 키 이름을 용도에 맞게 변경
 
@@ -556,15 +537,15 @@ window.addEventListener('DOMContentLoaded', () => {
   function bindIntroModal() {
     const overlay = qs('introOverlay');
     if (!overlay) return;
-    // introTodayCloseBtn으로 ID 변경
-    const btnClose = qs('introCloseBtn'), btnOk = qs('introOkBtn'), btnTodayClose = qs('introTodayCloseBtn');
+    const btnClose = qs('introCloseBtn'),
+          btnOk = qs('introOkBtn'),
+          btnTodayClose = qs('introTodayCloseBtn');
     
     function openIntro() { overlay.classList.add('show'); document.body.style.overflow = 'hidden'; }
     function closeIntro(remember) {
       overlay.classList.remove('show'); document.body.style.overflow = '';
       if (remember) {
         try {
-          // 영구 저장 대신, 현재 시간으로부터 24시간 뒤의 시간을 저장
           const expiry = new Date().getTime() + (24 * 60 * 60 * 1000);
           localStorage.setItem(KEY, expiry);
         } catch (e) {}
@@ -573,505 +554,27 @@ window.addEventListener('DOMContentLoaded', () => {
     
     btnClose?.addEventListener('click', () => closeIntro(false));
     btnOk?.addEventListener('click', () => closeIntro(false));
-    // introTodayCloseBtn으로 이벤트 리스너 변경
     btnTodayClose?.addEventListener('click', () => closeIntro(true));
     overlay.addEventListener('click', (e) => { if (e.target === overlay) closeIntro(false); });
     
-    // 저장된 시간이 현재 시간보다 미래인지 확인
     const dismissedUntil = localStorage.getItem(KEY);
     if (!dismissedUntil || new Date().getTime() > dismissedUntil) {
       setTimeout(openIntro, 800);
     }
-    
     window.showIntro = function() { localStorage.removeItem(KEY); openIntro(); };
   }
+
+// ✅ 매쓰비 챗봇 버튼: main.html 쉘로 라우팅
+document.addEventListener('DOMContentLoaded', () => {
+  const chatBtn = document.getElementById('headerChatbotBtn');
+  if (!chatBtn) return;
+
+  chatBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.location.href = 'main.html?menu=chatbot_main';
+  });
+});
+
   bindIntroModal();
 })();
 
-// 🕒 날짜 자동 표시
-const today = new Date();
-const dateEl = document.getElementById("chatbotDate");
-if (dateEl) {
-  dateEl.textContent = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
-}
-
-// 🟡 Chat 버튼 클릭 시 챗봇 열기/닫기 (애니메이션 버전)
-const chatButton = document.getElementById("chatFab");
-const chatbotBox = document.getElementById("chatbotBox");
-const closeBtn   = document.getElementById("closeChatbot");
-const chatInput  = document.getElementById("chatInput");
-
-function openChat() {
-  chatbotBox.classList.add("open");
-  if (chatButton) chatButton.setAttribute("aria-expanded", "true");
-
-  // 살짝 딜레이 후 포커스(전개 애니메이션과 겹치지 않게)
-  setTimeout(() => chatInput?.focus(), 120);
-  renderHistoryOnce(); // ← 추가
-}
-function closeChat() {
-  chatbotBox.classList.remove("open");
-  if (chatButton) chatButton.setAttribute("aria-expanded", "false");
-}
-
-if (chatButton && chatbotBox) {
-  chatButton.setAttribute("aria-controls", "chatbotBox");
-  chatButton.setAttribute("aria-expanded", "false");
-
-  chatButton.addEventListener("click", () => {
-    if (chatbotBox.classList.contains("open")) closeChat();
-    else openChat();
-  });
-}
-
-if (closeBtn) {
-  closeBtn.addEventListener("click", closeChat);
-}
-
-// ESC로 닫기
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && chatbotBox.classList.contains("open")) {
-    closeChat();
-  }
-});
-
-// ✅ 챗봇 초기 인사
-const messages = document.getElementById("chatbotMessages");
-function addMessage(role, text) {
-  const div = document.createElement("div");
-  div.className = role === "user" ? "user-message" : "bot-message";
-
-  if (role === "bot") {
-    div.innerHTML = `
-      <div class="avatar"></div>
-      <div class="bubble">${text}</div>
-    `;
-  } else {
-    div.innerHTML = `<div class="bubble">${text}</div>`;
-  }
-
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
-}
-
-// ===== 자동 스크롤 보정: 사용자가 위로 올려볼 땐 강제 스크롤 금지
-let _autoStickToBottom = true;
-function isNearBottom(el) {
-  return el.scrollHeight - el.scrollTop - el.clientHeight < 20;
-}
-function maybeScrollToBottom() {
-  if (_autoStickToBottom) messages.scrollTop = messages.scrollHeight;
-}
-messages.addEventListener('scroll', () => {
-  _autoStickToBottom = isNearBottom(messages);
-});
-
-// 🧠 로딩 표시
-function showLoading() {
-  const loading = document.createElement("div");
-  loading.className = "bot-message";
-  loading.id = "loading";
-  loading.innerHTML = `<div class="bubble"><span class="loading-dots">●●●</span></div>`;
-  messages.appendChild(loading);
-  messages.scrollTop = messages.scrollHeight;
-}
-function hideLoading() {
-  const loading = document.getElementById("loading");
-  if (loading) loading.remove();
-}
-
-
-// ============================
-// [입력창 자동 높이] 최대 3줄까지 확장, 그 이후는 스크롤
-// ============================
-function autoResizeChatInput() {
-  if (!chatInput) return;
-
-  // 먼저 auto로 풀어 실제 scrollHeight를 정확히 측정
-  chatInput.style.height = 'auto';
-
-  const cs = window.getComputedStyle(chatInput);
-  const lineHeight = parseFloat(cs.lineHeight) || 20;
-  const paddingY =
-    (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
-  const borderY =
-    (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.borderBottomWidth) || 0);
-
-  // 최대 3줄까지
-  const maxHeight = lineHeight * 3 + paddingY + borderY;
-
-  // 실제 필요한 높이
-  const needed = chatInput.scrollHeight;
-
-  // 높이/스크롤 모드 반영
-  chatInput.style.height = Math.min(needed, maxHeight) + 'px';
-  chatInput.style.overflowY = needed > maxHeight ? 'auto' : 'hidden';
-}
-
-// 입력 변화 시 자동 리사이즈
-if (chatInput) {
-  // 기존 keydown(Enter/Shift+Enter) 로직은 그대로 두고,
-  // 'input' 이벤트에서만 높이 갱신
-  chatInput.addEventListener('input', autoResizeChatInput);
-
-  // 초기 1회 세팅
-  requestAnimationFrame(autoResizeChatInput);
-}
-
-// 메시지 전송 후 입력창 초기화 시에도 높이 재계산
-const _origSendChatMessage = typeof sendChatMessage === 'function' ? sendChatMessage : null;
-if (_origSendChatMessage) {
-  window.sendChatMessage = async function(...args) {
-    await _origSendChatMessage.apply(this, args);
-    // 전송 과정에서 chatInput.value=''가 실행되므로 높이 축소
-    autoResizeChatInput();
-  }
-}
-
-// 챗봇 오픈 시 살짝 딜레이 후 포커스 + 높이 보정
-// (openChat 함수가 위에 있다면 그 안에 아래 두 줄이 이미 있을 수 있습니다.)
-if (typeof openChat === 'function') {
-  const _origOpenChat = openChat;
-  window.openChat = function(...args) {
-    _origOpenChat.apply(this, args);
-    setTimeout(() => {
-      chatInput?.focus();
-      autoResizeChatInput();
-    }, 120);
-  }
-}
-
-// ============================
-// [타자 효과 유틸] HTML 태그는 한 번에, 텍스트는 한 글자씩
-// ============================
-function splitHTMLTokens(html) {
-  const tokens = [];
-  const regex = /(<[^>]+>)/g;
-  let last = 0, m;
-  while ((m = regex.exec(html)) !== null) {
-    if (m.index > last) tokens.push({ type: 'text', value: html.slice(last, m.index) });
-    tokens.push({ type: 'tag', value: m[1] });
-    last = regex.lastIndex;
-  }
-  if (last < html.length) tokens.push({ type: 'text', value: html.slice(last) });
-  return tokens;
-}
-
-function typeHTMLInto(el, html, speed = 18) {
-  const tokens = splitHTMLTokens(html);
-  let i = 0, j = 0, current = '';
-  function step() {
-    if (i >= tokens.length) return;
-    const t = tokens[i];
-    if (t.type === 'tag') {
-      el.insertAdjacentHTML('beforeend', t.value);
-      i++; j = 0;
-      messages.scrollTop = messages.scrollHeight;
-      requestAnimationFrame(step);
-    } else {
-      current = t.value;
-      if (j < current.length) {
-        el.insertAdjacentText('beforeend', current[j]);
-        j++;
-        messages.scrollTop = messages.scrollHeight;
-        setTimeout(step, speed);
-      } else {
-        i++; j = 0;
-        requestAnimationFrame(step);
-      }
-    }
-  }
-  step();
-}
-
-// ============================
-// [봇 메시지 + 타자 효과로 출력]
-// ============================
-function addBotMessageTyping(text, speed = 18) {
-  const div = document.createElement('div');
-  div.className = 'bot-message';
-  div.innerHTML = `<div class="avatar"></div><div class="bubble"></div>`;
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
-
-  const bubble = div.querySelector('.bubble');
-  // 개행 보정: \n → <br>
-  const html = (text || '').replace(/\n/g, '<br>');
-  typeHTMLInto(bubble, html, speed);
-}
-
-// ============================
-// [봇 타이핑 대기 말풍선 관리]
-// - showBotTyping(): 프로필+말풍선(+작은 점 파도) 추가
-// - finishBotTypingWith(text): 같은 말풍선 안에 글자 타자치듯 출력
-// - cancelBotTyping(): 말풍선 제거(실패 등)
-// ============================
-let _typingContainer = null; // .bot-message.typing
-let _typingBubble = null;    // .bubble.typing
-
-function showBotTyping() {
-  // 중복 생성 방지
-  if (_typingContainer && _typingBubble && document.body.contains(_typingContainer)) return;
-
-  const div = document.createElement('div');
-  div.className = 'bot-message typing';
-  div.innerHTML = `
-    <div class="avatar"></div>
-    <div class="bubble typing">
-      <span class="dots"><i></i><i></i><i></i></span>
-    </div>
-  `;
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
-
-  _typingContainer = div;
-  _typingBubble = div.querySelector('.bubble.typing');
-}
-
-function finishBotTypingWith(text, speed = 18) {
-  if (_typingContainer && _typingBubble) {
-    // 로딩 점 제거, typing 클래스 해제 후 같은 말풍선에 타자 효과
-    _typingContainer.classList.remove('typing');
-    _typingBubble.classList.remove('typing');
-    _typingBubble.innerHTML = ''; // 점 삭제
-    const html = (text || '').replace(/\n/g, '<br>');
-    typeHTMLInto(_typingBubble, html, speed);
-
-    // 사용 종료
-    _typingContainer = null;
-    _typingBubble = null;
-  } else {
-    // 혹시 로딩 말풍선이 없으면 새로 추가해서 출력
-    addBotMessageTyping(text, speed);
-  }
-}
-
-function cancelBotTyping() {
-  if (_typingContainer) {
-    _typingContainer.remove();
-    _typingContainer = null;
-    _typingBubble = null;
-  }
-}
-
-// ===== 채팅 기록 저장/복원 (로컬스토리지) =====
-const CHAT_HISTORY_KEY_BASE = 'mathpb_chat_history_v1';
-function getChatUserKey() {
-  // 로그인 사용자를 알 수 있으면 여기에 넣으세요. (예: window.__USER_ID)
-  const user = window.__USER_ID || document.body?.dataset?.user || 'anon';
-  // 페이지별로 분리 저장 (페이지가 여러 곳에서 챗봇을 쓸 수 있을 때 충돌 방지)
-  return `${CHAT_HISTORY_KEY_BASE}:${user}:${location.pathname}`;
-}
-function loadChatHistory() {
-  try {
-    const raw = localStorage.getItem(getChatUserKey());
-    const arr = raw ? JSON.parse(raw) : [];
-    if (Array.isArray(arr)) return arr;
-  } catch (e) { console.warn('history load failed', e); }
-  return [];
-}
-function saveChatHistory(arr) {
-  try {
-    // 용량 방지를 위해 최근 200개까지만
-    const trimmed = arr.slice(-200);
-    localStorage.setItem(getChatUserKey(), JSON.stringify(trimmed));
-  } catch (e) { console.warn('history save failed', e); }
-}
-let chatHistory = [];            // {role:'user'|'bot', content:'...', ts:number}[]
-let _historyRendered = false;
-
-function renderHistoryOnce() {
-  if (_historyRendered) return;
-  chatHistory = loadChatHistory();
-  // 히스토리는 즉시 렌더(타자효과 X)
-  chatHistory.forEach(m => {
-    addMessage(m.role === 'user' ? 'user' : 'bot', m.content);
-  });
-  _historyRendered = true;
-  // 렌더 후 하단 정렬(사용자가 올려 보기 전까지만)
-  messages.scrollTop = messages.scrollHeight;
-}
-
-// 기존 showLoading/hideLoading 이 있었다면, 아래 두 개로 대체 사용:
-function showLoading() { showBotTyping(); }
-function hideLoading() { cancelBotTyping(); }
-
-// --- 챗봇 UI 요소 참조 및 이벤트 리스너 ---
-const chatForm = document.getElementById('chatbotForm');
-// const chatInput = document.getElementById('chatInput'); // 이미 상단에 선언되어 있으므로 주석 처리
-const chatSuggestBtn = document.getElementById('chat-suggest-btn');
-const suggestionPanel = document.getElementById('suggestion-panel');
-const closeSuggestPanelBtn = document.getElementById('close-suggest-panel');
-
-if (chatInput && chatForm) {
-  chatInput.addEventListener('input', () => {
-    const hasText = chatInput.value.trim().length > 0;
-    chatForm.classList.toggle('has-text', hasText);
-    // autoResizeChatInput 함수는 이미 상단에 input 이벤트 리스너가 있으므로 여기서 호출할 필요 없음
-  });
-}
-
-if (chatSuggestBtn && suggestionPanel) {
-  chatSuggestBtn.addEventListener('click', () => suggestionPanel.classList.add('show'));
-}
-
-if (closeSuggestPanelBtn && suggestionPanel) {
-  closeSuggestPanelBtn.addEventListener('click', () => suggestionPanel.classList.remove('show'));
-}
-
-document.querySelectorAll('.suggest-chip').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const text = btn.textContent;
-    addMessage("user", text);
-    sendChatMessage(text);
-    suggestionPanel.classList.remove('show');
-  });
-});
-
-if (chatForm) {
-  chatForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    sendChatMessage();
-  });
-}
-
-if (chatForm) {
-  chatForm.addEventListener('submit', (e) => {
-    e.preventDefault(); // form의 기본 제출 동작 방지
-    sendChatMessage();
-  });
-}
-
-if (chatInput) {
-  chatInput.addEventListener('keydown', (e) => {
-    // 한글 등 조합 문자 입력 중에는 Enter 키 무시
-    if (e.isComposing) return;
-
-    // Shift 키 없이 Enter만 눌렀을 때
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault(); // textarea의 기본 동작(줄바꿈)을 막음
-      sendChatMessage();    // 메시지 전송 함수 호출
-    }
-    // Shift + Enter를 누르면 이 조건문이 실행되지 않으므로, 기본 동작인 줄바꿈이 일어남
-  });
-}
-
-// --- 메시지 전송 함수 (오류 수정 및 기능 통합 버전) ---
-async function sendChatMessage(predefinedText = null) {
-  if (!chatInput) return;
-  const text = predefinedText || chatInput.value.trim();
-  if (!text) return;
-
-  if (!predefinedText) {
-    addMessage('user', text);
-  }
-
-  chatHistory.push({ role: 'user', content: text, ts: Date.now() });
-  saveChatHistory(chatHistory);
-  
-  if (!predefinedText) {
-    chatInput.value = '';
-    chatForm.classList.remove('has-text');
-    autoResizeChatInput(); // 입력창 높이 원상 복구
-  }
-  
-  showBotTyping();
-
-  try {
-    const res = await fetch('/api/chat', {
-      method: 'POST', credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: [{ role: 'user', content: text }] })
-    });
-
-    const reader = res.body?.getReader?.();
-    let botText = '';
-    if (reader) {
-      const decoder = new TextDecoder('utf-8');
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        for (const line of chunk.split('\n')) {
-          if (!line.startsWith('data: ')) continue;
-          const data = line.slice(6).trim();
-          if (data === '[DONE]') continue;
-          try {
-            const json = JSON.parse(data);
-            botText += (json.output_text || '');
-          } catch {}
-        }
-      }
-    }
-
-    // 봇 응답을 채팅 기록에 저장
-    chatHistory.push({ role: 'bot', content: botText || '(응답이 비어있습니다)', ts: Date.now() });
-    saveChatHistory(chatHistory);
-    
-    // 화면에 결과 표시
-    if (botText.startsWith('[SEARCH_RESULTS]')) {
-      const jsonString = botText.replace('[SEARCH_RESULTS]', '').replace('[/SEARCH_RESULTS]', '');
-      try {
-        const files = JSON.parse(jsonString);
-        cancelBotTyping();
-        addFileResultsMessage(files);
-      } catch (e) {
-        console.error("Failed to parse search results:", e);
-        finishBotTypingWith("검색 결과를 처리하는 중 오류가 발생했습니다.");
-      }
-    } else {
-      finishBotTypingWith((botText && botText.trim()) ? botText : '(응답이 비어있습니다)');
-    }
-
-  } catch (err) {
-    const errorMsg = '(서버 연결에 실패했습니다. 잠시 후 다시 시도하세요)';
-    finishBotTypingWith(errorMsg);
-    chatHistory.push({ role: 'bot', content: errorMsg, ts: Date.now() });
-    saveChatHistory(chatHistory);
-    console.error(err);
-  }
-}
-
-// --- 파일 검색 결과 표시 함수 ---
-function addFileResultsMessage(files) {
-  const div = document.createElement("div");
-  div.className = "bot-message";
-
-  const filesContainer = document.createElement("div");
-  filesContainer.className = "file-list-container";
-  
-  const intro = document.createElement('p');
-  intro.className = 'file-list-intro';
-  intro.innerHTML = `요청하신 조건으로 <strong>${files.length}개의 시험지</strong>를 찾았어요.`;
-  filesContainer.appendChild(intro);
-
-  files.forEach(file => {
-    const fileItem = document.createElement("div");
-    fileItem.className = "file-item";
-    
-    const pdfBtn = file.files.pdf ? `
-      <a href="/api/download/${file.id}?type=pdf" class="download-btn pdf" aria-label="PDF 다운로드" download>
-        <img src="image_download/pdf_download.png" alt="PDF">
-      </a>` : '';
-      
-    const hwpBtn = file.files.hwp ? `
-      <a href="/api/download/${file.id}?type=hwp" class="download-btn hwp" aria-label="HWP 다운로드" download>
-        <img src="image_download/hwp_download.png" alt="HWP">
-      </a>` : '';
-
-    fileItem.innerHTML = `
-      <span class="file-name">${file.name}</span>
-      <div class="download-actions">${pdfBtn}${hwpBtn}</div>
-    `;
-    filesContainer.appendChild(fileItem);
-  });
-  
-  div.innerHTML = `<div class="avatar"></div>`;
-  div.appendChild(filesContainer);
-  
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
-}
-
-// --- 챗봇 초기 인사 메시지 ---
-addMessage("bot", "안녕하세요 👋 MathPB 도우미입니다.<br>무엇을 도와드릴까요?");

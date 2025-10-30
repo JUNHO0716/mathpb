@@ -82,24 +82,35 @@ async function loadContent(url) {
 
   try {
     const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error('페이지를 불러올 수 없습니다.');
-    }
+    if (!response.ok) throw new Error('페이지를 불러올 수 없습니다.');
     const htmlText = await response.text();
-    
+
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlText, 'text/html');
-    
+
+    // ① 외부 스타일시트(head/body 모두) → <head>로 승격 & 중복 방지
+    const existingHrefs = Array.from(document.head.querySelectorAll('link[rel="stylesheet"]'))
+      .map(l => l.getAttribute('href'));
+    const cssLinks = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'));
+    for (const linkEl of cssLinks) {
+      const href = linkEl.getAttribute('href');
+      if (!href) continue;
+      if (!existingHrefs.includes(href)) {
+        const newLink = document.createElement('link');
+        newLink.rel = 'stylesheet';
+        newLink.href = href;
+        document.head.appendChild(newLink); // CSS는 비동기 로드
+      }
+    }
+
+    // ② 본문 주입
     contentFrame.innerHTML = doc.body.innerHTML;
 
+    // ③ 스크립트 재주입(기존 로직 유지)
     const scripts = Array.from(doc.body.querySelectorAll('script'));
     for (const oldScript of scripts) {
       const newScript = document.createElement('script');
-      
-      Array.from(oldScript.attributes).forEach(attr => {
-        newScript.setAttribute(attr.name, attr.value);
-      });
-      
+      Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
       if (oldScript.src) {
         await new Promise((resolve, reject) => {
           newScript.onload = resolve;
@@ -116,6 +127,7 @@ async function loadContent(url) {
     contentFrame.innerHTML = `<div style="padding:40px; text-align:center;">페이지를 불러오는 데 실패했습니다.</div>`;
   }
 }
+
 
 document.addEventListener('DOMContentLoaded', function () {
   const navLinks = document.querySelectorAll('header .nav-link, .mobile-bottom-nav .nav-link');

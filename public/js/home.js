@@ -3,16 +3,12 @@ window.initializeHomePage = function(user) {
 
   // --- 원본 스크립트 기능 100% 유지 ---
   
-  // 1. 광고 배너 슬라이더 실행
-  const adSwiper = new Swiper('.home-ad-swiper', {
-    loop: true,
-    grabCursor: true,
-    autoplay: { delay: 5000 },
-    pagination: {
-      el: '.home-ad-swiper-pagination',
-      clickable: true,
-    },
-  });
+  const ad = window.initAdBanner('#AdBannerRoot', [
+    { img: 'image_banner/ad1.jpg', url: 'promo1.html', title: '프로모션 1' },
+    { img: 'image_banner/ad2.jpg', url: 'promo2.html', title: '프로모션 2' },
+    { img: 'image_banner/ad3.jpg', url: 'promo3.html', title: '프로모션 3' },
+    { img: 'image_banner/ad4.jpg', url: 'promo4.html', title: '프로모션 4' }
+  ], { delay: 4500 });
 
   // 2. 탭 기능 카드 캐러셀 관련 로직 실행
   setupTabbedCarousel();
@@ -29,7 +25,6 @@ window.initializeHomePage = function(user) {
   loadUserStats();
   
   // 5. 기타 기능 실행
-  setupModal(adSwiper);
   setupNoticeMoreButton();
   loadFooter();
 
@@ -149,33 +144,6 @@ window.initializeHomePage = function(user) {
           profileToggleBtn.addEventListener('click', () => {
               profileCard.classList.toggle('home-expanded');
           });
-      }
-  }
-
-  function setupModal(adSwiper) {
-      const modal = document.getElementById('adModal');
-      const modalBox = document.querySelector('.home-modal-content');
-      const closeBtn = document.querySelector('.home-modal-close');
-      
-      if (modal && modalBox && closeBtn && adSwiper) {
-          document.querySelectorAll('.home-ad-swiper .swiper-slide').forEach(slide => {
-              slide.addEventListener('click', () => {
-                  const url = slide.dataset.url;
-                  const frame = modalBox.querySelector('iframe');
-                  if (frame) frame.src = url;
-                  modal.style.display = 'flex';
-                  adSwiper.autoplay.stop();
-              });
-          });
-
-          const hideModal = () => {
-              const frame = modalBox.querySelector('iframe');
-              if (frame) frame.src = 'about:blank';
-              modal.style.display = 'none';
-              adSwiper.autoplay.start();
-          };
-          closeBtn.onclick = hideModal;
-          modal.onclick = e => { if (e.target === modal) hideModal(); };
       }
   }
 
@@ -505,3 +473,16 @@ function bindUser(user) {
     }
   }
 };
+
+// 부모가 initializeHomePage()를 호출하지 않는 경우를 대비한 자가 부팅
+(function () {
+  if (!window.__HOME_BOOTSTRAPPED__) {
+    window.__HOME_BOOTSTRAPPED__ = true;
+    window.addEventListener('DOMContentLoaded', function () {
+      if (typeof window.initializeHomePage === 'function') {
+        try { window.initializeHomePage(window.__USER__ || null); }
+        catch (e) { console.error('[home boot]', e); }
+      }
+    });
+  }
+})();

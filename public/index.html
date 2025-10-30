@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/ad-banner.css">
   <link rel="stylesheet" href="css/home.css">
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
@@ -24,6 +25,7 @@
   <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   <link rel="stylesheet" href="css/upload.css">
+  <link rel="stylesheet" href="css/help.css">
   <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
   
   <script src="/toss/v2.js"></script>
@@ -109,6 +111,25 @@
       <div class="sub-date" id="todayTxt"></div>
     </div>
     <div class="header-actions">
+
+  <!-- 🤖 매쓰비 챗봇 버튼 (추가) -->
+  <a href="main.html?menu=chatbot_main" class="chatbot-link" id="headerChatbotBtn" aria-label="매쓰비 챗봇 열기">
+    <img src="image_index/chatbot.svg" alt="챗봇 아이콘">
+    <span>매쓰비 챗봇</span>
+  </a>
+
+  <!-- 🔍 출처 찾기 버튼 -->
+  <a href="#" class="find-link">
+    <img src="image_index/find.svg" alt="출처 찾기 아이콘">
+    <span>출처 찾기</span>
+  </a>
+
+  <!-- 🧮 매쓰비 에디터 버튼 -->
+  <a href="#" class="editor-link">
+    <img src="image_index/function.svg" alt="Mathbee Editor Icon">
+    <span>매쓰비 에디터</span>
+  </a>
+
   <a href="main.html?menu=pricing" class="action-btn"><i class="fa-regular fa-credit-card"></i> 결제하기</a>
   
   <a href="main.html?menu=review" class="action-btn"><i class="fa-regular fa-pen-to-square"></i> 후기 남기기</a>
@@ -131,13 +152,31 @@
   </header>  <div id="contentFrame"></div>
 </div>
       <div class="help-container" id="helpContainer">
-        <ul class="help-menu" id="helpMenu">
-          <li data-url="https://pf.kakao.com/_xyzxyz"><span class="badge">1</span>카카오 문의하기</li>
-          <li><span class="badge">2</span>문의 게시판</li>
-          <li><span class="badge">3</span>시험지 요청하기</li>
-          <li><span class="badge">4</span>시험지 출제하기(준비중)</li>
-        </ul>
-          <!-- ✅ 새로 추가: Chat 버튼 (Help 위에) -->
+      <ul class="help-menu" id="helpMenu">
+        <!-- ✅ 1. 카카오 문의 -->
+        <li data-type="kakao" data-url="https://pf.kakao.com/_mpxbLn/chat">
+          <img src="image_help/kakao_icon.png" class="help-icon" alt="Kakao">
+          카카오 문의하기
+        </li>
+
+        <!-- ✅ 2. 문의 게시판 -->
+        <li data-type="board" data-url="main.html?menu=cs">
+          <img src="image_help/chat.png" class="help-icon" alt="문의게시판">
+          문의 게시판
+        </li>
+
+        <!-- ✅ 3. 시험지 요청하기 -->
+        <li data-type="upload" data-url="upload.html">
+          <img src="image_help/icon_upload_b.png" class="help-icon" alt="시험지 요청">
+          시험지 요청하기
+        </li>
+
+        <!-- ✅ 4. 내 책장 (시험지 출제 대신 변경) -->
+        <li data-type="book" data-url="bookcase.html">
+          <img src="image_help/icon_book_b.png" class="help-icon" alt="내 책장">
+          내 책장
+        </li>
+      </ul>
   <button class="chat-fab" id="chatFab" aria-label="챗봇 열기">Chat</button>
 
   <!-- 기존 Help 버튼 그대로 유지 -->
@@ -318,5 +357,23 @@
     <span>내 계정</span>
   </a>
 </nav>
+
+<!-- Kakao QR Modal -->
+<div id="helpQrModal" class="help-qr-modal" aria-hidden="true">
+  <div class="help-qr-backdrop"></div>
+  <div class="help-qr-card" role="dialog" aria-modal="true" aria-labelledby="helpQrTitle">
+    <button class="help-qr-close" aria-label="닫기">&times;</button>
+    <h3 id="helpQrTitle">카카오 채팅 QR</h3>
+    <img id="helpQrImage" alt="카카오톡 채널 QR" />
+    <a id="helpQrOpen" class="help-qr-open" target="_blank" rel="noopener">채팅창 열기</a>
+  </div>
+</div>
+
+
+<link rel="stylesheet" href="css/chatbot.css">
+<script src="js/chatbot.js"></script>
+<script src="js/help.js"></script>
+
+
 </body>
 </html>

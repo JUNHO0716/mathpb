@@ -1,0 +1,131 @@
+/* === Help FAB 전용(CSS 분리) === */
+.help-container{position:fixed;bottom:24px;right:24px;z-index:2500}
+
+/* Chat FAB와 같은 입체감 + 형광 노랑 그라데이션 */
+.help-fab{
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;                     /* 둥근 사각형 (chat 버튼과 동일) */
+  border: 1px solid rgba(255,255,255,.35);
+  background:
+    linear-gradient(rgba(0,0,0,.06), rgba(0,0,0,.06)),               /* 살짝 어둡게 */
+    linear-gradient(130deg, #FFE86F 0%, #FFD43A 45%, #FFC107 100%);  /* 형광 노랑 톤 */
+  color: #191919;                           /* 노랑 배경 대비 가독성 */
+  font-size: 18px;                          /* “?” 가독성 */
+  font-weight: 900;
+  letter-spacing: .2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 8px 18px rgba(2, 6, 23, .12),
+    0 2px 6px rgba(2, 6, 23, .06),
+    inset 0 1px 0 rgba(255,255,255,.25),
+    inset 0 -2px 8px rgba(0,0,0,.10);
+  transition:
+    transform .18s cubic-bezier(.2,.8,.2,1),
+    box-shadow .18s ease,
+    filter .18s ease,
+    background .18s ease;
+  backdrop-filter: saturate(120%);
+}
+.help-fab:hover{
+  transform: translateY(-2px);
+  background:
+    linear-gradient(rgba(0,0,0,.04), rgba(0,0,0,.04)),
+    linear-gradient(130deg, #FFF176 0%, #FFDA44 45%, #FFCA28 100%);
+  box-shadow:
+    0 12px 24px rgba(2, 6, 23, .16),
+    0 3px 8px rgba(2, 6, 23, .10),
+    inset 0 1px 0 rgba(255,255,255,.28),
+    inset 0 -2px 10px rgba(0,0,0,.10);
+  filter: brightness(1.03);
+}
+.help-fab:active{
+  transform: translateY(0);
+  box-shadow:
+    0 6px 12px rgba(2, 6, 23, .10),
+    0 2px 6px rgba(2, 6, 23, .08),
+    inset 0 2px 8px rgba(0,0,0,.18),
+    inset 0 -1px 0 rgba(255,255,255,.15);
+}
+
+
+.help-menu{
+  list-style:none;margin:0;padding:0;position:absolute;bottom:40px;right:52px;
+  background:#ffffff;width:240px;border-radius:12px;
+  box-shadow:0 6px 20px rgba(0,0,0,.18);overflow:hidden;
+  opacity:0;pointer-events:none;transform:translateY(10px);transition:all .25s
+}
+.help-menu.show{opacity:1;pointer-events:auto;transform:translateY(0)}
+.help-menu li{padding:14px 20px;font-size:14px;cursor:pointer;display:flex;gap:8px;align-items:center;transition:background .15s}
+.help-menu li:not(:last-child){border-bottom:1px solid #f0f0f0}
+.help-menu li:hover{background:#f7f7f7}
+.help-menu .badge{width:24px;height:24px;border-radius:50%;background:#eef0f4;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+
+/* === 모바일 전용 === */
+@media (max-width:768px){
+  .help-container{bottom:16px;right:16px}
+  .help-fab{
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    font-size: 18px;
+  }
+  .help-menu{
+    bottom:48px;
+    opacity:0;
+    transform:scale(0.95) translateY(10px);
+    transform-origin:bottom right;
+    transition:transform .25s cubic-bezier(.25,.8,.25,1), opacity .2s ease-out;
+  }
+  .help-menu.show{opacity:1;transform:scale(1) translateY(0)}
+}
+
+.help-qr-modal{
+  position: fixed;
+  inset: 0;
+  z-index: 999999;       /* 챗봇보다 훨씬 높게 */
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.help-qr-modal.show{ display: flex; }
+
+.help-qr-backdrop{
+  position:absolute; inset:0;
+  background:rgba(0,0,0,.45);
+  backdrop-filter:blur(2px);
+}
+.help-qr-card{
+  position:relative;
+  width:min(92vw,360px);
+  background:#fff;
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 20px 50px rgba(0,0,0,.25);
+  text-align:center;
+}
+
+
+.help-qr-card h3{ margin:4px 0 10px; font-size:18px; }
+.help-qr-card img{ width:240px; height:240px; margin:12px auto 14px; display:block; }
+.help-qr-open{
+  display:inline-block; background:#FEE500; color:#191919; text-decoration:none;
+  font-weight:800; padding:10px 14px; border-radius:10px;
+}
+.help-qr-close{
+  position:absolute; right:10px; top:8px; width:34px; height:34px;
+  border-radius:50%; border:none; background:#f5f5f5; cursor:pointer;
+  font-size:22px; line-height:1;
+}
+
+/* === Help 메뉴 아이콘 스타일 추가 === */
+.help-menu .help-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  object-fit: contain;
+  margin-right: 6px;
+}
