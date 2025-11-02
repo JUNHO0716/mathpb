@@ -20,13 +20,59 @@ window.initializeHomePage = function(user) {
   pageInit(user);
   fetchNotices();
   loadMySheetRequests();
-  loadRequestStats(user);   // 👈 (user) 전달
-  loadDownloadStats(user);  // 👈 (user) 전달
+  loadRequestStats(user);
+  loadDownloadStats(user);
   loadUserStats();
+
+  // ✅ 커버리지 위젯 렌더 (기본: 최신연도, 고등)
+  if (window.renderCoverageWidget) {
+    const now = new Date().getFullYear();
+    // 연도는 API가 2024부터 현재/DB최대연도까지 자동 생성
+    const defaultYear = Math.max(2024, Math.min(now, 9999));
+    window.renderCoverageWidget('#coverageWidgetRoot', {
+      defaultYear,
+      defaultLevel: 'high', // 'high' | 'middle' (탭으로 전환)
+    });
+  }
   
   // 5. 기타 기능 실행
   setupNoticeMoreButton();
   loadFooter();
+
+  /* 5-1. 홈 히어로 메뉴 → 인덱스/메인 라우팅 */
+  (function bindHeroMenuRoutes() {
+    // 인덱스 왼쪽 사이드 메뉴를 그대로 실행시켜 기존 로직/권한체크 재사용
+    const clickIndexMenu = (menuId) => {
+      const el = document.getElementById(menuId);
+      if (el) el.click();
+    };
+
+    // 기출자료 → 인덱스 ‘내신기출 시험지’
+    document.getElementById('btnPastExams')?.addEventListener('click', () => {
+      clickIndexMenu('menu3');       // high.html 로드 + 타이틀/아이콘 처리
+    });
+
+    // 내 교재 → 인덱스 ‘내 책장’
+    document.getElementById('btnMyBook')?.addEventListener('click', () => {
+      clickIndexMenu('menu4');       // bookcase.html 로드
+    });
+
+    // 시험지 요청 → 인덱스 ‘시험지 요청’ (구독권한 체크 그대로)
+    document.getElementById('btnRequestSheet')?.addEventListener('click', () => {
+      clickIndexMenu('menu5');       // upload.html (hasPaid 검사 유지)
+    });
+
+    // 고객센터 → 메인 셸의 고객센터
+    document.getElementById('btnCS')?.addEventListener('click', () => {
+      window.location.href = 'main.html?menu=cs';
+    });
+
+    // AI 서비스 → 메인 셸의 챗봇
+    document.getElementById('btnAI')?.addEventListener('click', () => {
+      window.location.href = 'main.html?menu=chatbot_main';
+    });
+  })();
+
 
   // --- 원본의 모든 기능 함수 (100% 동일) ---
 
@@ -40,7 +86,7 @@ window.initializeHomePage = function(user) {
         { title: '여름방학 학습 전략', youtubeId: 'pCoa202G_sM', caption: '수학 완전 정복' },
       ],
       news: [
-        { title: '오픈 기념 특별 이벤트', subtitle: '지금 가입하면 프리미엄 플랜 1개월 무료 체험 기회를 드립니다.', caption: '이벤트 바로가기', icon: 'fas fa-gift', url: 'event.html' },
+        { title: '오픈 기념 특별 이벤트', subtitle: '지금 구독하면 스탠다드 플랜 1개월 무료 체험 기회를 드립니다.', caption: '이벤트 바로가기', icon: 'fas fa-gift', url: 'event.html' },
         { title: '콘텐츠 대규모 업데이트', subtitle: '2025년 개정 교과 과정을 모두 반영하여 콘텐츠가 업데이트되었습니다.', caption: '업데이트 내역', icon: 'fas fa-pen-ruler', url: '#' },
         { title: '서버 점검 안내 (9/22)', subtitle: '보다 안정적인 서비스를 위해 22일 새벽 서버 점검이 있습니다.', caption: '자세히 보기', icon: 'fas fa-server', url: '#' },
         { title: '제휴사 할인 이벤트', subtitle: '새로운 제휴사 할인 혜택을 확인해보세요.', caption: '이벤트 확인', icon: 'fas fa-handshake', url: '#' },
@@ -104,6 +150,44 @@ window.initializeHomePage = function(user) {
         }
       });
     }
+
+        // 홈 초기 로직 상단에 추가
+    if (window.DetailsPanel?.init && !window.__detailsInited) {
+      window.DetailsPanel.init({
+        panelSelector: '#details-panel',
+        overlaySelector: '#details-overlay',
+        contentSelector: '#details-panel-content',
+        closeSelector: '#details-panel-close'
+      });
+      window.__detailsInited = true; // 중복 방지
+    }
+
+    // coverage-widget에서 발생시키는 파일 클릭 이벤트 수신
+    document.addEventListener('coverage:fileClick', async (e) => {
+      const { id, file, placeholder } = e.detail || {};
+      let data = file || placeholder || null;
+
+      // 파일객체가 없고 id만 왔으면 한 번만 상세/내메모 받아서 채워서 열기
+      if (!data && id) {
+        try {
+          const rf = await fetch(`/api/files/${encodeURIComponent(id)}`);
+          if (rf.ok) data = await rf.json();
+          if (data?.id) {
+            const rm = await fetch(`/api/my/memos/${encodeURIComponent(data.id)}`);
+            if (rm.ok) data.myMemo = (await rm.json()).memo || '';
+          }
+        } catch {}
+      }
+
+      // 그래도 없으면 정보 없음
+      if (!data) {
+        data = { id:'', title:'시험지', school:'정보 없음', grade:'-', subject:'-', year:'-', semester:'-', uploaded_at:null, myMemo:'' };
+      }
+
+      // 네가 가져온 details-panel.js 그대로 사용
+      if (window.DetailsPanel?.open) window.DetailsPanel.open(data);
+    });
+
 
     const tabButtons = document.querySelectorAll('.home-tab-btn');
     const tabIndicator = document.querySelector('.home-tab-indicator');
@@ -248,6 +332,58 @@ function bindUser(user) {
     loadRecentDownloads(user); // 👈 (user) 전달
 }
 
+function bindRecentUploadsClick(tbody) {
+  if (!tbody) return;
+
+  if (tbody.__recentUploadsClickHandler) {
+    tbody.removeEventListener('click', tbody.__recentUploadsClickHandler);
+  }
+
+  const handler = async (e) => {
+    const row = e.target.closest('tr.rf-clickable');
+    if (!row) return;
+
+    let id = row.dataset.id;
+    const name = row.dataset.name || '시험지';
+    const uploaded_at = row.dataset.date || null;
+
+    if (!id) {
+      // ✅ 폴백1: 파일명으로 id resolve 시도 (백엔드가 제공하는 엔드포인트가 있다면 사용)
+      try {
+        const r = await fetch(`/api/files/resolve?name=${encodeURIComponent(name)}`);
+        if (r.ok) {
+          const j = await r.json();
+          if (j && j.id) id = String(j.id);
+        }
+      } catch (err) {
+        console.warn('resolve by name failed', err);
+      }
+    }
+
+    if (id) {
+      // 정상 경로: id로 상세/메모 불러와서 오픈 (메모 가능)
+      document.dispatchEvent(new CustomEvent('coverage:fileClick', { detail: { id } }));
+    } else {
+      // ✅ 폴백2: 그래도 id가 없으면 placeholder라도 열어준다(모달이 "안 뜨는" 문제 방지)
+      document.dispatchEvent(new CustomEvent('coverage:fileClick', {
+        detail: {
+          placeholder: {
+            id: '',
+            title: name,
+            school: '정보 없음',
+            grade: '-', subject: '-', year: '-', semester: '-',
+            uploaded_at, myMemo: ''
+          }
+        }
+      }));
+    }
+  };
+
+  tbody.addEventListener('click', handler);
+  tbody.__recentUploadsClickHandler = handler;
+}
+
+
  // 이 함수 전체를 복사해서 기존 함수와 교체해 주세요.
   async function fetchNotices() {
       let noticeData = [];
@@ -272,52 +408,106 @@ function bindUser(user) {
       const listEl = document.getElementById('noticeList');
       if (!listEl) return;
       listEl.innerHTML = noticeData.slice(0, 7).map((n, i) => {
-        
-        let tagHtml = '';
-        // ▼▼▼ 여기가 수정된 최종 코드입니다 ▼▼▼
-        let displayTitle = n.title.trim();
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+        // 0) 원본 제목
+        let t = (n.title || '').trim();
 
-        if (displayTitle.startsWith('[공지]')) {
-          tagHtml = '<span class="notice-tag notice-tag-notice">공지</span>';
-          displayTitle = displayTitle.replace('[공지]', '').trim();
-        } else if (displayTitle.startsWith('[업데이트]')) {
-          tagHtml = '<span class="notice-tag notice-tag-update">업데</span>';
-          displayTitle = displayTitle.replace('[업데이트]', '').trim();
-        } else if (displayTitle.startsWith('[수정]')) {
-          tagHtml = '<span class="notice-tag notice-tag-fix">수정</span>';
-          displayTitle = displayTitle.replace('[수정]', '').trim();
+        // 1) 앞쪽 이모지/ZWJ/variation + 공백 제거
+        t = t.replace(/^[\p{Emoji_Presentation}\p{Emoji}\p{Extended_Pictographic}\ufe0f\u200d\s]+/gu, '').trim();
+
+        // 2) [대괄호] 태그 우선 감지
+        let kind = null;
+        const m = t.match(/^\[([^\]]+)\]\s*/);
+        if (m) {
+          const key = m[1];
+          if (/공지/.test(key)) kind = 'notice';
+          else if (/(업데이트|업뎃|UP|오픈|OPEN)/i.test(key)) kind = 'update'; // ← 추가
+          else if (/수정/.test(key)) kind = 'fix';
+          t = t.slice(m[0].length).trim();
+        } else {
+          if (/^공지(\s+|:)?/.test(t)) { kind = 'notice'; t = t.replace(/^공지(\s+|:)?/, '').trim(); }
+          else if (/^(업데이트|업뎃|UP|오픈|OPEN)(\s+|:)?/i.test(t)) { // ← 추가
+            kind = 'update';
+            t = t.replace(/^(업데이트|업뎃|UP|오픈|OPEN)(\s+|:)?/i,'').trim();
+          }
+          else if (/^수정(\s+|:)?/.test(t)) { kind = 'fix'; t = t.replace(/^수정(\s+|:)?/, '').trim(); }
         }
 
-        return `
-        <div class="home-notice-item">
-          <span class="home-notice-num">${i + 1}</span>
-          ${tagHtml}
-          <span class="home-notice-title">${displayTitle}</span>
-        </div>`;
+        const badge =
+          kind === 'notice' ? '<span class="notice-chip">공지</span>' :
+          kind === 'update' ? '<span class="notice-chip">U-D</span>' :
+          kind === 'fix'    ? '<span class="notice-chip">수정</span>' : '';
 
+        return `
+          <div class="home-notice-item">
+            <span class="home-notice-num">${i + 1}</span>
+            ${badge}
+            <span class="home-notice-title">${t}</span>
+          </div>`;
       }).join('');
+
   }
 
   async function loadRecentUploads() {
     try {
-      const res = await fetch('/api/uploads/recent', { credentials:'include' });
+      const res = await fetch('/api/uploads/recent', { credentials: 'include' });
       const data = await res.json();
       const tbody = document.querySelector('.home-uploads-card .home-rf-table tbody');
       if (!tbody) return;
-      if (data.length === 0) {
+
+      if (!Array.isArray(data) || data.length === 0) {
         tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;color:#aaa;">최근 업로드 내역이 없습니다.</td></tr>';
         return;
       }
-      tbody.innerHTML = data.map(file => `
-        <tr>
-          <td>
-            <div class="home-title" title="${(file.name || '-').replace(/"/g, '&quot;')}">${file.name}</div>
-          </td>
-          <td>${file.date}</td>
-        </tr>
-      `).join('');
-    } catch(e) { console.error("최근 업로드 로딩 실패:", e); }
+
+tbody.innerHTML = data.map(file => {
+  const name = file.name || '-';
+  const parts = name.split('_');
+  const school = parts.length > 1 ? parts[1] : name;
+
+  const isHigh = /고등학교|고등|고$/u.test(school);
+  const isMiddle = /중학교|중등|중$/u.test(school);
+
+  let levelClass = '';
+  let levelLabel = '';
+  if (isHigh && !isMiddle) {
+    levelClass = 'high';
+    levelLabel = '고등';
+  } else if (isMiddle && !isHigh) {
+    levelClass = 'middle';
+    levelLabel = '중등';
+  } else {
+    if (/고/u.test(school)) { levelClass = 'high'; levelLabel = '고등'; }
+    else if (/중/u.test(school)) { levelClass = 'middle'; levelLabel = '중등'; }
+  }
+
+  // ✅ id 후보 더 늘림 (업로드/파일 API 혼용 대비)
+  const fid =
+    file.id ?? file.file_id ?? file.fileId ?? file.FileId ??
+    file.upload_id ?? file.uploadId ?? file.UploadId ??
+    file.FID ?? '';
+
+  const badge = levelClass ? `<span class="level-badge ${levelClass}">${levelLabel}</span>` : '';
+  return `
+    <tr class="rf-clickable"
+        ${fid ? `data-id="${String(fid)}"` : ''}
+        data-name="${name.replace(/"/g, '&quot;')}"
+        data-date="${file.date || ''}">
+      <td class="home-title" style="text-align:left;">
+        ${badge}<span title="${name.replace(/"/g, '&quot;')}">${name}</span>
+      </td>
+      <td>${file.date || ''}</td>
+    </tr>
+  `;
+}).join('');
+
+// ✅ 테이블 행 클릭 → coverage와 동일 모달 열기(이벤트 재사용)
+bindRecentUploadsClick(tbody);
+
+
+
+    } catch (e) {
+      console.error('최근 업로드 로딩 실패:', e);
+    }
   }
 
   async function loadRecentDownloads(user) {

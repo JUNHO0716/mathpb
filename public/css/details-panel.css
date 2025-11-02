@@ -1,0 +1,85 @@
+/* 공통 상세 패널 */
+.details-slide-panel {
+  position: fixed;
+  top: 70px;
+  right: 10px;
+  width: 400px;
+  height: calc(100vh - 100px);
+  background-color: #ffffff;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  z-index: 1002;
+  transform: translateX(calc(100% + 50px));
+  transition: transform .4s cubic-bezier(.25,.46,.45,.94);
+  display: flex;
+  flex-direction: column;
+  border-radius: 30px;
+}
+.details-slide-panel.is-open { transform: translateX(0); }
+
+.details-panel-header {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:16px 24px; border-bottom:1px solid #e2e8f0;
+}
+.details-panel-header h2 { margin:0; font-size:1.25rem; }
+.details-panel-close-btn { background:none; border:none; font-size:1.8rem; cursor:pointer; color:#718096; }
+
+.details-panel-content { padding:24px; overflow-y:auto; flex-grow:1; }
+
+/* 오버레이 */
+.details-panel-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.4);
+  z-index:1001; opacity:0; visibility:hidden;
+  transition:opacity .4s ease, visibility .4s ease;
+}
+.details-panel-overlay.is-open { opacity:1; visibility:visible; }
+
+/* 본문 구성 */
+.details-section { margin-bottom:28px; border-bottom:1px solid #f0f0f0; padding-bottom:24px; }
+.details-section:last-child { border-bottom:none; margin-bottom:0; padding-bottom:10px; }
+
+.details-section-title {
+  font-size:.9rem; font-weight:700; color:#007BFF;
+  margin:0 0 16px; padding-bottom:4px; border-bottom:2px solid #007BFF; display:inline-block;
+}
+.details-filename-text { font-size:.95rem; font-weight:400; color:#111; margin:-8px 0 0; line-height:1.5; word-break:break-all; }
+.details-info-grid { display:grid; grid-template-columns:100px 1fr; gap:12px; font-size:.95rem; }
+.details-info-label { color:#5f5f5f; font-weight:500; }
+.details-info-value { color:#111; font-weight:500; word-break:break-all; }
+
+.details-memo-textarea {
+  width:100%; min-height:120px; border:1px solid #ddd; border-radius:8px; padding:12px;
+  font-size:.9rem; font-family:'Noto Sans KR',sans-serif; resize:vertical; box-sizing:border-box;
+  transition:border-color .2s, box-shadow .2s; margin-top:-8px;
+}
+.details-memo-textarea:focus { outline:none; border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.2); }
+
+.details-button-wrapper { display:flex; justify-content:flex-end; margin-top:12px; }
+.details-save-btn { padding:9px 18px; font-size:.9rem; font-weight:600; border:none; border-radius:8px; background:#007BFF; color:#fff; cursor:pointer; transition:all .2s; }
+.details-save-btn:hover { background:#0056b3; transform: translateY(-2px); }
+.details-save-btn:disabled { background:#a0c7ff; cursor:not-allowed; transform:none; }
+
+/* 모바일 변형 */
+@media (max-width:768px){
+  .details-slide-panel{
+    width:auto; left:10px; right:10px;
+    height:auto; max-height:unset; top:auto; bottom:0;
+    border-radius:16px 16px 0 0; transform:translateY(100%);
+  }
+  .details-slide-panel.is-open{ transform:translateY(0); }
+}
+
+/* 등록되지 않은 시험지: 메모 비활성화 표현 */
+.details-memo-textarea[disabled]{
+  background:#f7f7f7;
+  color:#777;
+  cursor:not-allowed;
+}
+.details-save-btn[disabled]{
+  background:#a0c7ff;
+  cursor:not-allowed;
+}
+.details-hint{
+  margin-top:6px;
+  font-size:.85rem;
+  color:#666;
+}

@@ -114,7 +114,6 @@ body {
 
   /* [수정] 메인 콘텐츠 영역이 스크롤되도록 설정 */
   main#content-area {
-    overflow-y: auto;
     padding-bottom: 90px;
   }
   /* ▼▼▼ [추가] 새로운 하단 메뉴 스타일 ▼▼▼ */

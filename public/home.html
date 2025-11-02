@@ -1,9 +1,5 @@
 <link rel="stylesheet" href="css/home.css">
 
-
-<link rel="stylesheet" href="css/home.css">
-
-
 <section class="home-hero-row">
   <div class="home-hero-left">
     <!-- 광고 모듈 마운트 위치 -->
@@ -21,29 +17,40 @@
       <img src="image_home_meun/hero-logo.png" alt="로고" class="hero-logo">
     </div>
 
-    <div class="hero-menu-list">
-      <button class="hero-menu" type="button">
-        <img src="image_home_meun/design.png" alt="내신 기출"><span>내신 기출</span>
-      </button>
-      <button class="hero-menu" type="button">
-        <img src="image_home_meun/programming.png" alt="내 교재"><span>내 교재</span>
-      </button>
-      <button class="hero-menu" type="button">
-        <img src="image_home_meun/video.png" alt="시험지 요청"><span>시험지 요청</span>
-      </button>
-      <button class="hero-menu" type="button">
-        <img src="image_home_meun/marketing.png" alt="출처 찾기"><span>출처 찾기</span>
-      </button>
-      <button class="hero-menu" type="button">
-        <img src="image_home_meun/document.png" alt="매쓰비 에디터"><span>매쓰비 에디터</span>
-      </button>
-        <button class="hero-menu" type="button">
-        <img src="image_home_meun/notice.png" alt="고객센터"><span>고객센터</span>
-      </button>
-      <button class="hero-menu" type="button">
-        <img src="image_home_meun/ai.png" alt="AI 서비스"><span>AI 서비스</span>
-      </button>
-    </div>
+  <div class="hero-menu-list">
+    <!-- 기출자료 → index의 내신기출(메뉴3) -->
+    <button class="hero-menu" id="btnPastExams" type="button">
+      <img src="image_home_meun/design.png" alt="내신 기출"><span>기출자료</span>
+    </button>
+
+    <!-- 내 교재 → index의 내 책장(메뉴4) -->
+    <button class="hero-menu" id="btnMyBook" type="button">
+      <img src="image_home_meun/programming.png" alt="내 교재"><span>내 교재</span>
+    </button>
+
+    <!-- 시험지 요청 → index의 시험지 요청(메뉴5, 권한 체크 그대로) -->
+    <button class="hero-menu" id="btnRequestSheet" type="button">
+      <img src="image_home_meun/video.png" alt="시험지 요청"><span>시험지 요청</span>
+    </button>
+
+    <!-- (선택) 출처 찾기 / 에디터는 ID만 부여 -->
+    <button class="hero-menu" id="btnSource" type="button">
+      <img src="image_home_meun/marketing.png" alt="출처 찾기"><span>출처 찾기</span>
+    </button>
+    <button class="hero-menu" id="btnEditor" type="button">
+      <img src="image_home_meun/document.png" alt="매쓰비 에디터"><span>매쓰비 에디터</span>
+    </button>
+
+    <!-- AI 서비스 → main.html?menu=chatbot_main -->
+    <button class="hero-menu" id="btnAI" type="button">
+      <img src="image_home_meun/ai.png" alt="AI 서비스"><span>AI 서비스</span>
+    </button>
+
+    <!-- 고객센터 → main.html?menu=cs -->
+    <button class="hero-menu" id="btnCS" type="button">
+      <img src="image_home_meun/notice.png" alt="고객센터"><span>고객센터</span>
+    </button>
+  </div>
         <!-- 🔸 새로운 태그 버튼 바 추가 -->
     <div class="hero-tagbar">
       <button class="tag-btn outline">시험지·교재</button>
@@ -152,8 +159,22 @@
 
 <section>
     <div class="home-uploads-card">
-        <div class="home-rf-header">
-            <i class="fas fa-upload"></i>최근 업로드
+        <div class="home-uploads-header-row">
+
+            <div class="home-rf-header" style="flex: 1;">
+                <i class="fas fa-upload"></i>최근 업로드
+            </div>
+
+            <div class="home-rf-header" style="flex: 2;">
+                <img src="image_home/ai.png" alt="AI 아이콘" style="height: 2.0em; vertical-align: middle; margin-right: 2px;">
+            <span style="
+                    background: linear-gradient(135deg, #B967FF, #FF7BBE);
+                    -webkit-background-clip: text;
+                    background-clip: text;
+                    color: transparent;
+                    font-weight: 800; 
+                ">AI 집계</span>
+            </div>
         </div>
         <div class="home-uploads-content-row">
             <div class="home-rf-table-wrap">
@@ -168,8 +189,8 @@
                 </table>
             </div>
             <div class="home-preparing-box">
-                <div class="home-mybox-ready">준비중</div>
-            </div>
+            <div id="coverageWidgetRoot" class="cov-widget-wrap"></div>
+          </div>
         </div>
     </div>
 </section>
@@ -187,7 +208,19 @@
   </div>
 </section>
 
+<!-- 상세 패널 (details-panel.js가 이 DOM을 사용) -->
+<div class="details-slide-panel" id="details-panel" aria-hidden="true">
+  <div class="details-panel-header">
+    <h2>상세 정보</h2>
+    <button class="details-panel-close-btn" id="details-panel-close" aria-label="닫기">&times;</button>
+  </div>
+  <div class="details-panel-content" id="details-panel-content"></div>
+</div>
+<div class="details-panel-overlay" id="details-overlay" aria-hidden="true"></div>
+
 <div id="footer-container"></div>
 
+<script src="js/details-panel.js"></script><!-- 상세 패널 모듈 -->
 <script src="js/ad-banner.js"></script>
+<script src="js/coverage-widget.js"></script><!-- ✅ 추가 -->
 <script src="js/home.js"></script>

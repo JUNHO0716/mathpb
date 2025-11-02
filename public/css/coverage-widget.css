@@ -1,0 +1,646 @@
+/* /public/css/coverage-widget.css */
+.cov-widget-wrap { width:100%; height:100%; }
+
+.cov-card{
+  --y:#FDC512; --y2:#D9A90F; --g:#2d3340;
+  color: var(--text-main, #111);
+  border-radius: 22px;
+  padding: 24px;
+
+  /* ▼ 최근 업로드 패널과 동일한 배경 */
+  background: linear-gradient(
+    160deg,
+    rgba(250, 250, 250, 0.7) 0%,
+    rgba(245, 245, 245, 0.4) 70%,
+    rgba(220, 237, 255, 0.3) 85%,
+    rgba(244, 224, 255, 0.3) 100%
+  );
+  border: 1px solid rgba(209, 213, 219, 0.7);
+  box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.cov-top{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; }
+.seg{ display:flex; gap:6px; }
+/* 버튼 기본은 유지하되, .neo-btn이 오버라이드하도록 둠 */
+.cov-btn{ background:#1a2030; color:#c9d3ee; border:1px solid #2a3040; border-radius:12px; padding:9px 14px; cursor:pointer; font-weight:800; }
+.cov-btn.active{ background:#24304a; color:#fff; border-color:#3a4b6b; }
+
+/* ✅ 아이폰 모달창 같은 반투명 회색 플라스틱 드롭다운 */
+.filters select,
+.seg-left select,
+.neo-select {
+  appearance:none; -webkit-appearance:none; -moz-appearance:none;
+  background: linear-gradient(145deg, rgba(255,255,255,0.45) 0%, rgba(240,240,240,0.25) 100%);
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: 14px;
+  padding: 10px 38px 10px 14px;
+  color: #222;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  min-width: 118px;
+
+  /* ✨ 유리 느낌 */
+  backdrop-filter: blur(12px) saturate(150%) brightness(1.15);
+  -webkit-backdrop-filter: blur(12px) saturate(150%) brightness(1.15);
+
+  /* 📦 그림자 및 입체감 */
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.6),
+    inset 0 -2px 6px rgba(0,0,0,0.15),
+    0 4px 10px rgba(0,0,0,0.08);
+
+  transition: all 0.25s ease;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='%23333'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px 14px;
+}
+
+/* hover 시 살짝 밝아지게 */
+.filters select:hover,
+.seg-left select:hover,
+.neo-select:hover {
+  background: linear-gradient(145deg, rgba(255,255,255,0.55) 0%, rgba(240,240,240,0.35) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.75),
+    inset 0 -2px 6px rgba(0,0,0,0.12),
+    0 4px 12px rgba(0,0,0,0.1);
+}
+
+
+/* hover 시 살짝 밝아지게 */
+.filters select:hover,
+.seg-left select:hover,
+.neo-select:hover {
+  background: linear-gradient(145deg, rgba(255,255,255,0.55) 0%, rgba(240,240,240,0.35) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.75),
+    inset 0 -2px 6px rgba(0,0,0,0.12),
+    0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* === dropdown arrow fix (keep arrow on hover, flip on open) === */
+
+/* 1) hover 시에도 화살표가 사라지지 않도록: 화살표 + 그라데이션 2레이어 유지 */
+.filters select:hover,
+.seg-left select:hover,
+.neo-select:hover {
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='%23333'><path d='M7 10l5 5 5-5z'/></svg>"), /* ▼ down */
+    linear-gradient(145deg, rgba(255,255,255,0.55) 0%, rgba(240,240,240,0.35) 100%);
+  background-repeat: no-repeat, no-repeat;
+  background-position: right 12px center, 0 0;
+  background-size: 14px 14px, cover;
+}
+
+/* 2) 클릭/열림(포커스/액티브) 상태에서 화살표만 뒤집기 */
+.filters select:focus,
+.seg-left select:focus,
+.neo-select:focus,
+.filters select:active,
+.seg-left select:active,
+.neo-select:active {
+  background-image:
+    /* ▲ up (path만 반대로) */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='%23333'><path d='M7 14l5-5 5 5z'/></svg>"),
+    linear-gradient(145deg, rgba(255,255,255,0.55) 0%, rgba(240,240,240,0.35) 100%);
+  background-repeat: no-repeat, no-repeat;
+  background-position: right 12px center, 0 0;
+  background-size: 14px 14px, cover;
+  outline: none;
+}
+
+/* ===== custom dropdown menu (card) ===== */
+.neo-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 180px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 12px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+  padding: 10px 0;
+  z-index: 10000;
+  overflow: hidden;
+}
+
+.neo-menu-item {
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  color: #333;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.neo-menu-item:hover { background: rgba(0,0,0,0.04); }
+
+/* select 부모가 위치 기준이 되도록 */
+.neo-select-wrap { position: relative; display: inline-block; }
+
+/* ▼ 화살표: 기본 ↓ / 열렸을 때 ↑  (디자인 유지) */
+.neo-select.open {
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='%23333'><path d='M7 14l5-5 5 5z'/></svg>"),
+    linear-gradient(145deg, rgba(255,255,255,0.55) 0%, rgba(240,240,240,0.35) 100%);
+  background-repeat: no-repeat, no-repeat;
+  background-position: right 12px center, 0 0;
+  background-size: 14px 14px, cover;
+}
+
+
+.seg-left{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.level-group{ display:flex; gap:6px; } /* (유지) */
+
+/* 칩 래퍼는 유지 */
+.cov-chips{
+  display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 2px;
+}
+
+/* 공통: 입체감/반짝임 베이스 */
+.chip{
+  position:relative;
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:6px;
+  padding: 8px 14px;
+  font-weight:800;
+  letter-spacing:-.2px;
+  border-radius: 999px;          /* 연도/고등은 알약 형태 유지 */
+  border:1px solid rgba(255,255,255,.28);
+  color:#e9edff;
+  /* 검정 유광 플라스틱(연도/고등) */
+  background:
+    linear-gradient(160deg, rgba(255,255,255,.14), rgba(255,255,255,0) 30%),
+    linear-gradient(180deg, #1b1e27 0%, #111419 55%, #0e1015 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.25),   /* 윗 하이라이트 */
+    inset 0 -10px 16px rgba(0,0,0,.35),    /* 아래 음영 */
+    0 8px 18px rgba(0,0,0,.18);
+}
+.chip::after{
+  /* 반짝 스팟 */
+  content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
+  background:
+    radial-gradient(120% 70% at 18% -10%, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 45%),
+    linear-gradient(110deg, rgba(255,255,255,.18) 12%, rgba(255,255,255,0) 28%);
+  mix-blend-mode:screen;
+}
+
+/* '전국' 칩: 회색 유광 플라스틱 */
+.chip.muted{
+  color:#1f2330;
+  border-color: rgba(255,255,255,.6);
+  background:
+    linear-gradient(160deg, rgba(255,255,255,.45), rgba(255,255,255,0) 38%),
+    linear-gradient(180deg, #dfe3ea 0%, #c9ced8 55%, #b7bdc9 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.7),
+    inset 0 -10px 16px rgba(0,0,0,.18),
+    0 8px 18px rgba(0,0,0,.10);
+}
+
+/* '0%' 칩: 노란 유광 + 가운데 볼록(라운드 스퀘어) */
+.chip.strong{
+  color:#0c0f12;
+  border-radius: 14px;           /* 둥근 사각형 */
+  padding: 10px 16px;
+  min-width: 44px;               /* 버튼 느낌 */
+  text-align:center;
+  background:
+    linear-gradient(155deg, rgba(255,255,255,.75) 0%, rgba(255,255,255,.22) 34%, rgba(255,255,255,0) 60%),
+    linear-gradient(180deg, #ffd54a 0%, #f4b900 70%);
+  border: 1px solid rgba(255,255,255,.65);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.75),
+    inset 0 -16px 20px rgba(0,0,0,.18),     /* 아래쪽 음영으로 볼록 */
+    0 10px 24px rgba(253,197,18,.25);       /* 외곽 그림자 */
+}
+.chip.strong::before{
+  /* 중앙 볼록 하이라이트 */
+  content:""; position:absolute; inset:10% 12%; border-radius:10px;
+  background: radial-gradient(60% 80% at 50% 35%, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 60%);
+  pointer-events:none; mix-blend-mode:screen;
+}
+.chip.strong::after{
+  /* 상단 스팟 + 사선 하이라이트 보강 */
+  content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background:
+    radial-gradient(110% 70% at 16% -8%, rgba(255,255,255,.9) 0%, rgba(255,255,255,0) 42%),
+    linear-gradient(112deg, rgba(255,255,255,.28) 10%, rgba(255,255,255,0) 26%);
+  mix-blend-mode:screen;
+}
+
+
+/* 좌우 7:1 레이아웃 */
+.cov-main{
+  display:grid;
+  grid-template-columns: 5.4fr 2.6fr; /* ≈ 6/8 : 2/8 */
+  gap:12px;
+  align-items:start;
+  margin-top:8px;
+}
+.cov-left{ min-width:0; }           /* 벌집 영역이 자연스럽게 줄도록 */
+.cov-right{ min-width:0; }
+
+/* 오른쪽 패널의 통계는 세로로 쌓이게 */
+.cov-right .cov-stats{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-top:0;      /* 오른쪽에 붙을 때는 위 여백 제거 */
+}
+
+/* 고정 높이(뚝 방지): 값은 필요 시 한 숫자만 바꾸면 됨 */
+:root{ --stat-height: 136px; }          /* ← 원하는 높이로 조정 (예: 136~148px 권장) */
+
+.stat.glass-panel{
+  position:relative;
+  border-radius:18px;
+  padding:16px 18px;
+  background:linear-gradient(
+    135deg,
+    rgba(95,165,255,0.26) 0%,
+    rgba(150,200,255,0.20) 40%,
+    rgba(180,160,255,0.24) 100%
+  );
+  backdrop-filter: blur(18px) saturate(170%) brightness(1.25);
+  -webkit-backdrop-filter: blur(18px) saturate(170%) brightness(1.25);
+  border:1px solid rgba(255,255,255,0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.28),
+    0 8px 28px rgba(80,120,200,0.16);
+  color:#333;
+
+  /* ▼ 높이 '고정' */
+  height: var(--stat-height);
+  min-height: var(--stat-height);
+  max-height: var(--stat-height);
+
+  display:grid;
+  grid-template-rows: auto 1fr auto;    /* 제목 / (여유) / 하단 0/36 */
+}
+
+/* 작은 화면에서 살짝 낮춰서 보기 좋게 */
+@media (max-width: 820px){
+  :root{ --stat-height: 124px; }
+}
+
+
+/* 제목 */
+.stat.glass-panel .label{
+  color:#3a3a3a;
+  font-weight:700;
+  margin-bottom:10px;
+}
+
+.stat.glass-panel .value{
+  color:#111;
+  font-size:1.5rem;
+  font-weight:800;
+  text-align:right;
+  padding-right:12px;
+  line-height:1.05;
+  font-variant-numeric:tabular-nums;
+
+  /* ▼ 레이아웃 변화 없이 부드럽게 나타나도록 */
+  transition:opacity .18s ease;
+}
+
+/* (색상 유지용) */
+.stat.glass-panel #cov-all-pct,
+.stat.glass-panel #cov-region-pct{ color:#111; }
+
+.stat.glass-panel .sub{
+  color:rgba(30,30,30,0.72);
+  text-align:right;
+  padding-right:12px;
+
+  /* ▼ 숫자 줄 바뀌며 튀는 느낌 완화 */
+  transition:opacity .18s ease;
+}
+
+/* 패널 사이 간격 유지(있으면 생략 가능) */
+.cov-right .cov-stats{ gap:14px; }
+
+.hexgrid{
+  --hexW: 80px;
+  --gap : 0px;
+  --hexH: calc(var(--hexW) * .866);
+  --minH: 520px;                /* ✅ 벌집 최소 높이(원하면 숫자만 바꾸면 됨) */
+  margin-top:0;
+  position: relative;
+  min-height: var(--minH);      /* 초기/로딩 시에도 고정 높이 유지 */
+}
+
+.hex{
+  --hexStroke: 2px;
+  --tx: 0px;          /* JS가 채워줄 X 좌표 */
+  --ty: 0px;          /* JS가 채워줄 Y 좌표 */
+  --offX: 0px;        /* (옵션) 홀수행 반칸 밀기용 */
+  --lift: 0px;        /* 호버 시 위로 살짝 들어올리기 */
+  width: var(--hexW);
+  aspect-ratio: 1 / .866;
+  position: absolute;
+  left: 0; top: 0;
+  box-sizing: border-box;
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-weight:700; letter-spacing:-.02em;
+  text-shadow: 0 1px 0 rgba(0,0,0,.3);
+  background-clip: padding-box;
+
+  /* 기존 라인/광택 효과 유지 */
+  --line: 1.5px;
+  --fx:
+    drop-shadow(0 0 0 #111)
+    drop-shadow(var(--line) 0 0 #111)
+    drop-shadow(calc(-1*var(--line)) 0 0 #111)
+    drop-shadow(0 var(--line) 0 #111)
+    drop-shadow(0 calc(-1*var(--line)) 0 #111);
+  filter: var(--fx);
+
+  /* 좌표 + 리프트를 한 번에 처리 */
+  --liftDur: 220ms;                               /* 기본 전환 시간 */
+  --liftCurve: cubic-bezier(.22,.61,.36,1);       /* 자연스러운 decel */
+  --shadowDur: 260ms;
+
+  transform: translate(calc(var(--tx) + var(--offX)), var(--ty))
+             translateY(var(--lift))
+             translateZ(0);
+  transition:
+    transform var(--liftDur) var(--liftCurve),
+    filter 220ms ease,
+    box-shadow var(--shadowDur) ease;
+  will-change: transform, filter;
+}
+
+/* ✅ 더 반짝이는 유광 플라스틱 + 글래스(그라데이션) 보더 */
+.hex.empty{
+  color:#eef3ff;
+  border: none; /* ✅ 테두리 제거 */
+  background:
+    linear-gradient(155deg, rgba(255,255,255,.70) 0%, rgba(255,255,255,.18) 22%, rgba(255,255,255,0) 45%),
+    linear-gradient(180deg, #a3acbd 0%, #8892a6 55%, #6c758a 100%);
+  background-clip: padding-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.48),
+    inset 0 -14px 18px rgba(0,0,0,.22),
+    0 10px 20px rgba(0,0,0,.18);
+}
+/* 유광 스팟/사선 스펙큘러 */
+.hex.empty::after{
+  content:"";
+  position:absolute; inset:0; clip-path:inherit; pointer-events:none;
+  background:
+    radial-gradient(140% 80% at 18% -10%, rgba(255,255,255,.95) 0%, rgba(255,255,255,0) 45%),
+    linear-gradient(110deg, rgba(255,255,255,.38) 10%, rgba(255,255,255,0) 24%),
+    linear-gradient(122deg, rgba(255,255,255,.22) 38%, rgba(255,255,255,0) 52%);
+  mix-blend-mode:screen;
+  opacity:.9;
+}
+
+/* 채워진(노란) — 테두리만 조금 더 두껍고 선명하게 */
+.hex.filled{
+  border: none; /* ✅ 테두리 제거 */
+  background:
+    linear-gradient(155deg, rgba(255,255,255,.72) 0%, rgba(255,255,255,.18) 28%, rgba(255,255,255,0) 60%),
+    linear-gradient(180deg, var(--y), var(--y2));
+  background-clip: padding-box;
+  color:#0d0f12;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.48),
+    inset 0 -14px 18px rgba(0,0,0,.18),
+    0 8px 18px rgba(253,197,18,.24);
+}
+.hex{ border:none; }
+.hex.filled::after{
+  content:"";
+  position:absolute; inset:0; clip-path:inherit; pointer-events:none;
+  background:
+    radial-gradient(135% 75% at 16% -8%, rgba(255,255,255,.9) 0%, rgba(255,255,255,0) 42%),
+    linear-gradient(112deg, rgba(255,255,255,.34) 12%, rgba(255,255,255,0) 26%),
+    linear-gradient(124deg, rgba(255,255,255,.18) 42%, rgba(255,255,255,0) 56%);
+  mix-blend-mode:screen;
+  opacity:.88;
+}
+.hex:hover{
+  --lift: -6px;                                   /* 올라오는 높이 */
+  --liftDur: 340ms;                               /* 진입은 느긋하게 */
+  --liftCurve: cubic-bezier(.16,.84,.22,1);       /* 더 부드러운 감속 */
+  --shadowDur: 340ms;
+
+  filter: var(--fx) saturate(1.06) brightness(1.07);
+  box-shadow: 0 16px 30px rgba(0,0,0,.22);
+}
+.hex:active{
+  --lift: -3px;                                   /* 클릭시 약간만 */
+  --liftDur: 120ms;                               /* 탭 반응은 빠르게 */
+  --liftCurve: cubic-bezier(.2,.8,.4,1);
+}
+
+/* 짝수(또는 홀수) 행에 반 칸 밀기 */
+.hex._offset{
+  --offX: calc((var(--hexW) + var(--gap)) / 2);
+}
+.hex > .hex-label{
+  display:inline-block;
+  max-width:86%;
+  padding:6px 8px;
+  text-align:center;
+  white-space:normal;         /* ✅ 줄바꿈 허용 */
+  word-break:break-all;       /* 한국어도 글자 단위개행 */
+  line-height:1.06;
+  font-size: clamp(11px, calc(var(--hexW)*.19), 14px); /* 살짝 축소 */
+}
+.cov-sentinel{ height:1px; }
+
+/* 백드롭: 약한 블러 + 살짝 어둡게 */
+.cov-modal-backdrop{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.45);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  display:flex; align-items:center; justify-content:center;
+  z-index:9999;
+}
+
+/* 모달: 밝은 유리/유광 카드 */
+.cov-modal{
+  width:min(720px,92vw);
+  max-height:80vh; overflow:auto;
+  background:
+    linear-gradient(160deg, rgba(255,255,255,.78) 0%, rgba(247,250,255,.62) 62%, rgba(240,244,255,.52) 100%),
+    #fff;
+  color:#111;
+  border:1px solid rgba(210,220,245,.9);
+  border-radius:16px;
+  box-shadow:
+    0 16px 40px rgba(15,30,80,.18),
+    inset 0 1px 0 rgba(255,255,255,.6);
+}
+
+.cov-modal-head{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:14px 16px;
+  border-bottom:1px solid rgba(210,220,245,.8);
+}
+.cov-modal-head .title{ font-weight:900; color:#111; }
+.cov-modal-head .close{ display:none !important; } /* 마크업 있어도 숨김 */
+.cov-modal-body{ padding:14px 16px; }
+
+/* (이전 단순 로딩은 숨김) */
+.cov-modal-body .loading{ display:none; }
+
+/* “불러오는 중” 카드(이미 사용 중인 클래스 유지) */
+.cov-loading{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:10px; padding:32px 16px;
+  border-radius:12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(240,244,255,.55));
+  border:1px solid rgba(20,24,35,.12);
+  box-shadow: 0 6px 24px rgba(0,0,0,.08);
+}
+.cov-spinner{
+  width:28px; height:28px; border-radius:50%;
+  border:3px solid rgba(0,0,0,.15);
+  border-top-color:#333;
+  animation: spin .8s linear infinite;
+}
+.cov-loading-text{ font-weight:800; letter-spacing:.2px; }
+.cov-loading-sub{ font-size:.85rem; opacity:.7; margin-top:-4px; }
+
+
+/* 신규 로딩 카드 */
+.cov-loading{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  padding:32px 16px;
+  border-radius:12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(240,244,255,.55));
+  border:1px solid rgba(20,24,35,.12);
+  box-shadow: 0 6px 24px rgba(0,0,0,.08);
+}
+
+.cov-spinner{
+  width:28px; height:28px; border-radius:50%;
+  border:3px solid rgba(0,0,0,.15);
+  border-top-color:#333;
+  animation: spin .8s linear infinite; /* 기존 파일에 @keyframes spin 이미 있음 */
+}
+
+.cov-loading-text{
+  font-weight:800;
+  letter-spacing:.2px;
+}
+
+.cov-loading-sub{
+  font-size:.85rem;
+  opacity:.7;
+  margin-top:-4px;
+}
+.file-list{ list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; }
+.file-item{ background:#121723; border:1px solid #20283a; border-radius:10px; padding:10px 12px; }
+.file-item .meta{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px; }
+.badge{ display:inline-flex; padding:4px 6px; font-size:.78rem; border-radius:6px; background:#1a2030; border:1px solid #2a3040; color:#c9d3ee; }
+.file-item .title{ font-weight:800; }
+.empty{ opacity:.8; }
+
+/* 유광(네오모피즘) 공통 버튼 */
+/* 평면(플랫) 버튼 */
+.neo-btn{
+  background:#1a2030;
+  color:#e3e9ff;
+  border:1px solid #2a3040;
+  border-radius:12px;
+  padding:9px 14px;
+  font-weight:800;
+  box-shadow:none;
+  transition:.12s ease;
+}
+.neo-btn:hover{ background:#20283a; }
+.neo-btn:active{ background:#2a3246; }
+.neo-btn.active{
+  background:#24304a;
+  border-color:#3a4b6b;
+  color:#fff;
+}
+
+/* 평면(플랫) 셀렉트: 연도/시도/시군구 공통 */
+.neo-select{
+  appearance:none; -webkit-appearance:none; -moz-appearance:none;
+  background:#1a2030;
+  color:#e3e9ff;
+  border:1px solid #2a3040;
+  border-radius:12px;
+  padding:9px 38px 9px 14px;
+  font-weight:800;
+  box-shadow:none;
+  cursor:pointer;
+  line-height:1.2;
+  min-width:112px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='%23c9d3ee'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  background-size:14px 14px;
+}
+.neo-select:disabled{ opacity:.6; cursor:not-allowed; }
+
+/* 로딩 오버레이 & 스피너 */
+.stat{ position:relative; } /* 패널 기준으로 가운데 배치 */
+.stat .loader{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  border-radius:inherit;
+  background: rgba(255,255,255,0.32);      /* 살짝 덮는 느낌 */
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  opacity:0; visibility:hidden;
+  transition: opacity .15s ease;
+  pointer-events:none;
+}
+.stat.is-loading .loader{ opacity:1; visibility:visible; }
+.stat.is-loading .value,
+.stat.is-loading .sub{ visibility:hidden; } /* 숫자는 로딩 끝나면 한 번에 표시 */
+
+.stat .spinner{
+  width:28px; height:28px; border-radius:50%;
+  border:3px solid rgba(0,0,0,.15);
+  border-top-color:#333;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* 전역 로딩: 왼쪽 영역(벌집) 오버레이 + chips 숨김 */
+.cov-left{ position:relative; }
+.cov-left .bulk-loader{
+  position:absolute; inset:0;
+  display:none;
+  align-items:center; justify-content:center;
+  border-radius:12px;
+  background: rgba(255,255,255,0.28);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  pointer-events:none;
+}
+.cov-card.is-bulk-loading .cov-left .bulk-loader{ display:flex; }
+.cov-card.is-bulk-loading #cov-grid,
+.cov-card.is-bulk-loading .cov-sentinel{ visibility:hidden; }
+.cov-card.is-bulk-loading #cov-chips{ visibility:hidden; }
+
+/* 전역 로더용 스피너 */
+.cov-left .bulk-loader .spinner{
+  width:32px; height:32px; border-radius:50%;
+  border:3px solid rgba(0,0,0,.15);
+  border-top-color:#333;
+  animation: spin .8s linear infinite;
+}
+
+.cov-card{
+  position: relative;
+  overflow: hidden;        /* ← 패널/오버레이/그림자 전부 클리핑 */
+  border-radius: 16px;     /* (이미 있다면 무시) 카드 라운드와 일치 */
+}

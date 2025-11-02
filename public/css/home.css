@@ -39,35 +39,89 @@
   .home-cardSwiper .swiper-slide {
     width: 320px;
   }
-  .home-cardSwiper .home-card {
-    width: 100%;
-    height: 180px;
-    background-color: var(--background-color3);
-    border-radius: 18px;
-    box-shadow: 8px 8px 16px #d0d3d5, -8px -8px 16px #FEFDF9;
-    border: none;
-    display: flex;
-    flex-direction: column;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    cursor: pointer;
-    padding: 25px;
-    text-align: left;
-    justify-content: flex-start;
-  }
-  .home-cardSwiper .home-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 10px 10px 20px #d0d3d5, -10px -10px 20px #FEFDF9;
-  }
+.home-cardSwiper .home-card {
+  width: 100%;
+  height: 180px;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 25px;
+  cursor: pointer;
+  text-align: left;
+  position: relative;            /* 오버레이용 */
+  overflow: hidden;
+
+  background:
+    linear-gradient(135deg, rgba(95,165,255,0.20) 0%,
+                           rgba(150,200,255,0.16) 45%,
+                           rgba(180,160,255,0.18) 100%);
+  border: 1px solid rgba(255,255,255,0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    0 6px 18px rgba(80,120,200,0.14);
+  backdrop-filter: blur(10px) saturate(130%) brightness(1.08);
+  -webkit-backdrop-filter: blur(10px) saturate(130%) brightness(1.08);
+}
+
+/* 상단 하이라이트(반짝임) */
+.home-cardSwiper .home-card::before{
+  content:"";
+  position:absolute; inset:0;
+  border-radius: inherit; pointer-events:none;
+  background:
+    radial-gradient(140% 70% at 12% -18%, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 46%),
+    linear-gradient(110deg, rgba(255,255,255,.10) 14%, rgba(255,255,255,0) 30%);
+  opacity:.5;
+}
+
+.home-cardSwiper .home-card:hover{
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.22),
+    0 10px 24px rgba(80,120,200,0.16);
+  filter: brightness(1.01) saturate(1.02);
+}
+
+/* 글자 대비 소폭 업 */
+.home-card h3{ color:#1a1f2a; font-weight:800; }
+.home-card p.home-card-subtitle{ color: rgba(15,23,42,.78); }
+
   .home-card-link {
     text-decoration: none;
     color: inherit;
     display: block;
   }
-  .home-card-icon {
-    font-size: 1.8rem;
-    color: #4a69ff;
-    margin-bottom: 20px;
-  }
+/* 아이콘만 입체(볼록) — 위치/레이아웃 변경 없음 */
+.home-card-icon{
+  font-size: 1.8rem;      /* 그대로 */
+  color: #4a69ff;         /* 그대로 */
+  margin-bottom: 20px;    /* 그대로 */
+
+  /* 입체감 + 파란 글로우(요소 자체에만 적용) */
+  -webkit-text-stroke: .35px rgba(255,255,255,.4);
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.95),      /* 윗면 하이라이트 */
+    0 2px 3px rgba(36,67,255,.30),      /* 가까운 그림자 */
+    0 6px 12px rgba(36,67,255,.22),     /* 중간 그림자 */
+    0 0 12px rgba(70,110,255,.35);      /* 파란 글로우(위치 어긋나지 않음) */
+  filter:
+    drop-shadow(0 2px 4px rgba(30,60,160,.15));
+}
+
+/* 위치 어긋남 방지를 위해 ::after 글로우 제거 */
+.home-card-icon::after{ content:none !important; }
+
+/* SVG 아이콘도 또렷하게 */
+.home-card-icon svg{ width:1em; height:1em; vertical-align:-0.06em; }
+.home-card-icon svg path{
+  fill: currentColor;
+  stroke: rgba(255,255,255,.95);
+  stroke-width: .8px;
+  paint-order: stroke fill;
+}
+
+
   .home-card h3 {
     font-size: 1.2rem;
     font-weight: 700;
@@ -286,38 +340,69 @@
     flex-direction:column;
     gap:6px;
   }
-  .home-notice-item{
-    display:flex;align-items:center;height:28px;padding:0 2px;
-    border-radius:6px;font-size:.8rem;cursor:pointer;
-    transition:background .13s;overflow:hidden;
-  }
+/* 한 줄 정렬 + 간격 */
+.home-notice-item{ display:flex; align-items:center; gap:6px; }
+.notice-chip{ flex:0 0 auto; }  /* 배지 고정폭 */
+.home-notice-title{ flex:1 1 auto; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.home-notice-num {
+  display: none;
+}
+
+/* --- [수정] 유광 '블랙' 알약 배지 --- */
+.notice-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  font-size: .75rem;
+  font-weight: 900;
+  letter-spacing: .02em;
+  border-radius: 999px;
+  position: relative;
+  line-height: 1;
+  user-select: none;
+
+  /* ▼ 1. 검은색 유광 플라스틱 배경 */
+  background: linear-gradient(180deg, #3a3a3a 0%, #1a1a1a 100%);
+  /* ▼ 2. 흰색 글씨 */
+  color: #fff;
+  /* ▼ 3. 텍스트에 입체감 */
+  text-shadow: 0 1px 1px rgba(0, 0, 0, .5);
+  /* ▼ 4. 플라스틱 테두리 */
+  border: 1px solid #444;
+
+  /* ▼ 5. 볼록한 입체 효과 (내/외부 그림자) */
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, .25), /* 윗면 내부 하이라이트 */
+    inset 0 -8px 10px rgba(0, 0, 0, .3),   /* 아랫면 내부 그림자 (볼록효과) */
+    0 5px 10px rgba(0, 0, 0, .25);             /* 바닥에 떨어지는 그림자 */
+}
+.notice-chip::after{ content:none; }
+
+
+  /* 공지사항 패널 내부만 평평하게 */
+.home-notice-card .notice-chip {
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, .25), /* 윗면 내부 하이라이트 (유지) */
+    inset 0 -8px 10px rgba(0, 0, 0, .3) !important; /* 아랫면 내부 그림자 (유지) */
+    /* 바닥 그림자(outer shadow)는 여기서 제거됨 */
+}
   .home-notice-item:hover{background:#f5faf8;}
-  .home-notice-num{
-    min-width:16px;height:16px;background:#3B82F6; /* 파란색 배경으로 변경 */
-    color:#fff;
-    border-radius:50px;font-size:.6rem;font-weight:700;
-    display:flex;align-items:center;justify-content:center;
-    margin-right:6px;
-    transition:background .23s;
-  }
-  .home-notice-title{
-    flex:1;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;
-    color:#333;font-weight:500;font-size:.8rem;
-  }
   .home-recent-files-row{
     width:100%;
     display:flex;
     gap:20px;
     align-items: stretch;
   }
-  .home-uploads-card {
+.home-uploads-card {
   flex: 1.2;
   min-width: 280px;
   padding: 28px;
   display: flex;
   flex-direction: column;
   position: relative;
-  height: 450px; 
+  height: 810px;   /* ↑ 높이 키움: 커버리지 위젯 안 짤림 */
 
   /* ▼ 유리 재질 효과 적용 ▼ */
   background: linear-gradient(
@@ -486,7 +571,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 18px;
+    margin-bottom: 0; /* 18px에서 0으로 수정 */
     position: relative;
   }
   .home-mysheet-table td.status-working { color: #FDC512; }
@@ -593,15 +678,15 @@
   backdrop-filter: blur(8px); 
   -webkit-backdrop-filter: blur(8px);
 }
-  .home-uploads-card .home-rf-table td.home-title {
-    max-width: 240px;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    display: inline-block;
-    vertical-align: middle;
-    cursor: pointer;
-  }
+.home-uploads-card .home-rf-table td.home-title {
+  display: block;
+  width: 100%;             /* 컬럼 가용 폭을 전부 사용 */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  /* max-width 제거 */
+}
   .home-mysheet-mybox {
     background: #faf7ff;
     border: 2px dashed #c6b8f6;
@@ -734,10 +819,10 @@
     color: var(--text-main);
   }
 
-  #statPending { color: #F59E0B; }
-  #statProducing { color: #10B981; }
-  #statCompleted { color: #3B82F6; }
-  #statRejected { color: #EF4444; }
+#statPending   { color: #FFC107; }   /* 세련된 옐로우 */
+#statProducing { color: #2FD4B3; }   /* 중등 배지 민트 */
+#statCompleted { color: #2C3D70; }   /* 고등 배지 네이비 */
+#statRejected  { color: #8A1538; }   /* 버건디 레드 */
 
 /* ===== 작업 현황 '배지(Badge)' 스타일 (수정 후) ===== */
 .home-mysheet-table .status-badge {
@@ -758,27 +843,31 @@
 /* --- 상태별 배지 색상 (세련된 톤으로 변경) --- */
 
 /* 확인중: 차분한 연회색톤 */
-.home-mysheet-table .status-badge.pending {
-  background-color: #F3F4F6; /* 옅은 회색 배경 */
-  color: #4B5563;           /* 진한 회색 글씨 */
+.home-mysheet-table .status-badge.pending{
+  /* 세련된 노랑 톤 */
+  background: #FFF7D1;   /* 옅은 바탕 */
+  color: #7A5E00;        /* 가독성 있는 텍스트 */
 }
 
-/* 제작중: 신뢰감을 주는 슬레이트톤 */
-.home-mysheet-table .status-badge.producing {
-  background-color: #E2E8F0; /* 옅은 슬레이트 배경 */
-  color: #475569;           /* 진한 슬레이트 글씨 */
+.home-mysheet-table .status-badge.producing{
+    /* 중등 배지(민트) */
+  background: linear-gradient(145deg, #8fffd1, #54e6b9);
+  color: #04382a;
+  border: 1px solid rgba(100,255,220,0.6);
 }
 
-/* 완료: 명확한 브랜드 블루 */
-.home-mysheet-table .status-badge.completed {
-  background-color: #3B82F6; /* 기존보다 살짝 톤 다운된 파란색 */
-  color: #FFFFFF;           /* 흰색 글씨 */
+.home-mysheet-table .status-badge.completed{
+    /* 고등 배지(네이비) */
+  background: linear-gradient(145deg, #1e2b50, #2c3d70);
+  color: #EAF2FF;
+  border: 1px solid rgba(90,150,255,0.35);
 }
 
-/* 반려: 주의를 끄는 톤 다운된 붉은색 */
-.home-mysheet-table .status-badge.rejected {
-  background-color: #FEE2E2; /* 옅은 붉은색 배경 */
-  color: #B91C1C;           /* 톤 다운된 붉은색 글씨 */
+.home-mysheet-table .status-badge.rejected{
+  /* 버건디 레드 */
+  background: linear-gradient(145deg, #8A1538, #5C0A1F);
+  color: #FFFFFF;
+  border: 1px solid rgba(138,21,56,0.5);
 }
 
 .home-notice-card {
@@ -791,11 +880,19 @@
   flex: 1;
   gap: 24px;
   align-items: stretch;
-  margin-top: 18px;
+  margin-top: 0; /* 18px에서 0으로 수정 */
+}
+
+/* '최근 업로드' 패널 내부 '헤더'를 가로로 배치하는 컨테이너 */
+.home-uploads-header-row {
+  display: flex;
+  gap: 24px; /* 컨텐츠 row와 동일한 간격 */
+  align-items: stretch;
+  margin-bottom: 18px; /* 헤더 영역과 컨텐츠 영역 사이의 간격 */
 }
 
 .home-rf-table-wrap {
-  max-height: 330px;
+  max-height: 580px;
   overflow-y: auto;
   flex: 1;
 }
@@ -807,44 +904,16 @@
 
 /* '준비중' 영역이 2/3를 차지하도록 설정 */
 .home-preparing-box {
-  flex: 2; 
-  background: #faf7ff;
-  border: 2px dashed #c6b8f6;
+  flex: 2;
+  background: transparent;   /* 배경 제거 */
+  border: none;               /* 점선 테두리 제거 */
   border-radius: 18px;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;       /* 위젯이 꽉 차도록 */
+  justify-content: stretch;
   height: 100%;
-  box-shadow: 0 2px 8px rgba(160, 140, 255, 0.07);
-}
-
-/* 공지사항 태그 기본 스타일 */
-.notice-tag {
-  margin-right: 8px;
-  padding: 3px 7px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  border-radius: 4px;
-  line-height: 1;
-  flex-shrink: 0; /* 너비가 줄어들지 않도록 설정 */
-}
-
-/* [공지] 태그 스타일 */
-.notice-tag-notice {
-  background-color: #27272a; /* 검정색 */
-  color: white;
-}
-
-/* [업데] 태그 스타일 (형광 느낌) */
-.notice-tag-update {
-  background-color: #fde047; /* 촌스럽지 않은 노란색 */
-  color: #1f2937; /* 검정색 계열 */
-}
-
-/* [수정] 태그 스타일 (형광 느낌) */
-.notice-tag-fix {
-  background-color: #f43f5e; /* 촌스럽지 않은 붉은색 */
-  color: white;
+  box-shadow: none;           /* 잔광 제거 */
+  padding: 0;                 /* 여백 제거(선택) */
 }
 
 .mobile-date {
@@ -1068,3 +1137,66 @@
   }
 
 }
+
+/* === [최근 업로드] 고등/중등 배지 === */
+.level-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  margin-right: 8px;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.6);
+  box-shadow:
+    inset 2px 2px 6px rgba(255,255,255,0.6),
+    inset -2px -2px 6px rgba(0,0,0,0.15),
+    0 4px 10px rgba(0,0,0,0.2);
+  backdrop-filter: blur(3px);
+}
+
+/* 🟩 중등: 민트/라이트그린 형광 유광 */
+.level-badge.middle {
+  background: linear-gradient(145deg, #8fffd1, #54e6b9);
+  color: #04382a;
+  border: 1px solid rgba(100,255,220,0.8);
+}
+
+/* 🔵 고등: 네이비/버건디/딥그린 중 택1 (조화된 형광 느낌) */
+.level-badge.high {
+  background: linear-gradient(145deg, #1e2b50, #2c3d70);
+  color: #d1f1ff;
+  border: 1px solid rgba(90,150,255,0.4);
+  box-shadow:
+    inset 2px 2px 6px rgba(255,255,255,0.25),
+    inset -2px -2px 8px rgba(0,0,0,0.3),
+    0 3px 12px rgba(30,60,150,0.45);
+}
+
+/* hover 시 반짝이는 효과 */
+.level-badge:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 1px 1px 3px rgba(255,255,255,0.8),
+    inset -1px -1px 3px rgba(0,0,0,0.2),
+    0 0 12px rgba(255,255,255,0.5);
+  transition: all 0.25s ease;
+}
+
+/* [Fix] 공지사항 패널: 숫자/배지 뒤 유광 레이어 전부 제거 (::before, ::after 모두) */
+.home-notice-card .home-notice-num::after,
+.home-notice-card .notice-chip::after,
+.home-notice-card .home-notice-num::before,
+.home-notice-card .notice-chip::before {
+  content: none !important;
+  background: none !important;
+  mix-blend-mode: normal !important;
+  display: none !important; /* 확실한 제거를 위해 display: none 추가 */
+}
+
+/* (옵션) 섞임 효과 자체를 끊고 싶다면 각 행에 격리 */
+.home-notice-card .home-notice-item { isolation: isolate; }
+
+/* 최근 업로드 표: 클릭 가능한 행 */
+.home-uploads-card .home-rf-table tr.rf-clickable { cursor: pointer; }
+.home-uploads-card .home-rf-table tr.rf-clickable:hover { background-color: #f5f5f5; }

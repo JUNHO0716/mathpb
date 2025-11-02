@@ -14,14 +14,14 @@
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/pricing.css">
   <link rel="stylesheet" href="css/cs.css">
-  <link rel="stylesheet" href="css/chatbot-main.css">  <!-- ⬅ 챗봇 페이지용 --> 
-  <script src="js/main.js" defer></script>
+  <link rel="stylesheet" href="css/chatbot-main.css">  <script src="js/main.js" defer></script>
 </head>
 
-<body class="flex flex-col min-h-screen">
+<body class="flex flex-col h-screen">
   
   <header class="bg-white/80 backdrop-blur-sm shadow-md sticky top-0 z-50">
-    <div class="container mx-auto px-8 py-4 flex items-center">
+    <div class="container mx-auto pl-8 py-4 flex items-center">
+      
       <a href="index.html" class="flex items-center space-x-2">
         <img src="image_logo/logo.png" alt="MathBee Logo" class="h-8" /> 
         <span class="text-xl font-bold text-black">MathBee</span>
@@ -49,10 +49,10 @@
           <a href="admin.html" id="goAdminPage" style="display:none;">관리자페이지</a>
         </div>
       </div>
+      
     </div>
   </header>
-  
-  <main id="content-area" class="flex-grow container mx-auto p-8">
+  <main id="content-area" class="flex-grow overflow-y-auto">
     <div class="text-center text-gray-500 pt-20">
       <h2 class="text-2xl font-semibold">안녕하세요! MathBee 입니다.</h2>
       <p class="mt-2">상단 메뉴를 클릭하여 원하시는 서비스를 확인해보세요.</p>
@@ -67,8 +67,7 @@
       <a href="#" class="icon-button nav-link" data-page="pricing.html">
         <i class="fas fa-credit-card"></i>
       </a>
-      <a href="#" class="icon-button nav-link" data-page="chatbot_main.html"> <!-- ✅ 추가 -->
-      <i class="fas fa-robot"></i>
+      <a href="#" class="icon-button nav-link" data-page="chatbot_main.html"> <i class="fas fa-robot"></i>
     </a>
       <a href="#" class="icon-button nav-link" data-page="story.html">
         <i class="fas fa-book-open"></i>

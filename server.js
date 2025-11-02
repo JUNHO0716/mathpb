@@ -33,6 +33,8 @@ import noticeRoutes from './routes/notices.js';
 import inquiryRoutes from './routes/inquiry.js';
 import chatRoutes from './routes/chat.js';
 import problemOCR from "./routes/problem_ocr.js";
+import coverageRoutes from './routes/coverage.js'; // ✅ 추가
+import myMemosRouter from './routes/myMemos.js';
 
 const app = express();
 const PROD = process.env.NODE_ENV === 'production';
@@ -96,10 +98,12 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/notices', noticeRoutes);
 app.use('/api/inquiry', inquiryRoutes);
 app.use("/api/chat", chatRoutes);
+app.use('/api/coverage', isLoggedIn, coverageRoutes); // ✅ 추가 (로그인 사용자만 조회)
+app.use(myMemosRouter);
 
 // --- 특수 라우트 (Toss 프록시, DB 핑) ---
 app.get('/ping-db', async (req, res) => {
-  const db = require('./config/database.js').default;
+  const { default: db } = await import('./config/database.js');  // ✅
   try {
     const [rows] = await db.query('SELECT NOW() AS now');
     res.send(`✅ DB 연결 성공! 현재 시간: ${rows[0].now}`);

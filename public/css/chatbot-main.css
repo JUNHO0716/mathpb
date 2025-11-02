@@ -162,7 +162,7 @@
 .chatbot-layout{
   display:grid;
   grid-template-columns:280px minmax(0,1fr);
-  height:calc(100vh - 120px);
+  height:calc(100vh - 80px); /* ✅ 120px에서 80px로 수정 (40px 확보) */
   background:#fff;
 }
 
@@ -560,17 +560,19 @@
   margin-top:3px;
 }
 
-
-
-/* chat-main에 패딩이 있으므로 여백 없애기 */
 .chat-main {
   display:flex;
   flex-direction:column;
   align-items:center;
-  padding:0;                      /* ⬅ 상단/좌우 패딩 제거 */
+  padding:0;
   overflow:hidden;
   background:#fff;
   min-height:0;
+  position: relative;            /* ✅ 배경 레이어 깔기 위해 추가 */
+}
+.chat-main > * {                 /* ✅ 실제 내용이 배경 위로 나오도록 */
+  position: relative;
+  z-index: 1;
 }
 
 #chatInputBottom,
@@ -683,4 +685,101 @@
 }
 .hero-suggest-dropdown .hero-suggest-chip:hover{
   background: #eef2f6;
+}
+
+/* ================================
+   🔮 중앙 컬러 웨이브(영상 느낌) 배경
+   - chat-main 뒤에만 살짝 비치도록 레이어링
+   - 중앙에 집중되도록 mask 처리
+================================= */
+.chat-main::before{
+  content:"";
+  position:absolute; inset:0;
+  pointer-events:none;
+  z-index:0;
+
+  /* 컬러 레이어 3장 + 은은한 하이라이트 */
+  background:
+    radial-gradient(600px 420px at 45% 48%, rgba(255, 220, 64, .28), transparent 65%),
+    radial-gradient(520px 540px at 68% 56%, rgba(96, 165, 250, .26), transparent 60%),
+    radial-gradient(620px 520px at 30% 66%, rgba(196, 181, 253, .28), transparent 62%),
+    linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.35) 35%, rgba(255,255,255,0) 70%);
+
+  filter: blur(24px) saturate(140%);
+  transform: translateZ(0); /* GPU 힌트 */
+  animation: mbCenterGlow 18s ease-in-out infinite alternate,
+             mbSoftPan    36s linear       infinite;
+
+  /* 중앙에만 비치게 마스크(주변은 투명) */
+  -webkit-mask-image: radial-gradient(closest-side, rgba(0,0,0,.95), rgba(0,0,0,0) 70%);
+          mask-image: radial-gradient(closest-side, rgba(0,0,0,.95), rgba(0,0,0,0) 70%);
+
+  opacity:.85;
+}
+
+/* 중앙 컬러 물결 — 움직임을 더 크게 */
+@keyframes mbCenterGlow {
+  0%   { background-position: 34% 60%, 78% 35%, 22% 70%, 50% 50%; }
+  50%  { background-position: 52% 42%, 60% 65%, 42% 58%, 50% 50%; }
+  100% { background-position: 40% 30%, 72% 62%, 30% 80%, 50% 50%; }
+}
+
+/* 사이즈 호흡감 강화 */
+@keyframes mbSoftPan {
+  0%   { background-size: 110% 110%, 110% 110%, 110% 110%, 100% 100%; }
+  50%  { background-size: 170% 170%, 160% 160%, 175% 175%, 100% 100%; }
+  100% { background-size: 120% 120%, 120% 120%, 120% 120%, 100% 100%; }
+}
+
+/* 접근성: 모션 최소화 환경 */
+@media (prefers-reduced-motion: reduce) {
+  .chat-main::before { animation: none; }
+}
+
+/* 모바일에서는 강도 살짝 낮춤(원하면 값 조절) */
+@media (max-width: 768px) {
+  .chat-main::before { filter: blur(18px); opacity: .55; }
+}
+
+/* 회전하는 색상 링 레이어(살짝 도는 느낌) */
+.chat-main::after {
+  content: "";
+  position: absolute;
+  inset: -12%;                 /* 가장자리를 넘어가게 두어 회전 시 잘림 방지 */
+  pointer-events: none;
+  z-index: 0;
+  transform-origin: 50% 50%;
+  will-change: transform;
+
+  /* 부드러운 색상 링 - 브랜드 노랑/블루/보라 톤 */
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 214, 70, .28),
+    rgba(96, 165, 250, .22),
+    rgba(196, 181, 253, .24),
+    rgba(255, 214, 70, .28)
+  );
+
+  filter: blur(38px) saturate(140%);
+  opacity: .38;
+  animation: mbSpin 28s linear infinite, mbPulse 9s ease-in-out infinite alternate;
+
+  /* 중앙 집중(가장자리는 투명) */
+  -webkit-mask-image: radial-gradient(closest-side, rgba(0,0,0,.8), rgba(0,0,0,0) 70%);
+          mask-image: radial-gradient(closest-side, rgba(0,0,0,.8), rgba(0,0,0,0) 70%);
+}
+
+@keyframes mbSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* 살짝 숨쉬듯 밝기 변화 */
+@keyframes mbPulse {
+  0%   { opacity: .28; filter: blur(34px) saturate(130%); }
+  100% { opacity: .46; filter: blur(44px) saturate(150%); }
+}
+
+/* 모션 최소화 환경 배려 */
+@media (prefers-reduced-motion: reduce) {
+  .chat-main::after { animation: none; }
 }

@@ -159,11 +159,11 @@ router.get('/api/downloads/recent', isLoggedIn, verifyOrigin, async (req, res) =
   }
 });
 
-// 최근 업로드
+// 최근 업로드 (id 포함)
 router.get('/api/uploads/recent', isLoggedIn, verifyOrigin, async (req, res) => {
   try {
     const [rows] = await db.query(
-      `SELECT title AS name, DATE_FORMAT(uploaded_at, '%Y-%m-%d') AS date
+      `SELECT id, title AS name, DATE_FORMAT(uploaded_at, '%Y-%m-%d') AS date
        FROM files
        ORDER BY uploaded_at DESC
        LIMIT 10`
@@ -173,6 +173,51 @@ router.get('/api/uploads/recent', isLoggedIn, verifyOrigin, async (req, res) => 
     res.status(500).json({ message: '업로드 목록 오류', error: e.message });
   }
 });
+
+// 파일 상세 조회
+router.get('/api/files/:id', isLoggedInJson, verifyOrigin, async (req, res) => {
+  try {
+    const fileId = req.params.id;
+    const [rows] = await db.query(`
+      SELECT id, region, district, school, grade, year, semester, title, level,
+             uploaded_at, subject, memo, hwp_filename, pdf_filename
+      FROM files
+      WHERE id = ?
+      LIMIT 1
+    `, [fileId]);
+
+    if (!rows.length) {
+      return res.status(404).json({ message: '파일 없음' });
+    }
+
+    const r = rows[0];
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+
+    return res.json({
+      id: r.id,
+      region: r.region,
+      district: r.district,
+      school: r.school,
+      grade: r.grade,
+      year: r.year,
+      semester: r.semester,
+      subject: r.subject,
+      title: r.title,
+      level: r.level,
+      uploaded_at: r.uploaded_at,
+      memo: r.memo,
+      files: {
+        pdf: !!r.pdf_filename,
+        hwp: !!r.hwp_filename
+      }
+    });
+  } catch (e) {
+    res.status(500).json({ message: 'DB 오류', error: e.message });
+  }
+});
+
+
 
 // [신규 추가] 자료실 파일 메모 저장/수정
 router.patch('/api/files/:id/memo', isLoggedIn, async (req, res) => {

@@ -34,32 +34,83 @@ body {
   }
 }
 
-/* ===== 사이드바 스타일 ===== */
+/* ── 고급 유광 블랙: 과한 대비/노이즈 제거, 깊은 바디톤 ── */
 .sidebar {
   width: var(--sb-open);
-  background: #1C2A3A;
-  border-top-right-radius: 30px;
-  border-bottom-right-radius: 30px;
+  /* 깊고 깨끗한 바디: 미세한 수직 그라데이션만 */
+  background: linear-gradient(180deg, #0A0B0E 0%, #050608 58%, #0A0B0E 100%);
   overflow: hidden;
-  box-shadow: 4px 0 15px rgba(0,0,0,0.3);
-  color: #e0e0e0;
-  transition: width 0.3s ease, border-radius 0.3s ease;
+
+  /* 외곽 그림자 과하지 않게, 내부 음영은 은은하게 */
+  box-shadow:
+    0 20px 40px rgba(0,0,0,0.55),
+    0 0 0 1px rgba(255,255,255,0.04),
+    inset 10px 10px 24px rgba(0,0,0,0.60),
+    inset -10px -10px 22px rgba(255,255,255,0.03);
+
+  color: #EAEAEA;
+  transition: width .3s ease, border-radius .3s ease, background .2s ease;
   display: flex;
   flex-direction: column;
   padding-top: 20px;
   align-items: stretch;
   position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
+  top: 0; left: 0; bottom: 0;
   z-index: 1000;
   border-right: none;
+  isolation: isolate; /* 하이라이트 블렌딩 안정화 */
 }
+
+
+/* ── 사진 같은 고정 하이라이트: 과장 제거, 라인 1~2개만 아주 얕게 ── */
+.sidebar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    /* 좌상단에서 감기는 넓고 매우 부드러운 하이라이트(타원형) */
+    radial-gradient(180% 80% at -20% 0%,
+      rgba(255,255,255,0.20) 2%,
+      rgba(255,255,255,0.10) 8%,
+      rgba(255,255,255,0.00) 22%),
+
+    /* 하단 좌측에서 대각선으로 스치는 얇은 반사 띠(과하지 않게) */
+    linear-gradient(14deg,
+      transparent 70%,
+      rgba(255,255,255,0.12) 76%,
+      transparent 82%);
+
+  mix-blend-mode: screen;  /* 밝은 부분만 합성 */
+  opacity: .85;            /* 번들감 강도 */
+}
+
+
+/* ── 양쪽 에지에 가는 림광: 두께/투명도 최소화로 고급스러움 유지 ── */
+.sidebar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    /* 오른쪽 에지 */
+    linear-gradient(to bottom,
+      rgba(255,255,255,0.20),
+      rgba(255,255,255,0.04) 65%,
+      rgba(255,255,255,0)) right / 1px 100% no-repeat,
+    /* 왼쪽 에지 */
+    linear-gradient(to bottom,
+      rgba(255,255,255,0.12),
+      rgba(255,255,255,0) 70%) left / 1px 100% no-repeat;
+  opacity: .45;
+}
+
+
 
 .sidebar.collapsed {
   width: var(--sb-collapsed);
-  border-top-right-radius: 30px;
-  border-bottom-right-radius: 30px;
+  border-radius: 30px;
 }
 
 .menu-list {
@@ -125,16 +176,30 @@ body {
 
 .menu-item .active-bg {
   position: absolute;
-  left: 12px;
-  right: 12px;
-  top: 3px;
-  bottom: 3px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  box-shadow: none;
+  left: 12px; right: 12px; top: 3px; bottom: 3px;
+  background: linear-gradient(180deg,
+              rgba(255,255,255,0.22) 0%,
+              rgba(255,255,255,0.08) 100%);
+  border-radius: 12px;
+  box-shadow:
+    inset 2px 2px 6px rgba(0,0,0,0.60),
+    inset -2px -2px 7px rgba(255,255,255,0.14),
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 8px 18px rgba(0,0,0,0.35);
   z-index: 0;
-  opacity: 0;
-  transition: opacity 0.18s;
+  opacity: 0;               /* 기존 동작 유지 */
+  transition: opacity .18s;
+}
+.menu-item.active .active-bg::after {
+  content:"";
+  position: absolute;
+  left: 10%; right: -10%;
+  top: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent,
+             rgba(255,255,255,0.55), transparent);
+  opacity: .7;
+  pointer-events: none;
 }
 
 .menu-item.active .active-bg {
@@ -152,7 +217,16 @@ body {
 }
 
 .menu-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.06),
+    rgba(255,255,255,0.02));
+}
+.menu-item.active span:not(.active-bg) { color:#fff; font-weight:600; }
+.menu-item.active .menu-icon { filter: brightness(1.10) saturate(1.08); }
+.menu-item:hover {
+  background: linear-gradient(180deg,
+              rgba(255,255,255,0.08),
+              rgba(255,255,255,0.03));
 }
 
 .menu-item span:not(.active-bg) {

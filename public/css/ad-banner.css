@@ -172,17 +172,23 @@
   object-fit:contain;
 }
 
-/* 아이콘 메뉴 리스트 */
+/* 한 줄에 7칸 고정 + 각 칸 중앙 정렬 */
 .hero-menu-list{
-  display:flex;
-  flex-wrap:wrap;
-  gap:24px 45px;
+  display:grid;
+  grid-template-columns: repeat(7, 1fr); /* ← 한 줄 7칸 */
+  column-gap:56px;   /* 좌우 간격만 조절 */
+  row-gap:0;         /* 한 줄이므로 0 */
+  justify-items:center;
+  align-items:start;
 }
+/* 칸(셀) 안에서 아이콘+텍스트를 정확히 중앙에 */
 .hero-menu{
   display:flex;
   flex-direction:column;
-  align-items:center;
-  gap:8px;
+  align-items:center;   /* 가로 중앙 */
+  text-align:center;    /* 텍스트 중앙 */
+  gap:10px;
+  width:100%;           /* 셀 폭을 꽉 채움 */
   background:none;
   border:0;
   padding:0;
@@ -190,15 +196,18 @@
   transition: transform .15s ease;
 }
 .hero-menu img{
-  width:48px;
-  height:48px;
-  object-fit:contain;
+  width:56px;
+  height:56px;
   display:block;
+  margin:0 auto;
+  object-fit:contain;
 }
 .hero-menu span{
-  font-size:.92rem;
-  color:#333;
+  display:block;
+  text-align:center;
+  white-space:nowrap;   /* 줄바꿈으로 치우쳐 보이는 것 방지 */
 }
+
 .hero-menu:hover{ transform: scale(1.06); }
 
 /* 반응형: 900px 이하에서는 위아래로 쌓이도록 */
@@ -296,4 +305,11 @@
   height: 24px;
   background: #d1d5db;
   margin: 0 6px;
+}
+
+/* ▽ 1번 메뉴(기출자료) 아이콘 시각 중심 보정 */
+.hero-menu-list .hero-menu:first-child img{
+  transform: translateX(6px); /* 4~8px 사이로 미세 조정 */
+  will-change: transform;
+  transition: none;           /* 호버 때 흔들림 방지 */
 }
