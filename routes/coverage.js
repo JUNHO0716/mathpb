@@ -315,6 +315,8 @@ return res.json({ total: t, filled: f, pct: t ? Math.round((f/t)*100) : 0 });
   res.json({ total, filled, pct: total ? Math.round((filled / total) * 100) : 0 });
 });
 
+// /routes/coverage.js (214행 ~ 279행)
+
 /* ---------- [E] 허니콤(학교 리스트) ---------- */
 r.get('/schools', async (req, res) => {
   const { level, year, city, district } = req.query;
@@ -322,12 +324,42 @@ r.get('/schools', async (req, res) => {
 
     await ensureSchoolsReady();              // ← 추가
 
+  // ✅ [수정] 제외할 키워드 리스트 (특목고 제외)
+  const excludeKeywords = [
+    '%마이스터고%',
+    '%특성화고%',
+    '%공업고%',
+    '%상업고%',
+    '%정보산업고%',
+    '%산업고%',
+    '%디자인고%',
+    '%관광고%',
+    '%조리고%',
+    '%세무고%',
+    '%금융고%',
+    '%경영고%',
+    '%애니메이션고%',
+    '%영상고%',
+    '%인터넷고%',
+    '%로봇고%',
+    '%생명과학고%',
+    '%해양고%'
+  ];
+
   const hasSchools = await hasSchoolsTable();
   if (hasSchools) {
     const where = ['s.level=?'];
     const params = [level];
     if (city)     { where.push('s.region=?');   params.push(city); }
     if (district) { where.push('s.district=?'); params.push(district); }
+
+    // ✅ [수정] '고등'일 때만 제외 쿼리 추가
+    if (level === '고등') {
+      const excludeQuery = excludeKeywords
+        .map(kw => `s.name NOT LIKE ${db.escape(kw)}`)
+        .join(' AND ');
+      where.push(`(${excludeQuery})`);
+    }
 
     const sql = `
       SELECT s.id, s.name, s.short_name, s.region, s.district,
@@ -341,19 +373,18 @@ r.get('/schools', async (req, res) => {
        WHERE ${where.join(' AND ')}
        ORDER BY s.region, s.district, s.name
     `;
-const [srows] = await db.query(sql, [year, ...params]);
-if (srows.length > 0) {
-  return res.json(srows.map(r => ({
-    id: r.id,
-    name: r.name,
-    short_name: r.short_name || r.name,
-    region: r.region,
-    district: r.district,
-    has_any: !!r.has_any
-  })));
-}
-// ▼ 폴백 (아래 기존 files 파생 코드 그대로 실행)
-
+    const [srows] = await db.query(sql, [year, ...params]);
+    if (srows.length > 0) {
+      return res.json(srows.map(r => ({
+        id: r.id,
+        name: r.name,
+        short_name: r.short_name || r.name,
+        region: r.region,
+        district: r.district,
+        has_any: !!r.has_any
+      })));
+    }
+    // ▼ 폴백 (아래 기존 files 파생 코드 그대로 실행)
   }
 
   // ■ 폴백: files에서 파생
@@ -361,6 +392,14 @@ if (srows.length > 0) {
   const args  = [level];
   if (city)     { conds.push('f.region=?');   args.push(city); }
   if (district) { conds.push('f.district=?'); args.push(district); }
+
+  // ✅ [수정] '고등'일 때만 제외 쿼리 추가 (폴백)
+  if (level === '고등') {
+    const excludeQuery = excludeKeywords
+      .map(kw => `f.school NOT LIKE ${db.escape(kw)}`)
+      .join(' AND ');
+    conds.push(`(${excludeQuery})`);
+  }
 
   const [rows] = await db.query(
     `SELECT

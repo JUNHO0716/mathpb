@@ -375,20 +375,26 @@ async function refreshGrid(root, state){
   }
 }
 
-  // '검단고등학교' → '검단고', '성남여자고등학교' → '성남여자고', '분당중앙고' → 그대로
+// ✅ '고성고' 버그 해결 (유지)
   function normalizeSchoolLabel(raw){
-    const name = (raw || '').replace(/\s+/g, '');
-    if (/고등학교/.test(name)) return name.replace(/고등학교.*$/, '고');
-    if (/중학교/.test(name))   return name.replace(/중학교.*$/, '중');
-    if (name.includes('고'))    return name.split('고')[0] + '고';
-    if (name.includes('중'))    return name.split('중')[0] + '중';
-    return name;
+    const name = (raw || '').replace(/\s+/g, ''); // 공백 제거
+    
+    // '고등학교'/'중학교'로 *끝나는* 경우에만 축약
+    if (/고등학교$/.test(name)) return name.replace(/고등학교$/, '고');
+    if (/중학교$/.test(name))   return name.replace(/중학교$/, '중');
+
+    return name; 
   }
 
-  // 5글자 초과 시 2줄(5자/나머지) — 너무 길면 2번째 줄을 6자까지만 노출
+  // ✅ [수정] 줄바꿈 기준을 5글자에서 4글자로 변경
   function makeLabel(raw){
     const s = normalizeSchoolLabel(raw);
-    return (s.length > 5) ? (s.slice(0,5) + '<br>' + s.slice(5,11)) : s;
+    
+    // 4글자 이하는 한 줄
+    if (s.length <= 4) return s;
+    
+    // 4글자 초과 시: 첫 줄 4자 + 두 번째 줄 4자 (최대 8자)
+    return s.slice(0, 4) + '<br>' + s.slice(4, 8);
   }
 
   function renderNextChunk(root, state){
