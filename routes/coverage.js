@@ -12,60 +12,77 @@ async function hasSchoolsTable() {
   return (row?.c || 0) > 0;
 }
 
-async function ensureSchoolsReady() {
-  if (!(await hasSchoolsTable())) return;         // 테이블 자체가 없으면 패스(폴백 로직이 처리)
+// 파일 상단 (기존 변수 그대로 사용)
+let _ENSURE_BUSY = false;
+let _ENSURE_LAST = 0;
+const ENSURE_COOLDOWN_MS = 60_000; // 60초 내 재실행 방지
 
-  // 1) 비어 있으면 1회 시드
-  const [[cnt]] = await db.query(`SELECT COUNT(*) AS c FROM schools`);
-  if ((cnt?.c || 0) === 0) {
-    await db.query(`
-      INSERT INTO schools (name, short_name, region, district, level, status, last_seen_at)
+async function ensureSchoolsReady() {
+  // 0) schools 테이블 있는지 확인
+  const [[tbl]] = await db.query(`
+    SELECT COUNT(*) AS c
+    FROM information_schema.tables
+    WHERE table_schema = DATABASE() AND table_name = 'schools'
+  `);
+  if (!tbl?.c) return;
+
+  // 1) 쿨다운
+  const now = Date.now();
+  if (now - _ENSURE_LAST < ENSURE_COOLDOWN_MS) return;
+
+  // 2) 동일 프로세스 동시 진입 방지
+  while (_ENSURE_BUSY) { await new Promise(r => setTimeout(r, 40)); }
+  _ENSURE_BUSY = true;
+
+  // 3) 프로세스 간 상호배제: advisory lock
+  let gotLock = 0;
+  try {
+    const [lockRows] = await db.query(`SELECT GET_LOCK('ensureSchoolsReady', 5) AS got`);
+    gotLock = lockRows?.[0]?.got || 0;
+    if (!gotLock) { _ENSURE_BUSY = false; return; }
+
+  const sql = `
+    INSERT INTO schools (name, short_name, region, district, level, status, last_seen_at)
+    SELECT school, NULL, region, district, level_norm, 'active', MAX(uploaded_at) AS last_seen_at
+    FROM (
       SELECT
-        f.school                           AS name,
-        NULL                                AS short_name,
-        f.region, f.district, f.level,
-        'active'                            AS status,
-        NOW()                               AS last_seen_at
+        f.school AS school,
+        f.region, f.district,
+        CASE
+          WHEN f.level IN ('고등','고','고등학교','H','HIGH','high','High') THEN '고등'
+          WHEN f.level IN ('중등','중','중학교','M','MID','middle','Middle') THEN '중등'
+          ELSE NULL
+        END AS level_norm,
+        f.uploaded_at
       FROM files f
       WHERE f.school IS NOT NULL AND f.school <> ''
-      GROUP BY f.school, f.region, f.district, f.level
-    `);
-  }
+    ) t
+    WHERE t.level_norm IS NOT NULL
+    GROUP BY school, region, district, level_norm
+    ON DUPLICATE KEY UPDATE
+      status = 'active',
+      last_seen_at = GREATEST(VALUES(last_seen_at), COALESCE(schools.last_seen_at, '1970-01-01'))
+  `;
 
   try {
-    // 1️⃣ 신규 학교 추가
-    await db.query(`
-      INSERT IGNORE INTO schools (name, short_name, region, district, level, status, last_seen_at)
-      SELECT f.school, NULL, f.region, f.district, f.level, 'active', NOW()
-      FROM files f
-      WHERE f.school IS NOT NULL AND f.school <> ''
-      GROUP BY f.school, f.region, f.district, f.level
-    `);
-
-    // 2️⃣ 잠깐 쉬었다가(락 해제 대기)
-    await new Promise(resolve => setTimeout(resolve, 200));
-
-    // 3️⃣ 최근 업로드 시점 갱신
-    await db.query(`
-      UPDATE schools s
-      JOIN (
-        SELECT f.school, f.region, f.district, f.level, MAX(f.uploaded_at) AS seen
-          FROM files f
-        GROUP BY f.school, f.region, f.district, f.level
-      ) x
-        ON x.school=s.name AND x.region=s.region AND x.district=s.district AND x.level=s.level
-      SET s.last_seen_at = COALESCE(x.seen, s.last_seen_at)
-    `);
-  } catch (err) {
-    if (err.code === 'ER_LOCK_DEADLOCK') {
-      console.warn('⚠️ Deadlock 발생 → 재시도 중...');
-      await new Promise(r => setTimeout(r, 500));
-      return await ensureSchoolsReady(); // 1회 재시도
+    await db.query(sql);
+  } catch (e) {
+    if (e?.code === 'ER_LOCK_DEADLOCK' || e?.errno === 1213) {
+      console.warn('⚠️ Deadlock 발생 → 재시도(200~400ms 대기)…');
+      await new Promise(r => setTimeout(r, 200 + Math.floor(Math.random() * 200)));
+      await db.query(sql);
+    } else {
+      // Data truncated 등은 로깅만 하고 넘겨서 서버 다운 방지
+      console.error('[ensureSchoolsReady] 업서트 실패:', e?.code, e?.sqlMessage || e?.message);
     }
-    throw err;
+  }
+
+    _ENSURE_LAST = Date.now();
+  } finally {
+    if (gotLock) { try { await db.query(`SELECT RELEASE_LOCK('ensureSchoolsReady')`); } catch {} }
+    _ENSURE_BUSY = false;
   }
 }
-
 
 /* ---------- [A] 연도 목록: 2024 ~ max(현재연도, files.max(year)) ---------- */
 r.get('/years', async (_req, res) => {
@@ -103,13 +120,17 @@ r.get('/cities', async (req, res) => {
       GROUP BY s.region
       ORDER BY s.region
     `;
-    const [rows] = await db.query(sql, [year, level]);
-    return res.json(rows.map(r => ({
-      city: r.city,
-      total: r.total,
-      filled: r.filled,
-      pct: r.total ? Math.round((r.filled / r.total) * 100) : 0
-    })));
+    const [srows] = await db.query(sql, [year, level]);
+    if (srows.length > 0) {
+      return res.json(srows.map(r => ({
+        city: r.city,
+        total: r.total,
+        filled: r.filled,
+        pct: r.total ? Math.round((r.filled / r.total) * 100) : 0
+      })));
+    }
+// ▼ schools가 0행이면 files 기반 폴백 (아래 기존 폴백 코드 그대로 실행)
+
   }
 
 const sqlFallback = `
@@ -167,13 +188,30 @@ r.get('/districts', async (req, res) => {
       GROUP BY s.district
       ORDER BY s.district
     `;
-    const [rows] = await db.query(sql, [year, level, city]);
-    return res.json(rows.map(r => ({
-      district: r.district,
-      total: r.total,
-      filled: r.filled,
-      pct: r.total ? Math.round((r.filled / r.total) * 100) : 0
-    })));
+const [srows] = await db.query(sql, [year, level, city]);
+if (srows.length > 0) {
+  return res.json(srows.map(r => ({
+    district: r.district, total: r.total, filled: r.filled,
+    pct: r.total ? Math.round((r.filled / r.total) * 100) : 0
+  })));
+}
+// ▼ 폴백 (기존 코드 유지, 변수명만 충돌 안 나게)
+const [baseRows] = await db.query(sqlFallback, [level, city]);
+const [yrRows] = await db.query(`
+  SELECT f.district,
+         COUNT(DISTINCT CONCAT_WS('|', f.school, f.region, f.district, f.level)) AS filled
+  FROM files f
+  WHERE f.level=? AND f.region=? AND f.year=?
+  GROUP BY f.district
+`, [level, city, year]);
+const filledMap = new Map(yrRows.map(r => [r.district, r.filled]));
+
+return res.json(baseRows.map(r => {
+  const filled = filledMap.get(r.district) || 0;
+  const total  = r.total_base || 0;
+  return { district: r.district, total, filled, pct: total ? Math.round((filled/total)*100) : 0 };
+}));
+
   }
 
   // ■ 폴백
@@ -232,10 +270,28 @@ r.get('/stats', async (req, res) => {
         FROM schools s
        WHERE ${where.join(' AND ')}
     `;
-    const [[row]] = await db.query(sql, [year, ...params]);
-    const total  = row?.total  || 0;
-    const filled = row?.filled || 0;
-    return res.json({ total, filled, pct: total ? Math.round((filled / total) * 100) : 0 });
+const [[row]] = await db.query(sql, [year, ...params]);
+const total  = row?.total  || 0;
+const filled = row?.filled || 0;
+if (total > 0) {
+  return res.json({ total, filled, pct: Math.round((filled / total) * 100) });
+}
+// ▼ 폴백 (기존 files 기반 코드 그대로)
+const conds = ['level=?']; const args = [level];
+if (city)     { conds.push('region=?');   args.push(city); }
+if (district) { conds.push('district=?'); args.push(district); }
+
+const [[base]] = await db.query(
+  `SELECT COUNT(DISTINCT CONCAT_WS('|', school, region, district, level)) AS total
+     FROM files WHERE ${conds.join(' AND ')}`, args
+);
+const [[yr]] = await db.query(
+  `SELECT COUNT(DISTINCT CONCAT_WS('|', school, region, district, level)) AS filled
+     FROM files WHERE ${conds.concat(['year=?']).join(' AND ')}`, [...args, year]
+);
+const t = base?.total || 0, f = yr?.filled || 0;
+return res.json({ total: t, filled: f, pct: t ? Math.round((f/t)*100) : 0 });
+
   }
 
   // ■ 폴백
@@ -285,15 +341,19 @@ r.get('/schools', async (req, res) => {
        WHERE ${where.join(' AND ')}
        ORDER BY s.region, s.district, s.name
     `;
-    const [rows] = await db.query(sql, [year, ...params]);
-    return res.json(rows.map(r => ({
-      id: r.id,
-      name: r.name,
-      short_name: r.short_name || r.name,
-      region: r.region,
-      district: r.district,
-      has_any: !!r.has_any
-    })));
+const [srows] = await db.query(sql, [year, ...params]);
+if (srows.length > 0) {
+  return res.json(srows.map(r => ({
+    id: r.id,
+    name: r.name,
+    short_name: r.short_name || r.name,
+    region: r.region,
+    district: r.district,
+    has_any: !!r.has_any
+  })));
+}
+// ▼ 폴백 (아래 기존 files 파생 코드 그대로 실행)
+
   }
 
   // ■ 폴백: files에서 파생

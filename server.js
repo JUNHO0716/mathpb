@@ -35,6 +35,7 @@ import chatRoutes from './routes/chat.js';
 import problemOCR from "./routes/problem_ocr.js";
 import coverageRoutes from './routes/coverage.js'; // ✅ 추가
 import myMemosRouter from './routes/myMemos.js';
+import neisRoutes from './routes/neis_sync.js'; 
 
 const app = express();
 const PROD = process.env.NODE_ENV === 'production';
@@ -100,6 +101,7 @@ app.use('/api/inquiry', inquiryRoutes);
 app.use("/api/chat", chatRoutes);
 app.use('/api/coverage', isLoggedIn, coverageRoutes); // ✅ 추가 (로그인 사용자만 조회)
 app.use(myMemosRouter);
+app.use('/api/admin/neis', neisRoutes); 
 
 // --- 특수 라우트 (Toss 프록시, DB 핑) ---
 app.get('/ping-db', async (req, res) => {
@@ -163,6 +165,22 @@ app.use(express.static(path.join(__dirname, 'public'), {
     else if (filePath.endsWith('.css')) res.setHeader('Content-Type', 'text/css; charset=UTF-8');
   }
 }));
+
+// [옵션] 주 1회 자동 동기화 (일요일 새벽 3시, Asia/Seoul 기준)
+if (process.env.NODE_ENV === 'production') {
+  const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+  const kickoff = async () => {
+    try {
+      const res = await fetch(`${process.env.BASE_URL || 'https://mathpb.com'}/api/admin/neis/sync`, {
+        method: 'POST', credentials: 'include'
+      });
+      console.log('[NEIS weekly sync]', await res.text());
+    } catch (e) { console.error('[NEIS weekly sync] failed', e); }
+  };
+  setTimeout(kickoff, 30_000);           // 서버 기동 30초 후 1회
+  setInterval(kickoff, ONE_WEEK_MS);     // 매주
+}
+
 
 // --- 서버 실행 ---
 const PORT = process.env.PORT || 3001;

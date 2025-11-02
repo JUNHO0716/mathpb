@@ -2,6 +2,10 @@
 (function () {
   const pct = n => (n || 0) + '%';
   const LABEL = { high: '고등', middle: '중등' };
+
+  // API 전송용 매핑: 'high'/'middle' → '고등'/'중등'
+  const toKrLevel = (v) => (v === 'high' ? '고등' : v === 'middle' ? '중등' : v);
+
   const CHUNK = 120;
   const MAX_HEX = 35; // ✅ 최대 벌집 개수 한도
 
@@ -33,10 +37,19 @@ async function fetchYears() {
   }
 }
 
-  async function loadCities(state){ return api(`/api/coverage/cities?level=${state.level}&year=${state.year}`); }
-  async function loadDistricts(state){ if(!state.city) return []; return api(`/api/coverage/districts?level=${state.level}&year=${state.year}&city=${encodeURIComponent(state.city)}`); }
+  async function loadCities(state){
+    const lvl = toKrLevel(state.level);
+    return api(`/api/coverage/cities?level=${encodeURIComponent(lvl)}&year=${state.year}`);
+  }
+  async function loadDistricts(state){
+    if(!state.city) return [];
+    const lvl = toKrLevel(state.level);
+    return api(`/api/coverage/districts?level=${encodeURIComponent(lvl)}&year=${state.year}&city=${encodeURIComponent(state.city)}`);
+  }
+
   async function loadStats(state, scoped=false){
-    const q = new URLSearchParams({ level: state.level, year: state.year });
+    const lvl = toKrLevel(state.level);
+    const q = new URLSearchParams({ level: lvl, year: state.year });
     if (scoped && state.city)     q.set('city', state.city);
     if (scoped && state.district) q.set('district', state.district);
     if (state.grade)              q.set('grade', state.grade);
@@ -44,8 +57,10 @@ async function fetchYears() {
     if (state.exam_type)          q.set('exam_type', state.exam_type);
     return api(`/api/coverage/stats?${q.toString()}`);
   }
+
   async function loadSchools(state){
-    const q = new URLSearchParams({ level: state.level, year: state.year });
+    const lvl = toKrLevel(state.level);
+    const q = new URLSearchParams({ level: lvl, year: state.year });
     if (state.city)               q.set('city', state.city);
     if (state.district)           q.set('district', state.district);
     if (state.grade)              q.set('grade', state.grade);
@@ -397,89 +412,45 @@ async function refreshGrid(root, state){
     layoutHoneycomb(grid);   // 크기 고정 배치 (스케일 업 제거)
   }
 
-  // 로딩 모달 없이: 먼저 파일을 조회하고, 결과에 따라 즉시 목록 모달 또는 상세패널만 띄운다.
-  async function openSchoolModal(state, school){
-    let files = [];
-    try {
-      const res = await loadSchoolFiles(school.id, state.year);
-      files = (res && Array.isArray(res.files)) ? res.files : [];
-    } catch (e) {
-      files = [];
-    }
-
-    // 1) 파일이 없으면 상세 패널만 바로 오픈 (모달 없음)
-    if (!files.length) {
-      if (window.DetailsPanel && typeof window.DetailsPanel.open === 'function') {
-        window.DetailsPanel.open({
-          id: '',
-          title: `${school.name} 시험지`,
-          school: school.name,
-          grade: '-',
-          subject: '-',
-          year: String(state.year),
-          semester: '-',
-          uploaded_at: null,
-          myMemo: ''
-        });
-      }
-      return;
-    }
-
-    // 2) 파일이 있으면 곧바로 목록 모달을 만든다(불러오기 모달 없음)
-    const overlay = el(`
-      <div class="cov-modal-backdrop">
-        <div class="cov-modal">
-          <div class="cov-modal-head">
-            <div class="title">${school.region || ''} ${school.district || ''} ${school.name} — ${state.year} (${LABEL[state.level]})</div>
-          </div>
-          <div class="cov-modal-body">
-            <ul class="file-list">
-              ${files.map(f=>`
-                <li class="file-item" data-file-id="${f.id}">
-                  <div class="meta">
-                    <span class="badge">${f.year || state.year}</span>
-                    ${f.semester ? `<span class="badge">${f.semester}학기</span>` : ''}
-                    ${f.exam_type ? `<span class="badge">${f.exam_type}</span>` : ''}
-                    ${f.subject ? `<span class="badge">${f.subject}</span>` : ''}
-                  </div>
-                  <div class="title">${f.title || '제목없음'}</div>
-                </li>`).join('')}
-            </ul>
-          </div>
-        </div>
-      </div>
-    `);
-    document.body.appendChild(overlay);
-    overlay.addEventListener('click', (e)=>{ if(e.target===overlay) overlay.remove(); });
-
-    // 파일 항목 클릭 → 기존 상세패널 오픈 후 모달 닫기
-    const listEl = overlay.querySelector('.file-list');
-    const __fileMap = new Map(files.map(v => [String(v.id), v]));
-    listEl?.addEventListener('click', async (ev) => {
-      ev.stopPropagation();
-      const li = ev.target.closest('.file-item[data-file-id]');
-      if (!li) return;
-
-      const id   = String(li.dataset.fileId);
-      const file = __fileMap.get(id);
-
-      if (!(window.DetailsPanel && typeof window.DetailsPanel.open === 'function')) {
-        console.warn('[coverage] details-panel.js 로드 필요');
-        return;
-      }
-
-      // myMemo 1회 조회
-      if (file && file.id && file.myMemo === undefined) {
-        try {
-          const r = await fetch(`/api/my/memos/${encodeURIComponent(file.id)}`);
-          if (r.ok) file.myMemo = (await r.json()).memo || '';
-        } catch {}
-      }
-
-      window.DetailsPanel.open(file);
-      overlay.remove();
-    });
+// ✅ 단일 정의: 노란 벌집 클릭 시 곧바로 상세모달(DetailsPanel) 열기
+async function openSchoolModal(state, school){
+  let files = [];
+  try {
+    const res = await loadSchoolFiles(school.id, state.year);
+    files = (res && Array.isArray(res.files)) ? res.files : [];
+  } catch {
+    files = [];
   }
+
+  // 파일이 없으면 placeholder 상세만 (메모 불가)
+  if (!files.length) {
+    if (window.DetailsPanel && typeof window.DetailsPanel.open === 'function') {
+      window.DetailsPanel.open({
+        id: '',
+        title: `${school.name} 시험지`,
+        school: school.name,
+        grade: '-',
+        subject: '-',
+        year: String(state.year),
+        semester: '-',
+        uploaded_at: null,
+        myMemo: ''
+      });
+    }
+    return;
+  }
+
+  // 현재 필터(학년/학기/유형)와 가장 잘 맞는 파일 선택
+  const picked  = pickBestFile(files, state);
+  const target  = picked || files[0];
+
+  // 상세모달로 통일: id만 던지면 details-panel.js가 /api/files/:id를 조회해 채움
+  if (target && target.id) {
+    document.dispatchEvent(new CustomEvent('coverage:fileClick', {
+      detail: { id: String(target.id) }
+    }));
+  }
+}
 
   async function refreshAll(root, state){
     await refreshYears(root, state);
@@ -587,6 +558,43 @@ function fitHoneycombToWidth(grid, {target=0.96, maxScale=1.4} = {}){
     const needH = (maxY + (W * 0.8660254037844386) + G);
     grid.style.height = Math.max(minH, needH) + 'px';
   }
+
+  function normalizeExamType(v){
+  if (!v) return '';
+  const s = String(v).toLowerCase();
+  if (s.includes('mid')   || s.includes('중간')) return 'mid';
+  if (s.includes('final') || s.includes('기말')) return 'final';
+  return s;
+}
+
+function pickBestFile(files, state){
+  const wantGrade = String(state.grade || '').trim();
+  const wantSem   = String(state.semester || '').trim(); // '1' | '2'
+  const wantType  = normalizeExamType(state.exam_type || '');
+
+  const scored = files.map(f => {
+    const grade = String(f.grade ?? '').trim();
+    const sem   = String(f.semester ?? '').trim();
+    const type  = normalizeExamType(f.exam_type ?? '');
+    let score = 0;
+    if (wantGrade && grade && grade === wantGrade) score += 3;
+    if (wantSem   && sem   && sem   === wantSem)   score += 2;
+    if (wantType  && type  && type  === wantType)  score += 2;
+
+    const up   = f.uploaded_at ? Date.parse(f.uploaded_at) : 0;
+    const year = f.year ? parseInt(f.year, 10) : 0;
+    return { f, score, up, year };
+  });
+
+  scored.sort((a,b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    if (b.up    !== a.up)    return b.up - a.up;
+    return b.year - a.year;
+  });
+
+  return scored[0]?.f;
+}
+
 
 window.renderCoverageWidget = async function(mount, opts={}){
   const root = (typeof mount==='string') ? document.querySelector(mount) : mount;
