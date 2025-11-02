@@ -94,13 +94,13 @@ async function upsertSchools(rows, levelFilter /* '고등'|'중등'|null */) {
   const cols = await detectSchoolCols();
 
   const baseCols = ['name', 'region', 'district', 'level'];
-  if (cols.hasShort)   baseCols.push('short_name');
-  if (cols.hasStatus)  baseCols.push('status');
-  if (cols.hasHomepage)baseCols.push('homepage');
-  if (cols.hasAddress) baseCols.push('address');
-  if (cols.hasOffice)  baseCols.push('neis_office_code');
-  if (cols.hasCode)    baseCols.push('neis_school_code');
-  if (cols.hasLastSeen)baseCols.push('last_seen_at');
+  if (cols.hasShort)    baseCols.push('short_name');
+  if (cols.hasStatus)   baseCols.push('status');
+  if (cols.hasHomepage) baseCols.push('homepage');
+  if (cols.hasAddress)  baseCols.push('address');
+  if (cols.hasOffice)   baseCols.push('neis_office_code');
+  if (cols.hasCode)     baseCols.push('neis_school_code');
+  if (cols.hasLastSeen) baseCols.push('last_seen_at');
 
   const updates = [];
   if (cols.hasStatus)   updates.push(`status=COALESCE(VALUES(status),schools.status)`);
@@ -111,13 +111,17 @@ async function upsertSchools(rows, levelFilter /* '고등'|'중등'|null */) {
   if (cols.hasCode)     updates.push(`neis_school_code=COALESCE(VALUES(neis_school_code),schools.neis_school_code)`);
   if (cols.hasLastSeen) updates.push(`last_seen_at=GREATEST(COALESCE(schools.last_seen_at,'1970-01-01'), COALESCE(VALUES(last_seen_at), NOW()))`);
 
+  // ✅ [수정] mysql2 방식에 맞게 VALUES ? 와 2차원 배열 사용
   const sql = `
     INSERT INTO schools (${baseCols.join(',')})
-    VALUES ${rows.map(()=>`(${baseCols.map(()=>'?').join(',')})`).join(',')}
-    ON DUPLICATE KEY UPDATE ${updates.length? updates.join(','): 'name=name'}
+    VALUES ?
+    ON DUPLICATE KEY UPDATE ${updates.length ? updates.join(',') : 'name=name'}
   `;
 
-  const params = [];
+  // ✅ [수정] 1차원 params 배열 대신 2차원 allRows 배열 생성
+  const allRows = [];
+  const now = new Date(); // 모든 행에 동일한 시간 적용
+
   for (const r of rows) {
     const kLevel = mapLevel(r.SCHUL_KND_SC_NM);
     if (!kLevel) continue;
@@ -132,18 +136,24 @@ async function upsertSchools(rows, levelFilter /* '고등'|'중등'|null */) {
     const office   = (r.ATPT_OFCDC_SC_CODE||'').trim() || null;
     const code     = (r.SD_SCHUL_CODE||'').trim() || null;
 
-    params.push(name, region, district, kLevel);
-    if (cols.hasShort)    params.push(shortN);
-    if (cols.hasStatus)   params.push('active');
-    if (cols.hasHomepage) params.push(homepage);
-    if (cols.hasAddress)  params.push(address);
-    if (cols.hasOffice)   params.push(office);
-    if (cols.hasCode)     params.push(code);
-    if (cols.hasLastSeen) params.push(new Date());
+    // ✅ [수정] 1차원 배열(rowData) 생성
+    const rowData = [name, region, district, kLevel];
+    if (cols.hasShort)    rowData.push(shortN);
+    if (cols.hasStatus)   rowData.push('active');
+    if (cols.hasHomepage) rowData.push(homepage);
+    if (cols.hasAddress)  rowData.push(address);
+    if (cols.hasOffice)   rowData.push(office);
+    if (cols.hasCode)     rowData.push(code);
+    if (cols.hasLastSeen) rowData.push(now);
+    
+    // ✅ [수정] 2차원 배열에 rowData 추가
+    allRows.push(rowData);
   }
 
-  if (!params.length) return { inserted: 0, updated: 0 };
-  const [result] = await db.query(sql, params);
+  if (!allRows.length) return { inserted: 0, updated: 0 };
+
+  // ✅ [수정] db.query에 sql과 2차원 배열(allRows)을 [allRows]로 감싸서 전달
+  const [result] = await db.query(sql, [allRows]);
   return { affected: result.affectedRows || 0 };
 }
 
