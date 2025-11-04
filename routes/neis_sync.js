@@ -102,7 +102,11 @@ async function upsertSchools(rows, levelFilter /* '고등'|'중등'|null */) {
   if (cols.hasCode)     baseCols.push('neis_school_code');
   if (cols.hasLastSeen) baseCols.push('last_seen_at');
 
-  const updates = [];
+const updates = [];
+  // ✅ [수정] region(시/도)과 district(시/군/구)를 NEIS 정보로 강제 덮어쓰기
+  updates.push(`region=VALUES(region)`);
+  updates.push(`district=VALUES(district)`);
+
   if (cols.hasStatus)   updates.push(`status=COALESCE(VALUES(status),schools.status)`);
   if (cols.hasShort)    updates.push(`short_name=COALESCE(VALUES(short_name),schools.short_name)`);
   if (cols.hasHomepage) updates.push(`homepage=CASE WHEN VALUES(homepage) IS NULL OR VALUES(homepage)='' THEN schools.homepage ELSE VALUES(homepage) END`);
@@ -110,7 +114,6 @@ async function upsertSchools(rows, levelFilter /* '고등'|'중등'|null */) {
   if (cols.hasOffice)   updates.push(`neis_office_code=COALESCE(VALUES(neis_office_code),schools.neis_office_code)`);
   if (cols.hasCode)     updates.push(`neis_school_code=COALESCE(VALUES(neis_school_code),schools.neis_school_code)`);
   if (cols.hasLastSeen) updates.push(`last_seen_at=GREATEST(COALESCE(schools.last_seen_at,'1970-01-01'), COALESCE(VALUES(last_seen_at), NOW()))`);
-
   // ✅ [수정] mysql2 방식에 맞게 VALUES ? 와 2차원 배열 사용
   const sql = `
     INSERT INTO schools (${baseCols.join(',')})
