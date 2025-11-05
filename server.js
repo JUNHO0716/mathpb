@@ -92,7 +92,7 @@ app.use(multerErrorHandler);
 // --- 라우터 연결 ---
 app.use('/', authRoutes);
 app.use(userRoutes);
-app.use('/api/files', fileRoutes);
+app.use(fileRoutes);
 app.use('/api/board', boardRoutes);
 app.use('/api/billing', paymentRoutes);
 app.use('/api/admin', adminRoutes);
@@ -135,6 +135,7 @@ app.get('/toss/v2.js', async (req, res) => {
 });
 
 app.use("/api", problemOCR);
+app.use(express.static("public"));
 
 // --- 정적 페이지 라우팅 및 접근 제어 ---
 const PUBLIC_PAGES = ['login.html', 'resetpw.html', 'signup.html', 'terms.html', 'privacy.html', 'refund.html', 'finance.html'];
