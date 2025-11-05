@@ -158,9 +158,10 @@ async function upsertSchools(rows, levelFilter) {
     `;
     const [updateResult] = await conn.query(updateSql);
 
-    // 4. [INSERT] schools 테이블에 없는 새로운 학교만 임시 테이블에서 가져와 추가
+// 4. [INSERT] schools 테이블에 없는 새로운 학교만 임시 테이블에서 가져와 추가
+    // ✅ [수정] INSERT IGNORE를 사용하여 'name' UNIQUE 키 중복 오류를 무시
     const insertNewSql = `
-      INSERT INTO schools (${baseCols.join(',')})
+      INSERT IGNORE INTO schools (${baseCols.join(',')})
       SELECT ${baseCols.map(c => `t.${c}`).join(',')}
       FROM ${TEMP_TABLE} t
       LEFT JOIN schools s ON t.name = s.name AND t.level = t.level
