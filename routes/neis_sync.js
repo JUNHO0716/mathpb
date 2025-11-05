@@ -89,75 +89,95 @@ async function fetchAllSchools(KEY) {
   return out;
 }
 
-// 업서트 실행 (있는 컬럼만 채움)
-async function upsertSchools(rows, levelFilter /* '고등'|'중등'|null */) {
-  const cols = await detectSchoolCols();
+// /routes/neis_sync.js (101행 ~ 180행)
 
-  const baseCols = ['name', 'region', 'district', 'level'];
-  if (cols.hasShort)    baseCols.push('short_name');
-  if (cols.hasStatus)   baseCols.push('status');
-  if (cols.hasHomepage) baseCols.push('homepage');
-  if (cols.hasAddress)  baseCols.push('address');
-  if (cols.hasOffice)   baseCols.push('neis_office_code');
-  if (cols.hasCode)     baseCols.push('neis_school_code');
-  if (cols.hasLastSeen) baseCols.push('last_seen_at');
+// ✅ [최종 수정] 임시 테이블을 사용한 강력한 업서트 로직
+async function upsertSchools(rows, levelFilter) {
+  const TEMP_TABLE = `temp_schools_${Date.now()}`;
+  const now = new Date();
+  let conn; // 트랜잭션용 커넥션
 
-const updates = [];
-  // ✅ [수정] region(시/도)과 district(시/군/구)를 NEIS 정보로 강제 덮어쓰기
-  updates.push(`region=VALUES(region)`);
-  updates.push(`district=VALUES(district)`);
+  try {
+    conn = await db.getConnection();
+    await conn.beginTransaction();
 
-  if (cols.hasStatus)   updates.push(`status=COALESCE(VALUES(status),schools.status)`);
-  if (cols.hasShort)    updates.push(`short_name=COALESCE(VALUES(short_name),schools.short_name)`);
-  if (cols.hasHomepage) updates.push(`homepage=CASE WHEN VALUES(homepage) IS NULL OR VALUES(homepage)='' THEN schools.homepage ELSE VALUES(homepage) END`);
-  if (cols.hasAddress)  updates.push(`address=COALESCE(NULLIF(VALUES(address),''),schools.address)`);
-  if (cols.hasOffice)   updates.push(`neis_office_code=COALESCE(VALUES(neis_office_code),schools.neis_office_code)`);
-  if (cols.hasCode)     updates.push(`neis_school_code=COALESCE(VALUES(neis_school_code),schools.neis_school_code)`);
-  if (cols.hasLastSeen) updates.push(`last_seen_at=GREATEST(COALESCE(schools.last_seen_at,'1970-01-01'), COALESCE(VALUES(last_seen_at), NOW()))`);
-  // ✅ [수정] mysql2 방식에 맞게 VALUES ? 와 2차원 배열 사용
-  const sql = `
-    INSERT INTO schools (${baseCols.join(',')})
-    VALUES ?
-    ON DUPLICATE KEY UPDATE ${updates.length ? updates.join(',') : 'name=name'}
-  `;
+    // 1. schools 테이블과 동일한 구조의 임시 테이블 생성
+    await conn.query(`CREATE TEMPORARY TABLE ${TEMP_TABLE} LIKE schools`);
 
-  // ✅ [수정] 1차원 params 배열 대신 2차원 allRows 배열 생성
-  const allRows = [];
-  const now = new Date(); // 모든 행에 동일한 시간 적용
-
-  for (const r of rows) {
-    const kLevel = mapLevel(r.SCHUL_KND_SC_NM);
-    if (!kLevel) continue;
-    if (levelFilter && kLevel !== levelFilter) continue;
-
-    const name     = (r.SCHUL_NM||'').trim();
-    const region   = (r.LCTN_SC_NM||'').trim();            // 시/도
-    const district = extractDistrictFromNEISRow(r);        // ✅ 시/군/구
-    const homepage = (r.HMPG_ADRES||'').trim() || null;
-    const address  = (r.ORG_RDNMA||r.ORG_RDNDA||'').trim() || null;
-    const shortN   = makeShortName(name);
-    const office   = (r.ATPT_OFCDC_SC_CODE||'').trim() || null;
-    const code     = (r.SD_SCHUL_CODE||'').trim() || null;
-
-    // ✅ [수정] 1차원 배열(rowData) 생성
-    const rowData = [name, region, district, kLevel];
-    if (cols.hasShort)    rowData.push(shortN);
-    if (cols.hasStatus)   rowData.push('active');
-    if (cols.hasHomepage) rowData.push(homepage);
-    if (cols.hasAddress)  rowData.push(address);
-    if (cols.hasOffice)   rowData.push(office);
-    if (cols.hasCode)     rowData.push(code);
-    if (cols.hasLastSeen) rowData.push(now);
+    // 2. NEIS에서 가져온 모든 데이터를 임시 테이블에 INSERT
+    const cols = await detectSchoolCols();
+    const baseCols = ['name', 'region', 'district', 'level'];
+    if (cols.hasShort)    baseCols.push('short_name');
+    if (cols.hasStatus)   baseCols.push('status');
+    if (cols.hasHomepage) baseCols.push('homepage');
+    if (cols.hasAddress)  baseCols.push('address');
+    if (cols.hasOffice)   baseCols.push('neis_office_code');
+    if (cols.hasCode)     baseCols.push('neis_school_code');
+    if (cols.hasLastSeen) baseCols.push('last_seen_at');
     
-    // ✅ [수정] 2차원 배열에 rowData 추가
-    allRows.push(rowData);
+    const allRows = [];
+    for (const r of rows) {
+      const kLevel = mapLevel(r.SCHUL_KND_SC_NM);
+      if (!kLevel || (levelFilter && kLevel !== levelFilter)) continue;
+      
+      const rowData = [
+        (r.SCHUL_NM||'').trim(),
+        (r.LCTN_SC_NM||'').trim(),
+        extractDistrictFromNEISRow(r),
+        kLevel,
+      ];
+      if (cols.hasShort)    rowData.push(makeShortName(r.SCHUL_NM));
+      if (cols.hasStatus)   rowData.push('active');
+      if (cols.hasHomepage) rowData.push((r.HMPG_ADRES||'').trim() || null);
+      if (cols.hasAddress)  rowData.push((r.ORG_RDNMA||r.ORG_RDNDA||'').trim() || null);
+      if (cols.hasOffice)   rowData.push((r.ATPT_OFCDC_SC_CODE||'').trim() || null);
+      if (cols.hasCode)     rowData.push((r.SD_SCHUL_CODE||'').trim() || null);
+      if (cols.hasLastSeen) rowData.push(now);
+      
+      allRows.push(rowData);
+    }
+
+    if (allRows.length > 0) {
+      const insertSql = `INSERT INTO ${TEMP_TABLE} (${baseCols.join(',')}) VALUES ?`;
+      await conn.query(insertSql, [allRows]);
+    }
+
+    // 3. [UPDATE] 이름이 같은 기존 학교의 region, district 등을 임시 테이블 정보로 덮어쓰기
+    const updateSql = `
+      UPDATE schools s
+      JOIN ${TEMP_TABLE} t ON s.name = t.name AND s.level = t.level
+      SET
+        s.region = t.region,
+        s.district = t.district,
+        ${cols.hasShort ? 's.short_name = t.short_name,' : ''}
+        ${cols.hasHomepage ? 's.homepage = t.homepage,' : ''}
+        ${cols.hasAddress ? 's.address = t.address,' : ''}
+        ${cols.hasOffice ? 's.neis_office_code = t.neis_office_code,' : ''}
+        ${cols.hasCode ? 's.neis_school_code = t.neis_school_code,' : ''}
+        s.last_seen_at = t.last_seen_at
+    `;
+    const [updateResult] = await conn.query(updateSql);
+
+    // 4. [INSERT] schools 테이블에 없는 새로운 학교만 임시 테이블에서 가져와 추가
+    const insertNewSql = `
+      INSERT INTO schools (${baseCols.join(',')})
+      SELECT ${baseCols.map(c => `t.${c}`).join(',')}
+      FROM ${TEMP_TABLE} t
+      LEFT JOIN schools s ON t.name = s.name AND t.level = t.level
+      WHERE s.id IS NULL
+    `;
+    const [insertResult] = await conn.query(insertNewSql);
+
+    await conn.commit();
+    return { affected: (updateResult.affectedRows || 0) + (insertResult.affectedRows || 0) };
+
+  } catch (err) {
+    if (conn) await conn.rollback();
+    console.error('[NEIS upsertSchools] Transaction Error:', err);
+    throw err; // 에러를 상위로 던져서 500 응답 유도
+  } finally {
+    if (conn) conn.release();
   }
-
-  if (!allRows.length) return { inserted: 0, updated: 0 };
-
-  // ✅ [수정] db.query에 sql과 2차원 배열(allRows)을 [allRows]로 감싸서 전달
-  const [result] = await db.query(sql, [allRows]);
-  return { affected: result.affectedRows || 0 };
 }
 
 // 관리자 트리거: 전체 동기화
