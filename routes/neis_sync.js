@@ -89,22 +89,25 @@ async function fetchAllSchools(KEY) {
   return out;
 }
 
-// ✅ [최종 수정] 임시 테이블 + '더러운 데이터' 선(先)삭제 로직
+// /routes/neis_sync.js
+
+// ✅ [최종_최종 수정] 중복 데이터를 완전히 정리하는 가장 확실한 로직
 async function upsertSchools(rows, levelFilter) {
   const TEMP_TABLE = `temp_schools_${Date.now()}`;
   const now = new Date();
-  let conn; // 트랜잭션용 커넥션
+  let conn;
 
   try {
     conn = await db.getConnection();
     await conn.beginTransaction();
 
-    // 1. schools 테이블과 동일한 구조의 임시 테이블 생성
+    // 1. 임시 테이블 생성
     await conn.query(`CREATE TEMPORARY TABLE ${TEMP_TABLE} LIKE schools`);
 
-    // 2. NEIS에서 가져온 모든 데이터를 임시 테이블에 INSERT
+    // 2. NEIS 데이터를 임시 테이블에 삽입
     const cols = await detectSchoolCols();
     const baseCols = ['name', 'region', 'district', 'level'];
+    // ... (이하 컬럼 추가 로직은 동일)
     if (cols.hasShort)    baseCols.push('short_name');
     if (cols.hasStatus)   baseCols.push('status');
     if (cols.hasHomepage) baseCols.push('homepage');
@@ -119,10 +122,7 @@ async function upsertSchools(rows, levelFilter) {
       if (!kLevel || (levelFilter && kLevel !== levelFilter)) continue;
       
       const rowData = [
-        (r.SCHUL_NM||'').trim(),
-        (r.LCTN_SC_NM||'').trim(),
-        extractDistrictFromNEISRow(r),
-        kLevel,
+        (r.SCHUL_NM||'').trim(), (r.LCTN_SC_NM||'').trim(), extractDistrictFromNEISRow(r), kLevel,
       ];
       if (cols.hasShort)    rowData.push(makeShortName(r.SCHUL_NM));
       if (cols.hasStatus)   rowData.push('active');
@@ -140,49 +140,28 @@ async function upsertSchools(rows, levelFilter) {
       await conn.query(insertSql, [allRows]);
     }
 
-    // 3. [DELETE] '기타' 등 잘못된 지역/시군구 정보를 가진 중복 행을 먼저 삭제
-    // (s.name = t.name AND s.level = t.level이 같지만, region/district가 다른 경우)
+    // 3. [DELETE] NEIS에 있는 학교와 이름/레벨이 같은 기존 '모든' 데이터를 삭제 (더러운 데이터 청소)
     const deleteSql = `
-      DELETE s
-      FROM schools s
+      DELETE s FROM schools s
       JOIN ${TEMP_TABLE} t ON s.name = t.name AND s.level = t.level
-      WHERE s.region != t.region OR s.district != t.district
     `;
     await conn.query(deleteSql);
 
-    // 4. [UPDATE] 이름,지역,레벨이 모두 일치하는 '올바른' 행의 정보만 최신화
-    // (NEIS 정보와 DB 정보가 name, level, region, district 모두 일치하는 경우)
-    const updateSql = `
-      UPDATE schools s
-      JOIN ${TEMP_TABLE} t ON s.name = t.name AND s.level = t.level AND s.region = t.region AND s.district = t.district
-      SET
-        ${cols.hasShort ? 's.short_name = t.short_name,' : ''}
-        ${cols.hasHomepage ? 's.homepage = t.homepage,' : ''}
-        ${cols.hasAddress ? 's.address = t.address,' : ''}
-        ${cols.hasOffice ? 's.neis_office_code = t.neis_office_code,' : ''}
-        ${cols.hasCode ? 's.neis_school_code = t.neis_school_code,' : ''}
-        s.last_seen_at = t.last_seen_at
-    `;
-    const [updateResult] = await conn.query(updateSql);
-
-    // 5. [INSERT] schools 테이블에 없는 새로운 학교만 임시 테이블에서 가져와 추가
-    // (uk_school 중복 오류가 나면 무시)
+    // 4. [INSERT] 임시 테이블의 깨끗한 데이터를 schools 테이블에 다시 삽입
     const insertNewSql = `
-      INSERT IGNORE INTO schools (${baseCols.join(',')})
+      INSERT INTO schools (${baseCols.join(',')})
       SELECT ${baseCols.map(c => `t.${c}`).join(',')}
       FROM ${TEMP_TABLE} t
-      LEFT JOIN schools s ON t.name = s.name AND t.level = t.level
-      WHERE s.id IS NULL
     `;
     const [insertResult] = await conn.query(insertNewSql);
 
     await conn.commit();
-    return { affected: (updateResult.affectedRows || 0) + (insertResult.affectedRows || 0) };
+    return { affected: insertResult.affectedRows || 0 };
 
   } catch (err) {
     if (conn) await conn.rollback();
     console.error('[NEIS upsertSchools] Transaction Error:', err);
-    throw err; // 에러를 상위로 던져서 500 응답 유도
+    throw err;
   } finally {
     if (conn) conn.release();
   }
