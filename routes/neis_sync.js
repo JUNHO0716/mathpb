@@ -89,9 +89,7 @@ async function fetchAllSchools(KEY) {
   return out;
 }
 
-// /routes/neis_sync.js (101행 ~ 180행)
-
-// ✅ [최종 수정] 임시 테이블을 사용한 강력한 업서트 로직
+// ✅ [최종 수정] 임시 테이블 + '더러운 데이터' 선(先)삭제 로직
 async function upsertSchools(rows, levelFilter) {
   const TEMP_TABLE = `temp_schools_${Date.now()}`;
   const now = new Date();
@@ -142,13 +140,22 @@ async function upsertSchools(rows, levelFilter) {
       await conn.query(insertSql, [allRows]);
     }
 
-    // 3. [UPDATE] 이름이 같은 기존 학교의 region, district 등을 임시 테이블 정보로 덮어쓰기
+    // 3. [DELETE] '기타' 등 잘못된 지역/시군구 정보를 가진 중복 행을 먼저 삭제
+    // (s.name = t.name AND s.level = t.level이 같지만, region/district가 다른 경우)
+    const deleteSql = `
+      DELETE s
+      FROM schools s
+      JOIN ${TEMP_TABLE} t ON s.name = t.name AND s.level = t.level
+      WHERE s.region != t.region OR s.district != t.district
+    `;
+    await conn.query(deleteSql);
+
+    // 4. [UPDATE] 이름,지역,레벨이 모두 일치하는 '올바른' 행의 정보만 최신화
+    // (NEIS 정보와 DB 정보가 name, level, region, district 모두 일치하는 경우)
     const updateSql = `
       UPDATE schools s
-      JOIN ${TEMP_TABLE} t ON s.name = t.name AND s.level = t.level
+      JOIN ${TEMP_TABLE} t ON s.name = t.name AND s.level = t.level AND s.region = t.region AND s.district = t.district
       SET
-        s.region = t.region,
-        s.district = t.district,
         ${cols.hasShort ? 's.short_name = t.short_name,' : ''}
         ${cols.hasHomepage ? 's.homepage = t.homepage,' : ''}
         ${cols.hasAddress ? 's.address = t.address,' : ''}
@@ -158,8 +165,8 @@ async function upsertSchools(rows, levelFilter) {
     `;
     const [updateResult] = await conn.query(updateSql);
 
-// 4. [INSERT] schools 테이블에 없는 새로운 학교만 임시 테이블에서 가져와 추가
-    // ✅ [수정] INSERT IGNORE를 사용하여 'name' UNIQUE 키 중복 오류를 무시
+    // 5. [INSERT] schools 테이블에 없는 새로운 학교만 임시 테이블에서 가져와 추가
+    // (uk_school 중복 오류가 나면 무시)
     const insertNewSql = `
       INSERT IGNORE INTO schools (${baseCols.join(',')})
       SELECT ${baseCols.map(c => `t.${c}`).join(',')}
@@ -180,6 +187,7 @@ async function upsertSchools(rows, levelFilter) {
     if (conn) conn.release();
   }
 }
+
 
 // 관리자 트리거: 전체 동기화
 // POST /api/admin/neis/sync?level=고등|중등 (생략 시 둘 다)
