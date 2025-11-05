@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta name="robots" content="noindex, nofollow">
+  <meta charset="UTF-8" />
+  <title>관리자 업로드 관리</title>
+  <style>
+    body { font-family: 'Noto Sans KR', sans-serif; margin:0; padding:0; }
+    .page-banner { background:#f7f7f7; padding:20px; text-align:center; font-size:1.5rem; border-bottom:1px solid #ddd; }
+    .container { padding:20px; }
+    .filter-buttons button {
+      margin-right: 8px;
+      padding: 6px 14px;
+      border: none;
+      border-radius: 4px;
+      background: #ddd;
+      cursor: pointer;
+    }
+    .filter-buttons button.active {
+      background: #333;
+      color: #fff;
+    }
+    table { width:100%; border-collapse: collapse; margin-top:16px; }
+    th, td { border:1px solid #ddd; padding:8px; text-align:center; }
+    th { background:#f0f0f0; }
+    button { padding:6px 12px; border:none; border-radius:4px; cursor:pointer; }
+    .btn-progress  { background:#28a745; color:#fff; margin-right:4px; }
+    .btn-reject    { background:#dc3545; color:#fff; margin-right:4px; }
+    .btn-complete  { background:#007bff; color:#fff; }
+    .btn-group button { margin: 2px; }
+
+    #reject-modal, #confirm-modal {
+      display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.5); align-items:center; justify-content:center;
+    }
+    .modal-content {
+      background:#fff; padding:20px; border-radius:8px; width:320px;
+    }
+    #reject-modal textarea { width:100%; height:80px; margin-top:8px; }
+    .actions { text-align:right; margin-top:12px; }
+    .actions button { margin-left:8px; }
+
+    /* 1) 테이블 고정 레이아웃 */
+    #admin-table {
+      table-layout: fixed;
+      width: 100%;
+    }
+
+    /* 2) 셀 텍스트 넘치면 … 처리 */
+    #admin-table th,
+    #admin-table td {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    /* 3) 3열(파일명)만 40% 폭 지정 */
+    #admin-table th:nth-child(3),
+    #admin-table td:nth-child(3) {
+      width: 40%;
+    }
+
+    
+  </style>
+</head>
+<body>
+  <div class="page-banner">관리자 업로드 관리</div>
+  <div class="container">
+    <div class="filter-buttons" id="status-filters">
+      <button onclick="filterStatus('all')" class="active">전체</button>
+      <button onclick="filterStatus('확인중')">확인중</button>
+      <button onclick="filterStatus('제작중')">제작중</button>
+      <button onclick="filterStatus('완료')">완료</button>
+      <button onclick="filterStatus('반려')">반려</button>
+    </div>
+
+    <table id="admin-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>업로더</th>
+          <th>파일명</th>
+          <th>다운로드</th>
+          <th>상태</th>
+          <th>작업</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- 반려 모달 -->
+  <div id="reject-modal">
+    <div class="modal-content">
+      <h4>반려 사유 입력</h4>
+      <textarea id="reject-reason" placeholder="사유를 입력하세요"></textarea>
+      <div class="actions">
+        <button id="cancel-reject">취소</button>
+        <button id="confirm-reject" style="background:#dc3545;color:#fff;">반려 처리</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 확인 모달 -->
+  <div id="confirm-modal">
+    <div class="modal-content" style="text-align:center;">
+      <p id="confirm-message">정말 처리하시겠습니까?</p>
+      <div class="actions">
+        <button onclick="closeConfirmModal()">취소</button>
+        <button id="confirm-ok" style="background:#007bff;color:#fff;">확인</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+let uploads = [];
+let currentRejectId = null;
+let confirmCallback = null;
+let currentFilter = 'all';
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadUploads();
+});
+
+async function loadUploads() {
+  const res = await fetch('/api/admin/uploads', { credentials:'include' });
+  uploads = await res.json();
+  renderUploads();
+}
+
+function filterStatus(status) {
+  currentFilter = status;
+  document.querySelectorAll('#status-filters button').forEach(btn => btn.classList.remove('active'));
+  const btn = [...document.querySelectorAll('#status-filters button')].find(b => b.textContent === (status === 'all' ? '전체' : status));
+  if (btn) btn.classList.add('active');
+  renderUploads();
+}
+
+function renderUploads() {
+  const tbody = document.querySelector('#admin-table tbody');
+  tbody.innerHTML = '';
+
+  uploads
+    .filter(u => currentFilter === 'all' || u.status === currentFilter)
+    .forEach(u => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${u.id}</td>
+        <td>${u.user_id}</td>
+        <td>${u.filename}</td>
+      `;
+
+      // 다운로드 셀
+      const tdDownload = document.createElement('td');
+      const a = document.createElement('a');
+      a.href = `/api/admin/uploads/${u.id}/download`;
+      a.download = u.filename;
+      a.textContent = '다운로드';
+      a.style = '…';
+      tdDownload.appendChild(a);
+      tr.appendChild(tdDownload);
+
+      // 상태 셀
+      const tdStatus = document.createElement('td');
+      tdStatus.textContent = u.status;
+      tr.appendChild(tdStatus);
+
+      // 작업 버튼 셀
+      const tdAct = document.createElement('td');
+      tdAct.className = 'btn-group';
+
+      if (u.status === '확인중') {
+        tdAct.append(
+          createButton('제작 진행', 'btn-progress', () =>
+            openConfirmModal('제작을 진행하시겠습니까?', () => handleChangeStatus(u.id, 'in_progress'))
+          ),
+          createButton('반려', 'btn-reject', () =>
+            openRejectModal(u.id)
+          )
+        );
+      } else if (u.status === '제작중') {
+        tdAct.append(
+          createButton('작업 완료', 'btn-complete', () =>
+            openConfirmModal('작업을 완료하시겠습니까?', () => handleChangeStatus(u.id, 'completed'))
+          )
+        );
+      }
+      tr.appendChild(tdAct);
+
+      tbody.appendChild(tr);
+    });
+}
+
+function createButton(text, className, handler) {
+  const btn = document.createElement('button');
+  btn.textContent = text;
+  btn.className = className;
+  btn.onclick = handler;
+  return btn;
+}
+
+// 반려 모달
+function openRejectModal(id) {
+  currentRejectId = id;
+  document.getElementById('reject-reason').value = '';
+  document.getElementById('reject-modal').style.display = 'flex';
+}
+function closeRejectModal() {
+  document.getElementById('reject-modal').style.display = 'none';
+  currentRejectId = null;
+}
+document.getElementById('cancel-reject').onclick = closeRejectModal;
+document.getElementById('confirm-reject').onclick = async () => {
+  const reason = document.getElementById('reject-reason').value.trim();
+  if (!reason) return alert('반려 사유를 입력해주세요.');
+  await fetch(`/api/admin/uploads/${currentRejectId}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: 'rejected', reason })
+  });
+  closeRejectModal();
+  await loadUploads();
+};
+
+// 확인 모달
+function openConfirmModal(msg, onConfirm) {
+  document.getElementById('confirm-message').textContent = msg;
+  document.getElementById('confirm-modal').style.display = 'flex';
+  confirmCallback = onConfirm;
+}
+function closeConfirmModal() {
+  document.getElementById('confirm-modal').style.display = 'none';
+  confirmCallback = null;
+}
+document.getElementById('confirm-ok').onclick = () => {
+  if (confirmCallback) confirmCallback();
+  closeConfirmModal();
+};
+
+// 상태 변경
+async function handleChangeStatus(id, status) {
+  await fetch(`/api/admin/uploads/${id}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status })
+  });
+  await loadUploads();
+}
+</script>
+</body>
+</html>
