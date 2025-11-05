@@ -92,7 +92,7 @@ app.use(multerErrorHandler);
 // --- 라우터 연결 ---
 app.use('/', authRoutes);
 app.use(userRoutes);
-app.use('/api/files', fileRoutes);
+app.use(fileRoutes);
 app.use('/api/board', boardRoutes);
 app.use('/api/billing', paymentRoutes);
 app.use('/api/admin', adminRoutes);
