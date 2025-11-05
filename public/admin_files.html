@@ -450,13 +450,13 @@
           <td>${r.semester}</td>
           <td>${r.title}</td>
           <td>
-            ${r.hwp_filename ? `
-              <a href="/download/${r.id}?type=hwp" class="download-btn" target="_blank">다운로드</a>
+            ${r.files && r.files.hwp ? `
+              <a href="/api/download/${r.id}?type=hwp" class="download-btn" target="_blank">다운로드</a>
             ` : '-'}
           </td>
           <td>
-            ${r.pdf_filename ? `
-              <a href="/download/${r.id}?type=pdf" class="download-btn" target="_blank">다운로드</a>
+            ${r.files && r.files.pdf ? `
+              <a href="/api/download/${r.id}?type=pdf" class="download-btn" target="_blank">다운로드</a>
             ` : '-'}
           </td>
           <td>
@@ -494,7 +494,7 @@
       if(!confirm('정말 삭제하시겠습니까?')) return;
       btn.disabled = true;
       try{
-        const res = await fetch('/api/files/'+id,{method:'DELETE',credentials:'include'});
+        const res = await fetch('/api/admin/files/'+id,{method:'DELETE',credentials:'include'});
         if(res.status===401){ alert('로그인 필요!'); location.href='/login.html'; return; }
         const r   = await res.json();
         document.getElementById('msg').textContent = r.message || r.msg;
@@ -528,7 +528,7 @@
       const btn = document.getElementById('edit-save-btn');
       btn.disabled = true;
       const fd  = new FormData(e.target);
-      const res = await fetch('/api/files/'+editTargetId,{
+      const res = await fetch('/api/admin/files/'+editTargetId,{
         method:'PUT',
         body:fd,
         credentials:'include'
