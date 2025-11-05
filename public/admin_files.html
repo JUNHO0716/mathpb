@@ -490,20 +490,48 @@
       renderTable(fileListOrigin);
     }
     
-    async function deleteFile(id,btn){
-      if(!confirm('정말 삭제하시겠습니까?')) return;
-      btn.disabled = true;
-      try{
-        const res = await fetch('/api/admin/files/'+id,{method:'DELETE',credentials:'include'});
-        if(res.status===401){ alert('로그인 필요!'); location.href='/login.html'; return; }
-        const r   = await res.json();
-        document.getElementById('msg').textContent = r.message || r.msg;
-        fetchFiles();
-      }catch(e){
-        document.getElementById('msg').textContent = '삭제 오류';
-      }
-      btn.disabled = false;
+async function deleteFile(id, btn){
+  if (!confirm('정말 삭제하시겠습니까?')) return;
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/admin/files/' + id, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+
+    if (res.status === 401) {
+      alert('로그인 필요!');
+      location.href = '/login.html';
+      return;
     }
+
+    let msg = '';
+    const ct = res.headers.get('content-type') || '';
+
+    if (res.ok) {
+      if (ct.includes('application/json')) {
+        const r = await res.json().catch(() => ({}));
+        msg = r.message || r.msg || '삭제되었습니다.';
+      } else {
+        // 204 No Content 또는 텍스트 응답
+        msg = (await res.text().catch(() => '')) || '삭제되었습니다.';
+      }
+      document.getElementById('msg').textContent = msg;
+      await fetchFiles();
+    } else {
+      // 실패 응답 본문 보여주기
+      const errText = ct.includes('application/json')
+        ? (await res.json().catch(() => ({}))).message || (await res.text().catch(() => ''))
+        : (await res.text().catch(() => ''));
+      document.getElementById('msg').textContent = `삭제 실패(${res.status}) ${errText || ''}`.trim();
+    }
+  } catch (e) {
+    document.getElementById('msg').textContent = '삭제 오류: ' + (e?.message || '');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
     function editFile(id){
       editTargetId = id;
       const row    = fileListOrigin.find(r=>r.id===id);
@@ -523,22 +551,39 @@
       document.getElementById('edit-bg').style.display='none';
       document.getElementById('edit-form').reset();
     }
-    document.getElementById('edit-form').onsubmit = async function(e){
-      e.preventDefault();
-      const btn = document.getElementById('edit-save-btn');
-      btn.disabled = true;
-      const fd  = new FormData(e.target);
-      const res = await fetch('/api/admin/files/'+editTargetId,{
-        method:'PUT',
-        body:fd,
-        credentials:'include'
-      });
-      const r = await res.json();
-      document.getElementById('msg').textContent = r.message||r.msg;
-      btn.disabled = false;
-      closeEdit();
-      fetchFiles();
+document.getElementById('edit-form').onsubmit = async function(e){
+  e.preventDefault();
+  const btn = document.getElementById('edit-save-btn');
+  btn.disabled = true;
+
+  try {
+    const fd  = new FormData(e.target);
+    const res = await fetch('/api/admin/files/' + editTargetId, {
+      method: 'PUT',
+      body: fd,
+      credentials: 'include'
+    });
+
+    let msg = '';
+    const ct = res.headers.get('content-type') || '';
+
+    if (ct.includes('application/json')) {
+      const r = await res.json().catch(() => ({}));
+      msg = r.message || r.msg || (res.ok ? '저장되었습니다.' : '저장 실패');
+    } else {
+      msg = (await res.text().catch(() => '')) || (res.ok ? '저장되었습니다.' : '저장 실패');
     }
+
+    document.getElementById('msg').textContent = msg;
+  } catch (err) {
+    document.getElementById('msg').textContent = '저장 오류: ' + (err?.message || '');
+  } finally {
+    btn.disabled = false;
+    closeEdit();
+    fetchFiles();
+  }
+}
+
 
 // 파일 드래그앤드롭 + 커스텀 업로드 버튼
 const dropArea   = document.getElementById('fileDropArea');
