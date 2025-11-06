@@ -8,10 +8,12 @@ import { numericIdParam } from '../middleware/validators.js';
 
 const router = express.Router();
 
+// /routes/files.js (12행 근처)
 // 파일 목록 (필터/검색)
 router.get('/api/files', isLoggedInJson, verifyOrigin, async (req, res) => {
   try {
-    const { region, district, school, grade, year, semester, level } = req.query;
+    // ✅ 1. subject 파라미터를 받습니다.
+    const { region, district, school, grade, year, semester, level, subject } = req.query;
     let sql = "SELECT * FROM files WHERE 1=1";
     const params = [];
     if(region)   { sql += " AND region=?";   params.push(region); }
@@ -21,6 +23,7 @@ router.get('/api/files', isLoggedInJson, verifyOrigin, async (req, res) => {
     if(year)     { sql += " AND year=?";     params.push(year); }
     if(semester) { sql += " AND semester=?"; params.push(semester); }
     if(level)    { sql += " AND level=?";    params.push(level); }
+    if(subject)  { sql += " AND subject=?";  params.push(subject); } // ✅ 2. subject 쿼리 추가
     sql += " ORDER BY uploaded_at DESC";
 
     const [rows] = await db.query(sql, params);
@@ -35,6 +38,7 @@ router.get('/api/files', isLoggedInJson, verifyOrigin, async (req, res) => {
       semester: r.semester,
       title: r.title,
       level: r.level,
+      subject: r.subject, // ✅ 3. subject를 응답에 포함
       uploaded_at: r.uploaded_at,
       memo: r.memo,
       files: {
