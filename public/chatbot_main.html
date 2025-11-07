@@ -251,6 +251,255 @@ function createTypewriter(targetEl, { speed=16 } = {}) {
   };
 }
 
+// === (추가) 챗봇 안내 모달 유틸 ===
+function ensureChatModal(){
+  if (document.getElementById('chatModalOverlay')) return;
+  if (!document.getElementById('chatModalStyle')){
+    const st=document.createElement('style'); st.id='chatModalStyle';
+    st.textContent = `
+      #chatModalOverlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;
+        background:rgba(0,0,0,.32);backdrop-filter:saturate(120%) blur(3px);z-index:99999}
+      #chatModal{width:min(520px,92vw);background:rgba(255,255,255,.96);border-radius:16px;
+        box-shadow:0 20px 60px rgba(0,0,0,.22);padding:20px 22px;position:relative;outline:none}
+      #chatModal .title{font-weight:800;font-size:18px;margin-bottom:8px}
+      #chatModal .body{color:#222;line-height:1.6;margin-bottom:18px}
+      #chatModal .actions{display:flex;gap:8px;justify-content:flex-end}
+      .mb-btn{border:0;border-radius:12px;padding:10px 14px;cursor:pointer}
+      .mb-btn.primary{background:#111;color:#fff}
+      .mb-btn.ghost{background:#f2f3f6;color:#111}
+      #chatModalClose{position:absolute;top:10px;right:12px;border:0;background:transparent;font-size:20px;cursor:pointer}
+    `;
+    document.head.appendChild(st);
+  }
+  const ov=document.createElement('div');
+  ov.id='chatModalOverlay'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-modal','true');
+  ov.innerHTML = `
+    <div id="chatModal" tabindex="-1">
+      <button id="chatModalClose" aria-label="닫기">×</button>
+      <div class="title"></div>
+      <div class="body"></div>
+      <div class="actions"></div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.addEventListener('click', (e)=>{ if(e.target.id==='chatModalOverlay') closeChatModal(); });
+  document.getElementById('chatModalClose').addEventListener('click', closeChatModal);
+  ov.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeChatModal(); });
+}
+let __chatModalLastFocus=null;
+function openChatModal({title='안내', html='', actions=[]}={}){
+  ensureChatModal();
+  __chatModalLastFocus=document.activeElement;
+  const ov=document.getElementById('chatModalOverlay');
+  const m =document.getElementById('chatModal');
+  m.querySelector('.title').innerHTML=title;
+  m.querySelector('.body').innerHTML =html;
+  const act=m.querySelector('.actions'); act.innerHTML='';
+  (actions.length?actions:[{label:'확인',primary:true}]).forEach(a=>{
+    const b=document.createElement('button');
+    b.className='mb-btn '+(a.primary?'primary':'ghost');
+    b.textContent=a.label;
+    b.addEventListener('click', ()=>{ a.href ? (location.href=a.href) : (a.onClick?a.onClick():closeChatModal()); });
+    act.appendChild(b);
+  });
+  ov.style.display='flex'; m.focus();
+}
+function closeChatModal(){
+  const ov=document.getElementById('chatModalOverlay'); if(!ov) return;
+  ov.style.display='none';
+  if(__chatModalLastFocus && __chatModalLastFocus.focus) __chatModalLastFocus.focus();
+}
+
+/* ===========================
+   [첨부/업로드 유틸 + 구독검사]
+=========================== */
+let pendingFiles = [];
+let _authCache = null;
+
+async function getAuthInfo(){
+  if (_authCache) return _authCache;
+  try{
+    const r = await fetch('/check-auth?ts='+Date.now(), {credentials:'include', cache:'no-store'});
+    const d = await r.json();
+    const u = d?.user || {};
+    _authCache = {
+      logged: !!d?.isLoggedIn,
+      subscribed: !!(u?.is_subscribed || u?.role === 'admin'),
+      name: u?.name || ''
+    };
+  }catch{ _authCache = { logged:false, subscribed:false }; }
+  return _authCache;
+}
+
+function ensureAttachBar(){
+  let bar = document.getElementById('chat-attach-bar');
+  if (!bar){
+    bar = document.createElement('div');
+    bar.id = 'chat-attach-bar';
+    bar.setAttribute('aria-live','polite');
+    Object.assign(bar.style, {
+      display:'none', gap:'8px', padding:'8px 10px', margin:'0 0 6px',
+      background:'#fff', borderRadius:'12px', boxShadow:'0 6px 18px rgba(0,0,0,.08)',
+      alignItems:'center', flexWrap:'wrap'
+    });
+    document.getElementById('chatBottom')?.insertBefore(bar, document.getElementById('chatFormBottom'));
+  }
+  return bar;
+}
+function renderAttachBar(){
+  const bar = ensureAttachBar();
+  if (!pendingFiles.length){ bar.style.display='none'; bar.innerHTML=''; return; }
+  bar.style.display = 'flex';
+  bar.innerHTML = pendingFiles.map((f,i)=>
+    `<span class="chip" data-i="${i}" style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#f2f2f5;font-size:12px;line-height:1">
+       📄 ${f.name}
+       <button type="button" aria-label="제거" style="border:0;background:transparent;font-size:14px;cursor:pointer">×</button>
+     </span>`
+  ).join('');
+  bar.querySelectorAll('.chip button').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const i = +btn.parentElement.dataset.i;
+      pendingFiles.splice(i,1); renderAttachBar();
+    });
+  });
+}
+
+function ensureAttachInput(){
+  let input = document.getElementById('chat-file-input');
+  if (!input){
+    input = document.createElement('input');
+    input.type = 'file';
+    input.id = 'chat-file-input';
+    input.accept = 'application/pdf';
+    input.multiple = true;
+    input.style.display = 'none';
+    document.body.appendChild(input);
+  }
+  return input;
+}
+
+function openAttachMenu(anchor, onChoose){
+  let dd = document.getElementById('chat-attach-menu');
+  if (!dd){
+    dd = document.createElement('div');
+    dd.id = 'chat-attach-menu';
+    Object.assign(dd.style, {
+      position:'fixed', minWidth:'140px', background:'#fff', borderRadius:'12px',
+      boxShadow:'0 12px 28px rgba(0,0,0,.18)', padding:'8px', zIndex:9999,
+      opacity:'0', transform:'translateY(6px)', transition:'opacity .18s ease, transform .18s ease'
+    });
+    dd.innerHTML = `<button id="attach-choose" style="width:100%;padding:8px 10px;border:0;background:#f6f7fb;border-radius:10px;cursor:pointer;text-align:left">📎 PDF 파일 추가</button>`;
+    document.body.appendChild(dd);
+  }
+  const r = anchor.getBoundingClientRect();
+  dd.style.left = Math.round(r.left) + 'px';
+  dd.style.top  = Math.round(r.top - (dd.offsetHeight||48) - 8) + 'px';
+  requestAnimationFrame(()=>{ dd.style.opacity='1'; dd.style.transform='translateY(0)'; });
+
+  const closer = (ev)=>{
+    if (!dd.contains(ev.target) && ev.target !== anchor){ 
+      dd.style.opacity='0'; dd.style.transform='translateY(6px)';
+      setTimeout(()=>dd.remove(), 180);
+      document.removeEventListener('click', closer, true);
+    }
+  };
+  document.addEventListener('click', closer, true);
+  dd.querySelector('#attach-choose')?.addEventListener('click', ()=>{
+    onChoose?.();
+    closer({target:document.body});
+  });
+}
+
+function bindAttach(form){
+  if (!form) return;
+  const btn = form.querySelector('#chat-attach-btn, #hero-attach-btn');
+  if (!btn) return;
+  const input = ensureAttachInput();
+
+  btn.addEventListener('click', async (e)=>{
+    e.preventDefault();
+    const auth = await getAuthInfo();
+    if (!auth.logged){
+      openChatModal({
+        title:'로그인이 필요해요',
+        html:'파일 업로드는 로그인 후 이용 가능합니다.',
+        actions:[{label:'로그인 하러 가기', href:'/login.html', primary:true},{label:'닫기'}]
+      });
+      return;
+    }
+    if (!auth.subscribed){
+      openChatModal({
+        title:'구독 전용 기능',
+        html:'PDF 업로드 기반 <b>시험지 요청</b>은 구독 회원 전용입니다.',
+        actions:[{label:'요금제 보기', href:'/pricing.html', primary:true},{label:'닫기'}]
+      });
+      return;
+    }
+    openAttachMenu(btn, ()=> input.click());
+  });
+
+  input.addEventListener('change', (e)=>{
+    const list = Array.from(e.target.files || []).filter(f=>f.type==='application/pdf');
+    const left = Math.max(0, 10 - pendingFiles.length); // 최대 10개
+    pendingFiles = pendingFiles.concat(list.slice(0,left));
+    renderAttachBar();
+    input.value = '';
+  });
+}
+
+function addBot(html){
+  const msgBox = document.getElementById('chatMessages');
+  const avatar = (localStorage.getItem('mathpb_bot_avatar') || '/image_logo/mybot.png');
+  const row = document.createElement('div');
+  row.className = 'chat-message bot';
+  row.innerHTML = `<div class="avatar" style="background-image:url('${avatar}');"></div>
+                   <div class="bubble">${html}</div>`;
+  msgBox.appendChild(row);
+  msgBox.scrollTop = msgBox.scrollHeight;
+}
+
+function shouldTriggerUpload(text){
+  if (!text) return false;
+  const q = text.replace(/\s+/g,'');
+  return /시험지요청/.test(q) || /요청해줘/.test(q);
+}
+
+async function doUploadPending(){
+  const auth = await getAuthInfo();
+  if (!auth.logged){
+    openChatModal({
+      title:'로그인이 필요해요',
+      html:'로그인 후 다시 시도해주세요.',
+      actions:[{label:'로그인 하러 가기', href:'/login.html', primary:true},{label:'닫기'}]
+    }); return;
+  }
+  if (!auth.subscribed){
+    openChatModal({
+      title:'구독 전용 기능',
+      html:'이 기능은 구독 회원 전용입니다.',
+      actions:[{label:'요금제 보기', href:'/pricing.html', primary:true},{label:'닫기'}]
+    }); return;
+  }
+  if (!pendingFiles.length){
+    openChatModal({
+     title:'첨부 파일 없음',
+      html:'아래 <b>＋</b> 버튼으로 PDF를 먼저 선택해주세요.',
+      actions:[{label:'확인', primary:true}]
+    }); return;
+  }
+  addBot(`📤 PDF ${pendingFiles.length}개 업로드를 시작합니다…`);
+  try{
+    const fd = new FormData();
+    pendingFiles.forEach(f=> fd.append('fileInput', f));   // ← /api/user-upload 포맷과 동일
+    const res = await fetch('/api/user-upload', { method:'POST', body:fd, credentials:'include' });
+    if (!res.ok) throw new Error('upload failed');
+    pendingFiles = [];
+    renderAttachBar();
+    addBot(`✅ 업로드 완료! <a href="/upload.html">시험지 요청(업로드)</a>에서 상태를 확인하세요.`);
+  }catch(e){
+    addBot(`⚠️ 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.`);
+  }
+}
+
 
 async function renderMessages() {
   let t = getActiveThread();
@@ -278,6 +527,7 @@ async function renderMessages() {
     const ni = msgBox.querySelector('#chatInputCenter');
     wireFormBehavior(nf);
     bindSuggest(nf);
+    bindAttach(nf); 
 
     // ✅ Enter=전송 / Shift+Enter=줄바꿈
     ni.addEventListener('keydown', (e) => {
@@ -416,6 +666,12 @@ async function send(text){
   t.messages.push({ role:'user', content:q, time:Date.now() });
   upsertThread(t);
   renderMessages(); renderHistoryList();
+
+ // ✳️ "시험지 요청" 문구 + 첨부파일 있으면 서버로 업로드 먼저 처리
+ if (shouldTriggerUpload(q) && pendingFiles.length){
+   await doUploadPending();
+   return; // OpenAI로 보내지 않음
+ }
 
   try {
     // 타이핑(…)
@@ -746,6 +1002,7 @@ document.addEventListener('click', (e)=>{
 
 // ▷ 최초 진입 시: 하단 폼에도 바인딩
 bindSuggest(document.getElementById('chatFormBottom'));
+bindAttach(document.getElementById('chatFormBottom')); 
 
   // 최초 진입: 로딩 → 렌더 → 로딩 종료
   showLoading();
