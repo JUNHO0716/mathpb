@@ -55,27 +55,143 @@ router.post('/update-subscription', async (req, res) => {
   }
 });
 
-// 자료실 파일 업로드
+// /routes/admin.js (77행 근처)
+
+// --- 헬퍼 함수: 파일명 파싱 ---
+// "2025 인천 부흥고 2학년 1학기 기말 대수"
+function parseFilename(filename) {
+  const parts = filename.replace(/\.[^/.]+$/, "").split(' '); // 확장자 제거 및 공백으로 분리
+  if (parts.length < 7) return null; // [연도] [지역] [학교] [학년] [학기] [시험] [과목] 최소 7개
+
+  const [year, region, school, grade, semester, exam, ...subjectParts] = parts;
+  const subject = subjectParts.join(' ');
+
+  // 학기 매핑
+  let dbSemester = `${semester} ${exam}`;
+  if (dbSemester === '1학기 중간') dbSemester = '1학기중간';
+  else if (dbSemester === '1학기 기말') dbSemester = '1학기기말';
+  else if (dbSemester === '2학기 중간') dbSemester = '2학기중간';
+  else if (dbSemester === '2학기 기말') dbSemester = '2학기기말';
+  else return null; // 학기 형식이 안 맞으면 실패
+
+  return {
+    year: parseInt(year, 10),
+    regionQuery: region, // "인천" (DB 조회를 위한 키)
+    schoolQuery: school, // "부흥고" (DB 조회를 위한 키)
+    gradeQuery: grade,   // "2학년" (DB 조회를 위한 키)
+    semester: dbSemester,
+    subject: subject,
+    title: filename.replace(/\.[^/.]+$/, "") // 제목은 파일명 그대로
+  };
+}
+
+// --- 헬퍼 함수: DB에서 학교 정보 조회 (AI 두뇌) ---
+async function findSchoolInfo(regionQuery, schoolQuery, gradeQuery) {
+  // 1. "인천" -> "인천광역시" 매핑
+  const regionMap = {
+    '서울': '서울특별시', '경기': '경기도', '인천': '인천광역시', '부산': '부산광역시',
+    '대구': '대구광역시', '광주': '광주광역시', '대전': '대전광역시', '울산': '울산광역시',
+    '세종': '세종특별자치시', '강원': '강원특별자치도', '충북': '충청북도', '충남': '충청남도',
+    '전북': '전북특별자치도', '전남': '전라남도', '경북': '경상북도', '경남': '경상남도', '제주': '제주특별자치도'
+  };
+  const region = regionMap[regionQuery] || regionQuery; // "인천" -> "인천광역시"
+
+  // 2. DB 조회 (예: '부흥고' -> '부흥고등학교')
+  const [[schoolDB]] = await db.query(
+    `SELECT name, district, level FROM schools WHERE region = ? AND name LIKE ? LIMIT 1`,
+    [region, `${schoolQuery}%`] // '부흥고'로 시작하는 학교
+  );
+
+  if (!schoolDB) {
+    throw new Error(`'${region} ${schoolQuery}'에 해당하는 학교를 schools 테이블에서 찾을 수 없습니다.`);
+  }
+
+  // 3. 'grade' 재조정 (파싱된 '2학년'과 DB의 'level'을 조합)
+  let finalGrade = gradeQuery; // 기본값
+  if (schoolDB.level === '중등') {
+    if (gradeQuery === '1학년') finalGrade = '중1';
+    else if (gradeQuery === '2학년') finalGrade = '중2';
+    else if (gradeQuery === '3학년') finalGrade = '중3';
+  } else { // '고등'
+    if (gradeQuery === '1학년') finalGrade = '고1';
+    else if (gradeQuery === '2학년') finalGrade = '고2';
+    else if (gradeQuery === '3학년') finalGrade = '고3';
+  }
+
+  return {
+    region: region,             // "인천광역시"
+    district: schoolDB.district, // "부평구"
+    school: schoolDB.name,       // "부흥고등학교" (DB에 저장된 풀네임)
+    level: schoolDB.level,       // "고등"
+    grade: finalGrade,           // "고2"
+  };
+}
+
+
+// 자료실 파일 업로드 (AI 파싱 적용)
 router.post('/upload', verifyOrigin, fileUpload.array('files'), async (req, res) => {
   try {
-    const { region, district, school, grade, year, semester, title, level } = req.body;
     const files = req.files;
-    if(!files || files.length === 0) return res.status(400).json({ message: '파일이 없습니다.' });
+    if (!files || files.length === 0) return res.status(400).json({ message: '파일이 없습니다.' });
 
+    // S3에 업로드된 HWP/PDF 키 찾기
     let hwpKey = null, pdfKey = null;
+    let originalFilename = ''; // 파싱할 파일명
     for (const f of files) {
+      originalFilename = f.originalname; // 첫 번째 파일 이름 사용
       const ext = path.extname(f.originalname).toLowerCase();
       if (['.hwp', '.hwpx'].includes(ext)) hwpKey = f.key;
       if (ext === '.pdf') pdfKey = f.key;
     }
 
+    // 1. 파일명 파싱
+    const parsed = parseFilename(originalFilename);
+    
+    // 2. 폼 데이터 (파싱 실패 시 사용)
+    const { region, district, school, grade, year, semester, title, level } = req.body;
+
+    if (!parsed) {
+      // 💥 파싱 실패! 폼 데이터를 그대로 사용 (기존 로직)
+      if (!region || !district || !school || !grade || !year || !semester || !title || !level) {
+        // 파싱도 실패하고, 폼 데이터도 비어있으면 에러
+        return res.status(400).json({ message: '파일명 형식이 맞지 않고, 폼 데이터도 비어있습니다.' });
+      }
+      await db.query(
+        `INSERT INTO files (region, district, school, grade, year, semester, title, hwp_filename, pdf_filename, level)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [region, district, school, grade, year, semester, title || '제목 없음', hwpKey, pdfKey, level]
+      );
+      return res.json({ message: '업로드 성공 (폼 데이터 사용)' });
+    }
+
+    // 3. DB 조회 (AI 두뇌)
+    const schoolInfo = await findSchoolInfo(parsed.regionQuery, parsed.schoolQuery, parsed.gradeQuery);
+
+    // 4. DB에 저장
     await db.query(
-      `INSERT INTO files (region, district, school, grade, year, semester, title, hwp_filename, pdf_filename, level)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [region, district, school, grade, year, semester, title, hwpKey, pdfKey, level]
+      `INSERT INTO files (region, district, school, grade, year, semester, title, hwp_filename, pdf_filename, level, subject)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        schoolInfo.region,   // "인천광역시"
+        schoolInfo.district, // "부평구"
+        schoolInfo.school,   // "부흥고등학교"
+        schoolInfo.grade,    // "고2" (findSchoolInfo가 변환한 값)
+        parsed.year,         // 2025
+        parsed.semester,     // "1학기기말"
+        parsed.title,        // "2025 인천 부흥고 2학년 1학기 기말 대수"
+        hwpKey,
+        pdfKey,
+        schoolInfo.level,    // "고등"
+        parsed.subject       // "대수"
+      ]
     );
-    res.json({ message: '업로드 성공' });
+    res.json({ message: '✅ AI 파싱 업로드 성공' });
   } catch (e) {
+    console.error('AI 업로드 오류:', e);
+    // S3에 업로드된 파일 롤백 (선택 사항)
+    // if (req.files) {
+    //   for (const f of req.files) { await deleteS3(f.key); }
+    // }
     res.status(500).json({ message: '서버 오류', error: e.message });
   }
 });

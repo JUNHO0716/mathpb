@@ -245,31 +245,60 @@ return res.json(baseRows.map(r => {
   }));
 });
 
-// /routes/coverage.js (214행 근처)
 /* ---------- [D] 전체/선택영역 통계 ---------- */
 r.get('/stats', async (req, res) => {
-  // ✅ 1. 학년, 학기, 시험 정보를 받습니다.
   const { level, year, city, district, grade, semester, exam_type } = req.query;
   if (!level || !year) return res.status(400).json({ error: 'level, year required' });
 
   await ensureSchoolsReady();
 
-  // ✅ 2. '1학기중간' 형태로 학기 정보를 조합합니다.
-  let dbSemester = null;
-  if (semester && exam_type) {
-    const semKor = semester === '1' ? '1학기' : '2학기';
-    const examKor = exam_type === 'mid' ? '중간' : '기말';
-    dbSemester = `${semKor}${examKor}`;
+  const hasSchools = await hasSchoolsTable();
+  if (!hasSchools) {
+    // schools 테이블이 없으면 폴백 로직 실행 (이전과 동일)
+    const conds = ['level=?']; const args = [level];
+    if (city)     { conds.push('region=?');   args.push(city); }
+    if (district) { conds.push('district=?'); args.push(district); }
+    const [[base]] = await db.query(`SELECT COUNT(DISTINCT CONCAT_WS('|', school, region, district, level)) AS total FROM files WHERE ${conds.join(' AND ')}`, args);
+    let condsFiltered = [...conds], argsFiltered = [...args];
+    const isSelectedQuery = !!(city || district);
+    if (isSelectedQuery) {
+      let dbSemester = null;
+      if (semester && exam_type) {
+        const semKor = semester === '1' ? '1학기' : '2학기';
+        const examKor = exam_type === 'mid' ? '중간' : '기말';
+        dbSemester = `${semKor}${examKor}`;
+      }
+      if (grade) { condsFiltered.push('grade=?'); argsFiltered.push(grade); }
+      if (dbSemester) { condsFiltered.push('semester=?'); argsFiltered.push(dbSemester); }
+    }
+    const [[yr]] = await db.query(`SELECT COUNT(DISTINCT CONCAT_WS('|', school, region, district, level)) AS filled FROM files WHERE ${condsFiltered.concat(['year=?']).join(' AND ')}`, [...argsFiltered, year]);
+    const total  = base?.total  || 0;
+    const filled = yr?.filled   || 0;
+    return res.json({ total, filled, pct: total ? Math.round((filled / total)*100) : 0 });
   }
 
-  const hasSchools = await hasSchoolsTable();
-  if (hasSchools) {
+  // --- 
+  // ✅ 1. "schools" 테이블이 있을 때의 메인 로직
+  // ---
+  
+  const isSelectedQuery = !!(city || district); // 'city'나 'district'가 있으면 '선택 영역' 쿼리
+
+  if (isSelectedQuery) {
+    // ---
+    // ✅ 2. "선택 영역" (학교 기준: School-based)
+    // ---
+    let dbSemester = null;
+    if (semester && exam_type) {
+      const semKor = semester === '1' ? '1학기' : '2학기';
+      const examKor = exam_type === 'mid' ? '중간' : '기말';
+      dbSemester = `${semKor}${examKor}`;
+    }
+
     const where = ['s.level=?'];
     const params = [level];
     if (city)     { where.push('s.region=?');   params.push(city); }
     if (district) { where.push('s.district=?'); params.push(district); }
 
-    // ✅ 3. 하위 쿼리(EXISTS)에도 필터 조건을 추가합니다.
     let subQueryFilter = 'AND f.year = ?';
     const subQueryParams = [year];
     if (grade) {
@@ -292,65 +321,36 @@ r.get('/stats', async (req, res) => {
         FROM schools s
        WHERE ${where.join(' AND ')}
     `;
-    // ✅ 4. 파라미터 순서를 [하위쿼리 파라미터, 메인쿼리 파라미터]로 변경
-    const [[row]] = await db.query(sql, [...subQueryParams, ...params]); 
+    
+    const [[row]] = await db.query(sql, [...subQueryParams, ...params]);
     const total  = row?.total  || 0;
     const filled = row?.filled || 0;
-    if (total > 0) {
-      return res.json({ total, filled, pct: Math.round((filled / total) * 100) });
-    }
-    // ▼ 폴백 (기존 files 기반 코드 그대로)
-    const conds = ['level=?']; const args = [level];
-    if (city)     { conds.push('region=?');   args.push(city); }
-    if (district) { conds.push('district=?'); args.push(district); }
+    return res.json({ total, filled, pct: total ? Math.round((filled / total) * 100) : 0 });
 
-    const [[base]] = await db.query(
-      `SELECT COUNT(DISTINCT CONCAT_WS('|', school, region, district, level)) AS total
-         FROM files WHERE ${conds.join(' AND ')}`, args
-    );
+  } else {
+    // ---
+    // ✅ 3. "전체 수거율" (파일 기준: File-based)
+    // ---
     
-    // ✅ 5. 폴백 쿼리에도 필터를 동일하게 추가합니다.
-    if (grade) { conds.push('grade=?'); args.push(grade); }
-    if (dbSemester) { conds.push('semester=?'); args.push(dbSemester); }
-
-    const [[yr]] = await db.query(
-      `SELECT COUNT(DISTINCT CONCAT_WS('|', school, region, district, level)) AS filled
-         FROM files WHERE ${conds.concat(['year=?']).join(' AND ')}`, [...args, year]
+    // 분모: (해당 레벨의 전체 학교 수) * 12
+    const [[schoolCountRow]] = await db.query(
+      `SELECT COUNT(*) AS totalSchools FROM schools WHERE level = ?`,
+      [level]
     );
-    const t = base?.total || 0, f = yr?.filled || 0;
-    return res.json({ total: t, filled: f, pct: t ? Math.round((f/t)*100) : 0 });
+    const totalSchools = schoolCountRow?.totalSchools || 0;
+    const total = totalSchools * 12; // 1개 학교당 12개 슬롯 (3학년 * 4학기)
 
+    // 분자: (해당 레벨, 해당 연도의 'files' 테이블 총 개수)
+    const [[fileCountRow]] = await db.query(
+      `SELECT COUNT(*) AS filledFiles FROM files WHERE level = ? AND year = ?`,
+      [level, year]
+    );
+    const filled = fileCountRow?.filledFiles || 0;
+    
+    return res.json({ total, filled, pct: total ? Math.round((filled / total) * 100) : 0 });
   }
-
-  // ■ 폴백
-  const conds = ['level=?'];
-  const args  = [level];
-  if (city)     { conds.push('region=?');   args.push(city); }
-  if (district) { conds.push('district=?'); args.push(district); }
-
-  const [[base]] = await db.query(
-    `SELECT COUNT(DISTINCT CONCAT_WS('|', school, region, district, level)) AS total
-       FROM files
-      WHERE ${conds.join(' AND ')}`, args
-  );
-
-  // ✅ 5. 폴백 쿼리에도 필터를 동일하게 추가합니다.
-  if (grade) { conds.push('grade=?'); args.push(grade); }
-  if (dbSemester) { conds.push('semester=?'); args.push(dbSemester); }
-
-  const [[yr]] = await db.query(
-    `SELECT COUNT(DISTINCT CONCAT_WS('|', school, region, district, level)) AS filled
-       FROM files
-      WHERE ${conds.concat(['year=?']).join(' AND ')}`, [...args, year]
-  );
-  const total  = base?.total  || 0;
-  const filled = yr?.filled   || 0;
-  res.json({ total, filled, pct: total ? Math.round((filled / total) * 100) : 0 });
 });
 
-// /routes/coverage.js (214행 ~ 279행)
-
-// /routes/coverage.js (276행 근처)
 /* ---------- [E] 허니콤(학교 리스트) ---------- */
 r.get('/schools', async (req, res) => {
   // ✅ 1. 학년, 학기, 시험 정보를 받습니다.
@@ -451,7 +451,7 @@ r.get('/schools', async (req, res) => {
   const [yr] = await db.query(
     `SELECT f.school, f.region, f.district, COUNT(*) AS c
        FROM files f
-      WHERE ${conds.concat(['f.year=?']).join(' AND ')}
+      WHERE ${conds.concat(['year=?']).join(' AND ')}
       GROUP BY f.school, f.region, f.district`,
     [...args, year]
   );
