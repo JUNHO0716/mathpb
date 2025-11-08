@@ -342,13 +342,29 @@ router.post('/payment-complete', async (req, res) => {
   }
 });
 
-router.post('/update-role', async (req, res) => {
+// ✅ json 파서 부착 + 영향행 체크 + (자기 자신 바꾼 경우) 세션 즉시 반영
+router.post('/update-role', express.json(), async (req, res) => {
   try {
     const { userId, makeAdmin } = req.body;
+
     if (!userId || typeof makeAdmin !== 'boolean') {
       return res.status(400).json({ success: false, message: '잘못된 요청입니다.' });
     }
-    await db.execute('UPDATE users SET is_admin = ? WHERE id = ?', [makeAdmin ? 1 : 0, userId]);
+
+    const [r] = await db.execute(
+      'UPDATE users SET is_admin = ? WHERE id = ?',
+      [makeAdmin ? 1 : 0, userId]
+    );
+    if (r.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    // 본인 권한을 스스로 바꾼 경우 세션도 즉시 반영
+    if (req.session?.user?.id === userId) {
+      req.session.user.is_admin = makeAdmin ? 1 : 0;
+      await new Promise(resolve => req.session.save(resolve));
+    }
+
     return res.json({
       success: true,
       message: makeAdmin ? '✅ 관리자 권한이 부여되었습니다.' : '✅ 관리자 권한이 해제되었습니다.'
