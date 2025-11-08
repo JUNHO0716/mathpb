@@ -140,6 +140,14 @@
       document.getElementById('subscriptionModal').style.display = 'block';
     }
 
+      // ✅ 추가: 모달 닫기
+  function closeModal() {
+    const m = document.getElementById('subscriptionModal');
+    if (m) m.style.display = 'none';
+    selectedUser = null;
+    selectedAction = null;
+  }
+
     function confirmAction() {
       let url = '';
       let payload = {};
