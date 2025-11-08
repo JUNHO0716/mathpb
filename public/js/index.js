@@ -195,13 +195,24 @@ async function bindUser() {
       avatarEl.alt = displayName;
     }
 
-    document.getElementById('userBox').classList.remove('loading');
-    
-    if (u.role === 'admin') {
-      document.getElementById('goAdminPage').style.display = 'block';
-    } else {
-      document.getElementById('goAdminPage').style.display = 'none';
+  document.getElementById('userBox').classList.remove('loading');
+
+  // ✅ 오직 isAdmin으로만 판별
+  const isAdmin = !!u.isAdmin;
+  IS_ADMIN = isAdmin;
+
+  const goAdminEl = document.getElementById('goAdminPage');
+  if (goAdminEl) {
+    goAdminEl.style.display = isAdmin ? 'block' : 'none';
+    // (안 붙어있다면) 클릭 시 관리자 페이지로 이동
+    if (!goAdminEl.__bound) {
+      goAdminEl.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = '/admin.html';
+      });
+      goAdminEl.__bound = true;
     }
+  }
   } catch (e) {
     console.error(e);
   }
