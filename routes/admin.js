@@ -10,20 +10,20 @@ const router = express.Router();
 // 미들웨어: 이 파일의 모든 라우트는 isLoggedIn, isAdmin을 통과해야 함
 router.use(isLoggedIn, isAdmin);
 
-// 사용자 목록
+// 사용자 목록 (isAdmin만 사용)
 router.get('/users', async (req, res) => {
   try {
     const [rows] = await db.query(`
-    SELECT id, email, name, created_at,
-          is_subscribed, subscription_start, subscription_end,
-          is_admin, 
-          academyName, academyPhone, bizNum
-    FROM users
+      SELECT id, email, name, created_at,
+             is_subscribed, subscription_start, subscription_end,
+             isAdmin,                                    -- ✅ 오직 isAdmin
+             academyName, academyPhone, bizNum
+      FROM users
       ORDER BY created_at DESC
     `);
-    res.json(rows);
+    res.json({ success: true, users: rows });
   } catch (e) {
-    res.status(500).json({ message: '회원 목록 조회 오류', error: e.message });
+    res.status(500).json({ success: false, message: '서버 오류', error: e.message });
   }
 });
 
@@ -342,26 +342,24 @@ router.post('/payment-complete', async (req, res) => {
   }
 });
 
-// ✅ json 파서 부착 + 영향행 체크 + (자기 자신 바꾼 경우) 세션 즉시 반영
 router.post('/update-role', express.json(), async (req, res) => {
   try {
     const { userId, makeAdmin } = req.body;
-
     if (!userId || typeof makeAdmin !== 'boolean') {
       return res.status(400).json({ success: false, message: '잘못된 요청입니다.' });
     }
 
     const [r] = await db.execute(
-      'UPDATE users SET is_admin = ? WHERE id = ?',
-      [makeAdmin ? 1 : 0, userId]
+      'UPDATE users SET isAdmin = ? WHERE id = ?',
+      [makeAdmin ? 1 : 0, userId]                       // ✅ isAdmin만 수정
     );
     if (r.affectedRows === 0) {
       return res.status(404).json({ success: false, message: '사용자를 찾을 수 없습니다.' });
     }
 
-    // 본인 권한을 스스로 바꾼 경우 세션도 즉시 반영
+    // 본인이 자기 권한 바꾼 경우 세션 즉시 반영
     if (req.session?.user?.id === userId) {
-      req.session.user.is_admin = makeAdmin ? 1 : 0;
+      req.session.user.isAdmin = makeAdmin ? 1 : 0;
       await new Promise(resolve => req.session.save(resolve));
     }
 

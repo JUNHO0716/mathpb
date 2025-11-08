@@ -91,11 +91,12 @@
 
     async function loadUsers() {
       const res = await fetch('/api/admin/users');
-      const users = await res.json();
+      const { users } = await res.json();              // ✅ 서버 응답 형태에 맞춤
       const tbody = document.getElementById('userTbody');
       tbody.innerHTML = '';
 
       users.forEach(u => {
+        const isAdmin = !!u.isAdmin;                   // ✅ 오직 isAdmin만 사용
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${u.id}</td>
@@ -108,15 +109,15 @@
           <td>${u.subscription_start?.slice(0,10) || '-'}</td>
           <td>${u.subscription_end?.slice(0,10) || '-'}</td>
           <td>
-            <span style="padding:4px 8px;border-radius:12px;background:${u.is_admin ? '#eef5ff' : '#f6f6f6'};border:1px solid #ddd;">
-              ${u.is_admin ? '관리자' : '일반'}
+            <span style="padding:4px 8px;border-radius:12px;background:${isAdmin ? '#eef5ff' : '#f6f6f6'};border:1px solid #ddd;">
+              ${isAdmin ? '관리자' : '일반'}
             </span>
           </td>
           <td>
-            <button class="btn btn-extend" onclick="openModal('extend', '${u.id}')">🔄 연장</button>
-            <button class="btn btn-cancel" onclick="openModal('cancel', '${u.id}')">❌ 해지</button>
+            <button class="btn btn-extend" onclick="openModal('extend','${u.id}')">🔄 연장</button>
+            <button class="btn btn-cancel" onclick="openModal('cancel','${u.id}')">❌ 해지</button>
             ${
-              u.is_admin
+              isAdmin
                 ? `<button class="btn" style="margin-left:6px;background:#ff9800;color:#fff" onclick="openModal('revoke_admin','${u.id}')">관리자 해제</button>`
                 : `<button class="btn" style="margin-left:6px;background:#2196f3;color:#fff" onclick="openModal('grant_admin','${u.id}')">관리자 부여</button>`
             }
