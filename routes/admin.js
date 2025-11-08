@@ -14,9 +14,11 @@ router.use(isLoggedIn, isAdmin);
 router.get('/users', async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT id, email, name, created_at, is_subscribed, subscription_start, subscription_end,
-             academyName, academyPhone, bizNum
-      FROM users
+    SELECT id, email, name, created_at,
+          is_subscribed, subscription_start, subscription_end,
+          is_admin, 
+          academyName, academyPhone, bizNum
+    FROM users
       ORDER BY created_at DESC
     `);
     res.json(rows);
@@ -337,6 +339,22 @@ router.post('/payment-complete', async (req, res) => {
     res.json({ success: true });
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+router.post('/update-role', async (req, res) => {
+  try {
+    const { userId, makeAdmin } = req.body;
+    if (!userId || typeof makeAdmin !== 'boolean') {
+      return res.status(400).json({ success: false, message: '잘못된 요청입니다.' });
+    }
+    await db.execute('UPDATE users SET is_admin = ? WHERE id = ?', [makeAdmin ? 1 : 0, userId]);
+    return res.json({
+      success: true,
+      message: makeAdmin ? '✅ 관리자 권한이 부여되었습니다.' : '✅ 관리자 권한이 해제되었습니다.'
+    });
+  } catch (e) {
+    res.status(500).json({ success: false, message: '서버 오류', error: e.message });
   }
 });
 
