@@ -90,13 +90,20 @@
     let selectedAction = null;
 
     async function loadUsers() {
-      const res = await fetch('/api/admin/users');
-      const { users } = await res.json();              // ✅ 서버 응답 형태에 맞춤
-      const tbody = document.getElementById('userTbody');
-      tbody.innerHTML = '';
+    const res = await fetch('/api/admin/users');
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      console.error('회원 로드 실패:', data);
+      alert(data.message || '회원 목록을 불러오지 못했습니다.');
+      return;                                   // ✅ 에러면 종료 (forEach 안 탐)
+    }
 
-      users.forEach(u => {
-        const isAdmin = !!u.isAdmin;                   // ✅ 오직 isAdmin만 사용
+    const users = data.users || [];
+    const tbody = document.getElementById('userTbody');
+    tbody.innerHTML = '';
+
+    users.forEach(u => {
+      const isAdmin = !!u.isAdmin;              // 응답은 isAdmin 키로 들어옴
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${u.id}</td>

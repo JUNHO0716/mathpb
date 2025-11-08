@@ -10,13 +10,12 @@ const router = express.Router();
 // 미들웨어: 이 파일의 모든 라우트는 isLoggedIn, isAdmin을 통과해야 함
 router.use(isLoggedIn, isAdmin);
 
-// 사용자 목록 (isAdmin만 사용)
 router.get('/users', async (req, res) => {
   try {
     const [rows] = await db.query(`
       SELECT id, email, name, created_at,
              is_subscribed, subscription_start, subscription_end,
-             isAdmin,                                    -- ✅ 오직 isAdmin
+             is_admin AS isAdmin,                      -- ✅ DB는 is_admin, 응답은 isAdmin
              academyName, academyPhone, bizNum
       FROM users
       ORDER BY created_at DESC
@@ -349,10 +348,14 @@ router.post('/update-role', express.json(), async (req, res) => {
       return res.status(400).json({ success: false, message: '잘못된 요청입니다.' });
     }
 
-    const [r] = await db.execute(
-      'UPDATE users SET isAdmin = ? WHERE id = ?',
-      [makeAdmin ? 1 : 0, userId]                       // ✅ isAdmin만 수정
+   const [r] = await db.execute(
+      'UPDATE users SET is_admin = ? WHERE id = ?',
+      [makeAdmin ? 1 : 0, userId]               // ✅ DB 컬럼은 is_admin
     );
+    if (req.session?.user?.id === userId) {
+      req.session.user.is_admin = makeAdmin ? 1 : 0; // 세션에도 반영
+      await new Promise(resolve => req.session.save(resolve));
+    }
     if (r.affectedRows === 0) {
       return res.status(404).json({ success: false, message: '사용자를 찾을 수 없습니다.' });
     }
