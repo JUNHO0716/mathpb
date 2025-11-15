@@ -15,7 +15,7 @@
   <script src="js/login.js" defer></script>
 
 </head>
-<body class="bg-white">
+<body>
 
   <header class="hidden lg:flex absolute top-0 left-0 right-0 p-8 justify-between items-center">
     <div class="flex items-center space-x-2">
@@ -47,8 +47,11 @@
       
       <form id="loginForm">
         <div class="space-y-4">
-          <input id="login_email" class="w-full px-4 py-3 border-b border-gray-300 rounded-none focus:outline-none focus:ring-0 focus:border-black" placeholder="아이디" type="text" required autocomplete="username" />
-          <input id="login_password" class="w-full px-4 py-3 border-b border-gray-300 rounded-none focus:outline-none focus:ring-0 focus:border-black" placeholder="비밀번호" type="password" required autocomplete="current-password" />
+<!-- ✅ border-b / focus:border-black 제거, 전용 클래스 login-input 부여 -->
+<input id="login_email" class="login-input w-full px-4 py-3 appearance-none focus:outline-none focus:ring-0" placeholder="아이디" type="text" required autocomplete="username" />
+
+<input id="login_password" class="login-input w-full px-4 py-3 appearance-none focus:outline-none focus:ring-0" placeholder="비밀번호" type="password" required autocomplete="current-password" />
+
         </div>
 
         <div class="flex items-center justify-between mt-4">
@@ -70,19 +73,16 @@
         </div>
 
         <div class="mt-6 space-y-2">
-          <button type="submit" class="w-full bg-black text-white py-3 rounded-md font-semibold hover:bg-gray-800">로그인</button>
-          <button type="button" onclick="location.href='signup.html'" class="w-full border border-gray-300 text-gray-800 py-3 rounded-md font-semibold hover:bg-gray-100">회원가입</button>
+          <button type="submit" class="login-btn w-full py-3 rounded-full font-semibold">로그인</button>
+          <button type="button" onclick="location.href='signup.html'" class="signup-btn w-full">회원가입</button>
         </div>
         <div id="loginResult" style="display:none; margin-top: 1rem; text-align: center; color: #d9534f; font-weight: 500;"></div>
       </form>
 
-      <div class="mt-20 relative">
-        <div class="absolute inset-0 flex items-center">
-          <div class="w-full border-t border-gray-300"></div>
-        </div>
-        <div class="relative flex justify-center text-sm">
-          <span class="px-2 bg-white text-gray-500">SNS 계정으로 로그인</span>
-        </div>
+      <div class="mt-20 flex items-center text-sm">
+        <div class="flex-1 border-t border-gray-300/60"></div>
+        <span class="mx-4 text-gray-600 select-none">SNS 계정으로 로그인</span>
+        <div class="flex-1 border-t border-gray-300/60"></div>
       </div>
 
       <div class="mt-10 flex justify-center items-center space-x-8">

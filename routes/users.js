@@ -1,7 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import db from '../config/database.js';
-import { isLoggedIn, isSubscribed } from '../middleware/auth.js';
+import { isLoggedIn, requirePlan } from '../middleware/auth.js';
 import { avatarUpload, fileUpload, deleteS3 } from '../config/s3.js';
 
 const router = express.Router();
@@ -147,7 +147,7 @@ router.post('/api/change-email', isLoggedIn, async (req, res) => {
 });
 
 // 사용자 파일 업로드
-router.post('/api/user-upload', isSubscribed, fileUpload.array('fileInput', 10), async (req, res) => {
+router.post('/api/user-upload', requirePlan('standard'), fileUpload.array('fileInput', 10), async (req, res) => {
     try {
       const userId = req.session.user.id;
       const files  = req.files;

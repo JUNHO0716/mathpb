@@ -24,15 +24,60 @@ window.initializeHomePage = function(user) {
   loadDownloadStats(user);
   loadUserStats();
 
-  // ✅ 커버리지 위젯 렌더 (기본: 최신연도, 고등)
+// ✅ 커버리지(벌집) 기본 렌더 + 텍스트형 탭 토글
+{
+  const now = new Date().getFullYear();
+  const defaultYear = Math.max(2024, Math.min(now, 9999));
+
+  // 1) 기본: AI 집계(벌집) 먼저 렌더
   if (window.renderCoverageWidget) {
-    const now = new Date().getFullYear();
-    // 연도는 API가 2024부터 현재/DB최대연도까지 자동 생성
-    const defaultYear = Math.max(2024, Math.min(now, 9999));
     window.renderCoverageWidget('#coverageWidgetRoot', {
       defaultYear,
-      defaultLevel: 'high', // 'high' | 'middle' (탭으로 전환)
+      defaultLevel: 'high',
     });
+  }
+
+  // 2) 탭 토글 (텍스트형)
+  const covRoot = document.getElementById('coverageWidgetRoot');
+  const schRoot = document.getElementById('scheduleWidgetRoot');
+  const links = document.querySelectorAll('.covsch-link');
+
+  let scheduleBooted = false;
+
+  function activate(btn){
+    links.forEach(b=>{
+      const on = (b === btn);
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+
+    const name = btn?.dataset?.tab || 'coverage';
+    if (name === 'schedule') {
+      covRoot.hidden = true;
+      schRoot.hidden = false;
+
+      // 스케줄 위젯 최초 1회만 부팅 (분리 파일)
+      if (!scheduleBooted && window.renderScheduleWidget) {
+        scheduleBooted = true;
+        window.renderScheduleWidget('#scheduleWidgetRoot', {
+          defaultYear,
+          defaultLevel: 'high'
+        });
+      }
+    } else {
+      schRoot.hidden = true;
+      covRoot.hidden = false;
+    }
+  }
+
+  links.forEach(b => b.addEventListener('click', () => activate(b)));
+
+  // 초기 활성: is-active 붙은 버튼(=AI 집계)
+  const initial = document.querySelector('.covsch-link.is-active') || links[0];
+  activate(initial);
+
+  // 아이콘 미리 로드 (첫 렌더 누락 방지)
+  ['image_home/ai.png', 'image_home/calendar.png'].forEach(src => { const i = new Image(); i.src = src; });
   }
   
   // 5. 기타 기능 실행
@@ -302,27 +347,23 @@ function bindUser(user) {
 
     if(profileNameExpanded) profileNameExpanded.textContent = user.name || '-';
     if(profileAvatarExpanded) profileAvatarExpanded.src = user.avatarUrl || 'https://via.placeholder.com/90';
-        if(profileIdValue) {
-        let displayId = user.id || '-'; // 기본값은 전체 ID
-        // 이메일이 있고 '@'를 포함하면 @ 앞부분을 displayId로 사용
-        if (user.email && user.email.includes('@')) {
-            displayId = user.email.split('@')[0];
-        }
+      if (profileIdValue) {
+        // ✅ ID 최우선: id → username → loginId → (폴백) 카카오는 name, 그 외엔 이메일 @앞 → '-'
+        const displayId =
+          (user?.id && String(user.id).trim())
+          || (user?.username && String(user.username).trim())
+          || (user?.loginId && String(user.loginId).trim())
+          || (user?.email === 'Kakao' ? (user?.name || '').trim() : ((user?.email || '').split('@')[0] || ''))
+          || '-';
         profileIdValue.textContent = displayId;
-    }
+      }
     if(profileEmailValue) profileEmailValue.textContent = user.email || '-';
     
     if(profilePhoneValue) profilePhoneValue.textContent = formatPhoneNumber(user.phone);
     
-    if(profilePlan) {
-        let planText = 'Free';
-        if (user.hasPaid && user.plan) {
-            planText = user.plan.charAt(0).toUpperCase() + user.plan.slice(1);
-        }
-        if (user.role === 'admin') {
-            planText = 'Admin';
-        }
-        profilePlan.textContent = planText;
+    if (profilePlan) {
+        const plan = (user?.plan || 'free').toLowerCase();
+        profilePlan.textContent = plan; // free / basic / standard / pro
     }
 }
 

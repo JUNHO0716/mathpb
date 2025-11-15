@@ -1,434 +1,520 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta name="robots" content="noindex, nofollow">
   <meta charset="UTF-8" />
-  <title>자료 관리(관리자)</title>
-  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:700,400&display=swap" rel="stylesheet">
+  <meta name="robots" content="noindex, nofollow" />
+  <title>시험지 업로드(멀티)</title>
   <style>
-    body { background: #f5f5f7; font-family: 'Noto Sans KR', Arial, sans-serif; }
-    .admin-table-box {
-      max-width: 1480px;   /* ✅ 더 넓게 */
-      margin: 50px auto 0;
-      background: #fff;
-      border-radius: 22px;
-      box-shadow: 0 4px 32px #0001;
-      padding: 38px 36px 40px 36px;
+    :root{
+      --bg:#f7f8fb;
+      --card:#ffffff;
+      --txt:#101214;
+      --sub:#6b7280;
+      --line:#e9ecf1;
+      --accent1:#6AD3FF;   /* 하늘 */
+      --accent2:#A37DFF;   /* 보라 */
+      --accent3:#FF6AD5;   /* 핑크 */
+      --ok:#16a34a; --err:#e11d48;
     }
-    h2 {
-      margin-bottom: 30px;
-      text-align: left;
-      font-size: 1.48rem;  /* 글씨 약간 축소 */
-      font-weight: 900;
-      color: #181818;
-      letter-spacing: -2px;
-    }
-    .search-bar {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      justify-content: flex-end;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .search-bar select,
-    .search-bar input {
-      background: #fafafc;
-      border: 1.5px solid #d3d4da;
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 0.95rem;   /* 글씨 약간 축소 */
-      color: #222;
-      outline: none;
-      transition: border 0.13s;
-      min-width: 82px;
-      margin-bottom: 3px;
-    }
-    .search-bar input[type="number"] {
-      width: 70px;
-      min-width: 60px;
-    }
-    .search-bar select:focus, .search-bar input:focus {
-      border-color: #ffc400;
-      background: #fffbe9;
-    }
-    .search-bar button {
-      background: #ffc400;
-      color: #181818;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 20px;
-      font-size: 0.96rem;
-      font-weight: bold;
-      cursor: pointer;
-      margin-bottom: 3px;
-      box-shadow: 0 2px 7px #ffc40011;
-      letter-spacing: 0.03em;
-      transition: background 0.16s;
-    }
-    .search-bar button:last-child {
-      background: #ececec;
-      color: #222;
-      margin-left: 4px;
-      border: 1px solid #dedede;
-      font-weight: 500;
-    }
-    .search-bar button:active { background: #ffd54f; }
-    .msg { text-align: center; margin-top: 8px; font-size: 0.98rem; color: #181818; }
+    *{box-sizing:border-box;font-family:ui-sans-serif,system-ui,-apple-system,'Noto Sans KR',Segoe UI,Arial;}
+    body{margin:0;background:var(--bg);color:var(--txt);}
+    .wrap{max-width:1120px;margin:28px auto;padding:0 18px}
+    .title{font-weight:900;font-size:22px;letter-spacing:-.2px;margin:6px 0 10px}
+    .sub{color:var(--sub);font-size:13px;margin-bottom:18px}
 
-    table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      margin-top: 10px;
-      background: #fff;
-      border-radius: 14px;
-      overflow: hidden;
-      font-size: 0.97rem;   /* 글씨 약간 축소 */
-      table-layout: fixed;
-      word-break: keep-all;
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 28px rgba(0,0,0,.06)}
+    .row{display:flex;gap:18px;flex-wrap:wrap}
+
+    /* 헤더 그라데이션 바(두 번째 이미지 느낌) */
+    .hero{padding:14px 18px;border-radius:18px;margin-bottom:14px;position:relative;overflow:hidden}
+    .hero:before{
+      content:"";position:absolute;inset:0;opacity:.55;
+      background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent3));
     }
-    th, td {
-      padding: 8px 7px;
-      text-align: center;
-      font-size: 0.97rem;    /* 글씨 약간 축소 */
-      border-bottom: 1.1px solid #f1f1f3;
-      word-break: keep-all;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+    .hero > div{position:relative;color:#fff;font-weight:800;letter-spacing:-.3px}
+
+    /* 드롭존(첫 번째 이미지 느낌) */
+    .uploader{padding:20px}
+    .dropzone{
+      border:2px dashed rgba(163,125,255,.55); border-radius:16px; background:#fff;
+      min-height:220px; display:flex; align-items:center; justify-content:center; text-align:center; padding:22px;
+      transition:.18s ease;
     }
-    th {
-      background: #181818;
-      color: #fff;
-      font-weight: 800;
-      font-size: 1rem;
-      letter-spacing: 0.01em;
-      border-bottom: 2.2px solid #ffc400;
+    .dropzone.dragover{background:linear-gradient(135deg, rgba(106,211,255,.12), rgba(255,106,213,.12)); transform:translateY(-1px)}
+    .dropzone input{display:none}
+    .dz-title{font-size:18px;font-weight:900;margin-bottom:6px}
+    .dz-sub{font-size:13px;color:var(--sub)}
+    .btn{appearance:none;border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;background:#111;color:#fff;box-shadow:0 6px 20px rgba(0,0,0,.12);transition:.15s}
+    .btn:hover{transform:translateY(-1px)}
+    .btn:disabled{opacity:.45;cursor:not-allowed}
+
+    /* 오른쪽: AI 예측 메타 리스트 */
+    .panel{flex:1 1 420px;padding:16px}
+    .sec-title{font-size:14px;font-weight:900;margin:4px 0 10px}
+    .list{display:flex;flex-direction:column;gap:10px;max-height:520px;overflow:auto}
+    .item{
+      border:1px solid var(--line);border-radius:14px;background:#fff;padding:12px;display:grid;grid-template-columns:1fr 120px 84px;gap:10px;align-items:center
     }
-    tr:last-child td { border-bottom: none; }
-    td {
-      color: #212327;
-      background: #fff;
-      transition: background 0.14s;
-      vertical-align: middle;
+    .name{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .chips{display:flex;gap:6px;flex-wrap:wrap}
+    .chip{font-size:11px;padding:5px 8px;border-radius:999px;border:1px solid var(--line);background:#fff}
+    .chip.grad{border:0;background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent3));color:#fff;font-weight:800}
+    .status{font-size:12px;text-align:right}
+    .progress{height:8px;background:#f0f2f5;border-radius:999px;overflow:hidden}
+    .progress > span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent1),var(--accent3));transition:width .2s ease}
+    .ok{color:var(--ok);font-weight:800}
+    .err{color:var(--err);font-weight:800}
+    .toolbar{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+
+    /* 왼쪽 가이드 */
+    .guide{flex:1 1 560px;padding:16px}
+    .hint{font-size:12px;color:var(--sub);margin-top:6px}
+    .badge{display:inline-block;font-size:12px;color:#5b5b6b;border:1px solid #ececf3;padding:6px 10px;border-radius:999px;background:#fafafd;margin-right:6px}
+    @media (max-width:980px){ .item{grid-template-columns:1fr 100px 74px} }
+
+    /* 학교 주소 확인 패널 */
+    .addr-card{margin-top:16px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:#fafbff;}
+    .addr-title{font-size:13px;font-weight:800;margin-bottom:4px;}
+    .addr-sub{font-size:12px;color:var(--sub);margin-bottom:8px;}
+    .addr-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+    .addr-input{
+      flex:1;
+      border-radius:999px;
+      border:1px solid var(--line);
+      padding:7px 10px;
+      font-size:13px;
+      outline:none;
     }
-    tr:hover td {
-      background: #fffbe8 !important;
-      transition: background 0.16s;
+    .addr-input:focus{border-color:var(--accent2);box-shadow:0 0 0 1px rgba(163,125,255,.25);}
+    .addr-btn{
+      border-radius:999px;
+      padding:7px 14px;
+      font-size:13px;
+      font-weight:800;
+      border:0;
+      background:linear-gradient(90deg,var(--accent2),var(--accent3));
+      color:#fff;
+      cursor:pointer;
+      box-shadow:0 6px 14px rgba(163,125,255,.4);
     }
-    /* 다운로드 버튼만 남기고, 노란색 */
-    .download-btn {
-      background: #fffbe8;
-      color: #ffa900;
-      border: 1.5px solid #ffd54f;
-      border-radius: 6px;
-      padding: 5px 14px;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-weight: bold;
-      transition: background 0.12s, color 0.12s, border 0.12s;
-      vertical-align: middle;
-      margin: 0 2px;
-      min-width: 72px;
-    }
-    .download-btn:hover {
-      background: #fffde2;
-      color: #181818;
-      border-color: #ffc400;
-    }
-    /* 관리 버튼 */
-    .delete-btn, .edit-btn {
-      background: #181818;
-      color: #ffc400;
-      border: none;
-      border-radius: 7px;
-      padding: 5px 13px;
-      cursor: pointer;
-      font-size: 0.92rem;
-      font-weight: bold;
-      margin: 0 1.5px;
-      transition: background .12s, color .12s;
-      letter-spacing: 0.02em;
-      min-width: 50px;
-    }
-    .edit-btn { background: #ffc400; color: #181818; }
-    .edit-btn:hover { background: #ffe46e; }
-    .delete-btn:hover { background: #2d2d2d; color: #ff5353; }
-    .delete-btn:disabled, .edit-btn:disabled { opacity: 0.55; cursor: not-allowed; }
-    /* 반응형 */
-    @media (max-width: 1200px) {
-      .admin-table-box { max-width: 99vw; padding: 14px 2vw 16px 2vw; }
-      table, th, td { font-size: 0.93rem; }
-      th, td { padding: 6px 2px; }
-    }
-    @media (max-width: 950px) {
-      .admin-table-box { padding: 8px 1vw 10px 1vw; }
-      .search-bar { flex-direction: column; gap: 4px; align-items: stretch; }
-      table, th, td { font-size: 0.89rem; }
-      th, td { padding: 4px 1px; }
-    }
+    .addr-btn:disabled{opacity:.5;cursor:default;box-shadow:none;}
+    .addr-result{font-size:12px;max-height:160px;overflow:auto;}
+    .addr-item{padding:6px 8px;border-radius:10px;border:1px solid var(--line);background:#fff;margin-bottom:4px;}
+    .addr-item-name{font-weight:700;font-size:13px;margin-bottom:2px;}
+    .addr-item-meta{color:var(--sub);}
+    .addr-empty{color:var(--sub);}
+
+
   </style>
 </head>
 <body>
-  <div class="admin-table-box">
-    <h2>자료 관리 (관리자)</h2>
-    <div class="search-bar">
-      <select id="search-level"><option value="">관 전체</option><option>중등</option><option>고등</option></select>
-      <select id="search-region"><option value="">지역 전체</option><option>서울</option><option>경기</option><option>인천</option><option>부산</option><option>대구</option><option>광주</option><option>대전</option><option>기타</option></select>
-      <input id="search-school" placeholder="학교명" style="width:95px;" />
-      <input id="search-title"  placeholder="자료명" style="width:95px;" />
-      <input id="search-year"   placeholder="연도"   style="width:70px;" type="number"/>
-      <button onclick="doSearch()">검색</button>
-      <button onclick="resetSearch()" style="margin-left:2px;">초기화</button>
-    </div>
-    <div class="msg" id="msg"></div>
-    <table>
-      <thead>
-        <tr>
-          <th style="width: 55px;">ID</th>
-          <th style="width: 65px;">관</th>
-          <th style="width: 75px;">지역</th>
-          <th style="width: 85px;">구/군</th>
-          <th style="width: 155px;">학교</th>
-          <th style="width: 65px;">학년</th>
-          <th style="width: 70px;">연도</th>
-          <th style="width: 95px;">학기</th>
-          <th style="width: 260px;">제목</th>
-          <th style="width: 105px;">한글</th>
-          <th style="width: 105px;">PDF</th>
-          <th style="width: 98px;">관리</th>
-        </tr>
-      </thead>
-      <tbody id="file-list"><!-- JS로 채움 --></tbody>
-    </table>
-  </div>
-  <div id="edit-bg">
-    <div class="modal-box">
-      <h3 style="margin-top:0">자료 정보 수정</h3>
-      <form id="edit-form" enctype="multipart/form-data">
-        <select name="level" required>
-          <option value="">관 선택</option>
-          <option value="중등">중등</option>
-          <option value="고등">고등</option>
-        </select>
-        <select name="region" required>
-          <option value="">지역 선택</option>
-          <option>서울</option>
-          <option>경기</option>
-          <option>인천</option>
-          <option>부산</option>
-          <option>대구</option>
-          <option>광주</option>
-          <option>대전</option>
-          <option>기타</option>
-        </select>
-        <input name="district"  placeholder="구/군"         required />
-        <input name="school"    placeholder="학교"          required />
-        <select name="grade" required>
-          <option value="">학년</option>
-          <option>중1</option>
-          <option>중2</option>
-          <option>중3</option>
-          <option>고1</option>
-          <option>고2</option>
-          <option>고3</option>
-        </select>
-        <input name="year"      type="number" placeholder="연도" required />
-        <select name="semester" required>
-          <option value="">학기</option>
-          <option>1학기중간</option>
-          <option>1학기기말</option>
-          <option>2학기중간</option>
-          <option>2학기기말</option>
-        </select>
-        <input name="title"     placeholder="제목"          required />
-        <div style="font-size:.9rem;margin:4px 0 2px;">파일 교체(선택)</div>
-        <input name="files" type="file" multiple />
-        <div style="text-align:right;margin-top:12px;">
-          <button type="button" onclick="closeEdit()" style="margin-right:6px;">취소</button>
-          <button type="submit" id="edit-save-btn" style="background:#28b663;color:#fff;border:none;padding:6px 14px;border-radius:6px;">저장</button>
+  <div class="wrap">
+    <div class="title">시험지 업로드(멀티)</div>
+    <div class="sub">파일명을 기반으로 <b>자동 분류</b> 후 업로드합니다. 예시: <b>2025 검단고 1학년 1학기 중간 공통수학1.hwp</b></div>
+
+    <div class="card hero"><div>Define · Align · Achieve — Precision planning powered by AI</div></div>
+
+    <div class="row">
+      <!-- 왼쪽: 드롭존 + 안내 -->
+      <section class="card uploader guide">
+        <div class="dropzone" id="dropzone">
+          <input id="fileInput" type="file" accept=".pdf,.hwp,.hwpx" multiple />
+          <div>
+            <div class="dz-title">Drag & drop to upload</div>
+            <div class="dz-sub">또는 <button id="browseBtn" class="btn" type="button">파일 선택</button></div>
+            <div class="hint">허용: PDF, HWP, HWPX · 최대 20개</div>
+          </div>
         </div>
-      </form>
+        <div style="margin-top:16px">
+          <span class="badge">자동 분류: 연도</span>
+          <span class="badge">학교(고/중 자동)</span>
+          <span class="badge">학년</span>
+          <span class="badge">학기</span>
+          <span class="badge">중간/기말</span>
+          <span class="badge">과목</span>
+        </div>
+        <p class="hint">※ 학교명은 ‘검단고 → 검단고등학교’, ‘○○중 → ○○중학교’로 자동 확장 저장됩니다.</p>
+
+        <!-- 학교 주소 확인 패널 (추가) -->
+        <div class="addr-card">
+          <div class="addr-title">학교 주소 확인</div>
+          <div class="addr-sub">
+            NEIS에서 동기화된 <b>schools</b> 테이블 기준으로 관 · 지역 · 구/군을 조회합니다.
+          </div>
+          <div class="addr-row">
+            <input id="addrInput" class="addr-input" placeholder="예: 검단고, 수지고등학교" />
+            <button id="addrBtn" type="button" class="addr-btn">검색</button>
+          </div>
+          <div id="addrResult" class="addr-result">
+            <div class="addr-empty">학교명을 입력하고 검색을 눌러주세요.</div>
+          </div>
+        </div>
+      </section>
+     
+      </section>
+
+      <!-- 오른쪽: AI 예측 목록 + 업로드 -->
+      <section class="card panel">
+        <div class="sec-title">AI 예측 메타데이터</div>
+        <div id="list" class="list"></div>
+
+        <div class="toolbar">
+          <button id="clearBtn" class="btn" type="button">목록 비우기</button>
+          <button id="uploadBtn" class="btn" type="button" disabled>파일 업로드</button>
+        </div>
+        <p class="hint">업로드는 `/api/user-upload`로 AJAX 전송되며, 각 항목에 `meta_json`(JSON)도 함께 전송됩니다.</p>
+      </section>
     </div>
   </div>
-  <div class="preview-bg" id="preview-bg">
-    <div class="preview-content" id="preview-content">
-      <button onclick="closePreview()" style="float:right;font-size:1.1rem;background:none;border:none;color:#f45a6a;">✕</button>
-      <div id="preview-body"></div>
-    </div>
-  </div>
-  <script>
-    // JS는 100% 그대로, 버튼만 수정
-    let fileListOrigin = [];
-    let editTargetId   = null;
-async function fetchFiles(){
-  const res = await fetch('/api/files', { credentials:'include' });
-  if (res.status === 401) {
-    alert('로그인 필요!'); location.href='/login.html'; return;
-  }
-  const ct = res.headers.get('content-type') || '';
-  const list = ct.includes('application/json') ? (await res.json().catch(()=>[])) : [];
-  fileListOrigin = Array.isArray(list) ? list : [];
-  renderTable(fileListOrigin);
-}
-    function renderTable(list){
-      const tbody = document.getElementById('file-list');
-      if(!list.length){
-        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;color:#bbb;">자료가 없습니다</td></tr>`;
-        return;
-      }
-      tbody.innerHTML = list.map(r=>`
-        <tr>
-          <td>${r.id}</td>
-          <td>${r.level||'-'}</td>
-          <td>${r.region}</td>
-          <td>${r.district}</td>
-          <td>${r.school}</td>
-          <td>${r.grade}</td>
-          <td>${r.year}</td>
-          <td>${r.semester}</td>
-          <td>${r.title}</td>
-          <td>
-            ${r.files && r.files.hwp ? `
-              <a href="/api/download/${r.id}?type=hwp" class="download-btn" target="_blank">다운로드</a>
-            ` : '-'}
-          </td>
-          <td>
-            ${r.files && r.files.pdf ? `
-              <a href="/api/download/${r.id}?type=pdf" class="download-btn" target="_blank">다운로드</a>
-            ` : '-'}
-          </td>
-          <td>
-            <button class="edit-btn"   onclick="editFile(${r.id})">수정</button>
-            <button class="delete-btn" onclick="deleteFile(${r.id},this)">삭제</button>
-          </td>
-        </tr>
-      `).join('');
+
+<script>
+(() => {
+  const UPLOAD_URL = '/api/admin/exam-upload';        // 필요 시 교체
+  const MAX_FILES  = 20;
+  const listEl     = document.getElementById('list');
+  const dropzone   = document.getElementById('dropzone');
+  const fi         = document.getElementById('fileInput');
+  const browseBtn  = document.getElementById('browseBtn');
+  const uploadBtn  = document.getElementById('uploadBtn');
+  const clearBtn   = document.getElementById('clearBtn');
+  const addrInput  = document.getElementById('addrInput');
+  const addrBtn    = document.getElementById('addrBtn');
+  const addrResult = document.getElementById('addrResult');
+
+  /** 상태: {file, meta, node, bar, status, done, ok}[] */
+  const queue = [];
+
+  browseBtn.addEventListener('click', () => fi.click());
+  fi.addEventListener('change', () => addFiles(fi.files));
+
+  // Drag & Drop
+  ['dragenter','dragover'].forEach(evn => dropzone.addEventListener(evn, e => {
+    e.preventDefault(); e.stopPropagation(); dropzone.classList.add('dragover');
+  }));
+  ['dragleave','drop'].forEach(evn => dropzone.addEventListener(evn, e => {
+    e.preventDefault(); e.stopPropagation(); dropzone.classList.remove('dragover');
+  }));
+  dropzone.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+
+  clearBtn.addEventListener('click', () => {
+    queue.splice(0, queue.length);
+    listEl.innerHTML = '';
+    uploadBtn.disabled = true;
+  });
+
+  function addFiles(fileList){
+    const incoming = Array.from(fileList || []);
+    const accept = incoming.filter(f => /\.(pdf|hwp|hwpx)$/i.test(f.name));
+    if (!accept.length) { alert('PDF, HWP, HWPX 파일만 가능합니다.'); return; }
+
+    const remain = MAX_FILES - queue.length;
+    if (accept.length > remain) {
+      alert(`최대 ${MAX_FILES}개까지 등록 가능합니다. (현재 ${queue.length}개)`);
+      accept.splice(remain);
     }
-    function doSearch(){
-      let level = document.getElementById('search-level').value;
-      let region= document.getElementById('search-region').value;
-      let school= document.getElementById('search-school').value.trim();
-      let title = document.getElementById('search-title').value.trim();
-      let year  = document.getElementById('search-year').value.trim();
-      let filtered = fileListOrigin.filter(r=>
-        (!level || r.level===level) &&
-        (!region|| r.region===region) &&
-        (!school|| (r.school && r.school.includes(school))) &&
-        (!title || (r.title  && r.title.includes(title))) &&
-        (!year  || String(r.year).includes(year))
-      );
-      renderTable(filtered);
-    }
-    function resetSearch(){
-      document.getElementById('search-level').value = '';
-      document.getElementById('search-region').value = '';
-      document.getElementById('search-school').value = '';
-      document.getElementById('search-title').value = '';
-      document.getElementById('search-year').value = '';
-      renderTable(fileListOrigin);
-    }
-async function deleteFile(id, btn){
-  if (!confirm('정말 삭제하시겠습니까?')) return;
-  btn.disabled = true;
-  try {
-    const res = await fetch('/api/admin/files/' + id, {
-      method: 'DELETE',
-      credentials: 'include'
+
+    accept.forEach(file => {
+      const meta = guessFromName(file.name);
+      const row  = renderItem(file, meta);
+      listEl.appendChild(row.node);
+
+      const entry = {
+        file, meta,
+        node: row.node,
+        bar: row.bar,
+        status: row.status,
+        done:false, ok:false
+      };
+      queue.push(entry);
+
+      // 🔍 파일명에서 추출한 학교명으로 지역/구군 자동 조회
+      autoFillRegionDistrict(entry);
     });
 
-    if (res.status === 401) {
-      alert('로그인 필요!');
-      location.href = '/login.html';
+    uploadBtn.disabled = queue.length === 0;
+  }
+
+
+  function renderItem(file, meta){
+    const node = document.createElement('div');
+    node.className = 'item';
+    node.innerHTML = `
+      <div class="name" title="${file.name}">${file.name}</div>
+      <div>
+        <div class="chips">
+          ${chipsHTML(meta)}
+        </div>
+        <div class="progress" style="margin-top:8px"><span></span></div>
+      </div>
+      <div class="status">대기</div>
+    `;
+    return {
+      node,
+      bar: node.querySelector('.progress > span'),
+      status: node.querySelector('.status')
+    };
+  }
+
+  function chip(k, v, grad=false){
+    if(!v) return '';
+    return `<span class="chip ${grad?'grad':''}">${k}: ${v}</span>`;
+  }
+
+  // 칩 묶음 생성(지역/구군 포함)
+  function chipsHTML(meta){
+    return [
+      chip('연도', meta.year),
+      chip('학교', meta.school),
+      chip('구분', meta.level, true),
+      chip('학년', meta.grade ? meta.grade+'학년' : ''),
+      chip('학기', meta.semester ? meta.semester+'학기' : ''),
+      chip('시험', meta.exam_type_kr || meta.exam_type),
+      chip('과목', meta.subject),
+      chip('지역', meta.region),
+      chip('구/군', meta.district)
+    ].join('');
+  }
+
+
+  // ===== 업로드 처리 (순차 전송) =====
+  uploadBtn.addEventListener('click', async ()=>{
+    uploadBtn.disabled = true;
+    for (const it of queue){
+      if (it.done) continue;
+      await uploadOne(it).catch(()=>{});
+    }
+    // 모두 끝나면 실패만 남았을 수 있어 다시 활성화
+    if (queue.some(x => !x.done || !x.ok)) uploadBtn.disabled = false;
+  });
+
+  function uploadOne(it){
+    return new Promise((resolve) => {
+      const fd = new FormData();
+      fd.append('file', it.file);
+      // 서버가 쓰기 편하도록 exam_type(국문) + exam_code(mid/final) 모두 보냄
+      fd.append('meta_json', JSON.stringify({
+        title: it.meta.title,
+        year: it.meta.year,
+        school: it.meta.school,
+        level: it.meta.level,          // '고등' | '중등'
+        grade: it.meta.grade,          // '1' | '2' | '3'
+        semester: it.meta.semester,    // '1' | '2'
+        exam_type: it.meta.exam_type_kr || it.meta.exam_type, // '중간'|'기말'
+        exam_code: it.meta.exam_type,  // 'mid'|'final'
+        subject: it.meta.subject,
+        region: it.meta.region || '',
+        district: it.meta.district || ''
+      }));
+
+      it.status.textContent = '업로드 0%';
+      xhrWithProgress(UPLOAD_URL, fd, (pct)=>{
+        it.bar.style.width = pct + '%';
+        it.status.textContent = `업로드 ${pct}%`;
+      }, (ok, text)=>{
+        it.done = true; it.ok = ok;
+        if (ok){
+          it.bar.style.width = '100%';
+          it.status.innerHTML = `<span class="ok">완료</span>`;
+        } else {
+          it.status.innerHTML = `<span class="err">실패</span>`;
+          if (text) console.warn('업로드 실패:', text);
+        }
+        resolve();
+      });
+    });
+  }
+
+  function xhrWithProgress(url, body, onProgress, done){
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url, true);
+    xhr.withCredentials = true;
+    xhr.upload.onprogress = (e)=>{
+      if (!e.lengthComputable) return;
+      const pct = Math.round((e.loaded/e.total)*100);
+      onProgress && onProgress(pct);
+    };
+    xhr.onload = ()=> done(xhr.status >= 200 && xhr.status < 300, xhr.responseText || '');
+    xhr.onerror = ()=> done(false, 'network error');
+    xhr.send(body);
+  }
+
+  // ===== 파일명 → 메타 파서 =====
+  function guessFromName(filename){
+    const base = stripExt(filename).replace(/\s+/g,' ').trim();
+
+    // 연도
+    const year = (base.match(/\b(20\d{2})\b/)||[])[1] || '';
+
+    // 학교
+    let schoolRaw = '';
+    // “…고/고등학교/여고/…중/중학교” 패턴 우선
+    // ⚠ JS의 \b는 한글에서 잘 안 먹으니까, 공백/문자열 끝 기준으로 직접 경계 체크
+    let m = base.match(/([가-힣A-Za-z0-9]+?)(여자고등학교|고등학교|여자중학교|중학교|여고|여중|고|중)(?=\s|$)/);
+    if (m) schoolRaw = m[0];
+    // 확장: '검단고' → '검단고등학교', '○○중' → '○○중학교'
+    const school = expandSchoolName(schoolRaw);
+
+    // 레벨
+    let level = '';
+    if (/고등학교|여고|고\b/.test(school) || /고등|여고|고\b/.test(base)) level = '고등';
+    else if (/중학교|중\b/.test(school) || /중학|중\b/.test(base)) level = '중등';
+
+    // 학년/학기
+    const grade    = (base.match(/([1-3])\s*학년/)||[])[1] || '';
+    const semester = (base.match(/([12])\s*학기/)||[])[1] || '';
+
+    // 시험 구분
+    let exam_type = '';        // mid | final
+    let exam_type_kr = '';     // 중간 | 기말
+    if (/중간/.test(base)) { exam_type='mid';   exam_type_kr='중간'; }
+    else if (/기말/.test(base)) { exam_type='final'; exam_type_kr='기말'; }
+
+    // 과목 (별칭 포함)
+    const map = [
+      [/공통\s*수학\s*1|공통수학\s*1/i, '공통수학1'],
+      [/공통\s*수학\s*2|공통수학\s*2/i, '공통수학2'],
+      [/수학상/i, '수학상'],
+      [/수학하/i, '수학하'],
+      [/\b수학\s*1\b|수학1/i, '수학1'],
+      [/\b수학\s*2\b|수학2/i, '수학2'],
+      [/미적분|미적\b/i, '미적분'],
+      [/기하/i, '기하'],
+      [/확률과통계|확통/i, '확률과통계']
+    ];
+    let subject = '';
+    for (const [re, name] of map){ if (re.test(base)) { subject = name; break; } }
+
+    // 제목
+    let title = base;
+    if (year && school && grade && semester && exam_type_kr && subject){
+      title = `${year} ${school} ${grade}학년 ${semester}학기 ${exam_type_kr} ${subject}`;
+    }
+
+    // region / district 는 나중에 자동 조회로 채움
+    return {
+      year, school, level, grade, semester,
+      exam_type, exam_type_kr, subject, title,
+      region: '', district: ''
+    };
+  }
+
+  // 🔍 school-lookup API로 region/district 자동 채우기
+  async function autoFillRegionDistrict(entry){
+    try{
+      if (!entry || !entry.meta) return;
+      const school = (entry.meta.school || '').trim();
+      if (!school) return;
+
+      const res = await fetch(`/api/admin/school-lookup?q=${encodeURIComponent(school)}`, {
+        credentials: 'include',
+        cache: 'no-store'
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      const list = Array.isArray(data.items) ? data.items :
+                   (Array.isArray(data) ? data : []);
+      if (!list.length) return;
+
+      const best = list[0];
+      entry.meta.region   = best.region   || '';
+      entry.meta.district = best.district || '';
+
+      const chipsBox = entry.node && entry.node.querySelector('.chips');
+      if (chipsBox){
+        chipsBox.innerHTML = chipsHTML(entry.meta);
+      }
+    } catch (e){
+      console.error('autoFillRegionDistrict error', e);
+    }
+  }
+
+  function expandSchoolName(s){
+    if (!s) return '';
+    let t = s.replace(/\s+/g,'');
+    // 이미 '고등학교/중학교'로 끝나면 그대로
+    if (/고등학교$/.test(t) || /중학교$/.test(t)) return t;
+    // 여고/여중 축약도 확장
+    if (/여고$/.test(t)) return t.replace(/여고$/, '여자고등학교');
+    if (/여중$/.test(t)) return t.replace(/여중$/, '여자중학교');
+    if (/고$/.test(t))   return t.replace(/고$/, '고등학교');
+    if (/중$/.test(t))   return t.replace(/중$/, '중학교');
+    return t;
+  }
+
+  function stripExt(name){ return name.replace(/\.[^.]+$/,''); }
+
+// ===== 학교 주소 검색 기능 (추가) =====
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&':'&amp;',
+      '<':'&lt;',
+      '>':'&gt;',
+      '"':'&quot;',
+      "'":'&#39;'
+    }[c]));
+  }
+
+  async function searchSchoolAddr(){
+    if (!addrInput || !addrBtn || !addrResult) return;
+
+    const q = (addrInput.value || '').trim();
+    if (!q){
+      addrResult.innerHTML = '<div class="addr-empty">학교명을 입력하세요.</div>';
       return;
     }
 
-    const ct = res.headers.get('content-type') || '';
-    let msg = '';
+    addrBtn.disabled = true;
+    const oldText = addrBtn.textContent;
+    addrBtn.textContent = '검색중...';
 
-    if (res.ok) {
-      if (ct.includes('application/json')) {
-        const r = await res.json().catch(() => ({}));
-        msg = r.message || r.msg || '삭제되었습니다.';
-      } else {
-        msg = (await res.text().catch(() => '')) || '삭제되었습니다.';
+    try{
+      const res = await fetch(`/api/admin/school-lookup?q=${encodeURIComponent(q)}`, {
+        credentials: 'include',
+        cache: 'no-store'
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const list = Array.isArray(data.items) ? data.items :
+                   (Array.isArray(data) ? data : []);
+
+      if (!list.length){
+        addrResult.innerHTML = '<div class="addr-empty">일치하는 학교가 없습니다.</div>';
+        return;
       }
-      document.getElementById('msg').textContent = msg;
-      await fetchFiles();
-    } else {
-      const errTxt = ct.includes('application/json')
-        ? (await res.json().catch(() => ({}))).message || (await res.text().catch(() => ''))
-        : (await res.text().catch(() => ''));
-      document.getElementById('msg').textContent = `삭제 실패(${res.status}) ${errTxt || ''}`.trim();
+
+      addrResult.innerHTML = list.map(s => `
+        <div class="addr-item">
+          <div class="addr-item-name">${escapeHtml(s.name || '')}</div>
+          <div class="addr-item-meta">
+            관: ${escapeHtml(s.level || '-')} ·
+            지역: ${escapeHtml(s.region || '-')} ·
+            구/군: ${escapeHtml(s.district || '-')}
+          </div>
+        </div>
+      `).join('');
+    } catch (e){
+      console.error('school lookup fail', e);
+      addrResult.innerHTML = '<div class="addr-empty">검색 중 오류가 발생했습니다.</div>';
+    } finally {
+      addrBtn.disabled = false;
+      addrBtn.textContent = oldText;
     }
-  } catch (e) {
-    document.getElementById('msg').textContent = '삭제 오류: ' + (e?.message || '');
-  } finally {
-    btn.disabled = false;
   }
-}
 
-    function editFile(id){
-      editTargetId = id;
-      const row    = fileListOrigin.find(r=>r.id===id);
-      const form   = document.getElementById('edit-form');
-      form.level.value    = row.level;
-      form.region.value   = row.region;
-      form.district.value = row.district;
-      form.school.value   = row.school;
-      form.grade.value    = row.grade;
-      form.year.value     = row.year;
-      form.semester.value = row.semester;
-      form.title.value    = row.title;
-      form.files.value    = '';
-      document.getElementById('edit-bg').style.display='flex';
-    }
-    function closeEdit(){
-      document.getElementById('edit-bg').style.display='none';
-      document.getElementById('edit-form').reset();
-    }
-document.getElementById('edit-form').onsubmit = async function(e){
-  e.preventDefault();
-  const btn = document.getElementById('edit-save-btn');
-  btn.disabled = true;
-
-  try {
-    const fd  = new FormData(e.target);
-    const res = await fetch('/api/admin/files/' + editTargetId, {
-      method: 'PUT',
-      body: fd,
-      credentials: 'include'
+  // 버튼/엔터 키 이벤트 연결
+  if (addrBtn){
+    addrBtn.addEventListener('click', searchSchoolAddr);
+  }
+  if (addrInput){
+    addrInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter'){
+        e.preventDefault();
+        searchSchoolAddr();
+      }
     });
-
-    const ct = res.headers.get('content-type') || '';
-    let msg = '';
-
-    if (ct.includes('application/json')) {
-      const r = await res.json().catch(() => ({}));
-      msg = r.message || r.msg || (res.ok ? '저장되었습니다.' : '저장 실패');
-    } else {
-      msg = (await res.text().catch(() => '')) || (res.ok ? '저장되었습니다.' : '저장 실패');
-    }
-
-    document.getElementById('msg').textContent = msg;
-  } catch (err) {
-    document.getElementById('msg').textContent = '저장 오류: ' + (err?.message || '');
-  } finally {
-    btn.disabled = false;
-    closeEdit();
-    fetchFiles();
   }
-}
-
-    function previewFile(filename){
-      // 이 함수는 더 이상 호출되지 않으나 미리보기 삭제 요청에 따라 내용 그대로 둡니다.
-    }
-    function closePreview(){
-      document.getElementById('preview-bg').style.display='none';
-      document.getElementById('preview-body').innerHTML='';
-    }
-    fetchFiles();
-  </script>
+  
+})();
+</script>
 </body>
 </html>

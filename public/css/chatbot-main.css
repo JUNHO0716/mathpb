@@ -121,7 +121,7 @@
 .loading-card{ display:flex; flex-direction:column; align-items:center; gap:12px; }
 .loading-spinner{
   width:28px; height:28px; border-radius:50%;
-  border:3px solid #e5e7eb; border-top-color:#111; animation:spin 1s linear infinite;
+  border:3px solid #e5e7eb; border-top-color:#111; animation:spin 1.6s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 .loading-text{ font-size:14px; color:#555; }
@@ -131,7 +131,7 @@
 .skel::after{
   content:""; position:absolute; inset:0; transform:translateX(-100%);
   background:linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
-  animation:shimmer 1.4s infinite;
+  animation:shimmer 2.2s infinite;
 }
 @keyframes shimmer { 100% { transform:translateX(100%); } }
 .skel-line{ height:12px; margin:6px 0; border-radius:6px; }
@@ -532,7 +532,7 @@
   width:80%; height:100%;
   background:linear-gradient(115deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 80%);
   transform:skewX(-20deg);
-  animation:bannerShine 6s ease-in-out infinite;
+  animation: bannerShine 14s ease-in-out infinite;
 }
 @keyframes bannerShine {
   0%   { left:-100%; opacity:0; }
@@ -623,7 +623,7 @@
   border-radius: 50%;
   background: currentColor;
   opacity: .65;
-  animation: dotWave 900ms ease-in-out infinite;
+  animation: dotWave 1200ms ease-in-out infinite;
 }
 
 @keyframes dotWave {
@@ -692,29 +692,36 @@
    - chat-main 뒤에만 살짝 비치도록 레이어링
    - 중앙에 집중되도록 mask 처리
 ================================= */
+/* ==== 수정후 (.chat-main::before) ==== */
+/* 색은 그대로, 퍼지는 범위만 한 단계 줄인 버전 */
 .chat-main::before{
   content:"";
   position:absolute; inset:0;
   pointer-events:none;
   z-index:0;
 
-  /* 컬러 레이어 3장 + 은은한 하이라이트 */
   background:
-    radial-gradient(600px 420px at 45% 48%, rgba(255, 220, 64, .28), transparent 65%),
-    radial-gradient(520px 540px at 68% 56%, rgba(96, 165, 250, .26), transparent 60%),
-    radial-gradient(620px 520px at 30% 66%, rgba(196, 181, 253, .28), transparent 62%),
-    linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.35) 35%, rgba(255,255,255,0) 70%);
+    radial-gradient(640px 480px at 50% 42%, rgba(228, 233, 241, .96), transparent 74%),
+    radial-gradient(720px 560px at 64% 66%, rgba(240, 226, 236, .92), transparent 78%),
+    radial-gradient(780px 620px at 34% 76%, rgba(247, 231, 243, .96), transparent 82%),
+    linear-gradient(150deg, rgba(255,255,255,.15) 0%, rgba(255,255,255,.45) 40%, rgba(255,255,255,0) 85%);
 
-  filter: blur(24px) saturate(140%);
-  transform: translateZ(0); /* GPU 힌트 */
-  animation: mbCenterGlow 18s ease-in-out infinite alternate,
-             mbSoftPan    36s linear       infinite;
+  filter: blur(30px) saturate(170%);
+  transform: translateZ(0);
+  animation: mbCenterGlow 40s ease-in-out infinite alternate,
+             mbSoftPan   120s linear       infinite;
 
-  /* 중앙에만 비치게 마스크(주변은 투명) */
-  -webkit-mask-image: radial-gradient(closest-side, rgba(0,0,0,.95), rgba(0,0,0,0) 70%);
-          mask-image: radial-gradient(closest-side, rgba(0,0,0,.95), rgba(0,0,0,0) 70%);
+  /* 중앙에 더 모이게: 마스크 반경도 살짝 줄임 */
+  -webkit-mask-image: radial-gradient(closest-side,
+                          rgba(0,0,0,.98) 0%,
+                          rgba(0,0,0,.92) 74%,
+                          rgba(0,0,0,0) 92%);
+          mask-image: radial-gradient(closest-side,
+                          rgba(0,0,0,.98) 0%,
+                          rgba(0,0,0,.92) 74%,
+                          rgba(0,0,0,0) 92%);
 
-  opacity:.85;
+  opacity:.98;
 }
 
 /* 중앙 컬러 물결 — 움직임을 더 크게 */
@@ -741,45 +748,76 @@
   .chat-main::before { filter: blur(18px); opacity: .55; }
 }
 
-/* 회전하는 색상 링 레이어(살짝 도는 느낌) */
+/* ==== 수정후: 느리고 선명한 입자 링 ==== */
 .chat-main::after {
   content: "";
   position: absolute;
-  inset: -12%;                 /* 가장자리를 넘어가게 두어 회전 시 잘림 방지 */
+  inset: -6%;
   pointer-events: none;
   z-index: 0;
   transform-origin: 50% 50%;
-  will-change: transform;
+  will-change: filter, opacity;
 
-  /* 부드러운 색상 링 - 브랜드 노랑/블루/보라 톤 */
-  background: conic-gradient(
-    from 0deg,
-    rgba(255, 214, 70, .28),
-    rgba(96, 165, 250, .22),
-    rgba(196, 181, 253, .24),
-    rgba(255, 214, 70, .28)
-  );
+  /* 점(입자) 크기/간격을 키워 더 또렷하게 보이도록 조정 */
+  background:
+    /* 앞 고리 — 분홍빛 점 (큰 점, 간격 넓힘) */
+    repeating-conic-gradient(
+      from var(--swirl-angle),
+      rgba(240, 226, 236, .90) 0deg 2.0deg,
+      transparent               2.0deg 9deg
+    ),
+    /* 뒤 고리 — 하늘빛 점 (위상 반대, 점 간격 다르게) */
+    repeating-conic-gradient(
+      from calc(-1 * var(--swirl-angle)),
+      rgba(180, 220, 255, .80) 0deg 1.4deg,
+      transparent               1.4deg 7deg
+    ),
+    /* 은은한 외곽 글로우 추가 (선명도 유지) */
+    radial-gradient(closest-side, rgba(255,255,255,.10), transparent 70%);
 
-  filter: blur(38px) saturate(140%);
-  opacity: .38;
-  animation: mbSpin 28s linear infinite, mbPulse 9s ease-in-out infinite alternate;
+  /* 링 두께를 조금 두껍게 → 점이 더 많이/선명하게 보임 */
+  -webkit-mask:
+    radial-gradient(circle at 50% 50%,
+      transparent calc(50% - 170px), /* 안쪽 비우기 경계 */
+      #000       calc(50% - 120px),  /* 안쪽 링 시작   */
+      #000       calc(50% + 120px),  /* 바깥 링 끝     */
+      transparent calc(50% + 170px)  /* 바깥 비우기 경계 */
+    );
+          mask:
+    radial-gradient(circle at 50% 50%,
+      transparent calc(50% - 170px),
+      #000       calc(50% - 120px),
+      #000       calc(50% + 120px),
+      transparent calc(50% + 170px)
+    );
 
-  /* 중앙 집중(가장자리는 투명) */
-  -webkit-mask-image: radial-gradient(closest-side, rgba(0,0,0,.8), rgba(0,0,0,0) 70%);
-          mask-image: radial-gradient(closest-side, rgba(0,0,0,.8), rgba(0,0,0,0) 70%);
+  /* ▶ 선명도 업: 블러를 줄이고 불투명도 올림 */
+  filter: blur(10px) saturate(160%);
+  opacity: .78;
+
+  /* ▶ 속도 느리게: 9s → 16s (원하면 18~20s도 OK) */
+  animation:
+    mbSwirl 44s linear infinite,
+    mbPulse 16s ease-in-out infinite alternate;
 }
 
-@keyframes mbSpin {
-  to { transform: rotate(360deg); }
-}
 
-/* 살짝 숨쉬듯 밝기 변화 */
+/* 밝기 숨쉬기(기존 유지) */
 @keyframes mbPulse {
-  0%   { opacity: .28; filter: blur(34px) saturate(130%); }
-  100% { opacity: .46; filter: blur(44px) saturate(150%); }
+  0%   { opacity: .28; filter: blur(18px) saturate(130%); }
+  100% { opacity: .46; filter: blur(28px) saturate(150%); }
 }
 
 /* 모션 최소화 환경 배려 */
 @media (prefers-reduced-motion: reduce) {
   .chat-main::after { animation: none; }
+}
+
+@property --swirl-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes mbSwirl {
+  to { --swirl-angle: 1turn; }
 }

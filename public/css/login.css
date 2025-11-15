@@ -1,9 +1,86 @@
+/* ✅ 뷰포트 기준 크기 유지 */
+html, body { height: 100%; }
+
+/* ✅ 본문은 투명(뒤의 고정 배경이 보이도록) */
 body {
-  font-family: 'Noto Sans KR', sans-serif;
-  /* 페이지 전체 배경색 */
-  background-color: #30313E; 
-  transition: opacity 0.5s ease-in-out;
-  opacity: 0; /* ▼▼▼ 이 줄을 추가해주세요 ▼▼▼ */
+  background: transparent !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 100vh;
+}
+
+/* ✅ 의사요소 배경은 완전히 끔 (중복/충돌 방지) */
+body::after { content: none !important; display: none !important; }
+
+/* ✅ 루트에 '진짜 고정' 배경 — 어떤 스크롤/래퍼에도 안 움직임 */
+/* ✅ html 배경값은 초기화 (충돌 방지) */
+html{
+  background: transparent !important;
+  isolation: isolate;          /* ← z-index 기준을 html로 고정 */
+}
+
+/* ✅ 화면 맨뒤 고정 레이어: 어떤 CSS가 덮어도 안사라짐 */
+html::before{
+  content: "" !important;          /* ← 강제 켜기 */
+  display: block !important;       /* ← 혹시 모를 display: none 무력화 */
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+
+  background:
+    radial-gradient(640px 480px at 50% 20%, rgba(228,233,241,.96), transparent 74%),
+    radial-gradient(720px 560px at 62% 44%, rgba(240,226,236,.92), transparent 78%),
+    radial-gradient(780px 620px at 34% 52%, rgba(247,231,243,.96), transparent 82%),
+    linear-gradient(150deg, rgba(255,255,255,.15) 0%, rgba(255,255,255,.45) 40%, rgba(255,255,255,0) 85%);
+  background-repeat: no-repeat;
+  background-size: 160% 160%, 160% 160%, 160% 160%, 100% 100%;
+  background-position: 50% 20%, 62% 44%, 34% 52%, 50% 50%;
+
+  /* ✅ 부드러운 움직임 */
+  animation: loginCenterGlow 22s ease-in-out infinite alternate,
+             loginSoftPan   26s linear       infinite;
+}
+
+/* ✅ 실제 내용은 위로 */
+body, .login-page, .login-wrap, .login-container, main {
+  position: relative;
+  z-index: 1;                 /* 배경 위에 표시 */
+  background: transparent !important;
+}
+
+
+/* 본문은 투명 (뒤 배경이 보이도록 유지) */
+html, body { height: 100%; }
+body { background: transparent !important; }
+
+
+/* ✅ 어떤 래퍼의 transform/perspective가 있어도 고정 배경이 흔들리지 않게 더 광범위 차단 */
+html, body, #root, #app, .app, .page, .page-wrap, .login-page, .login-wrap, .login-container, .auth-wrap, main, [class*="wrap"], [class*="container"] {
+  transform: none !important;
+  perspective: none !important;
+  filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  overflow: visible !important;            /* ← 스크롤 컨테이너 금지 */
+  background: transparent !important;
+}
+
+/* 키프레임 (채팅 배경과 동일하지만 로그인 전용 이름으로 충돌 방지) */
+@keyframes loginCenterGlow {
+  0%   { background-position: 34% 60%, 78% 35%, 22% 70%, 50% 50%; }
+  50%  { background-position: 52% 42%, 60% 65%, 42% 58%, 50% 50%; }
+  100% { background-position: 40% 30%, 72% 62%, 30% 80%, 50% 50%; }
+}
+@keyframes loginSoftPan {
+  0%   { background-size: 130% 130%, 130% 130%, 130% 130%, 100% 100%; }
+  50%  { background-size: 230% 230%, 215% 215%, 245% 245%, 100% 100%; } /* ✅ 더 크게 */
+  100% { background-size: 140% 140%, 140% 140%, 140% 140%, 100% 100%; }
+}
+
+/* 접근성: 모션 최소화 환경 배려 */
+@media (prefers-reduced-motion: reduce) {
+  html::before { animation: none; }
 }
 
 body.fade-out {
@@ -25,31 +102,203 @@ h1 {
 }
 /* ▲▲▲ 구분선 스타일 ▲▲▲ */
 
+/* ==== 공통 버튼 크기/모양/폰트 통일 ================================= */
+.login-btn,
+.signup-btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-/* ▼▼▼ [요청] 로그인 버튼 스타일 ▼▼▼ */
-.login-btn {
-  /* 버튼 배경색을 h1과 동일한 색상으로 지정 */
-  background-color: #434451; 
-  /* 배경이 어두우므로 글자색은 흰색으로 변경 */
-  color: #ffffff; 
-  border: none;
-  /* 기존 버튼의 모양, 크기 등은 유지됩니다. */
+  height: 48px;                 /* ▲ 글씨 커진 만큼 높이 살짝 업 */
+  padding: 0 20px;
+  border-radius: 9999px;        /* 알약형 통일 */
+  font-size: 17px;              /* ▲ 더 큼 */
+  font-weight: 800;             /* ▲ 더 굵게 */
+  letter-spacing: -0.2px;
+  line-height: 1;               /* 버튼 내 수직 정렬 안정화 */
+  transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
 }
 
-/* 로그인 버튼에 마우스를 올렸을 때 효과 */
-.login-btn:hover {
-  background-color: #585969; /* 약간 더 밝은 색으로 변경 */
+/* 공통 크기/모양 통일 */
+.login-btn,
+.signup-btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: 9999px;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease, filter .15s ease, background-color .15s ease;
 }
-/* ▲▲▲ 로그인 버튼 스타일 ▲▲▲ */
 
-
-/* 회원가입 버튼 (반투명 스타일 유지) */
-.signup-btn {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #ffffff; 
-  border: 1px solid rgba(255, 255, 255, 0.2); 
+/* 로그인 (색만 다르고 나머지 인터랙션은 공통) */
+.login-btn{
+  background-image: linear-gradient(135deg, #8C6FEF 0%, #D46BB0 100%) !important;
+  color: #fff !important;
+  border: 0 !important;
+  box-shadow: 0 6px 18px rgba(172, 94, 214, .35);
 }
 
-.signup-btn:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+/* 회원가입 (색은 기존 유지) */
+.signup-btn{
+  background-color: rgba(255,255,255,0.08);
+  color: #2b2b2b;
+  border: 1px solid rgba(0,0,0,0.12);
+  box-shadow: 0 6px 18px rgba(0,0,0,.06); /* 살짝 그림자만 추가해 밸런스 */
+}
+
+/* ✅ 공통 Hover/Active 동작: 둘 다 동일하게 */
+.login-btn:hover,
+.signup-btn:hover{
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0,0,0,.12);
+}
+.login-btn:active,
+.signup-btn:active{
+  transform: translateY(0);
+  box-shadow: 0 6px 18px rgba(0,0,0,.10);
+}
+
+/* 포커스 링은 각각의 톤으로 */
+.login-btn:focus-visible{
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,.9),
+    0 0 0 6px rgba(172,94,214,.35);
+}
+.signup-btn:focus-visible{
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,.9),
+    0 0 0 6px rgba(0,0,0,.10);
+}
+
+
+
+/* ✅ 라벨/디바이더 배경·보더·그림자·블러 전부 제거(일반 .divider까지 포함) */
+.sns-login-title,
+.social-login .divider,
+.social-login .divider span,
+.social-login-title,
+.login-sns-divider,
+.sns-title,
+.sns-section .title,
+.social-login .title,
+.social-login .label,
+.social-login .divider-label,
+.divider span {                             /* ← 추가: 일반 divider 라벨도 투명화 */
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  outline: 0 !important;
+  filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  border-radius: 0 !important;
+  padding: 0 .3rem !important;              /* 텍스트 여백만 유지 */
+}
+
+/* 의사요소로 칩/배경을 만드는 경우 차단 */
+.sns-login-title::before,
+.sns-login-title::after,
+.social-login .divider::before,
+.social-login .divider::after,
+.login-sns-divider::before,
+.login-sns-divider::after,
+.sns-title::before,
+.sns-title::after,
+.social-login .divider span::before,
+.social-login .divider span::after,
+.divider span::before,                      /* ← 추가 */
+.divider span::after {                      /* ← 추가 */
+  content: none !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+:root{
+  /* ✅ 한 톤 더 밝게 (연보라를 더 연하게) */
+  --lavender: #FAF8FF;        /* 입력창 기본 배경: 더 연함 */
+  --lavender-focus: #F4F1FF;  /* 포커스 배경: 약간만 강조 */
+  --lavender-border: #CAC2FF; /* 기본 보더도 한 톤 연하게 */
+  --lavender-border-2: #B3ABFF;/* 포커스 보더 강조 (너무 진하지 않게) */
+  --text-main: #202124;
+}
+
+/* ... 약 111줄 ... */
+input.login-input{
+  /* ✅ 타이핑 값의 폰트/크기/두께/자간/줄높이를 명시적으로 고정 */
+  font-family: 'Noto Sans KR','Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.2px !important;
+  line-height: 1.4 !important;
+
+  background-color: var(--lavender) !important;   /* ✅ 안쪽 색 */
+  color: var(--text-main) !important;
+  border: 1px solid var(--lavender-border) !important;  /* ✅ 테두리 */
+  border-radius: 10px;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.06);
+  transition: background-color .2s, border-color .2s, box-shadow .2s;
+  box-sizing: border-box;
+}
+/* 호버 */
+input.login-input:hover{
+  border-color: var(--lavender-border-2) !important;
+}
+
+/* 포커스 */
+input.login-input:focus{
+  outline: none !important;
+  background-color: var(--lavender-focus) !important;
+  border-color: var(--lavender-border-2) !important;
+  box-shadow: 0 0 0 3px rgba(143,151,246,.18);
+  caret-color: var(--text-main);
+}
+
+/* placeholder */
+input.login-input::placeholder{ color: rgba(67,68,81,.55); }
+
+/* ✅ 자동완성으로 채워진 값도 타이핑과 완전 동일하게 고정(동일 속성 유지) */
+input.login-input:-webkit-autofill,
+input.login-input:-webkit-autofill:hover,
+input.login-input:-webkit-autofill:focus{
+  -webkit-text-fill-color: var(--text-main) !important;
+  box-shadow: 0 0 0 1000px var(--lavender) inset !important;
+  caret-color: var(--text-main) !important;
+
+  font-family: 'Noto Sans KR','Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.2px !important;
+  line-height: 1.4 !important;
+}
+
+/* ✅ 크롬의 ::first-line 렌더 보정도 동일 고정 */
+input.login-input:-webkit-autofill::first-line{
+  font-family: 'Noto Sans KR','Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.2px !important;
+  line-height: 1.4 !important;
+}
+
+/* ✅ 폼 요소 기본 폰트/크기를 html 기준으로 통일 */
+html{
+  font-family: 'Noto Sans KR','Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+input, button, select, textarea{
+  font: inherit !important;   /* ← 상속으로 통일 */
+  letter-spacing: -0.2px;
+  line-height: 1.4;
 }

@@ -12,22 +12,38 @@ async function httpGet(url) {
   return r.json();
 }
 
-// schools 테이블 보유 컬럼 감지 → 존재하는 컬럼만 사용
 async function detectSchoolCols() {
   const [rows] = await db.query(`
     SELECT column_name AS c
     FROM information_schema.columns
     WHERE table_schema = DATABASE() AND table_name = 'schools'
   `);
-  const cols = new Set(rows.map(r => r.c));
+  const cols = new Set(rows.map(r => r.c.toLowerCase()));
+  const has  = n => cols.has(String(n).toLowerCase());
+
+  // ✅ 실제 사용할 컬럼 이름을 함께 반환
+  const officeCol = has('neis_office_code') ? 'neis_office_code'
+                  : has('atpt_ofcdc_sc_code') ? 'ATPT_OFCDC_SC_CODE'
+                  : has('office_code')        ? 'office_code'
+                  : has('moe_code')           ? 'moe_code'
+                  : null;
+
+  const codeCol   = has('code')                ? 'code'
+                  : has('neis_school_code')   ? 'neis_school_code'
+                  : has('sd_schul_code')      ? 'SD_SCHUL_CODE'
+                  : has('neis_code')          ? 'neis_code'
+                  : has('NEIS_CODE')          ? 'NEIS_CODE'
+                  : null;
+
+
   return {
-    hasShort: cols.has('short_name'),
-    hasStatus: cols.has('status'),
-    hasHomepage: cols.has('homepage'),
-    hasAddress: cols.has('address'),
-    hasOffice: cols.has('neis_office_code'),
-    hasCode: cols.has('neis_school_code'),
-    hasLastSeen: cols.has('last_seen_at'),
+    hasShort:    has('short_name'),
+    hasStatus:   has('status'),
+    hasHomepage: has('homepage'),
+    hasAddress:  has('address'),
+    hasLastSeen: has('last_seen_at'),
+    officeCol,   // ← 문자열 (null 가능)
+    codeCol      // ← 문자열 (null 가능)
   };
 }
 
@@ -106,15 +122,15 @@ async function upsertSchools(rows, levelFilter) {
 
     // 2. NEIS 데이터를 임시 테이블에 삽입
     const cols = await detectSchoolCols();
-    const baseCols = ['name', 'region', 'district', 'level'];
-    // ... (이하 컬럼 추가 로직은 동일)
+    const baseCols = ['name','region','district','level'];
     if (cols.hasShort)    baseCols.push('short_name');
     if (cols.hasStatus)   baseCols.push('status');
     if (cols.hasHomepage) baseCols.push('homepage');
     if (cols.hasAddress)  baseCols.push('address');
-    if (cols.hasOffice)   baseCols.push('neis_office_code');
-    if (cols.hasCode)     baseCols.push('neis_school_code');
+    if (cols.officeCol)   baseCols.push(cols.officeCol); // ← 동적으로
+    if (cols.codeCol)     baseCols.push(cols.codeCol);   // ← 동적으로
     if (cols.hasLastSeen) baseCols.push('last_seen_at');
+
     
     const allRows = [];
     for (const r of rows) {
@@ -128,8 +144,8 @@ async function upsertSchools(rows, levelFilter) {
       if (cols.hasStatus)   rowData.push('active');
       if (cols.hasHomepage) rowData.push((r.HMPG_ADRES||'').trim() || null);
       if (cols.hasAddress)  rowData.push((r.ORG_RDNMA||r.ORG_RDNDA||'').trim() || null);
-      if (cols.hasOffice)   rowData.push((r.ATPT_OFCDC_SC_CODE||'').trim() || null);
-      if (cols.hasCode)     rowData.push((r.SD_SCHUL_CODE||'').trim() || null);
+      if (cols.officeCol) rowData.push((r.ATPT_OFCDC_SC_CODE||'').trim() || null);
+      if (cols.codeCol)   rowData.push((r.SD_SCHUL_CODE||'').trim() || null);
       if (cols.hasLastSeen) rowData.push(now);
       
       allRows.push(rowData);
@@ -206,11 +222,12 @@ router.post('/sync', async (req, res) => {
 });
 
 // 현황 확인(선택): level별 카운트
-router.get('/status', async (_req, res) => {
+router.get('/status/missing', async (_req, res) => {
   try {
-    const [[hi]] = await db.query(`SELECT COUNT(*) AS c FROM schools WHERE level='고등'`);
-    const [[mi]] = await db.query(`SELECT COUNT(*) AS c FROM schools WHERE level='중등'`);
-    res.json({ ok:true, high: hi?.c||0, middle: mi?.c||0 });
+    const [[tot]] = await db.query(`SELECT COUNT(*) AS c FROM schools WHERE level IN ('고등','중등')`);
+    const [[missCode]] = await db.query(`SELECT COUNT(*) AS c FROM schools WHERE (code IS NULL OR code='') AND level IN ('고등','중등')`);
+    const [[missOffice]] = await db.query(`SELECT COUNT(*) AS c FROM schools WHERE (neis_office_code IS NULL OR neis_office_code='') AND level IN ('고등','중등')`);
+    res.json({ ok:true, total: tot.c||0, empty_code: missCode.c||0, empty_office: missOffice.c||0 });
   } catch (e) {
     res.status(500).json({ ok:false, msg:e.message });
   }

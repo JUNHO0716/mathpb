@@ -7,15 +7,28 @@ window.initializeProfilePage = function(user) {
       return;
     }
     document.getElementById('profileAvatar').src = u.avatarUrl || 'default-avatar.png';
-    document.getElementById('cardProfileName').textContent = u.name; // ID를 cardProfileName으로 변경
-    document.getElementById('profileTitle').textContent = u.tier || 'Free';
+    document.getElementById('cardProfileName').textContent =
+      (u?.name && String(u.name).trim())
+      || (u?.id && String(u.id).trim())
+      || (u?.username && String(u.username).trim())
+      || (u?.loginId && String(u.loginId).trim())
+      || ((u?.email && u.email !== 'Kakao') ? u.email.split('@')[0] : '')
+      || 'Guest';
+    const plan = String(u?.plan || 'free').toLowerCase();
+    const planEn = (plan === 'basic') ? 'Basic'
+                : (plan === 'standard') ? 'Standard'
+                : (plan === 'pro') ? 'Pro'
+                : 'Free';
+    document.getElementById('profileTitle').textContent = planEn;
     
-     let displayId = u.id || '-';
-    // 이메일이 있고 '@'를 포함하면 @ 앞부분을 ID로 표시
-    if (u.email && u.email.includes('@')) {
-        displayId = u.email.split('@')[0];
-    }
+    const displayId =
+      (u?.id && String(u.id).trim())
+      || (u?.username && String(u.username).trim())
+      || (u?.loginId && String(u.loginId).trim())
+      || (u?.email === 'Kakao' ? (u?.name || '').trim() : ((u?.email || '').split('@')[0] || ''))
+      || '-';
     document.getElementById('profileId').textContent = displayId;
+
     document.getElementById('profileEmail').textContent = u.email;
     document.getElementById('profilePhone').textContent = formatPhoneNumber(u.phone);
     
@@ -65,8 +78,9 @@ window.initializeProfilePage = function(user) {
       
       const statusEl = document.getElementById('sub-status');
       if (statusEl) {
-        const statusText = d.status === 'active' ? '구독 중' : '미구독';
-        statusEl.textContent = statusText;
+        const plan = String((user && user.plan) || 'free').toLowerCase();
+        const en = { basic:'Basic', standard:'Standard', pro:'Pro' };
+        statusEl.textContent = en[plan] || 'Free';
       }
       
       const nextBillEl = document.getElementById('next-bill');
@@ -74,11 +88,53 @@ window.initializeProfilePage = function(user) {
         nextBillEl.textContent = d.next_billing_at ? d.next_billing_at.split('T')[0] : '-';
       }
 
-      const subscribeBtn = document.getElementById('subscribeBtn'), cancelBtn = document.getElementById('btn-cancel');
-      if(subscribeBtn && cancelBtn){
-          if (d.status === 'active') { subscribeBtn.style.display = 'none'; cancelBtn.style.display = 'block'; }
-          else { subscribeBtn.style.display = 'block'; cancelBtn.style.display = 'none'; }
+      const subscribeBtn = document.getElementById('subscribeBtn');
+      const cancelBtn    = document.getElementById('btn-cancel');
+
+      // plan 기준(보조로 d.status 고려) — Basic/Standard/Pro = 구독중
+      const plan = String((user?.plan || window.currentUser?.plan || 'free')).toLowerCase();
+      const isSubscribedByPlan = ['basic','standard','pro'].includes(plan);
+      const isSubscribed = isSubscribedByPlan || (d?.status === 'active');
+
+      // ✅ 업그레이드 버튼(해지 위): 기존 버튼과 '같은 양식'으로 생성
+      let upgradeBtn = document.getElementById('btn-upgrade');
+      if (!upgradeBtn) {
+        upgradeBtn = document.createElement('button');
+        upgradeBtn.id = 'btn-upgrade';
+        upgradeBtn.type = 'button';
+        upgradeBtn.textContent = '플랜 업그레이드';
+
+        // 기존 버튼 스타일 복사
+        const openPricing = document.getElementById('openPricingModalBtn');
+        const baseBtn = cancelBtn || openPricing || subscribeBtn;
+        if (baseBtn) {
+          upgradeBtn.className = baseBtn.className || '';
+          const inline = baseBtn.getAttribute('style');
+          if (inline) upgradeBtn.setAttribute('style', inline);
+        }
+
+        // ✅ 색감만 로그인 버튼과 동일한 그라디언트로 적용
+        upgradeBtn.style.backgroundImage = 'linear-gradient(135deg, #8C6FEF 0%, #D46BB0 100%)';
+        upgradeBtn.style.color = '#fff';
+
+        // 해지 버튼 바로 위에 삽입
+        if (cancelBtn && cancelBtn.parentNode) {
+          cancelBtn.parentNode.insertBefore(upgradeBtn, cancelBtn);
+        }
+
+        // 동작: 구독하기와 동일(요금제 모달 열기 → 없으면 pricing.html 이동)
+        upgradeBtn.addEventListener('click', () => {
+          const opener = document.getElementById('openPricingModalBtn');
+          if (opener) opener.click(); else window.location.href = 'pricing.html';
+        });
       }
+
+      // ✅ 표시 토글
+      const showUpgrade = isSubscribed && (plan === 'basic' || plan === 'standard'); // Pro는 숨김
+      if (upgradeBtn)   upgradeBtn.style.display   = showUpgrade ? '' : 'none';
+      if (subscribeBtn) subscribeBtn.style.display = isSubscribed ? 'none' : '';
+      if (cancelBtn)    cancelBtn.style.display    = isSubscribed ? '' : 'none';
+
     } catch (e) {
       console.error("구독 정보 로딩 실패:", e);
       const statusEl = document.getElementById('sub-status');

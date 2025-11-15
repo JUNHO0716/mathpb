@@ -6,8 +6,10 @@
   // API 전송용 매핑: 'high'/'middle' → '고등'/'중등'
   const toKrLevel = (v) => (v === 'high' ? '고등' : v === 'middle' ? '중등' : v);
 
+  // ✅ 커스텀 드롭다운(neo-menu) 스크롤/레이어 스타일 1회 주입
+  ensureNeoSelectStyles();
   const CHUNK = 120;
-  const MAX_HEX = 35; // ✅ 최대 벌집 개수 한도
+  const MAX_HEX = 37; // ✅ 최대 벌집 개수 한도
 
   async function api(url) {
     const r = await fetch(url, { credentials: 'include', cache: 'no-store' });
@@ -249,15 +251,24 @@ termSel.onchange = async ()=>{
     };
   }
     async function refreshCities(root, state){
-    const sel = root.querySelector('#cov-city');
-    let list = [];
-    try { list = await loadCities(state); } catch (e) { list = []; }
-    sel.innerHTML = `<option value="">시/도 전체</option>` + list.map(
-      c=>`<option value="${c.city}">${c.city} (${c.pct || 0}%)</option>`
-    ).join('');
-    sel.value = state.city || '';
-    root.querySelector('#cov-district').disabled = !sel.value;
-  }
+      const sel = root.querySelector('#cov-city');
+      let list = [];
+      try { 
+        // ✅ 도시 목록 API 호출
+        list = await loadCities(state);    // <- loadSchools 아님
+      } catch (e) { list = []; }
+
+      // ✅ 백엔드가 배열(['경기도',...])을 주든, [{city:'경기도'}]를 주든 커버
+      const cities = list
+        .map(v => (typeof v === 'string' ? v : v?.city))
+        .filter(Boolean);
+
+      sel.innerHTML = `<option value="">시/도 전체</option>` +
+        cities.map(c => `<option value="${c}">${c}</option>`).join('');
+
+      sel.value = state.city || '';
+      root.querySelector('#cov-district').disabled = !sel.value;
+}
 
   async function refreshDistricts(root, state){
     const sel = root.querySelector('#cov-district');
@@ -342,8 +353,28 @@ async function refreshGrid(root, state){
 
     let list = [];
     try { list = await loadSchools(state); } catch (e) { list = []; }
-    state._listAll = list.slice(0, MAX_HEX); // 최대 35개
+
+    // ✅ 백엔드가 어떤 필드명을 주든 프론트에서 맞춰줌
+    list = list.map(r => {
+      const name = r.SCHUL_NM ?? r.name ?? r.학교명 ?? '';
+      const id   = r.neis_school_code ?? r.NEIS_SCHOOL_CODE ??
+                  r.SD_SCHUL_CODE ?? r.SCHUL_CODE ?? r.sd_schul_code ??
+                  r.NEIS_CODE ?? r.neis_code ??
+                  r.school_code ?? r.SCHOOL_CODE ??
+                  r.code ?? r.id ?? '';
+      // ✅ ‘고등학교’→‘고’, ‘중학교’→‘중’으로 축약 표시
+      const display = (r.short_name ?? name)
+        .replace(/여자고등학교$/,'여자고')
+        .replace(/여자중학교$/,'여자중')
+        .replace(/고등학교$/,'고')
+        .replace(/중학교$/,'중');
+      return { id, name, short_name: display, has_any: !!r.has_any, city: r.city, district: r.district };
+    });
+
+
+    state._listAll = list.slice(0, MAX_HEX);
     state._rendered = 0;
+
 
     const grid = root.querySelector('#cov-grid');
 
@@ -396,6 +427,26 @@ async function refreshGrid(root, state){
     // 4글자 초과 시: 첫 줄 4자 + 두 번째 줄 4자 (최대 8자)
     return s.slice(0, 4) + '<br>' + s.slice(4, 8);
   }
+
+  // neo-select용 드롭다운 메뉴를 스크롤 가능하게 만드는 전역 스타일 주입
+function ensureNeoSelectStyles(){
+  if (document.getElementById('neo-select-style')) return;
+  const st = document.createElement('style');
+  st.id = 'neo-select-style';
+  st.textContent = `
+    .neo-select-wrap{ position:relative; overflow:visible !important; }
+    .neo-menu{
+      position:absolute; top:calc(100% + 6px); left:0; right:0;
+      max-height:320px; overflow-y:auto;
+      background:#fff; border:1px solid #e6e8eb; border-radius:12px;
+      box-shadow:0 12px 28px #0002; padding:6px 0; z-index:9999;
+    }
+    .neo-menu-item{ padding:10px 12px; white-space:nowrap; cursor:pointer; }
+    .neo-menu-item:hover{ background:#f5f5f7; }
+    .neo-select.open{ outline:0; }
+  `;
+  document.head.appendChild(st);
+}
 
   function renderNextChunk(root, state){
     const grid = root.querySelector('#cov-grid');
@@ -674,6 +725,7 @@ window.renderCoverageWidget = async function(mount, opts={}){
   function toggleMenu(select){
     if (select.classList.contains('open')) { closeMenu(select); }
     else { openMenu(select); }
+
   }
   function openMenu(select){
     // 이미 열려 있으면 무시
@@ -685,6 +737,10 @@ window.renderCoverageWidget = async function(mount, opts={}){
     const wrap = select.closest('.neo-select-wrap');
     const menu = document.createElement('div');
     menu.className = 'neo-menu';
+
+    // ▼ 스크롤 영역을 더 길게 보이도록 높이 확장
+    menu.style.maxHeight = '60vh';
+    menu.style.overflowY = 'auto';
 
     // option → 메뉴 아이템 생성
     Array.from(select.options).forEach(opt=>{

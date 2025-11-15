@@ -62,12 +62,18 @@ router.post('/login', async (req, res, next) => {
       email: user.email,
       name: user.name,
       role: user.role || 'user',
-      avatarUrl: user.avatarUrl || '/image_index/profile.svg'
+      avatarUrl: user.avatarUrl || '/image_index/profile.svg',
+      isAdmin: user.is_admin == 1            // ✅ 추가
     };
 
     req.login(userForSession, async (err) => {
       if (err) { return next(err); }
-      req.session.user = userForSession;
+      // ✅ 관리자 플래그를 세션에 명시적으로 저장
+      req.session.user = {
+        ...userForSession,
+        is_admin: user.is_admin ? 1 : 0,
+        isAdmin : user.is_admin ? 1 : 0
+      };
       await db.query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]);
       if (keepLoggedIn) {
         const fourteenDays = 1000 * 60 * 60 * 24 * 14;
@@ -111,32 +117,40 @@ router.get('/logout', (req, res, next) => {
   });
 });
 
-// 로그인 상태 확인 (수정 없음)
 router.get('/check-auth', async (req, res) => {
-  if (req.session.user) {
-    const [rows] = await db.query(
-      `SELECT u.avatarUrl, u.is_subscribed, u.phone, u.bizNum, u.email, u.academyName, u.academyPhone, bk.plan
-       FROM users u
-       LEFT JOIN billing_keys bk ON u.id = bk.user_id
-       WHERE u.id = ?`,
-      [req.session.user.id]
-    );
-    const u = rows[0] || {};
-    const avatarUrl    = u.avatarUrl    || '/image_index/profile.svg';
-    const hasPaid      = req.session.user.role === 'admin' || u.is_subscribed == 1;
-    const phone        = u.phone        || '-';
-    const bizNum       = u.bizNum       || '';
-    const academyName  = u.academyName  || '';
-    const academyPhone = u.academyPhone || '';
-    const email        = u.email        || req.session.user.email || '-';
-    const plan         = u.plan         || null;
-    Object.assign(req.session.user, { avatarUrl, hasPaid, phone, bizNum, academyName, academyPhone, email, plan });
-    return res.json({
-      isLoggedIn: true,
-      user: { ...req.session.user, avatarUrl, hasPaid, phone, bizNum, academyName, academyPhone, email, plan }
-    });
-  }
-  res.json({ isLoggedIn: false });
+  if (!req.session.user) return res.json({ isLoggedIn: false });
+
+  const [[u]] = await db.query(
+    `SELECT u.avatarUrl, u.is_subscribed, u.phone, u.bizNum, u.email,
+            u.academyName, u.academyPhone, u.is_admin,    -- ✅ 추가
+            bk.plan
+     FROM users u
+     LEFT JOIN billing_keys bk ON u.id = bk.user_id
+     WHERE u.id = ?`,
+    [req.session.user.id]
+  );
+
+  const avatarUrl = u?.avatarUrl || '/image_index/profile.svg';
+  const hasPaid   = (req.session.user.role === 'admin') || (u?.is_subscribed == 1);
+  const isAdmin   = (req.session.user.role === 'admin') || (u?.is_admin == 1);
+
+  Object.assign(req.session.user, {
+    avatarUrl,
+    hasPaid,
+    phone:         u?.phone        || '-',
+    bizNum:        u?.bizNum       || '',
+    academyName:   u?.academyName  || '',
+    academyPhone:  u?.academyPhone || '',
+    email:         u?.email        || req.session.user.email || '-',
+    plan:          u?.plan         || null,
+    is_admin:      u?.is_admin ? 1 : 0,   // ✅ 세션에 동기화
+    isAdmin:       isAdmin ? 1 : 0        // ✅ 프론트/미들웨어 호환 키
+  });
+
+  return res.json({
+    isLoggedIn: true,
+    user: { ...req.session.user }
+  });
 });
 
 

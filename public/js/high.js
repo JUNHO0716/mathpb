@@ -252,10 +252,16 @@ window.initializeHighPage = function(user) {
   }
 
   window.downloadFile = (id, type) => {
-    // 이벤트 버블링을 막아 패널이 열리지 않도록 함
     event.stopPropagation();
-    if (!user || (!user.hasPaid && user.role !== 'admin')) {
-      Swal.fire({ icon: 'warning', title: '다운로드 권한 없음', text: '결제 후 이용 가능합니다.', showCancelButton: true, showConfirmButton: false, cancelButtonText: '닫기', cancelButtonColor: '#444', background: '#1a1a1a', color: '#ffffff', iconColor: '#FDC512', customClass: { actions: 'swal2-actions-center' } });
+    const plan = (user?.plan || '').toLowerCase();
+    const allow = user && (user.role === 'admin' || ['basic','standard','pro'].includes(plan));
+    if (!allow) {
+      Swal.fire({
+        icon:'warning', title:'다운로드 권한 없음',
+        text:'BASIC 이상 구독 시 다운로드 가능합니다.', showCancelButton:true, showConfirmButton:false,
+        cancelButtonText:'닫기', cancelButtonColor:'#444', background:'#1a1a1a', color:'#ffffff', iconColor:'#FDC512',
+        customClass:{ actions:'swal2-actions-center' }
+      });
       return;
     }
     const url = `/api/download/${id}?type=${encodeURIComponent(type)}`;

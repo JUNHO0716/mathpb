@@ -33,22 +33,27 @@ body {
     transform: translateX(0);
   }
 }
-
-/* ── 고급 유광 블랙: 과한 대비/노이즈 제거, 깊은 바디톤 ── */
+/* ==== 수정후 (.sidebar) ==== */
+/* 그라데이션을 더 아래쪽으로 내려서, 위쪽은 거의 한 톤으로 */
 .sidebar {
   width: var(--sb-open);
-  /* 깊고 깨끗한 바디: 미세한 수직 그라데이션만 */
-  background: linear-gradient(180deg, #0A0B0E 0%, #050608 58%, #0A0B0E 100%);
+
+  /* 위쪽은 연한 보라 계열 유지, 분홍톤은 아래쪽에 집중 */
+  background: linear-gradient(
+    180deg,
+    #EDEFF7 0%,   /* 거의 흰색에 가까운 연보라 */
+    #E4E9F1 40%,  /* 중간쯤까지는 비슷한 톤 유지 */
+    #F0E2EC 80%,  /* 아래쪽에서부터 분홍톤 시작 */
+    #F7E7F3 100%  /* 맨 아래 가장 따뜻한 핑크 */
+  );
   overflow: hidden;
 
-  /* 외곽 그림자 과하지 않게, 내부 음영은 은은하게 */
   box-shadow:
-    0 20px 40px rgba(0,0,0,0.55),
-    0 0 0 1px rgba(255,255,255,0.04),
-    inset 10px 10px 24px rgba(0,0,0,0.60),
-    inset -10px -10px 22px rgba(255,255,255,0.03);
+    0 18px 42px rgba(15, 23, 42, 0.20),
+    0 0 0 1px rgba(255, 255, 255, 0.7);
 
-  color: #EAEAEA;
+  color: #2b2f3a;
+
   transition: width .3s ease, border-radius .3s ease, background .2s ease;
   display: flex;
   flex-direction: column;
@@ -58,11 +63,14 @@ body {
   top: 0; left: 0; bottom: 0;
   z-index: 1000;
   border-right: none;
-  isolation: isolate; /* 하이라이트 블렌딩 안정화 */
+  isolation: isolate;
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
-
-/* ── 사진 같은 고정 하이라이트: 과장 제거, 라인 1~2개만 아주 얕게 ── */
+/* ==== 수정후 (.sidebar::before) ==== */
+/* 상단/하단 쪽에만 은은한 하이라이트 – 파스텔 유리 느낌 */
 .sidebar::before {
   content: "";
   position: absolute;
@@ -70,43 +78,35 @@ body {
   pointer-events: none;
   z-index: 0;
   background:
-    /* 좌상단에서 감기는 넓고 매우 부드러운 하이라이트(타원형) */
-    radial-gradient(180% 80% at -20% 0%,
-      rgba(255,255,255,0.20) 2%,
-      rgba(255,255,255,0.10) 8%,
-      rgba(255,255,255,0.00) 22%),
+    /* 좌상단 쪽 넓은 하이라이트 */
+    radial-gradient(160% 80% at -20% 0%,
+      rgba(255,255,255,0.95) 0%,
+      rgba(255,255,255,0.55) 18%,
+      rgba(255,255,255,0.00) 48%),
 
-    /* 하단 좌측에서 대각선으로 스치는 얇은 반사 띠(과하지 않게) */
-    linear-gradient(14deg,
-      transparent 70%,
-      rgba(255,255,255,0.12) 76%,
-      transparent 82%);
-
-  mix-blend-mode: screen;  /* 밝은 부분만 합성 */
-  opacity: .85;            /* 번들감 강도 */
+    /* 우하단 쪽 살짝 비치는 반사 */
+    radial-gradient(130% 110% at 115% 105%,
+      rgba(255,255,255,0.55) 0%,
+      rgba(255,255,255,0.00) 55%);
+  mix-blend-mode: screen;
+  opacity: 0.9;
 }
-
-
-/* ── 양쪽 에지에 가는 림광: 두께/투명도 최소화로 고급스러움 유지 ── */
+/* ==== 수정후 (.sidebar::after) ==== */
+/* 양쪽 테두리에 아주 얇은 라인만 – 카드랑 어울리게 */
 .sidebar::after {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    /* 오른쪽 에지 */
     linear-gradient(to bottom,
-      rgba(255,255,255,0.20),
-      rgba(255,255,255,0.04) 65%,
-      rgba(255,255,255,0)) right / 1px 100% no-repeat,
-    /* 왼쪽 에지 */
+      rgba(255,255,255,0.7),
+      rgba(255,255,255,0.0) 70%) left / 1px 100% no-repeat,
     linear-gradient(to bottom,
-      rgba(255,255,255,0.12),
-      rgba(255,255,255,0) 70%) left / 1px 100% no-repeat;
-  opacity: .45;
+      rgba(255,255,255,0.6),
+      rgba(255,255,255,0.0) 70%) right / 1px 100% no-repeat;
+  opacity: 0.35;
 }
-
-
 
 .sidebar.collapsed {
   width: var(--sb-collapsed);
@@ -130,12 +130,20 @@ body {
   width: 100%;
 }
 
+/* ==== 수정후 ==== */
 .logo-text {
   font-size: 20px;
-  font-weight: bold;
-  color: #FFD400;
-  text-shadow: 1px 1px 0px #A08000, 
-               2px 2px 3px rgba(0, 0, 0, 0.5);
+  font-weight: 800;          /* 살짝만 가볍게 */
+  letter-spacing: 0.35px;
+
+  /* 완전 까만색 대신, 화면에 더 잘 읽히는 진한 차콜 */
+  color: #2d313c;
+
+  /* 그림자 레이어 줄이고, 투명도 낮춰서 덜 답답하게 */
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55),   /* 위쪽 하이라이트 */
+    0 2px 3px rgba(0, 0, 0, 0.28);       /* 부드러운 바디 그림자 */
+
   opacity: 1;
   transition: opacity 0.3s;
 }
@@ -146,10 +154,13 @@ body {
   height: 30px;
   opacity: 0;
   transition: opacity 0.3s;
-  border-radius: 50%;
-  border: 2px solid #2a2a35;
-  box-shadow: inset 2px 2px 4px #1e1e26, 
-              inset -2px -2px 4px #363644;
+
+  /* 🔽 검은 링/유광 효과 제거 → 원본 로고만 표시 */
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+
+  object-fit: contain; /* 로고 비율 깨지지 않게 */
 }
 
 .sidebar.collapsed .logo-text {
@@ -236,7 +247,11 @@ body {
   white-space: nowrap;
   font-size: 0.8rem !important;
   opacity: 1;
-  color: #d1d1d1;
+
+  /* 🔹 글자 조금 더 두껍게 + 더 진한 회색 */
+  font-weight: 600;
+  color: #444957;
+
   transition: max-width .25s ease .30s, opacity .25s ease .30s;
 }
 
@@ -247,8 +262,14 @@ body {
 }
 
 .menu-item.active span:not(.active-bg) {
-    color: #ffffff;
-    font-weight: 600;
+    font-weight: 700;
+
+    /* 🔹 텍스트에 퍼플→핑크 그라데이션 적용 */
+    background: linear-gradient(90deg, #8B5CF6 0%, #EC4899 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
 }
 
 .menu-button {
@@ -268,7 +289,8 @@ body {
 .menu-button span {
   display: block;
   position: absolute;
-  background-color: #fff;
+  /* 햄버거 선 색: 옅은 검은색 */
+  background-color: #444957;
   border-radius: 2px;
   transition: all 0.4s cubic-bezier(.7, .2, .17, 1.3);
 }
@@ -316,13 +338,15 @@ body {
 }
 
 .menu-icon {
-  width: 25px;
-  height: 25px;
+  width: 20px;
+  height: 20px;
   margin-right: 15px;
   object-fit: contain;
   margin-left: 11px;
-  opacity: 0.6; 
-  transition: opacity 0.2s ease; 
+
+  /* 🔹 선택 안 된 메뉴 아이콘을 더 진하게 보이도록 */
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
 }
 
 .menu-item.active .menu-icon,
@@ -333,6 +357,7 @@ body {
 .spacer { flex-grow: 1; }
 .menu-item.logout { margin-bottom: 30px; }
 #contentFrame { flex: 1; border: none; width: 100%; height: 100%; overflow-y: auto; }
+
 
 /* 헤더 */
 .page-header{ min-width:980px; padding:8px 40px 10px; display:flex; align-items:center; justify-content:space-between; position:relative; background: #fff; }
@@ -918,4 +943,58 @@ PC / 모바일 분기점
   .header-actions .editor-link {
     display: none;
   }
+}
+
+/* ==============================================
+   [수정] 로그아웃 토글 버튼 애니메이션
+   ============================================== */
+
+/* 1. 래퍼(Wrapper): [수정] 너비를 20px로 되돌림 */
+.menu-icon-toggle-wrapper {
+  width: 20px; /* <-- 24px에서 20px로 수정 (정렬 맞춤) */
+  height: 20px;
+  margin-right: 15px;
+  margin-left: 11px;
+  
+  position: relative;
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+/* 2. 토글의 배경 (트랙) */
+.toggle-track {
+  width: 100%; /* 20px */
+  height: 12px;
+  border-radius: 6px;
+  background-color: #595959;
+  transition: background-color 0.3s ease;
+}
+
+/* 3. 토글의 동그란 버튼 (썸) */
+.toggle-thumb {
+  width: 14px; /* 16px -> 14px (작은 버튼 유지) */
+  height: 14px; /* 16px -> 14px (작은 버튼 유지) */
+  border-radius: 50%;
+  background-color: #dedede;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  position: absolute;
+  top: 3px; /* (20px - 14px) / 2 = 3px (세로 중앙) */
+  
+  /* [수정] (전체 20px) - (원 14px) = 6px */
+  left: 6px; /* <-- 10px에서 6px로 수정 (오른쪽 정렬) */
+  
+  transition: left 0.3s ease, background-color 0.3s ease;
+}
+
+
+/* 4. [핵심] #menu8에 마우스를 올렸을 때 */
+
+#menu8:hover .toggle-track {
+  background-color: #e04c5a;
+}
+
+#menu8:hover .toggle-thumb {
+  left: 0px; /* (왼쪽 정렬) */
+  background-color: #ffffff;
 }

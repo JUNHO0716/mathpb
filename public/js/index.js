@@ -165,25 +165,43 @@ async function bindUser() {
     currentUser = u;
 
     // ✅ 로그인한 사용자의 챗봇 저장 키를 계정별로 고정
-    window.__USER_ID = `u_${u.id ?? ((u.email || '').split('@')[0] || 'unknown')}`;
+    window.__USER_ID = `u_${
+      (u?.id && String(u.id).trim())
+      || (u?.username && String(u.username).trim())
+      || (u?.loginId && String(u.loginId).trim())
+      || (u?.email === 'Kakao' ? (u?.name || '').trim() : ((u?.email || '').split('@')[0] || ''))
+      || 'unknown'
+    }`;
 
     // (선택) 과거 공용키('anon')로 저장된 기록은 노출 방지 차원에서 한 번만 지웁니다.
     try {
       localStorage.removeItem('mathpb_chat_history_v1:anon:' + location.pathname);
     } catch (e) {}
     
-    let displayName = u.name || 'Guest'; // 기본값은 이름으로 설정
+    let displayName;
 
-    // 카카오가 아닌 다른 사용자(구글, 네이버, 일반)이고 이메일이 있다면,
-    // 이메일의 @ 앞부분을 이름으로 사용합니다.
-    if (u.email && u.email !== 'Kakao') {
-        displayName = u.email.split('@')[0];
-    } else if (u.email === 'Kakao') {
-        // 카카오 사용자는 DB의 name 필드(카카오 닉네임)를 그대로 사용합니다.
-        displayName = u.name;
+    // 1) 카카오는 기존처럼 닉네임 그대로
+    if (u?.email === 'Kakao') {
+      displayName = u?.name || 'Guest';
     }
-    
+    // 2) 그 외는 'ID'를 최우선으로 표기
+    else if (typeof u?.id === 'string' && u.id.trim()) {
+      displayName = u.id.trim();
+    } else if (typeof u?.username === 'string' && u.username.trim()) {
+      displayName = u.username.trim();
+    } else if (typeof u?.loginId === 'string' && u.loginId.trim()) {
+      displayName = u.loginId.trim();
+    }
+    // 3) 폴백: 이메일 @앞 → 이름 → Guest
+    else if (u?.email) {
+      displayName = u.email.split('@')[0];
+    } else {
+      displayName = u?.name || 'Guest';
+    }
+
     document.getElementById('index-headerProfileName').textContent = displayName || 'Guest';
+
+    
     const avatarEl = document.getElementById('index-headerAvatar');
     
     if (avatarEl) {
@@ -195,24 +213,41 @@ async function bindUser() {
       avatarEl.alt = displayName;
     }
 
-  document.getElementById('userBox').classList.remove('loading');
+      document.getElementById('userBox').classList.remove('loading');
 
-  // ✅ 오직 isAdmin으로만 판별
-  const isAdmin = !!u.isAdmin;
-  IS_ADMIN = isAdmin;
+      // 서버가 주는 어떤 키라도 받아서 불리언으로 통일
+      const isAdmin = !!(u.isAdmin ?? u.is_admin);
+      IS_ADMIN = isAdmin;
 
-  const goAdminEl = document.getElementById('goAdminPage');
-  if (goAdminEl) {
-    goAdminEl.style.display = isAdmin ? 'block' : 'none';
-    // (안 붙어있다면) 클릭 시 관리자 페이지로 이동
-    if (!goAdminEl.__bound) {
-      goAdminEl.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.location.href = '/admin.html';
-      });
-      goAdminEl.__bound = true;
-    }
-  }
+      const menu = document.getElementById('dropdownMenu');
+      let goAdminEl = document.getElementById('goAdminPage');
+
+      // ❗ 없다면 직접 만들어서 메뉴에 삽입
+      if (!goAdminEl && menu) {
+        goAdminEl = document.createElement('a');
+        goAdminEl.id = 'goAdminPage';
+        goAdminEl.href = '/admin.html';
+        goAdminEl.textContent = '관리자 페이지';
+
+        // 기존 항목 클래스 복사(디자인 유지)
+        const sample = menu.querySelector('a');
+        if (sample) goAdminEl.className = sample.className;
+
+        goAdminEl.style.display = 'none';
+        // 첫 항목 위쪽/아래쪽 원하는 위치로 조정 가능
+        menu.insertBefore(goAdminEl, menu.firstChild);
+
+        goAdminEl.addEventListener('click', (e) => {
+          e.preventDefault();
+          window.location.href = '/admin.html';
+        });
+      }
+
+      // ❗ 최종 토글
+      if (goAdminEl) {
+        goAdminEl.style.display = isAdmin ? 'block' : 'none';
+      }
+
   } catch (e) {
     console.error(e);
   }
@@ -343,17 +378,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // '시험지 요청'(menu5) 클릭 시 권한 확인 로직 (PC와 동일)
       if (menuId === 'menu5') {
-        if (currentUser && currentUser.hasPaid) {
-          // 권한이 있으면 페이지 로드 및 메뉴 활성화
+        const plan = (currentUser?.plan || 'free').toLowerCase();
+        const ok = (currentUser?.role === 'admin') || ['standard','pro'].includes(plan);
+        if (ok) {
           setMobileActiveMenu(this);
           if (t) setPageTitle(t.highlight, t.text);
           loadContent(url);
         } else {
-          // 권한이 없으면 모달창 표시
           Swal.fire({
             icon: 'warning',
             title: '이용 불가',
-            text: '구독 회원만 이용 가능한 기능입니다.',
+            text: 'STANDARD 이상 구독 시 이용 가능한 기능입니다.',
             showCancelButton: true,
             showConfirmButton: false,
             cancelButtonText: '닫기',
@@ -414,17 +449,17 @@ document.querySelectorAll('.menu-item').forEach(item => {
 
     // '시험지 요청'(menu5) 클릭 시 권한 확인 로직
     if (menuId === 'menu5') {
-      if (currentUser && currentUser.hasPaid) {
-        // 권한이 있으면 페이지 로드 및 메뉴 활성화
+      const plan = (currentUser?.plan || 'free').toLowerCase();
+      const ok = (currentUser?.role === 'admin') || ['standard','pro'].includes(plan);
+      if (ok) {
         setActiveMenu(this);
         if (t) setPageTitle(t.highlight, t.text);
         loadContent(url);
       } else {
-        // 권한이 없으면 모달창 표시 (메뉴는 활성화하지 않음)
         Swal.fire({
           icon: 'warning',
           title: '이용 불가',
-          text: '구독 회원만 이용 가능한 기능입니다.',
+          text: 'STANDARD 이상 구독 시 이용 가능한 기능입니다.',
           showCancelButton: true,
           showConfirmButton: false,
           cancelButtonText: '닫기',

@@ -102,8 +102,15 @@ export default function(passport) {
   }, async (accessToken, refreshToken, profile, done) => {
     try {
       const id = String(profile.id);
-      // 실제 카카오 계정 이메일을 가져오도록 수정
-      const email = profile._json?.kakao_account?.email || null;
+
+      // 🔹 1) 카카오가 이메일을 넘겨주면 그대로 사용
+      // 🔹 2) 이메일이 없으면, DB NOT NULL 제약을 피하기 위해 가짜 이메일 생성
+      let email = profile._json?.kakao_account?.email;
+      if (!email) {
+        // 유니크하게 만들어서 다른 계정과 안 섞이게
+        email = `kakao_${id}@no-email.kakao`;
+      }
+
       const name = profile.displayName;
       const avatarUrl = profile._json?.properties?.profile_image || null;
 
@@ -111,13 +118,19 @@ export default function(passport) {
 
       if (rows.length) {
         // 카카오로 로그인한 기록이 이미 있는 사용자
-        await db.query('UPDATE users SET email = ?, name = ?, avatarUrl = ? WHERE id = ?', [email, name, avatarUrl, id]);
+        await db.query(
+          'UPDATE users SET email = ?, name = ?, avatarUrl = ? WHERE id = ?',
+          [email, name, avatarUrl, id]
+        );
       } else {
         // 카카오 로그인은 처음이지만, 같은 이메일의 계정이 있는지 확인
         const [emailRows] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
         if (emailRows.length) {
           // 이메일이 이미 존재하면, 해당 계정에 카카오 ID를 업데이트하여 연결 (계정 통합)
-          await db.query('UPDATE users SET id = ?, avatarUrl = ? WHERE email = ?', [id, avatarUrl, email]);
+          await db.query(
+            'UPDATE users SET id = ?, avatarUrl = ? WHERE email = ?',
+            [id, avatarUrl, email]
+          );
         } else {
           // 완전히 새로운 사용자
           await db.query(

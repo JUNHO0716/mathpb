@@ -1,0 +1,409 @@
+/* /public/css/schedule.css */
+.sch-widget-wrap{ width:100%; height:100%; }
+.sch-card{
+  --schH: 690px;
+  --dailyH: 168px;
+  --dailyPad: 20px;
+  --calGap: 22px;
+  display:grid; grid-template-columns: 1.22fr 0.85fr; /* ⬅ 우측 더 좁게 */
+  gap:20px;
+  height: var(--schH);
+  min-height: var(--schH);
+  max-height: var(--schH);
+
+  /* Frosted처럼: home/coverage 카드와 동일 톤 */
+  background: linear-gradient(160deg, rgba(250,250,250,.7) 0%, rgba(245,245,245,.4) 70%, rgba(220,237,255,.3) 85%, rgba(244,224,255,.3) 100%);
+  border:1px solid rgba(209,213,219,.7);
+  box-shadow: 0 8px 24px -10px rgba(0,0,0,.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius:22px;
+  padding:18px;
+  color:#111;
+}
+
+.sch-left{ display:flex; flex-direction:column; min-width:0; min-height:0; }
+
+.sch-right{ display:flex; flex-direction:column; min-width:0; min-height:0; }
+/* month bar */
+.sch-monthbar{
+  display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:8px;
+}
+.sch-monthlabel{ font-weight:900; font-size:1.05rem; display:flex; align-items:center; gap:8px; }
+.sch-monthlabel .sch-icon{ width:18px; height:18px; opacity:.9; transform: translateY(1px); }
+
+.sch-nav{
+  border:none; background:#e9eef3; color:#333; border-radius:10px; padding:6px 10px; cursor:pointer; font-weight:800;
+}
+
+/* week heads + grid */
+.sch-weekheads{
+  display:grid; grid-template-columns:repeat(7,1fr); gap:6px; font-weight:700; font-size:.85rem; color:#555; margin:6px 0 6px;
+}
+.sch-weekheads>div{ text-align:center; }
+
+.sch-calgrid{
+  display:grid; grid-template-columns:repeat(7,1fr); gap:6px;
+  flex:1 1 auto; min-height:340px;  /* 420 → 340 (−80px) */
+  margin-bottom: var(--calGap);
+}
+.sch-day{
+  background: rgba(255,255,255,.65);
+  border:1px solid rgba(209,213,219,.8);
+  border-radius:12px; padding:8px; min-height:64px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -2px 6px rgba(0,0,0,.08);
+  cursor:pointer;
+  display:flex; flex-direction:column; gap:6px;
+}
+.sch-day.empty{ background:transparent; border:1px dashed rgba(209,213,219,.5); cursor:default; }
+.sch-day .num{ font-weight:900; font-size:.95rem; color:#1f2937; }
+.sch-day .marks{
+  margin-top:auto; align-self:flex-end;
+  font-size:.72rem; font-weight:900; color:#fff;
+  background: linear-gradient(135deg, #B967FF, #FF7BBE);
+  border-radius:999px; padding:3px 8px;
+}
+.sch-day.sel{ outline:2px solid #8b5cf6; }
+
+/* daily list */
+.sch-daily{
+  margin-top:0;
+  border-top:none;
+  padding-top:var(--dailyPad);
+  flex:0 0 var(--dailyH);
+  height:var(--dailyH);
+
+  display:flex;             /* ✅ 헤더와 목록을 세로로 배치 */
+  flex-direction:column;
+  overflow:hidden;          /* ✅ 부모는 스크롤 금지(스크롤은 아래 .sch-daily-list로) */
+}
+.sch-daily-head{
+  display:none;          /* ✅ "일정" 제목 숨김 */
+}
+
+.sch-daily-list{
+  flex:1 1 auto;            /* ✅ 남은 공간 전부 차지 */
+  min-height:0;             /* ✅ flex 자식 스크롤을 위한 필수값 */
+  overflow-y:auto;          /* ✅ 목록만 스크롤 */
+  padding-right:4px;        /* (선택) 스크롤바 여백 */
+}
+.sch-item{
+  display:flex; gap:10px; align-items:center; padding:8px 6px; border-radius:10px;
+  background: rgba(255,255,255,.6); border:1px solid rgba(209,213,219,.6);
+}
+.sch-item + .sch-item{ margin-top:6px; }
+/* 기본 배지 스타일 */
+.badge{
+  display:inline-flex; align-items:center;
+  padding:6px 10px; border-radius:999px;
+  font-weight:700; font-size:12.5px;
+  border:1px solid transparent;
+  line-height:1; white-space:nowrap;
+}
+
+/* 일정 목록의 학교 배지(색은 .b1~.b15로 적용) */
+.sch-school{ font-weight:800; font-size:.8rem; white-space:nowrap; padding:3px 8px; border-radius:999px; }
+
+/* 15가지 옅은 색 배지 팔레트 (달력 점 색과 동일 매핑) */
+.b1  { background:rgba(59,130,246,.12);  border-color:rgba(59,130,246,.28);  color:#1d4ed8; }
+.b2  { background:rgba(250,204,21,.14);  border-color:rgba(250,204,21,.32);  color:#a16207; }
+.b3  { background:rgba(34,197,94,.12);   border-color:rgba(34,197,94,.28);   color:#15803d; }
+.b4  { background:rgba(239,68,68,.12);   border-color:rgba(239,68,68,.28);   color:#b91c1c; }
+.b5  { background:rgba(168,85,247,.12);  border-color:rgba(168,85,247,.28);  color:#7e22ce; }
+.b6  { background:rgba(20,184,166,.12);  border-color:rgba(20,184,166,.28);  color:#0f766e; }
+.b7  { background:rgba(251,146,60,.12);  border-color:rgba(251,146,60,.28);  color:#c2410c; }
+.b8  { background:rgba(236,72,153,.12);  border-color:rgba(236,72,153,.28);  color:#be185d; }
+.b9  { background:rgba(99,102,241,.12);  border-color:rgba(99,102,241,.28);  color:#4338ca; }
+.b10 { background:rgba(132,204,22,.14);  border-color:rgba(132,204,22,.32);  color:#3f6212; }
+.b11 { background:rgba(6,182,212,.12);   border-color:rgba(6,182,212,.28);   color:#0e7490; }
+.b12 { background:rgba(245,158,11,.14);  border-color:rgba(245,158,11,.32);  color:#b45309; }
+.b13 { background:rgba(139,92,246,.12);  border-color:rgba(139,92,246,.28);  color:#6d28d9; }
+.b14 { background:rgba(244,63,94,.12);   border-color:rgba(244,63,94,.28);   color:#be123c; }
+.b15 { background:rgba(100,116,139,.12); border-color:rgba(100,116,139,.28); color:#334155; }
+
+.sch-title{ font-size:.9rem; color:#374151; }
+.sch-empty{ color:#9ca3af; font-weight:700; padding:10px 0; }
+
+/* ▶ 3개 필터 한 줄 / 검색은 다음 줄 오른쪽 정렬 */
+/* ▶ 3개 필터 한 줄 / 검색은 다음 줄 오른쪽 정렬 */
+.sch-filters{
+  display:grid;
+  grid-template-columns: 1fr repeat(3, minmax(86px, auto));
+  column-gap:8px; row-gap:8px;
+  align-items:center; margin-bottom:10px;
+}
+
+/* 일반 select / input 기본 스타일 (neo-select 제외) */
+.sch-filters select:not(.neo-select),
+.sch-filters input{
+  border-radius:12px; padding:6px 10px;
+  font-weight:700; font-size:.82rem;
+  min-width:96px;
+}
+
+/* ✅ 학사일정 필터(고등/시도/구군)용 neo-select – 벌집 드롭다운과 동일 스타일 */
+.sch-filters .neo-select{
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+
+  background: linear-gradient(
+    145deg,
+    rgba(255,255,255,0.45) 0%,
+    rgba(240,240,240,0.25) 100%
+  );
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: 14px;
+  padding: 9px 30px 9px 12px;
+  color: #222;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  min-width: 105px;
+
+  /* ✨ 유리/유광 플라스틱 느낌 */
+  backdrop-filter: blur(12px) saturate(150%) brightness(1.15);
+  -webkit-backdrop-filter: blur(12px) saturate(150%) brightness(1.15);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.6),
+    inset 0 -2px 6px rgba(0,0,0,0.15),
+    0 4px 10px rgba(0,0,0,0.08);
+
+  transition: all 0.25s ease;
+
+  /* ▼ 화살표 */
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='%23333'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px 14px;
+}
+
+/* hover 시 살짝 더 밝게 + 화살표 유지 */
+.sch-filters .neo-select:hover{
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='%23333'><path d='M7 10l5 5 5-5z'/></svg>"),
+    linear-gradient(145deg, rgba(255,255,255,0.55) 0%, rgba(240,240,240,0.35) 100%);
+  background-repeat: no-repeat, no-repeat;
+  background-position: right 12px center, 0 0;
+  background-size: 14px 14px, cover;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.75),
+    inset 0 -2px 6px rgba(0,0,0,0.12),
+    0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* 클릭/포커스 시 화살표만 위로 뒤집기 (▼ → ▲) */
+.sch-filters .neo-select:focus,
+.sch-filters .neo-select:active{
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='%23333'><path d='M7 14l5-5 5 5z'/></svg>"),
+    linear-gradient(145deg, rgba(255,255,255,0.55) 0%, rgba(240,240,240,0.35) 100%);
+  background-repeat: no-repeat, no-repeat;
+  background-position: right 12px center, 0 0;
+  background-size: 14px 14px, cover;
+  outline:none;
+}
+
+.sch-filters .sch-level   { grid-column:2; justify-self:end; }
+.sch-filters .sch-city    { grid-column:3; justify-self:end; }
+.sch-filters .sch-district{ grid-column:4; justify-self:end; }
+
+/* 검색+추가 컨테이너(오른쪽 정렬) */
+.sch-filters .sch-searchbox{
+  grid-column: 1 / -1;
+  justify-self: end;
+  display:flex; align-items:center; gap:8px;
+}
+.sch-filters .sch-search{
+  width: 220px; min-width: 200px;
+}
+.sch-filters .sch-add{
+  border:none; border-radius:12px; padding:6px 12px; font-weight:800;
+  background:linear-gradient(135deg,#B967FF,#FF7BBE); color:#fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 4px 10px rgba(0,0,0,.08);
+  cursor:pointer;
+}
+.sch-filters .sch-add:disabled{
+  opacity:.45; cursor:default; filter:grayscale(40%);
+}
+
+.sch-left{ display:flex; flex-direction:column; min-width:0; min-height:0; }
+.sch-right{
+  display:grid;
+  grid-template-rows: auto 1fr auto; /* 필터 / 리스트 / 버튼바 */
+  min-width:0; min-height:0;
+}
+.sch-list-head{ padding:5px 8px; font-size:.86rem; }  /* 제목 더 컴팩트 */
+.sch-list-body{ padding:8px; }                        /* 바디 패딩 축소 */
+.sch-row{ gap:8px; padding:4px 4px; }                 /* 행 간격/패딩 축소 */
+
+.sch-lists{
+  display:grid; grid-template-columns: 0.8fr 0.7fr;   /* ⬅ 좌우 더 줄임 */
+  gap:6px;                                           /* ⬅ 간격도 소폭 축소 */
+  min-height:0; flex:1 1 auto;
+}
+.sch-list{
+  display:flex; flex-direction:column; min-height:0;
+  min-width:160px;                                   /* ⬅ 최소폭 더 축소 */
+  max-width:100%; overflow:hidden;                   /* ⬅ 가로 넘침 차단 */
+  background:rgba(255,255,255,.5); border:1px solid rgba(209,213,219,.7); border-radius:14px;
+}
+.sch-list-head{
+  font-weight:900; padding:6px 8px;                  /* ⬅ 패딩 축소 */
+  font-size:.88rem;                                  /* ⬅ 제목 글씨 축소 */
+  border-bottom:1px solid rgba(209,213,219,.7);
+}
+.sch-row span{
+  font-size:.88rem; line-height:1.2;                 /* ⬅ 목록 글씨 축소 */
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.sch-tag{ font-size:.8rem; padding:4px 8px; }        /* ⬅ 선택된 학교 태그도 동일 축소 */
+
+.sch-row{ gap:8px; padding:5px 4px; }
+/* 선택한 학교 영역(태그)도 조금 컴팩트하게 */
+.sch-list-body.sch-picked{ gap:6px; }
+
+.sch-list-body{
+  flex: 1 1 auto; min-height:0; overflow:auto; padding:10px;
+}
+
+
+/* school rows */
+.sch-row{ display:flex; align-items:center; gap:8px; padding:6px 4px; }
+.sch-row input{ transform: translateY(1px); }
+/* ▶ 선택한 학교도 '목록(행)' 형태로 */
+.sch-list-body.sch-picked{
+  display:block;
+  overflow-y:auto;
+  overflow-x:hidden;          /* ⬅ 가로 스크롤 방지 */
+}
+
+/* 선택한 학교 행 스타일(체크박스 없음, 클릭 불가 커서) */
+.sch-picked .sch-row{
+  display:flex; align-items:center; gap:8px;
+  padding:6px 4px;
+  margin-bottom:6px;
+  border-radius:10px;
+  background: rgba(255,255,255,.6);
+  border:1px solid rgba(209,213,219,.6);
+  cursor:default;
+}
+.sch-picked .sch-row span{
+  font-size:.88rem; line-height:1.2;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+/* (예전 태그 스타일은 사용 안 하므로 있어도 무관하지만, 깔끔히 없애려면 아래 두 줄을 지워도 됨) */
+/* .sch-tag{...} .sch-tag .x{...} */
+
+/* 선택한 학교 태그 내부 정렬: 이름 왼쪽, '-' 버튼 오른쪽 */
+.sch-tag{
+  display:flex; align-items:center; gap:8px;
+  justify-content:space-between;
+  width:100%;                 /* ⬅ 한 줄 전체 사용 */
+  min-width:0;                /* ⬅ flex 수축 허용 */
+  box-sizing:border-box;
+  padding:6px 8px;            /* (원하는 패딩 유지) */
+}
+
+.sch-tag .label{ margin-left:2px; } /* 점과 텍스트 간격 살짝 */
+/* '-' 텍스트 버튼 (빨간색, 배경 없음) */
+.sch-tag .sch-rm{
+  border:none; background:transparent;
+  font-weight:900; font-size:1rem; line-height:1;
+  color:#ef4444;      /* red-500 */
+  cursor:pointer; padding:0 4px;
+}
+.sch-tag .sch-rm:hover{ text-decoration: underline; }
+
+/* 학교명은 말줄임 */
+.sch-tag .label{
+  flex:1; min-width:0;
+  white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;
+}
+
+/* '-' 버튼은 고정 폭 */
+.sch-tag .sch-rm{
+  flex:0 0 auto;
+  border:none; background:transparent;
+  font-weight:900; font-size:1rem; line-height:1;
+  color:#ef4444; cursor:pointer; padding:0 4px;
+}
+
+/* 날짜 아래 점 그리드(5 × 최대 3줄) */
+.sch-day .dots{
+  display:grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-auto-rows: 6px;        /* 🔻 줄 높이 축소 */
+  gap: 3px 5px;               /* 🔻 간격 살짝 축소 */
+  margin-top:auto;
+  justify-items:center;
+  min-height: 32px;           /* ✅ 달력 높이 고정값(변화 없음) */
+}
+
+.sch-day .dot{
+  width:5px; height:5px;      /* 🔻 점 더 작게 */
+  border-radius:50%;
+  box-shadow: 0 0 0 1.5px rgba(255,255,255,.9); /* 테두리도 얇게 */
+}
+
+/* 선택한 학교 목록용 작은 점 */
+.dot-sm{ width:9px; height:9px; border-radius:50%; margin-right:6px; box-shadow: 0 0 0 2px rgba(255,255,255,.9); }
+
+.c1{ background:#3B82F6; }  .c2{ background:#FACC15; }  .c3{ background:#22C55E; }
+.c4{ background:#EF4444; }  .c5{ background:#A855F7; }  .c6{ background:#14B8A6; }
+.c7{ background:#FB923C; }  .c8{ background:#EC4899; }  .c9{ background:#6366F1; }
+.c10{ background:#84CC16; } .c11{ background:#06B6D4; } .c12{ background:#F59E0B; }
+.c13{ background:#8B5CF6; } .c14{ background:#F43F5E; } .c15{ background:#64748B; }
+
+
+@media (max-width: 1280px){
+  .sch-card{ --dailyH: 152px; }
+}
+@media (max-width: 1024px){
+  .sch-card{ --dailyH: 140px; }
+}
+
+.sch-actions{
+  display:flex; justify-content:flex-end; gap:10px;
+  margin-top:8px; padding-top:8px;
+  border-top:1px dashed rgba(0,0,0,.06);
+}
+.sch-actions .sch-save{
+  border:none; border-radius:12px; padding:8px 16px; font-weight:900;
+  background:linear-gradient(135deg,#B967FF,#FF7BBE); color:#fff;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 4px 10px rgba(0,0,0,.08);
+  cursor:pointer;
+}
+.sch-actions .sch-save:disabled{ opacity:.45; filter:grayscale(40%); cursor:default; }
+.sch-actions .sch-reset{
+  border:1px solid rgba(239,68,68,.5); color:#b91c1c;
+  background:rgba(255,255,255,.7); border-radius:12px; padding:8px 14px; font-weight:900;
+  cursor:pointer;
+}
+
+.sch-modal[aria-hidden="true"]{ display:none; }
+.sch-modal{ position:fixed; inset:0; z-index:60; }
+.sch-modal-dim{ position:absolute; inset:0; background:rgba(0,0,0,.25); }
+.sch-modal-card{
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:min(420px, calc(100% - 40px));
+  background: rgba(255,255,255,.85);
+  border:1px solid rgba(209,213,219,.8);
+  backdrop-filter: blur(10px);
+  border-radius:16px; padding:18px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.18);
+}
+.sch-modal-title{ font-weight:900; font-size:1.02rem; margin-bottom:6px; }
+.sch-modal-desc{ color:#6b7280; font-weight:700; margin-bottom:12px; }
+.sch-modal-actions{ display:flex; justify-content:flex-end; gap:10px; }
+.sch-modal-actions .sch-modal-ok{
+  background:#ef4444; color:#fff; border:none; border-radius:10px; padding:8px 14px; font-weight:900;
+}
+.sch-modal-actions .sch-modal-cancel{
+  background:transparent; border:1px solid #cbd5e1; border-radius:10px; padding:8px 14px; font-weight:900; color:#334155;
+}

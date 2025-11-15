@@ -5,54 +5,87 @@ import { s3, fileUpload, deleteS3 } from '../config/s3.js';
 import { isLoggedIn, isAdmin } from '../middleware/auth.js';
 import { verifyOrigin } from '../middleware/security.js';
 
-const router = express.Router();
+const router = express.Router(); // ✅ 이 한 줄 추가
 
-// 미들웨어: 이 파일의 모든 라우트는 isLoggedIn, isAdmin을 통과해야 함
-router.use(isLoggedIn, isAdmin);
+// ✅ 세션 값을 req.user에도 싱크(미들웨어 구현 차이 대비용)
+router.use((req, _, next) => { if (req.session?.user) req.user = req.session.user; next(); });
 
-router.get('/users', async (req, res) => {
+// ✅ 외부 isAdmin 미들웨어 대신, 이 파일 내부에서 확실히 검사
+function ensureAdmin(req, res, next) {
+  const u = req.session?.user || req.user || {};
+  const ok = u?.id && (
+    u.role === 'admin' ||
+    u.isAdmin === 1 || u.isAdmin === true ||
+    u.is_admin === 1 || u.is_admin === true
+  );
+  if (!u?.id)  return res.status(401).json({ success:false, message:'로그인이 필요합니다.' });
+  if (!ok)     return res.status(403).json({ success:false, message:'관리자만 접근 가능합니다.' });
+  next();
+}
+
+router.get('/users', ensureAdmin, async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT id, email, name, created_at,
-             is_subscribed, subscription_start, subscription_end,
-             is_admin AS isAdmin,                      -- ✅ DB는 is_admin, 응답은 isAdmin
-             academyName, academyPhone, bizNum
-      FROM users
-      ORDER BY created_at DESC
+      SELECT
+        u.id,
+        u.email,
+        u.name,
+        DATE_FORMAT(u.created_at, '%Y-%m-%d')          AS created_at,
+        u.is_subscribed,
+        DATE_FORMAT(u.subscription_start, '%Y-%m-%d')  AS subscription_start,
+        DATE_FORMAT(u.subscription_end,   '%Y-%m-%d')  AS subscription_end,
+        IFNULL(u.is_admin, 0)                          AS isAdmin,
+        bk.plan                                        AS plan,
+        bk.cycle                                       AS cycle
+      FROM users u
+      LEFT JOIN billing_keys bk ON bk.user_id = u.id
+      ORDER BY u.id DESC
     `);
     res.json({ success: true, users: rows });
   } catch (e) {
-    res.status(500).json({ success: false, message: '서버 오류', error: e.message });
+    res.status(500).json({ success: false, message: '서버 오류' });
   }
 });
 
-// 사용자 구독 상태 변경
-router.post('/update-subscription', async (req, res) => {
+router.post('/update-subscription', ensureAdmin, async (req, res) => {
   const { userId, action } = req.body;
-  const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
-  const endDate = new Date();
-  endDate.setDate(today.getDate() + 30);
-  const endDateStr = endDate.toISOString().split('T')[0];
 
   try {
     if (action === 'extend') {
       await db.execute(`
-        UPDATE users SET is_subscribed = 1, subscription_start = ?, subscription_end = ?
+        UPDATE users
+        SET is_subscribed = 1,
+            subscription_start = IF(
+              subscription_start IS NULL OR subscription_end < DATE(CONVERT_TZ(NOW(), '+00:00', '+09:00')),
+              DATE(CONVERT_TZ(NOW(), '+00:00', '+09:00')),
+              subscription_start
+            ),
+            subscription_end = DATE_ADD(
+              IF(
+                subscription_end IS NULL OR subscription_end < DATE(CONVERT_TZ(NOW(), '+00:00', '+09:00')),
+                DATE(CONVERT_TZ(NOW(), '+00:00', '+09:00')),
+                subscription_end
+              ),
+              INTERVAL 30 DAY
+            )
         WHERE id = ?
-      `, [todayStr, endDateStr, userId]);
-      res.json({ success: true, message: '✅ 구독이 연장되었습니다.' });
-    } else if (action === 'cancel') {
+      `, [userId]);
+      return res.json({ success:true, message:'✅ 구독이 연장되었습니다.' });
+    }  else if (action === 'cancel') {
       await db.execute(`
-        UPDATE users SET is_subscribed = 0, subscription_end = ?
+        UPDATE users
+        SET is_subscribed   = 0,
+            subscription_end = DATE(CONVERT_TZ(NOW(), '+00:00', '+09:00'))
         WHERE id = ?
-      `, [todayStr, userId]);
-      res.json({ success: true, message: '❌ 구독이 해지되었습니다.' });
+      `, [userId]);
+      return res.json({ success: true, message: '❌ 구독이 해지되었습니다.' });
+
     } else {
-      res.status(400).json({ success: false, message: '올바른 action 아님' });
+      return res.status(400).json({ success: false, message: '올바른 action 아님' });
     }
   } catch (e) {
-    res.status(500).json({ success: false, message: '서버 오류', error: e.message });
+    console.error('POST /api/admin/update-subscription error:', e);
+    return res.status(500).json({ success: false, message: '서버 오류', error: e.message });
   }
 });
 
@@ -61,10 +94,9 @@ router.post('/update-subscription', async (req, res) => {
 // --- 헬퍼 함수: 파일명 파싱 ---
 // "2025 인천 부흥고 2학년 1학기 기말 대수"
 function parseFilename(filename) {
-  const parts = filename.replace(/\.[^/.]+$/, "").split(' '); // 확장자 제거 및 공백으로 분리
-  if (parts.length < 7) return null; // [연도] [지역] [학교] [학년] [학기] [시험] [과목] 최소 7개
-
-  const [year, region, school, grade, semester, exam, ...subjectParts] = parts;
+  const parts = filename.replace(/\.[^/.]+$/, "").split(' ');
+  if (parts.length < 7) return null;
+  const [year, region, school, grade, semester, exam, ...subjectParts] = parts; // ✅ '...' 전개
   const subject = subjectParts.join(' ');
 
   // 학기 매핑
@@ -341,7 +373,7 @@ router.post('/payment-complete', async (req, res) => {
   }
 });
 
-router.post('/update-role', express.json(), async (req, res) => {
+router.post('/update-role', ensureAdmin, express.json(), async (req, res) => {
   try {
     const { userId, makeAdmin } = req.body;
     if (!userId || typeof makeAdmin !== 'boolean') {
@@ -372,6 +404,57 @@ router.post('/update-role', express.json(), async (req, res) => {
     });
   } catch (e) {
     res.status(500).json({ success: false, message: '서버 오류', error: e.message });
+  }
+});
+
+// --- (진단용) 라우터가 실제로 로드되었는지 확인하는 핑 엔드포인트 ---
+router.get('/_ping-update-plan', (req, res) => res.json({ ok: true }));
+
+router.post('/update-plan', ensureAdmin, express.json(), async (req, res) => {
+  try {
+    const { userId, plan } = req.body;
+    if (!userId) return res.status(400).json({ success:false, message:'userId가 없습니다.' });
+
+    let planKey = plan ? String(plan).toLowerCase() : null;
+    const allowed = ['basic','standard','pro'];
+    if (planKey && !allowed.includes(planKey)) {
+      return res.status(400).json({ success:false, message:'유효하지 않은 플랜입니다.' });
+    }
+
+    // 1) billing_keys 갱신
+    const manualKey = `manual_${userId}`;
+    await db.query(`
+      INSERT INTO billing_keys (user_id, provider, customer_key, billing_key, plan, cycle, price)
+      VALUES (?, 'manual', ?, ?, ?, NULL, 0)
+      ON DUPLICATE KEY UPDATE
+        provider = VALUES(provider),
+        plan     = VALUES(plan)
+    `, [userId, manualKey, manualKey, planKey]);
+
+    // 2) users 구독 필드 동기화
+    if (planKey === 'basic' || planKey === 'standard' || planKey === 'pro') {
+      await db.execute(`
+        UPDATE users
+        SET is_subscribed     = 1,
+            subscription_start = IFNULL(subscription_start, DATE(CONVERT_TZ(NOW(), '+00:00', '+09:00'))),
+            subscription_end   = DATE_ADD(DATE(CONVERT_TZ(NOW(), '+00:00', '+09:00')), INTERVAL 30 DAY)
+        WHERE id = ?
+      `, [userId]);
+    } else {
+      // 플랜 제거/해지
+      await db.execute(`
+        UPDATE users
+        SET is_subscribed     = 0,
+            subscription_start = NULL,
+            subscription_end   = DATE(CONVERT_TZ(NOW(), '+00:00', '+09:00'))
+        WHERE id = ?
+      `, [userId]);
+    }
+
+    return res.json({ success:true, message:'구독 플랜이 변경되었습니다.' });
+  } catch (e) {
+    console.error('POST /api/admin/update-plan error:', e);
+    return res.status(500).json({ success:false, message:e.message || '서버 오류' });
   }
 });
 

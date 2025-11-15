@@ -28,6 +28,7 @@
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   <link rel="stylesheet" href="css/upload.css">
   <link rel="stylesheet" href="css/help.css">
+  <link rel="stylesheet" href="css/schedule.css">
   <link rel="stylesheet" href="css/chatbot.css"><!-- ★ 챗봇 CSS를 머리로 이동 -->
   <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
  
@@ -40,7 +41,8 @@
   <div class="sidebar glossy-animate fade-in-left" id="sidebar">
     <div class="logo">
       <span class="logo-text">Mathbee</span>
-      <img src="image_logo/logo_m.png" alt="로고" class="logo-img">
+      <!-- ✔ 새 로고 파일로 교체 -->
+      <img src="image_logo/logo.png" alt="Mathbee 로고" class="logo-img">
     </div>
     <button class="menu-button" id="toggleBtn" onclick="toggleSidebarAnim()" aria-label="사이드바 열기/닫기">
       <span></span>
@@ -93,11 +95,13 @@
   </div>
     <div class="spacer"></div>
     <div class="menu-item" id="menu8">
-      <span class="active-bg"></span>
-      <img class="menu-icon" src="image_index/icon_logout_w.png" 
-        data-icon-black="image_index/icon_logout_b.png" data-icon-white="image_index/icon_logout_w.png" alt="" />
-      <span>로그아웃</span>
-    </div>
+          <span class="active-bg"></span>
+          <div class="menu-icon-toggle-wrapper">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </div>
+          <span>로그아웃</span>
+        </div>
   </div>
 
 <div class="main-content" id="mainContent">

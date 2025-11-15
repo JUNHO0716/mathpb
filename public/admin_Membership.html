@@ -39,6 +39,20 @@
       top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.5);
     }
+    .modal { background: #fff; padding: 20px; border-radius: 8px; width: 360px; margin: 200px auto; }
+    .modal-buttons { text-align: right; margin-top: 20px; }
+    .modal-buttons button { margin-left: 8px; }
+
+    /* ▼▼ 추가: 권한/플랜/구독 배지 */
+    .role-badge{padding:4px 8px;border-radius:12px;border:1px solid #ddd;display:inline-block;margin-right:6px;}
+    .role-admin{background:#eef5ff;}
+    .role-user{background:#f6f6f6;}
+    .plan-badge{padding:3px 8px;border-radius:12px;font-size:12px;border:1px solid #e5e7eb;margin-right:6px;display:inline-block}
+    .plan-basic{background:#f3f4f6;color:#6b7280;}
+    .plan-standard{background:#eafaf1;color:#15803d;border-color:#ccebd8;}
+    .plan-pro{background:#eef2ff;color:#4338ca;border-color:#d9ddff;}
+    .substate{font-size:12px;color:#6b7280;}
+    .substate.on{color:#16a34a;}
     .modal {
       background: #fff; padding: 24px; border-radius: 8px;
       width: 300px; margin: 150px auto;
@@ -57,18 +71,19 @@
 
   <table id="userTable">
     <thead>
-    <tr>
-      <th>아이디</th>
-      <th>이메일</th>
-      <th>이름</th>
-      <th>가입일</th>
-      <th>구독 상태</th>
-      <th>시작일</th>
-      <th>종료일</th>
-      <th>권한</th>        <!-- ✅ 추가 -->
-      <th>관리</th>
-    </tr>
-    </thead>
+        <tr>
+          <th>아이디</th>
+          <th>이메일</th>
+          <th>이름</th>
+          <th>가입일</th>
+          <th>구독 상태</th>
+          <th>구독 플랜</th>   <!-- ✅ Basic / Standard / Pro -->
+          <th>시작일</th>
+          <th>종료일</th>
+          <th>권한</th>        <!-- ✅ 추가 -->
+          <th>관리</th>
+        </tr>
+        </thead>
     <tbody id="userTbody">
       <!-- JS에서 불러옴 -->
     </tbody>
@@ -90,48 +105,68 @@
     let selectedAction = null;
 
     async function loadUsers() {
-    const res = await fetch('/api/admin/users');
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.success) {
-      console.error('회원 로드 실패:', data);
-      alert(data.message || '회원 목록을 불러오지 못했습니다.');
-      return;                                   // ✅ 에러면 종료 (forEach 안 탐)
-    }
+      const res = await fetch('/api/admin/users', { credentials: 'include' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        console.error('회원 로드 실패:', data);
+        alert(data.message || '회원 목록을 불러오지 못했습니다.');
+        return;
+      }
 
     const users = data.users || [];
     const tbody = document.getElementById('userTbody');
     tbody.innerHTML = '';
 
     users.forEach(u => {
-      const isAdmin = !!u.isAdmin;              // 응답은 isAdmin 키로 들어옴
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${u.id}</td>
-          <td>${u.email}</td>
-          <td>${u.name}</td>
-          <td>${u.created_at?.slice(0,10) || '-'}</td>
-          <td style="color: ${u.is_subscribed ? 'green' : 'gray'}">
-            ${u.is_subscribed ? '구독중' : '미구독'}
-          </td>
-          <td>${u.subscription_start?.slice(0,10) || '-'}</td>
-          <td>${u.subscription_end?.slice(0,10) || '-'}</td>
-          <td>
-            <span style="padding:4px 8px;border-radius:12px;background:${isAdmin ? '#eef5ff' : '#f6f6f6'};border:1px solid #ddd;">
-              ${isAdmin ? '관리자' : '일반'}
-            </span>
-          </td>
-          <td>
-            <button class="btn btn-extend" onclick="openModal('extend','${u.id}')">🔄 연장</button>
-            <button class="btn btn-cancel" onclick="openModal('cancel','${u.id}')">❌ 해지</button>
-            ${
-              isAdmin
-                ? `<button class="btn" style="margin-left:6px;background:#ff9800;color:#fff" onclick="openModal('revoke_admin','${u.id}')">관리자 해제</button>`
-                : `<button class="btn" style="margin-left:6px;background:#2196f3;color:#fff" onclick="openModal('grant_admin','${u.id}')">관리자 부여</button>`
-            }
-          </td>
-        `;
-        tbody.appendChild(row);
-      });
+      const isAdmin     = !!u.isAdmin;              // 응답은 isAdmin 키로 들어옴
+      const currentPlan = (u.plan || '').toLowerCase();
+        const subscribedByPlan = ['basic','standard','pro'].includes(currentPlan); // ✅ 세 플랜은 모두 '구독'
+      const planClass   = currentPlan ? `plan-${currentPlan}` : '';
+      const planLabel   = currentPlan ? (currentPlan[0].toUpperCase() + currentPlan.slice(1)) : '';
+
+      const row = document.createElement('tr');
+      // 🔁 시작/종료일 키 다양성 흡수
+      const subStart = u.subscription_start ?? u.sub_start ?? u.plan_start ?? u.start_at ?? u.start_date ?? null;
+      const subEnd   = u.subscription_end   ?? u.sub_end   ?? u.plan_end   ?? u.end_at   ?? u.end_date   ?? null;
+
+      row.innerHTML = `
+        <td>${u.id}</td>
+        <td>${u.email}</td>
+        <td>${u.name}</td>
+        <td>${u.created_at?.slice(0,10) || '-'}</td>
+        <td style="color:${currentPlan ? 'green' : 'gray'}">
+          ${
+            currentPlan
+              ? (currentPlan==='basic' ? '베이직' : currentPlan==='standard' ? '스탠다드' : currentPlan==='pro' ? '프로' : currentPlan)
+              : '미구독'
+          }
+        </td>
+        <td>
+          <select data-user-id="${u.id}" onchange="changePlan(this)">
+            <option value="">-</option>
+            <option value="basic" ${currentPlan === 'basic' ? 'selected' : ''}>Basic</option>
+            <option value="standard" ${currentPlan === 'standard' ? 'selected' : ''}>Standard</option>
+            <option value="pro" ${currentPlan === 'pro' ? 'selected' : ''}>Pro</option>
+          </select>
+        </td>
+        <td>${subStart ? String(subStart).slice(0,10) : '-'}</td>
+        <td>${subEnd ? String(subEnd).slice(0,10) : '-'}</td>
+        <td>
+          <span class="role-badge ${isAdmin ? 'role-admin' : 'role-user'}">${isAdmin ? '관리자' : '일반'}</span>
+        </td>
+        <td>
+          <button class="btn btn-extend" onclick="openModal('extend','${u.id}')">🔄 연장</button>
+          <button class="btn btn-cancel" onclick="openModal('cancel','${u.id}')">❌ 해지</button>
+          ${
+            isAdmin
+              ? `<button class="btn" style="margin-left:6px;background:#ff9800;color:#fff" onclick="openModal('revoke_admin','${u.id}')">관리자 해제</button>`
+              : `<button class="btn" style="margin-left:6px;background:#3f51b5;color:#fff" onclick="openModal('grant_admin','${u.id}')">관리자 부여</button>`
+          }
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+
     }
 
     function openModal(action, userId) {
@@ -156,33 +191,73 @@
     selectedAction = null;
   }
 
-    function confirmAction() {
-      let url = '';
-      let payload = {};
+async function confirmAction() {
+  let url = '';
+  let payload = {};
 
-      if (selectedAction === 'extend' || selectedAction === 'cancel') {
-        url = '/api/admin/update-subscription';                   // ✅ 경로 수정
-        payload = { userId: selectedUser, action: selectedAction };
-      } else if (selectedAction === 'grant_admin' || selectedAction === 'revoke_admin') {
-        url = '/api/admin/update-role';                           // ✅ 새 API
-        payload = { userId: selectedUser, makeAdmin: selectedAction === 'grant_admin' };
-      }
+  if (selectedAction === 'extend' || selectedAction === 'cancel') {
+    url = '/api/admin/update-subscription';
+    payload = { userId: selectedUser, action: selectedAction };
+  } else if (selectedAction === 'grant_admin' || selectedAction === 'revoke_admin') {
+    url = '/api/admin/update-role';
+    payload = { userId: selectedUser, makeAdmin: selectedAction === 'grant_admin' };
+  }
 
-      fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      .then(res => res.json())
-      .then(data => {
-        alert(data.message || '처리되었습니다.');
-        closeModal();
-        loadUsers();
-      })
-      .catch(() => {
-        alert('요청 처리 중 오류가 발생했습니다.');
-      });
+  try {
+    const res  = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',            // 👈 추가
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(()=>({}));
+    alert(data.message || (res.ok ? '처리되었습니다.' : '요청 실패'));
+  } catch (e) {
+    alert('요청 처리 중 오류가 발생했습니다.');
+  } finally {
+    closeModal();
+    loadUsers();
+  }
+}
+
+async function changePlan(selectEl) {
+  const userId = selectEl.dataset.userId;
+  const plan   = selectEl.value;   // '', 'basic', 'standard', 'pro'
+  if (!userId) return;
+
+  const msg = plan
+    ? `이 사용자의 구독 플랜을 ${plan.toUpperCase()}로 변경할까요?`
+    : '이 사용자의 구독 플랜을 제거할까요?';
+  if (!confirm(msg)) {
+    loadUsers();
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/admin/update-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ userId, plan })
+    });
+
+    const raw = await res.text();
+    let data;
+    try { data = JSON.parse(raw); } catch { data = { success:false, message: raw }; }
+
+    if (!res.ok || !data?.success) {
+      throw new Error(`[${res.status}] ${data?.message || raw || '플랜 변경 실패'}`);
     }
+
+    alert(data.message || '플랜이 변경되었습니다.');
+    loadUsers();
+  } catch (e) {
+    console.error('changePlan error:', e);
+    alert(`플랜 변경에 실패했습니다.\n사유: ${e.message}\n\n점검:\n1) 서버 재기동\n2) http://localhost:3001/api/admin/_ping-update-plan 접속해 { ok:true } 확인\n3) 현재 페이지가 admin_Membership.html인지 확인`);
+    loadUsers();
+  }
+}
+
 
     function filterTable() {
       const input = document.getElementById("searchInput").value.toLowerCase();

@@ -165,16 +165,26 @@
                 <i class="fas fa-upload"></i>최근 업로드
             </div>
 
-            <div class="home-rf-header" style="flex: 2;">
-                <img src="image_home/ai.png" alt="AI 아이콘" style="height: 2.0em; vertical-align: middle; margin-right: 2px;">
-            <span style="
-                    background: linear-gradient(135deg, #B967FF, #FF7BBE);
-                    -webkit-background-clip: text;
-                    background-clip: text;
-                    color: transparent;
-                    font-weight: 800; 
-                ">AI 집계</span>
-            </div>
+          <div class="home-rf-header" style="flex: 2;">
+            <!-- 텍스트형 탭: 선택=그라데이션, 비선택=회색 -->
+          <div class="covsch-links">
+            <button class="covsch-link is-active" data-tab="coverage" type="button" aria-pressed="true">
+              <img src="image_home/ai.png" alt="" aria-hidden="true" class="covsch-link-icon">
+              <span>AI 집계</span>
+            </button>
+            <span class="covsch-sep">|</span>
+          <button class="covsch-link" data-tab="schedule" type="button" aria-pressed="false">
+            <img
+              src="image_home/calendar.png"
+              alt=""
+              class="covsch-link-icon"
+              width="22" height="22"
+              onerror="this.onerror=null; this.src='image_home_meun/calendar.png';"
+            >
+            <span>학사 일정</span>
+          </button>
+          </div>
+          </div>
         </div>
         <div class="home-uploads-content-row">
             <div class="home-rf-table-wrap">
@@ -190,6 +200,7 @@
             </div>
             <div class="home-preparing-box">
             <div id="coverageWidgetRoot" class="cov-widget-wrap"></div>
+            <div id="scheduleWidgetRoot" class="sch-widget-wrap" hidden></div>
           </div>
         </div>
     </div>
@@ -220,7 +231,8 @@
 
 <div id="footer-container"></div>
 
-<script src="js/details-panel.js"></script><!-- 상세 패널 모듈 -->
+<script src="js/details-panel.js"></script>
 <script src="js/ad-banner.js"></script>
-<script src="js/coverage-widget.js"></script><!-- ✅ 추가 -->
+<script src="js/coverage-widget.js"></script>
+<script src="js/schedule-tabs.js"></script>
 <script src="js/home.js"></script>

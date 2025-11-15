@@ -17,69 +17,140 @@
 
       <div class="card-logo-header">
         <div class="logo-container">
-          <img src="image_logo/logo.png" alt="Company Logo" /> 
+          <img src="image_logo/logo.png" alt="Company Logo" />
           <span class="company-name">MathBee</span>
         </div>
       </div>
+
       <div class="signup-header">
         <h1>회원가입</h1>
         <div class="sub">회원이 되어 다양한 혜택을 경험해 보세요!</div>
+
+        <!-- 단계 진행 표시 (Toss 느낌) -->
+        <div class="signup-progress">
+          <div class="signup-progress-label" id="stepIndicator">1 / 7</div>
+          <div class="signup-progress-bar">
+            <div class="signup-progress-bar-fill" id="stepBarFill"></div>
+          </div>
+        </div>
       </div>
 
       <div class="signup-form-wrap">
         <form class="signup-form" id="signupForm" autocomplete="off">
-          <div class="signup-label">아이디 <span class="star">*</span></div>
-          <div class="signup-row">
-            <input type="text" id="signup_id" placeholder="아이디 입력(6~20자)" maxlength="20" required autocomplete="off">
-            <button type="button" class="btn-check" id="idCheckBtn">중복 확인</button>
+          <!-- STEP 1: 아이디 -->
+          <div class="step-block" data-step="1">
+            <div class="step-title-row">
+              <div class="step-pill">STEP 1</div>
+              <div class="step-caption">로그인에 사용할 아이디를 입력해 주세요.</div>
+            </div>
+            <div class="signup-label">아이디 <span class="star">*</span></div>
+            <div class="signup-row">
+              <input type="text" id="signup_id" placeholder="아이디 입력(6~20자)" maxlength="20" required autocomplete="off">
+              <button type="button" class="btn-check" id="idCheckBtn">중복 확인</button>
+            </div>
+            <div class="step-hint">영문, 숫자를 조합하여 6~20자로 입력해 주세요.</div>
           </div>
 
-          <div class="signup-label">비밀번호 <span class="star">*</span></div>
-          <input type="password" id="signup_pw" placeholder="비밀번호 입력 (문자, 숫자, 특수문자 포함 8~20자)" required maxlength="20" autocomplete="new-password">
+          <!-- STEP 2: 비밀번호 -->
+          <div class="step-block" data-step="2">
+            <div class="step-title-row">
+              <div class="step-pill">STEP 2</div>
+              <div class="step-caption">조금 더 안전한 비밀번호를 설정해 주세요.</div>
+            </div>
+            <div class="signup-label">비밀번호 <span class="star">*</span></div>
+            <input type="password" id="signup_pw" placeholder="비밀번호 입력 (문자, 숫자, 특수문자 포함 8~20자)" required maxlength="20" autocomplete="new-password">
 
-          <div class="signup-label">비밀번호 확인 <span class="star">*</span></div>
-          <input type="password" id="signup_pw2" placeholder="비밀번호 재입력" required maxlength="20" autocomplete="new-password">
-
-          <div class="signup-label">이름 <span class="star">*</span></div>
-          <input type="text" id="signup_name" placeholder="이름을 입력해주세요" required autocomplete="off">
-
-          <div class="signup-label">주소 <span class="star">*</span></div>
-          <div class="signup-row address-row">
-            <input type="text" id="signup_addr1" placeholder="주소를 입력해주세요" readonly required autocomplete="off">
-            <button type="button" class="btn-check" id="addrSearchBtn">주소 찾기</button>
-          </div>
-          <div class="signup-row">
-            <input type="text" id="signup_addr2" placeholder="상세주소" autocomplete="off">
+            <div class="signup-label">비밀번호 확인 <span class="star">*</span></div>
+            <input type="password" id="signup_pw2" placeholder="비밀번호 재입력" required maxlength="20" autocomplete="new-password">
+            <div class="step-hint" id="pwHint">대문자, 숫자, 특수문자를 포함해 8자 이상 입력해 주세요.</div>
           </div>
 
-          <div class="signup-label">전화번호 <span class="star">*</span></div>
-          <input type="text" id="signup_phone" placeholder="휴대폰 번호 입력" required autocomplete="off">
-
-          <div class="signup-label">이메일 주소 <span class="star">*</span></div>
-          <div class="signup-row email-row">
-            <input type="text" id="signup_email_id" style="flex:1;" placeholder="이메일 주소" required autocomplete="off">
-            <span>@</span>
-            <input type="text" id="signup_email_domain" style="flex:1;" placeholder="도메인" required autocomplete="off">
-            <select id="signup_email_select" style="flex:1;">
-              <option value="">선택</option>
-              <option value="naver.com">naver.com</option>
-              <option value="gmail.com">gmail.com</option>
-              <option value="daum.net">daum.net</option>
-              <option value="nate.com">nate.com</option>
-              <option value="hanmail.com">hanmail.com</option>
-              <option value="직접입력">직접입력</option>
-            </select>
+          <!-- STEP 3: 이름 -->
+          <div class="step-block" data-step="3">
+            <div class="step-title-row">
+              <div class="step-pill">STEP 3</div>
+              <div class="step-caption">누구인지 알려주세요.</div>
+            </div>
+            <div class="signup-label">이름 <span class="star">*</span></div>
+            <input type="text" id="signup_name" placeholder="이름을 입력해주세요" required autocomplete="off">
           </div>
 
-          <div class="signup-label">생년월일</div>
-          <div class="signup-row birth-row">
-            <select id="birth_year"><option value="">년도</option></select>
-            <select id="birth_month"><option value="">월</option></select>
-            <select id="birth_day"><option value="">일</option></select>
+          <!-- STEP 4: 주소 -->
+          <div class="step-block" data-step="4">
+            <div class="step-title-row">
+              <div class="step-pill">STEP 4</div>
+              <div class="step-caption">수강권, 영수증 등은 이 주소를 기준으로 관리됩니다.</div>
+            </div>
+            <div class="signup-label">주소 <span class="star">*</span></div>
+            <div class="signup-row address-row">
+              <input type="text" id="signup_addr1" placeholder="주소를 입력해주세요" readonly required autocomplete="off">
+              <button type="button" class="btn-check" id="addrSearchBtn">주소 찾기</button>
+            </div>
+            <div class="signup-row">
+              <input type="text" id="signup_addr2" placeholder="상세주소" autocomplete="off">
+            </div>
           </div>
-          
+
+          <!-- STEP 5: 전화번호 -->
+          <div class="step-block" data-step="5">
+            <div class="step-title-row">
+              <div class="step-pill">STEP 5</div>
+              <div class="step-caption">연락 받을 휴대폰 번호를 입력해 주세요.</div>
+            </div>
+            <div class="signup-label">전화번호 <span class="star">*</span></div>
+            <div class="signup-row">
+              <input type="text" id="signup_phone" placeholder="휴대폰 번호 입력" required autocomplete="off">
+            </div>
+
+            <!-- ⚠️ 네이버 SENS용 인증 UI는 나중에 실제 연동 시 열면 됨
+            <div class="signup-row">
+              <button type="button" class="btn-check btn-sms" id="sendCodeBtn">인증번호 전송</button>
+              <input type="text" id="signup_phone_code" placeholder="인증번호 입력" autocomplete="one-time-code">
+              <button type="button" class="btn-check btn-sms" id="verifyCodeBtn">인증 확인</button>
+            </div>
+            -->
+            <div class="step-hint">숫자만 입력하면 자동으로 - 가 붙습니다.</div>
+          </div>
+
+          <!-- STEP 6: 이메일 -->
+          <div class="step-block" data-step="6">
+            <div class="step-title-row">
+              <div class="step-pill">STEP 6</div>
+              <div class="step-caption">공지·안내 메일을 받을 이메일 주소입니다.</div>
+            </div>
+            <div class="signup-label">이메일 주소 <span class="star">*</span></div>
+            <div class="signup-row email-row">
+              <input type="text" id="signup_email_id" style="flex:1;" placeholder="이메일 주소" required autocomplete="off">
+              <span>@</span>
+              <input type="text" id="signup_email_domain" style="flex:1;" placeholder="도메인" required autocomplete="off">
+              <select id="signup_email_select" style="flex:1;">
+                <option value="">선택</option>
+                <option value="naver.com">naver.com</option>
+                <option value="gmail.com">gmail.com</option>
+                <option value="daum.net">daum.net</option>
+                <option value="nate.com">nate.com</option>
+                <option value="hanmail.com">hanmail.com</option>
+                <option value="직접입력">직접입력</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- STEP 7: 생년월일 -->
+          <div class="step-block" data-step="7">
+            <div class="step-title-row">
+              <div class="step-pill">STEP 7</div>
+              <div class="step-caption">마지막으로 생년월일을 선택해 주세요.</div>
+            </div>
+            <div class="signup-label">생년월일</div>
+            <div class="signup-row birth-row">
+              <select id="birth_year"><option value="">년도</option></select>
+              <select id="birth_month"><option value="">월</option></select>
+              <select id="birth_day"><option value="">일</option></select>
+            </div>
+          </div>
+
           <div class="signup-btn-column">
-            <button type="submit" class="signup-btn submit">가입완료</button>
+            <button type="submit" class="signup-btn submit" disabled>가입완료</button>
             <button type="button" class="signup-btn cancel" onclick="location.href='login.html'">취소</button>
           </div>
         </form>

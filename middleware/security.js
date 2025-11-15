@@ -5,7 +5,7 @@ const PROD = process.env.NODE_ENV === 'production';
 const ALLOWED_HOSTS = new Set(
   PROD
     ? ['mathpb.com', 'www.mathpb.com']
-    : ['mathpb.com', 'www.mathpb.com', 'localhost']
+    : ['mathpb.com', 'www.mathpb.com', 'localhost', '127.0.0.1']
 );
 
 function getHostOnly(h) {

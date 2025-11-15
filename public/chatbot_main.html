@@ -285,6 +285,30 @@ function ensureChatModal(){
   document.getElementById('chatModalClose').addEventListener('click', closeChatModal);
   ov.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeChatModal(); });
 }
+
+// === 첨부 카드 공통 스타일 & 유틸 ===
+function ensureAttachCardStyle(){
+  if (document.getElementById('attachCardStyle')) return;
+  const st = document.createElement('style');
+  st.id='attachCardStyle';
+  st.textContent = `
+    .attach-card-row{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0 10px}
+    .attach-card{display:flex;align-items:center;gap:10px;min-width:220px;
+      padding:12px 14px;border-radius:16px;background:#eef2f8}
+    .attach-card.error{background:#fdecea}
+    .attach-card .icon{width:26px;height:26px;border-radius:6px;display:inline-flex;
+      align-items:center;justify-content:center;font-weight:800;background:#ffedea}
+    .attach-card .meta{display:flex;flex-direction:column}
+    .attach-card .name{font-weight:700;font-size:14px;max-width:280px;white-space:nowrap;
+      overflow:hidden;text-overflow:ellipsis}
+    .attach-card .sub{font-size:12px;opacity:.75}
+    .attach-card .rm{margin-left:auto;border:0;background:transparent;cursor:pointer;font-size:18px;line-height:1}
+  `;
+  document.head.appendChild(st);
+}
+const formByCtx = (ctx)=> document.getElementById(ctx==='hero' ? 'chatFormCenter' : 'chatFormBottom');
+const barId = (ctx)=> 'chat-attach-bar-'+ctx;
+
 let __chatModalLastFocus=null;
 function openChatModal({title='안내', html='', actions=[]}={}){
   ensureChatModal();
@@ -312,7 +336,7 @@ function closeChatModal(){
 /* ===========================
    [첨부/업로드 유틸 + 구독검사]
 =========================== */
-let pendingFiles = [];
+const pendingMap = { hero: [], bottom: [] };
 let _authCache = null;
 
 async function getAuthInfo(){
@@ -328,53 +352,6 @@ async function getAuthInfo(){
     };
   }catch{ _authCache = { logged:false, subscribed:false }; }
   return _authCache;
-}
-
-function ensureAttachBar(){
-  let bar = document.getElementById('chat-attach-bar');
-  if (!bar){
-    bar = document.createElement('div');
-    bar.id = 'chat-attach-bar';
-    bar.setAttribute('aria-live','polite');
-    Object.assign(bar.style, {
-      display:'none', gap:'8px', padding:'8px 10px', margin:'0 0 6px',
-      background:'#fff', borderRadius:'12px', boxShadow:'0 6px 18px rgba(0,0,0,.08)',
-      alignItems:'center', flexWrap:'wrap'
-    });
-    document.getElementById('chatBottom')?.insertBefore(bar, document.getElementById('chatFormBottom'));
-  }
-  return bar;
-}
-function renderAttachBar(){
-  const bar = ensureAttachBar();
-  if (!pendingFiles.length){ bar.style.display='none'; bar.innerHTML=''; return; }
-  bar.style.display = 'flex';
-  bar.innerHTML = pendingFiles.map((f,i)=>
-    `<span class="chip" data-i="${i}" style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#f2f2f5;font-size:12px;line-height:1">
-       📄 ${f.name}
-       <button type="button" aria-label="제거" style="border:0;background:transparent;font-size:14px;cursor:pointer">×</button>
-     </span>`
-  ).join('');
-  bar.querySelectorAll('.chip button').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const i = +btn.parentElement.dataset.i;
-      pendingFiles.splice(i,1); renderAttachBar();
-    });
-  });
-}
-
-function ensureAttachInput(){
-  let input = document.getElementById('chat-file-input');
-  if (!input){
-    input = document.createElement('input');
-    input.type = 'file';
-    input.id = 'chat-file-input';
-    input.accept = 'application/pdf';
-    input.multiple = true;
-    input.style.display = 'none';
-    document.body.appendChild(input);
-  }
-  return input;
 }
 
 function openAttachMenu(anchor, onChoose){
@@ -409,42 +386,89 @@ function openAttachMenu(anchor, onChoose){
   });
 }
 
-function bindAttach(form){
-  if (!form) return;
-  const btn = form.querySelector('#chat-attach-btn, #hero-attach-btn');
-  if (!btn) return;
-  const input = ensureAttachInput();
+ function ensureAttachBar(ctx){
+   ensureAttachCardStyle();
+   const form = formByCtx(ctx);
+   if (!form) return null;
+   let bar = document.getElementById(barId(ctx));
+   if (!bar){
+     bar = document.createElement('div');
+     bar.id = barId(ctx);
+     bar.className = 'attach-card-row';
+     bar.style.display = 'none';
+     // 입력창 바로 위에 붙이기(히어로/하단 공통)
+     form.parentElement.insertBefore(bar, form);
+   }
+   return bar;
+ }
+ function renderAttachBar(ctx){
+   const list = pendingMap[ctx] || [];
+   const bar  = ensureAttachBar(ctx);
+   if (!bar) return;
+   if (!list.length){ bar.style.display='none'; bar.innerHTML=''; return; }
+   bar.style.display='flex';
+   bar.innerHTML = list.map((f,i)=>{
+     const big = (f.size||0) > 100*1024*1024;
+     return `
+       <div class="attach-card ${big?'error':''}" data-i="${i}">
+         <span class="icon">PDF</span>
+         <div class="meta">
+           <div class="name">${escapeHTML(f.name||'첨부')}</div>
+           <div class="sub">${big?'파일이 100MB를 초과함':'PDF'}</div>
+         </div>
+         <button class="rm" aria-label="제거">×</button>
+       </div>`;
+   }).join('');
+   bar.querySelectorAll('.attach-card .rm').forEach(btn=>{
+     btn.addEventListener('click',()=>{
+       const i = +btn.closest('.attach-card').dataset.i;
+       pendingMap[ctx].splice(i,1);
+       renderAttachBar(ctx);
+     });
+   });
+ }
+ function ensureAttachInput(ctx){
+   let input = document.getElementById('chat-file-input-'+ctx);
+   if (!input){
+     input = document.createElement('input');
+     input.type = 'file';
+     input.id = 'chat-file-input-'+ctx;
+     input.accept = 'application/pdf';
+     input.multiple = true;
+     input.style.display='none';
+     document.body.appendChild(input);
+   }
+   return input;
+ }
+ function bindAttach(form){
+   if (!form) return;
+   const ctx = (form.id === 'chatFormCenter') ? 'hero' : 'bottom';
+   const btn = form.querySelector('#chat-attach-btn, #hero-attach-btn');
+   if (!btn) return;
+   const input = ensureAttachInput(ctx);
 
-  btn.addEventListener('click', async (e)=>{
-    e.preventDefault();
-    const auth = await getAuthInfo();
-    if (!auth.logged){
-      openChatModal({
-        title:'로그인이 필요해요',
-        html:'파일 업로드는 로그인 후 이용 가능합니다.',
-        actions:[{label:'로그인 하러 가기', href:'/login.html', primary:true},{label:'닫기'}]
-      });
-      return;
-    }
-    if (!auth.subscribed){
-      openChatModal({
-        title:'구독 전용 기능',
-        html:'PDF 업로드 기반 <b>시험지 요청</b>은 구독 회원 전용입니다.',
-        actions:[{label:'요금제 보기', href:'/pricing.html', primary:true},{label:'닫기'}]
-      });
-      return;
-    }
-    openAttachMenu(btn, ()=> input.click());
-  });
+   btn.addEventListener('click', async (e)=>{
+     e.preventDefault();
+     const auth = await getAuthInfo();
+     if (!auth.logged){
+       openChatModal({title:'로그인이 필요해요', html:'파일 업로드는 로그인 후 이용 가능합니다.',
+         actions:[{label:'로그인 하러 가기', href:'/login.html', primary:true},{label:'닫기'}]}); return;
+     }
+     if (!auth.subscribed){
+       openChatModal({title:'구독 전용 기능', html:'PDF 업로드 기반 <b>시험지 요청</b>은 구독 회원 전용입니다.',
+         actions:[{label:'요금제 보기', href:'/pricing.html', primary:true},{label:'닫기'}]}); return;
+     }
+     input.click(); // 간단히 바로 파일선택
+   });
 
-  input.addEventListener('change', (e)=>{
-    const list = Array.from(e.target.files || []).filter(f=>f.type==='application/pdf');
-    const left = Math.max(0, 10 - pendingFiles.length); // 최대 10개
-    pendingFiles = pendingFiles.concat(list.slice(0,left));
-    renderAttachBar();
-    input.value = '';
-  });
-}
+   input.addEventListener('change', (e)=>{
+     const add = Array.from(e.target.files||[]).filter(f=>f.type==='application/pdf');
+     const left = Math.max(0, 10 - (pendingMap[ctx]?.length||0)); // 최대 10개
+     pendingMap[ctx] = (pendingMap[ctx]||[]).concat(add.slice(0,left));
+     renderAttachBar(ctx);    // ⬅︎ 입력창 위 카드로만 표시(아직 채팅으로는 X)
+     input.value = '';
+   });
+ }
 
 function addBot(html){
   const msgBox = document.getElementById('chatMessages');
@@ -463,43 +487,31 @@ function shouldTriggerUpload(text){
   return /시험지요청/.test(q) || /요청해줘/.test(q);
 }
 
-async function doUploadPending(){
-  const auth = await getAuthInfo();
-  if (!auth.logged){
-    openChatModal({
-      title:'로그인이 필요해요',
-      html:'로그인 후 다시 시도해주세요.',
-      actions:[{label:'로그인 하러 가기', href:'/login.html', primary:true},{label:'닫기'}]
-    }); return;
-  }
-  if (!auth.subscribed){
-    openChatModal({
-      title:'구독 전용 기능',
-      html:'이 기능은 구독 회원 전용입니다.',
-      actions:[{label:'요금제 보기', href:'/pricing.html', primary:true},{label:'닫기'}]
-    }); return;
-  }
-  if (!pendingFiles.length){
-    openChatModal({
-     title:'첨부 파일 없음',
-      html:'아래 <b>＋</b> 버튼으로 PDF를 먼저 선택해주세요.',
-      actions:[{label:'확인', primary:true}]
-    }); return;
-  }
-  addBot(`📤 PDF ${pendingFiles.length}개 업로드를 시작합니다…`);
-  try{
-    const fd = new FormData();
-    pendingFiles.forEach(f=> fd.append('fileInput', f));   // ← /api/user-upload 포맷과 동일
-    const res = await fetch('/api/user-upload', { method:'POST', body:fd, credentials:'include' });
-    if (!res.ok) throw new Error('upload failed');
-    pendingFiles = [];
-    renderAttachBar();
-    addBot(`✅ 업로드 완료! <a href="/upload.html">시험지 요청(업로드)</a>에서 상태를 확인하세요.`);
-  }catch(e){
-    addBot(`⚠️ 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.`);
-  }
-}
-
+ async function doUploadPending(ctx, files){
+   const auth = await getAuthInfo();
+   if (!auth.logged){
+     openChatModal({title:'로그인이 필요해요', html:'로그인 후 다시 시도해주세요.',
+       actions:[{label:'로그인 하러 가기', href:'/login.html', primary:true},{label:'닫기'}]}); return;
+   }
+   if (!auth.subscribed){
+     openChatModal({title:'구독 전용 기능', html:'이 기능은 구독 회원 전용입니다.',
+       actions:[{label:'요금제 보기', href:'/pricing.html', primary:true},{label:'닫기'}]}); return;
+   }
+   if (!files?.length){
+     openChatModal({title:'첨부 파일 없음', html:'아래 <b>＋</b> 버튼으로 PDF를 먼저 선택해주세요.',
+       actions:[{label:'확인', primary:true}]}); return;
+   }
+   addBot(`📤 PDF ${files.length}개 업로드를 시작합니다…`);
+   try{
+     const fd = new FormData();
+     files.forEach(f=> fd.append('fileInput', f)); // /api/user-upload 포맷
+     const res = await fetch('/api/user-upload', { method:'POST', body:fd, credentials:'include' });
+     if (!res.ok) throw new Error('upload failed');
+     addBot(`✅ 업로드 완료! <a href="/upload.html">시험지 요청(업로드)</a>에서 상태를 확인하세요.`);
+   }catch{
+     addBot(`⚠️ 업로드에 실패했습니다. 잠시 후 다시 시도해주세요.`);
+   }
+ }
 
 async function renderMessages() {
   let t = getActiveThread();
@@ -535,7 +547,7 @@ async function renderMessages() {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         const v = ni.value.trim();
-        if (v) { ni.value = ''; send(v); }
+        if (v) { ni.value = ''; send(v, 'hero'); }
       }
     });
 
@@ -545,7 +557,7 @@ async function renderMessages() {
       const v = ni.value.trim(); 
       if (!v) return;
       ni.value = ''; 
-      send(v); 
+      send(v, 'hero');
     });
     return;
   }
@@ -568,6 +580,30 @@ async function renderMessages() {
 
   requestAnimationFrame(()=>{ msgBox.scrollTop = msgBox.scrollHeight; });
 }
+
+// (추가) 카드들을 마지막 내 말풍선 '위'에 삽입
+function injectUserAttachmentCards(files){
+  if (!files?.length) return;
+  ensureAttachCardStyle();
+  const box = document.getElementById('chatMessages');
+  const lastYou = box?.querySelector('.chat-message.user:last-of-type');
+  const row = document.createElement('div');
+  row.className = 'attach-card-row';
+  row.innerHTML = files.map(f=>{
+    const big = (f.size||0) > 100*1024*1024;
+    return `
+      <div class="attach-card ${big?'error':''}">
+        <span class="icon">PDF</span>
+        <div class="meta">
+          <div class="name">${escapeHTML(f.name||'첨부')}</div>
+          <div class="sub">${big?'파일이 100MB를 초과함':'PDF'}</div>
+        </div>
+      </div>`;
+  }).join('');
+  if (lastYou) box.insertBefore(row, lastYou); else box?.appendChild(row);
+  box.scrollTop = box.scrollHeight;
+}
+
 
 function renderHistoryList() {
   // ▶ user / bot 메시지가 모두 있고 draft=false 인 것만 노출
@@ -649,7 +685,7 @@ function renderHistoryList() {
   });
 }
 
-async function send(text){
+async function send(text, ctx='bottom'){
   if(!text || !text.trim()) return;
   const q = text.trim();
 
@@ -663,15 +699,23 @@ async function send(text){
   }
 
   // 사용자 메시지 저장
+    // ⬇️ 현재 컨텍스트의 첨부를 ‘이번 전송에만’ 묶기
+  const files = (pendingMap[ctx]||[]).slice();
   t.messages.push({ role:'user', content:q, time:Date.now() });
   upsertThread(t);
   renderMessages(); renderHistoryList();
 
- // ✳️ "시험지 요청" 문구 + 첨부파일 있으면 서버로 업로드 먼저 처리
- if (shouldTriggerUpload(q) && pendingFiles.length){
-   await doUploadPending();
-   return; // OpenAI로 보내지 않음
- }
+    // ⬇️ 입력창 위 카드 → 채팅 본문으로 옮겨 그리기
+  if (files.length) injectUserAttachmentCards(files);
+  // ⬇️ 입력창 위 바는 비우기
+  pendingMap[ctx] = [];
+  renderAttachBar(ctx);
+
+  // ✳️ 업로드 트리거면 업로드 먼저 수행
+  if (shouldTriggerUpload(q) && files.length){
+    await doUploadPending(ctx, files);
+    return;
+  }
 
   try {
     // 타이핑(…)
@@ -774,7 +818,7 @@ const finalOut = botText?.trim() ? botText : '응답이 없습니다.';
       if (!v) return;
       ta.value = '';
       formBot.classList.remove('has-text');   // ⬅ 전송 후 # 아이콘 다시 보이게
-      send(v);
+      send(v, 'bottom');
     });
   }
 
@@ -790,7 +834,7 @@ const finalOut = botText?.trim() ? botText : '응답이 없습니다.';
         if (text) {
           ta.value = '';
           form.classList.remove('has-text');
-          send(text);
+          send(text, 'bottom');         // ← 여기
         }
       }
     });

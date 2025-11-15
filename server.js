@@ -19,7 +19,7 @@ const require = createRequire(import.meta.url);
 import configurePassport from './config/passport.js';
 
 // --- 미들웨어 임포트 ---
-import { isLoggedIn, isAdmin, isSubscribed } from './middleware/auth.js';
+import { isLoggedIn, isAdmin, isSubscribed, requirePlan } from './middleware/auth.js';
 import { commonLimiter, multerErrorHandler } from './middleware/security.js';
 
 // --- 라우트 파일 임포트 ---
@@ -35,7 +35,9 @@ import chatRoutes from './routes/chat.js';
 import problemOCR from "./routes/problem_ocr.js";
 import coverageRoutes from './routes/coverage.js'; // ✅ 추가
 import myMemosRouter from './routes/myMemos.js';
-import neisRoutes from './routes/neis_sync.js'; 
+import neisRoutes from './routes/neis_sync.js';
+import scheduleRoutes from './routes/schedule.js';
+import adminSchoolsRouter from './routes/admin_schools.js';
 
 const app = express();
 const PROD = process.env.NODE_ENV === 'production';
@@ -93,15 +95,21 @@ app.use(multerErrorHandler);
 app.use('/', authRoutes);
 app.use(userRoutes);
 app.use(fileRoutes);
+
+// 🔍 학교 주소 조회 라우터를 /api/admin 보다 먼저 연결
+app.use(adminSchoolsRouter);
+
 app.use('/api/board', boardRoutes);
 app.use('/api/billing', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+console.log('[mount] /api/admin -> routes/admin.js');
 app.use('/api/notices', noticeRoutes);
 app.use('/api/inquiry', inquiryRoutes);
 app.use("/api/chat", chatRoutes);
 app.use('/api/coverage', isLoggedIn, coverageRoutes); // ✅ 추가 (로그인 사용자만 조회)
+app.use('/api/schedule', isLoggedIn, scheduleRoutes);
 app.use(myMemosRouter);
-app.use('/api/admin/neis', neisRoutes); 
+app.use('/api/admin/neis', isLoggedIn, isAdmin, neisRoutes);
 
 // --- 특수 라우트 (Toss 프록시, DB 핑) ---
 app.get('/ping-db', async (req, res) => {
@@ -138,16 +146,22 @@ app.use("/api", problemOCR);
 app.use(express.static("public"));
 
 // --- 정적 페이지 라우팅 및 접근 제어 ---
-const PUBLIC_PAGES = ['login.html', 'resetpw.html', 'signup.html', 'terms.html', 'privacy.html', 'refund.html', 'finance.html'];
-const MEMBER_ONLY_PAGES = ['index.html', 'home.html', 'problem_bank.html', 'high.html', 'middle.html', 'bookcase.html', 'notice.html', 'profile.html', 'cs.html'];
+const PUBLIC_PAGES = ['login.html', 'resetpw.html', 'signup.html', 'terms.html', 'privacy.html', 'refund.html', 'finance.html', 'high.html'];
+// ⬇️ high.html 은 공개 페이지로 전환
+const MEMBER_ONLY_PAGES = ['index.html', 'home.html', 'problem_bank.html', 'middle.html', 'bookcase.html', 'notice.html', 'profile.html', 'cs.html'];
 const ADMIN_PAGES = ['admin.html', 'admin_files.html', 'admin_Membership.html', 'admin_payment.html', 'admin_upload_review.html', 'admin_review.html', 'admin_upload.html'];
 
 PUBLIC_PAGES.forEach(page => app.get('/' + page, (req, res) => res.sendFile(path.join(__dirname, 'public', page))));
 MEMBER_ONLY_PAGES.forEach(page => app.get('/' + page, isLoggedIn, (req, res) => res.sendFile(path.join(__dirname, 'public', page))));
 ADMIN_PAGES.forEach(page => app.get('/' + page, isLoggedIn, isAdmin, (req, res) => res.sendFile(path.join(__dirname, 'public', page))));
 
-// 구독자 전용 페이지
-app.get('/upload.html', isSubscribed, (req, res) => {
+// high 페이지: Basic 이상이면 접근 가능
+app.get('/high.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'high.html'));
+});
+
+// upload 페이지: Standard 이상만 접근 가능
+app.get('/upload.html', requirePlan('standard'), (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'upload.html'));
 });
 

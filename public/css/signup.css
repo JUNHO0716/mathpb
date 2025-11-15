@@ -293,3 +293,104 @@ html, body {
     padding-right: 5vw;
   }
 }
+
+/* ==============================================
+   8. 스텝형 입력 레이아웃 (Toss 스타일 느낌)
+   ============================================== */
+
+.signup-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.signup-progress-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.signup-progress-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.signup-progress-bar-fill {
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: #111;
+  transition: width 0.25s ease;
+}
+
+/* 개별 스텝 블록 */
+.step-block {
+  opacity: 0;
+  transform: translateY(8px);
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.28s ease;
+  padding-top: 12px;
+}
+
+.step-block.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 500px;
+}
+
+.step-block + .step-block {
+  border-top: 1px solid #f3f4f6;
+  margin-top: 8px;
+  padding-top: 18px;
+}
+
+.step-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.step-pill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.step-caption {
+  font-size: 0.82rem;
+  color: #6b7280;
+}
+
+.step-hint {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: #9ca3af;
+}
+
+.step-hint.error {
+  color: #ef4444;
+}
+
+.step-hint.success {
+  color: #059669;
+}
+
+/* SMS 버튼 확장용 (나중에 SENS 연동 시 사용) */
+.btn-sms {
+  min-width: 110px;
+}
+
+/* 가입완료 버튼 비활성화 상태 */
+.signup-btn.submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
