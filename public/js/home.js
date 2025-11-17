@@ -350,15 +350,36 @@ function bindUser(user) {
     if(profileNameExpanded) profileNameExpanded.textContent = user.name || '-';
     if(profileAvatarExpanded) profileAvatarExpanded.src = user.avatarUrl || 'https://via.placeholder.com/90';
       if (profileIdValue) {
-        // ✅ ID 최우선: id → username → loginId → (폴백) 카카오는 name, 그 외엔 이메일 @앞 → '-'
-        const displayId =
-          (user?.id && String(user.id).trim())
-          || (user?.username && String(user.username).trim())
-          || (user?.loginId && String(user.loginId).trim())
-          || (user?.email === 'Kakao' ? (user?.name || '').trim() : ((user?.email || '').split('@')[0] || ''))
-          || '-';
+        const loginType = user?.loginType || 'local';
+        const rawId     = (user?.id && String(user.id).trim()) || '';
+        const rawEmail  = (user?.email || '').trim();
+        const name      = (user?.name || '').trim();
+
+        let emailPrefix = '';
+        if (rawEmail && rawEmail !== 'Kakao') {
+          emailPrefix = rawEmail.includes('@') ? rawEmail.split('@')[0] : rawEmail;
+        }
+
+        const looksNumericSocialId =
+          rawId && /^[0-9]{10,}$/.test(rawId) && !!emailPrefix;
+
+        let displayId;
+        if (loginType !== 'local' || looksNumericSocialId) {
+          // ✅ 소셜 로그인: 이메일 @ 앞 → 이름 → ID
+          displayId = emailPrefix || name || rawId || '-';
+        } else {
+          // ✅ 일반 로그인: id → username → loginId → (카카오 예외 / 이메일 @앞)
+          displayId =
+            rawId
+            || (user?.username && String(user.username).trim())
+            || (user?.loginId && String(user.loginId).trim())
+            || (rawEmail === 'Kakao' ? name : (emailPrefix || ''))
+            || '-';
+        }
+
         profileIdValue.textContent = displayId;
       }
+
     if(profileEmailValue) profileEmailValue.textContent = user.email || '-';
     
     if(profilePhoneValue) profilePhoneValue.textContent = formatPhoneNumber(user.phone);

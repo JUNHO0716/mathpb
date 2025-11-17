@@ -21,14 +21,37 @@ window.initializeProfilePage = function(user) {
                 : 'Free';
     document.getElementById('profileTitle').textContent = planEn;
     
-    const displayId =
-      (u?.id && String(u.id).trim())
-      || (u?.username && String(u.username).trim())
-      || (u?.loginId && String(u.loginId).trim())
-      || (u?.email === 'Kakao' ? (u?.name || '').trim() : ((u?.email || '').split('@')[0] || ''))
-      || '-';
-    document.getElementById('profileId').textContent = displayId;
+    // ✅ 로그인 타입/이메일/ID 기반으로 표시용 ID 계산
+    const loginType = u?.loginType || 'local';
+    const rawId     = (u?.id && String(u.id).trim()) || '';
+    const rawEmail  = (u?.email || '').trim();
+    const name      = (u?.name || '').trim();
 
+    // 이메일 @ 앞부분
+    let emailPrefix = '';
+    if (rawEmail && rawEmail !== 'Kakao') {
+      emailPrefix = rawEmail.includes('@') ? rawEmail.split('@')[0] : rawEmail;
+    }
+
+    // loginType이 없어도 "숫자 10자리 이상 + 이메일 있음"이면 소셜처럼 취급
+    const looksNumericSocialId =
+      rawId && /^[0-9]{10,}$/.test(rawId) && !!emailPrefix;
+
+    let displayId;
+    if (loginType !== 'local' || looksNumericSocialId) {
+      // ✅ 소셜 로그인: 이메일 @ 앞 → 이름 → (마지막) 원래 ID
+      displayId = emailPrefix || name || rawId || '-';
+    } else {
+      // ✅ 일반 로그인: id → username → loginId → (카카오 예외 / 이메일 @앞)
+      displayId =
+        rawId
+        || (u?.username && String(u.username).trim())
+        || (u?.loginId && String(u.loginId).trim())
+        || (rawEmail === 'Kakao' ? name : (emailPrefix || ''))
+        || '-';
+    }
+
+    document.getElementById('profileId').textContent = displayId;
     document.getElementById('profileEmail').textContent = u.email;
     document.getElementById('profilePhone').textContent = formatPhoneNumber(u.phone);
     
