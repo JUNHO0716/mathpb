@@ -272,7 +272,6 @@ router.patch('/api/files/:id/memo', isLoggedIn, async (req, res) => {
 });
 
 // 관리자 전용 시험지 업로드 (admin_upload.html이 사용)
-// 관리자 전용 시험지 업로드 (admin_upload.html이 사용)
 router.post('/api/admin/exam-upload',
   isLoggedIn, ensureAdmin, verifyOrigin,
   fileUpload.single('file'),
@@ -335,8 +334,6 @@ router.post('/api/admin/exam-upload',
       };
 
       // 4) region/district 우선순위
-      //    ① 프론트(meta_json)에 값이 있으면 그대로 사용
-      //    ② 없을 때만 schools 테이블에서 보강
       let region   = clean(meta.region);
       let district = clean(meta.district);
 
@@ -388,8 +385,65 @@ router.post('/api/admin/exam-upload',
         else if (/중학교/.test(schoolFull)) levelFinal = '중등';
       }
 
+      // meta, schoolFull, levelFinal, region, district, hwpKey, pdfKey 등 계산 다 한 뒤에 ↓ 여기를 넣어줘
 
-      // 5) INSERT — region/district까지 함께 저장 + 보강된 school/level 사용
+      // ✅ 1) 같은 시험(메타) 기준으로 기존 row 있는지 조회
+      const [rows] = await db.query(`
+        SELECT id, hwp_filename, pdf_filename
+        FROM files
+        WHERE
+          level     <=> ?
+          AND region   <=> ?
+          AND district <=> ?
+          AND school   <=> ?
+          AND year     <=> ?
+          AND grade    <=> ?
+          AND semester <=> ?
+          AND exam_type<=> ?
+          AND subject  <=> ?
+        LIMIT 1
+      `, [
+        clean(levelFinal),
+        clean(region),
+        clean(district),
+        clean(schoolFull),
+        clean(meta.year),
+        clean(meta.grade),
+        clean(meta.semester),
+        clean(meta.exam_type),
+        clean(meta.subject)
+      ]);
+
+      // ✅ 2) 기존 row가 있는 경우 → UPDATE or 중복 에러
+      if (rows.length) {
+        const row = rows[0];
+
+        // 이번 업로드가 hwp/hwpx 인지, pdf 인지
+        if (hwpKey) {
+          // 이미 hwp가 채워져 있으면 같은 시험 HWP 중복 → 에러
+          if (row.hwp_filename) {
+            return res.status(409).send('DUP_HWP');
+          }
+          // hwp 비어있으면 같은 row에 hwp만 채워 넣기
+          await db.query(
+            `UPDATE files SET hwp_filename = ? WHERE id = ?`,
+            [hwpKey, row.id]
+          );
+        } else if (pdfKey) {
+          if (row.pdf_filename) {
+            return res.status(409).send('DUP_PDF');
+          }
+          await db.query(
+            `UPDATE files SET pdf_filename = ? WHERE id = ?`,
+            [pdfKey, row.id]
+          );
+        }
+
+        // 메타는 이미 등록된 걸 신뢰하고, 파일만 채웠으니 성공
+        return res.json({ success: true, updated: true });
+      }
+
+      // ✅ 3) 기존 row가 전혀 없으면 → 새 row INSERT (지금 코드 그대로)
       await db.query(`
         INSERT INTO files(
           region, district,
@@ -403,6 +457,9 @@ router.post('/api/admin/exam-upload',
         hwpKey, pdfKey
       ]);
 
+      return res.json({ success: true, created: true });
+
+
       return res.json({ success:true });
     } catch (e) {
       console.error('POST /api/admin/exam-upload error:', e);
@@ -410,5 +467,6 @@ router.post('/api/admin/exam-upload',
     }
   }
 );
+
 
 export default router;

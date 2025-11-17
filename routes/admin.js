@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import bcrypt from 'bcrypt';               // ✅ 추가
 import db from '../config/database.js';
 import { s3, fileUpload, deleteS3 } from '../config/s3.js';
 import { isLoggedIn, isAdmin } from '../middleware/auth.js';
@@ -292,13 +293,31 @@ router.delete('/files/:id', async (req, res) => {
 router.get('/uploads', async (req, res) => {
   try {
     const [rows] = await db.query(
-      `SELECT id, user_id, filename, status, reject_reason, uploaded_at, completed_at
-       FROM uploads ORDER BY uploaded_at DESC`
+      `
+      SELECT
+        up.id,
+        up.user_id,
+        up.filename,
+        up.status,
+        up.reject_reason,
+        up.uploaded_at,
+        up.completed_at,
+        u.id    AS user_pk,
+        u.email AS email,
+        u.name  AS name
+      FROM uploads AS up
+      LEFT JOIN users AS u
+        /* 예전 데이터: uploads.user_id = 이메일
+           신규 데이터: uploads.user_id = users.id (소셜 ID)
+           → 둘 다 잡을 수 있게 하고, BINARY 로 collation 문제도 회피 */
+        ON (BINARY up.user_id = BINARY u.id OR BINARY up.user_id = BINARY u.email)
+      ORDER BY up.uploaded_at DESC
+      `
     );
     res.json(rows);
   } catch (e) {
     console.error(e);
-    res.status(500).json({ msg: '관리자 업로드 조회 실패' });
+    res.status(500).json({ msg: '관리자 업로드 조회 실패', error: e.message });
   }
 });
 
@@ -380,7 +399,7 @@ router.post('/update-role', ensureAdmin, express.json(), async (req, res) => {
       return res.status(400).json({ success: false, message: '잘못된 요청입니다.' });
     }
 
-   const [r] = await db.execute(
+    const [r] = await db.execute(
       'UPDATE users SET is_admin = ? WHERE id = ?',
       [makeAdmin ? 1 : 0, userId]               // ✅ DB 컬럼은 is_admin
     );
@@ -407,10 +426,110 @@ router.post('/update-role', ensureAdmin, express.json(), async (req, res) => {
   }
 });
 
+
+// ✅ 회원 삭제 API (관리자 비밀번호 확인 버전)
+router.post('/delete-user', ensureAdmin, express.json(), async (req, res) => {
+  try {
+    const { userId, adminPassword } = req.body;
+
+    // 필수 파라미터 체크
+    if (!userId || !adminPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'userId 또는 관리자 비밀번호가 없습니다.'
+      });
+    }
+
+    // 현재 로그인한 관리자
+    const currentAdminId = req.session?.user?.id;
+    if (!currentAdminId) {
+      return res.status(401).json({ success:false, message:'로그인이 필요합니다.' });
+    }
+
+    // 1) 관리자 비밀번호 검증
+    const [[adminRow]] = await db.query(
+      'SELECT password FROM users WHERE id = ?',
+      [currentAdminId]
+    );
+    if (!adminRow) {
+      return res.status(401).json({ success:false, message:'관리자 계정을 찾을 수 없습니다.' });
+    }
+
+    const okPw = await bcrypt.compare(adminPassword, adminRow.password);
+    if (!okPw) {
+      return res.status(401).json({
+        success:false,
+        message:'관리자 비밀번호가 일치하지 않습니다.'
+      });
+    }
+
+    // 2) 자기 자신 삭제 방지
+    if (String(userId) === String(currentAdminId)) {
+      return res.status(400).json({
+        success:false,
+        message:'자기 자신은 삭제할 수 없습니다.'
+      });
+    }
+
+    // 3) 삭제 대상 사용자 조회
+    const [[userRow]] = await db.query(
+      'SELECT id, is_admin FROM users WHERE id = ?',
+      [userId]
+    );
+    if (!userRow) {
+      return res.status(404).json({
+        success:false,
+        message:'사용자를 찾을 수 없습니다.'
+      });
+    }
+
+    // 4) 마지막 관리자 삭제 방지
+    if (userRow.is_admin == 1) {
+      const [[cntRow]] = await db.query(
+        'SELECT COUNT(*) AS cnt FROM users WHERE is_admin = 1'
+      );
+      if (cntRow.cnt <= 1) {
+        return res.status(400).json({
+          success:false,
+          message:'마지막 관리자 계정은 삭제할 수 없습니다.'
+        });
+      }
+    }
+
+    // 5) 관련 테이블 정리
+    await db.query('DELETE FROM billing_keys   WHERE user_id = ?', [userId]);
+    await db.query('DELETE FROM uploads        WHERE user_id = ?', [userId]);
+    await db.query('DELETE FROM point_payments WHERE user_id = ?', [userId]);
+
+    // 6) 최종 사용자 삭제
+    const [del] = await db.execute('DELETE FROM users WHERE id = ?', [userId]);
+    if (del.affectedRows === 0) {
+      return res.status(404).json({
+        success:false,
+        message:'삭제할 사용자가 없습니다.'
+      });
+    }
+
+    return res.json({
+      success:true,
+      message:'✅ 회원이 삭제되었습니다.'
+    });
+  } catch (e) {
+    console.error('POST /api/admin/delete-user error:', e);
+    return res.status(500).json({
+      success:false,
+      message:'회원 삭제 중 서버 오류가 발생했습니다.',
+      error: e.message
+    });
+  }
+});
+
+
 // --- (진단용) 라우터가 실제로 로드되었는지 확인하는 핑 엔드포인트 ---
 router.get('/_ping-update-plan', (req, res) => res.json({ ok: true }));
 
 router.post('/update-plan', ensureAdmin, express.json(), async (req, res) => {
+
   try {
     const { userId, plan } = req.body;
     if (!userId) return res.status(400).json({ success:false, message:'userId가 없습니다.' });

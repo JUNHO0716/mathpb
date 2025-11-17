@@ -18,13 +18,16 @@
     }
     *{box-sizing:border-box;font-family:ui-sans-serif,system-ui,-apple-system,'Noto Sans KR',Segoe UI,Arial;}
     body{margin:0;background:var(--bg);color:var(--txt);}
-    .wrap{max-width:1120px;margin:28px auto;padding:0 18px}
+    .wrap{
+      max-width:1320px;        /* 1120 → 1320, 화면을 더 꽉 채움 */
+      margin:16px auto 24px;   /* 위 여백 줄이고, 아래도 살짝 줄임 */
+      padding:0 24px 32px;     /* 좌우 패딩 조금 늘리고, 아래도 살짝 여백 */
+    }
     .title{font-weight:900;font-size:22px;letter-spacing:-.2px;margin:6px 0 10px}
     .sub{color:var(--sub);font-size:13px;margin-bottom:18px}
 
     .card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 28px rgba(0,0,0,.06)}
-    .row{display:flex;gap:18px;flex-wrap:wrap}
-
+    
     /* 헤더 그라데이션 바(두 번째 이미지 느낌) */
     .hero{padding:14px 18px;border-radius:18px;margin-bottom:14px;position:relative;overflow:hidden}
     .hero:before{
@@ -49,28 +52,196 @@
     .btn:disabled{opacity:.45;cursor:not-allowed}
 
     /* 오른쪽: AI 예측 메타 리스트 */
-    .panel{flex:1 1 420px;padding:16px}
     .sec-title{font-size:14px;font-weight:900;margin:4px 0 10px}
-    .list{display:flex;flex-direction:column;gap:10px;max-height:520px;overflow:auto}
-    .item{
-      border:1px solid var(--line);border-radius:14px;background:#fff;padding:12px;display:grid;grid-template-columns:1fr 120px 84px;gap:10px;align-items:center
+
+    .row{
+      display:flex;
+      gap:18px;
+      flex-wrap:nowrap;        /* ✅ 줄바꿈 절대 안 함 → 항상 옆에 */
+      align-items:flex-start;  /* 위쪽 기준으로 맞추기 */
     }
-    .name{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .chips{display:flex;gap:6px;flex-wrap:wrap}
-    .chip{font-size:11px;padding:5px 8px;border-radius:999px;border:1px solid var(--line);background:#fff}
-    .chip.grad{border:0;background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent3));color:#fff;font-weight:800}
-    .status{font-size:12px;text-align:right}
-    .progress{height:8px;background:#f0f2f5;border-radius:999px;overflow:hidden}
-    .progress > span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent1),var(--accent3));transition:width .2s ease}
+
+    /* 오른쪽 카드는 wrapper(div style="flex:1 1 420px; …") 안에 있으니까
+       여기서는 세로 레이아웃만 담당하도록 */
+    .panel{
+      padding:16px;
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* 리스트는 내용이 없어도 어느 정도 높이를 유지해서
+       업로드 중에도 패널 전체 위치가 덜 움직이도록 최소 높이만 지정 */
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-height:110px;      /* 파일 없을 때도 이 정도 높이 유지 */
+      max-height:520px;
+      overflow:auto;
+    }
+
+
+/* 카드 1개(파일 1개) */
+
+.chip{
+  font-size:11px;
+  padding:5px 8px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:#fff;
+}
+
+/* 배지 안에서 쓰는 인라인 입력창 */
+.chip-input{
+  border:none;
+  background:transparent;
+  outline:none;
+  padding:0;
+  margin:0;
+  width:100%;
+  font-size:11px;
+}
+
+.chip.grad{
+  border:0;
+  background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent3));
+  color:#fff;
+  font-weight:800;
+}
+
+.item{
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#fff;
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+/* 카드 1개(파일 1개) */
+.item{
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#fff;
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+/* 파일명 + 오른쪽 상태 한 줄 */
+.item-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between; /* 왼쪽 파일명 / 오른쪽 상태 영역 */
+  gap:12px;
+}
+
+/* 파일 타입 작은 아이콘(PDF / HWP) */
+.file-type{
+  font-size:10px;
+  padding:3px 7px;
+  border-radius:999px;
+  font-weight:700;
+  border:1px solid var(--line);
+  background:#f5f5fb;
+  color:#555;
+  margin-right:6px;
+  flex-shrink:0;
+}
+
+.file-type-pdf{
+  background:#ffecef;
+  border-color:#ffb5c0;
+  color:#e24555;
+}
+
+.file-type-hwp{
+  background:#e8f3ff;
+  border-color:#a4c8ff;
+  color:#1e6bd6;
+}
+
+.file-type-etc{
+  background:#f1f1f5;
+}
+
+/* 파일명 */
+.name{
+  flex:1;                       /* 남는 공간은 파일명이 먹고 */
+  font-size:13px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+/* 정보 배지 */
+.chips{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+
+
+/* 파일명 오른쪽에 붙는 로딩바 + 상태 묶음 */
+.item-status{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  justify-content:flex-end;
+  min-width:180px;          /* 너무 좁아지지 않게 살짝 폭 확보 */
+}
+
+/* 로딩바 길이 (원하면 숫자 더 줄여도 됨) */
+.item-status .progress{
+  flex:0 0 120px;
+  max-width:120px;
+}
+
+.status{
+  font-size:12px;
+  white-space:nowrap;
+  text-align:right;
+}
+
+.progress{
+  height:8px;
+  background:#f0f2f5;
+  border-radius:999px;
+  overflow:hidden;
+}
+
+.progress > span{
+  display:block;
+  height:100%;
+  width:0;
+  background:linear-gradient(90deg,var(--accent1),var(--accent3));
+  transition:width .2s ease;
+}
+
     .ok{color:var(--ok);font-weight:800}
     .err{color:var(--err);font-weight:800}
-    .toolbar{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+    .toolbar{
+        display:flex;
+        gap:10px;
+        justify-content:flex-end;
+        margin:0 0 12px 0; /* 위 여백 대신 아래쪽 여백 */
+      }
 
     /* 왼쪽 가이드 */
     .guide{flex:1 1 560px;padding:16px}
     .hint{font-size:12px;color:var(--sub);margin-top:6px}
     .badge{display:inline-block;font-size:12px;color:#5b5b6b;border:1px solid #ececf3;padding:6px 10px;border-radius:999px;background:#fafafd;margin-right:6px}
-    @media (max-width:980px){ .item{grid-template-columns:1fr 100px 74px} }
+    @media (max-width:980px){
+  .item-header{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+  .status{
+    text-align:left;
+  }
+}
 
     /* 학교 주소 확인 패널 */
     .addr-card{margin-top:16px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:#fafbff;}
@@ -154,17 +325,20 @@
       </section>
 
       <!-- 오른쪽: AI 예측 목록 + 업로드 -->
-      <section class="card panel">
-        <div class="sec-title">AI 예측 메타데이터</div>
-        <div id="list" class="list"></div>
-
+      <div style="flex:1 1 420px; display:flex; flex-direction:column;">
+        <!-- 패널 밖, 바로 위에 나오는 버튼 영역 -->
         <div class="toolbar">
           <button id="clearBtn" class="btn" type="button">목록 비우기</button>
           <button id="uploadBtn" class="btn" type="button" disabled>파일 업로드</button>
         </div>
-        <p class="hint">업로드는 `/api/user-upload`로 AJAX 전송되며, 각 항목에 `meta_json`(JSON)도 함께 전송됩니다.</p>
-      </section>
-    </div>
+
+        <section class="card panel">
+          <div class="sec-title">AI 예측 메타데이터</div>
+          <div id="list" class="list"></div>
+
+          <p class="hint">업로드는 `/api/user-upload`로 AJAX 전송되며, 각 항목에 `meta_json`(JSON)도 함께 전송됩니다.</p>
+        </section>
+      </div>
   </div>
 
 <script>
@@ -196,11 +370,15 @@
   }));
   dropzone.addEventListener('drop', e => addFiles(e.dataTransfer.files));
 
-  clearBtn.addEventListener('click', () => {
+  clearBtn.addEventListener('click', async () => {
+    const ok = await showConfirm('정말 목록을 비우시겠습니까?');
+    if (!ok) return;
+
     queue.splice(0, queue.length);
     listEl.innerHTML = '';
     uploadBtn.disabled = true;
   });
+
 
   function addFiles(fileList){
     const incoming = Array.from(fileList || []);
@@ -235,49 +413,189 @@
   }
 
 
-  function renderItem(file, meta){
-    const node = document.createElement('div');
-    node.className = 'item';
-    node.innerHTML = `
-      <div class="name" title="${file.name}">${file.name}</div>
-      <div>
-        <div class="chips">
-          ${chipsHTML(meta)}
-        </div>
-        <div class="progress" style="margin-top:8px"><span></span></div>
-      </div>
-      <div class="status">대기</div>
-    `;
-    return {
-      node,
-      bar: node.querySelector('.progress > span'),
-      status: node.querySelector('.status')
-    };
+// 파일 타입 배지 HTML 생성 (PDF / HWP / 기타)
+function fileTypeBadge(name){
+  const ext = (name.split('.').pop() || '').toLowerCase();
+  if (ext === 'pdf') {
+    return '<span class="file-type file-type-pdf">PDF</span>';
   }
+  if (ext === 'hwp' || ext === 'hwpx') {
+    return '<span class="file-type file-type-hwp">hwp</span>';
+  }
+  return '<span class="file-type file-type-etc">FILE</span>';
+}
 
-  function chip(k, v, grad=false){
-    if(!v) return '';
-    return `<span class="chip ${grad?'grad':''}">${k}: ${v}</span>`;
+function renderItem(file, meta){
+  const node = document.createElement('div');
+  node.className = 'item';
+
+  const typeTag = fileTypeBadge(file.name);
+
+  node.innerHTML = `
+    <div class="item-header">
+      ${typeTag}
+      <div class="name" title="${file.name}">${file.name}</div>
+      <div class="item-status">
+        <div class="progress"><span></span></div>
+        <div class="status">대기</div>
+      </div>
+    </div>
+    <div class="chips">
+      ${chipsHTML(meta)}
+    </div>
+  `;
+  return {
+    node,
+    bar: node.querySelector('.progress > span'),
+    status: node.querySelector('.status')
+  };
+}
+
+
+  // label: 보이는 이름(연도, 학교 ...)
+  // value: 실제 값
+  // key  : meta에서 어떤 필드인지(year, school, exam ...)
+  function chip(label, value, grad=false, key){
+    if (!value) return '';
+    const cls = `chip ${grad ? 'grad' : ''}`;
+    const dataKey = key ? ` data-key="${key}" data-label="${label}"` : '';
+    return `<span class="${cls}"${dataKey}>${label}: ${value}</span>`;
   }
 
   // 칩 묶음 생성(지역/구군 포함)
   function chipsHTML(meta){
     return [
-      chip('연도', meta.year),
-      chip('학교', meta.school),
-      chip('구분', meta.level, true),
-      chip('학년', meta.grade ? meta.grade+'학년' : ''),
-      chip('학기', meta.semester ? meta.semester+'학기' : ''),
-      chip('시험', meta.exam_type_kr || meta.exam_type),
-      chip('과목', meta.subject),
-      chip('지역', meta.region),
-      chip('구/군', meta.district)
+      chip('연도',  meta.year,                    false, 'year'),
+      chip('학교',  meta.school,                  false, 'school'),
+      chip('구분',  meta.level,                   true,  'level'),
+      chip('학년',  meta.grade ? meta.grade+'학년'     : '', false, 'grade'),
+      chip('학기',  meta.semester ? meta.semester+'학기' : '', false, 'semester'),
+      chip('시험',  meta.exam_type_kr || meta.exam_type, false, 'exam'),
+      chip('과목',  meta.subject,                 false, 'subject'),
+      chip('지역',  meta.region,                  false, 'region'),
+      chip('구/군', meta.district,                false, 'district')
     ].join('');
+  }
+
+    // ==== 칩 인라인 편집 기능 ====
+  listEl.addEventListener('click', (e) => {
+    const chipEl = e.target.closest('.chip');
+    if (!chipEl) return;
+    // 이미 입력 모드면 무시
+    if (chipEl.querySelector('.chip-input')) return;
+
+    const key   = chipEl.getAttribute('data-key');
+    const label = chipEl.getAttribute('data-label') || '';
+    if (!key) return;
+
+    const itemEl = chipEl.closest('.item');
+    if (!itemEl) return;
+    const entry = queue.find(q => q.node === itemEl);
+
+    // ✅ 업로드가 한 번이라도 끝난 카드(done === true)는 수정 잠금
+    if (!entry || entry.done) return;
+
+    // "연도: 2024" → "2024" 부분만 추출
+    const fullText = chipEl.textContent || '';
+    let valuePart = fullText;
+    if (label && fullText.startsWith(label)) {
+      valuePart = fullText.slice(label.length).replace(/^:\s*/, '');
+    }
+
+    const originalValue = valuePart;
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'chip-input';
+    input.value = valuePart;
+
+    chipEl.innerHTML = '';
+    chipEl.appendChild(input);
+    input.focus();
+    input.select();
+
+    const finish = (commit) => {
+      input.removeEventListener('blur', onBlur);
+      input.removeEventListener('keydown', onKeydown);
+
+      const newRaw = commit ? input.value.trim() : originalValue;
+
+      // meta 갱신
+      applyChipValue(entry, key, label, newRaw);
+
+      // 칩 전체 다시 렌더 (디자인 복원)
+      const chipsBox = itemEl.querySelector('.chips');
+      if (chipsBox){
+        chipsBox.innerHTML = chipsHTML(entry.meta);
+      }
+    };
+
+    const onBlur = () => finish(true);
+    const onKeydown = (ev) => {
+      if (ev.key === 'Enter'){
+        ev.preventDefault();
+        finish(true);
+      } else if (ev.key === 'Escape'){
+        ev.preventDefault();
+        finish(false);
+      }
+    };
+
+    input.addEventListener('blur', onBlur);
+    input.addEventListener('keydown', onKeydown);
+  });
+
+  // 칩 변경 → meta에 반영
+  function applyChipValue(entry, key, label, raw){
+    const v = raw.trim();
+
+    switch(key){
+      case 'year': {
+        const num = v.match(/\d{4}/);
+        entry.meta.year = num ? num[0] : v;
+        break;
+      }
+      case 'school':
+        entry.meta.school = v;
+        break;
+      case 'level':
+        entry.meta.level = v; // 고등 / 중등 등
+        break;
+      case 'grade': {
+        const num = v.match(/\d+/);
+        entry.meta.grade = num ? num[0] : '';
+        break;
+      }
+      case 'semester': {
+        const num = v.match(/\d+/);
+        entry.meta.semester = num ? num[0] : '';
+        break;
+      }
+      case 'exam': {
+        entry.meta.exam_type_kr = v;
+        if (/기말/.test(v) || /final/i.test(v)) entry.meta.exam_type = 'final';
+        else if (/중간/.test(v) || /mid/i.test(v)) entry.meta.exam_type = 'mid';
+        else entry.meta.exam_type = '';
+        break;
+      }
+      case 'subject':
+        entry.meta.subject = v;
+        break;
+      case 'region':
+        entry.meta.region = v;
+        break;
+      case 'district':
+        entry.meta.district = v;
+        break;
+    }
   }
 
 
   // ===== 업로드 처리 (순차 전송) =====
   uploadBtn.addEventListener('click', async ()=>{
+    const ok = await showConfirm('파일을 업로드하시겠습니까?');
+    if (!ok) return;
+
     uploadBtn.disabled = true;
     for (const it of queue){
       if (it.done) continue;
@@ -287,37 +605,73 @@
     if (queue.some(x => !x.done || !x.ok)) uploadBtn.disabled = false;
   });
 
+
   function uploadOne(it){
     return new Promise((resolve) => {
       const fd = new FormData();
       fd.append('file', it.file);
-      // 서버가 쓰기 편하도록 exam_type(국문) + exam_code(mid/final) 모두 보냄
-      fd.append('meta_json', JSON.stringify({
-        title: it.meta.title,
-        year: it.meta.year,
-        school: it.meta.school,
-        level: it.meta.level,          // '고등' | '중등'
-        grade: it.meta.grade,          // '1' | '2' | '3'
-        semester: it.meta.semester,    // '1' | '2'
-        exam_type: it.meta.exam_type_kr || it.meta.exam_type, // '중간'|'기말'
-        exam_code: it.meta.exam_type,  // 'mid'|'final'
-        subject: it.meta.subject,
-        region: it.meta.region || '',
-        district: it.meta.district || ''
-      }));
+
+      // 칩에서 수정된 최신 meta 기준으로 meta_json 구성
+      const metaForSend = {
+        year:      it.meta.year,
+        school:    it.meta.school,
+        level:     it.meta.level,
+        grade:     it.meta.grade,
+        semester:  it.meta.semester,
+        exam_type: it.meta.exam_type_kr || it.meta.exam_type, // '중간' | '기말'
+        exam_code: it.meta.exam_type,                         // 'mid' | 'final'
+        subject:   it.meta.subject,
+        region:    it.meta.region || '',
+        district:  it.meta.district || ''
+      };
+
+      // 제목은 값들이 다 있으면 조합, 아니면 파일명(확장자 제거) 사용
+      metaForSend.title = makeTitle(metaForSend, stripExt(it.file.name));
+
+      fd.append('meta_json', JSON.stringify(metaForSend));
+
+      function makeTitle(meta, fallback){
+        const year   = meta.year;
+        const school = meta.school;
+        const grade  = meta.grade;
+        const sem    = meta.semester;
+        const examKr = meta.exam_type ||
+                      (meta.exam_code === 'mid'   ? '중간' :
+                        meta.exam_code === 'final' ? '기말' : '');
+        const subject = meta.subject;
+
+        if (year && school && grade && sem && examKr && subject){
+          return `${year} ${school} ${grade}학년 ${sem}학기 ${examKr} ${subject}`;
+        }
+        return fallback || '';
+      }
 
       it.status.textContent = '업로드 0%';
       xhrWithProgress(UPLOAD_URL, fd, (pct)=>{
         it.bar.style.width = pct + '%';
         it.status.textContent = `업로드 ${pct}%`;
       }, (ok, text)=>{
-        it.done = true; it.ok = ok;
+        it.done = true;
+        it.ok   = ok;
+
         if (ok){
           it.bar.style.width = '100%';
           it.status.innerHTML = `<span class="ok">완료</span>`;
         } else {
-          it.status.innerHTML = `<span class="err">실패</span>`;
-          if (text) console.warn('업로드 실패:', text);
+          let msg = '실패';
+
+          if (text && text.includes('DUP_HWP')) {
+            msg = '실패 (HWP 중복)';
+          } else if (text && text.includes('DUP_PDF')) {
+            msg = '실패 (PDF 중복)';
+          } else if (text && text.includes('DUP_META')) {
+            msg = '실패 (메타 중복)';
+          }
+
+          it.status.innerHTML = `<span class="err">${msg}</span>`;
+          if (text && !/DUP_/.test(text)) {
+            console.warn('업로드 실패:', text);
+          }
         }
         resolve();
       });
@@ -513,8 +867,60 @@
       }
     });
   }
+
+  // ===== 모달 Confirm 기능 =====
+  function showConfirm(message) {
+    return new Promise(resolve => {
+      const modal = document.getElementById('confirmModal');
+      const text  = document.getElementById('confirmText');
+      const yes   = document.getElementById('confirmYes');
+      const no    = document.getElementById('confirmNo');
+
+      // 혹시 모달 요소가 없으면 기본 confirm 사용
+      if (!modal || !text || !yes || !no) {
+        const ok = window.confirm(message);
+        return resolve(ok);
+      }
+
+      text.textContent = message;
+      modal.style.display = 'flex';
+
+      const close = (result) => {
+        modal.style.display = 'none';
+        yes.removeEventListener('click', onYes);
+        no.removeEventListener('click', onNo);
+        resolve(result);
+      };
+
+      const onYes = () => close(true);
+      const onNo  = () => close(false);
+
+      yes.addEventListener('click', onYes);
+      no.addEventListener('click', onNo);
+    });
+  }
   
 })();
+
 </script>
+
+<!-- 확인 모달 -->
+<div id="confirmModal" style="
+  position:fixed; inset:0; background:rgba(0,0,0,.45);
+  display:none; align-items:center; justify-content:center; z-index:9999;
+">
+  <div style="
+    background:white; padding:24px; border-radius:16px; width:300px;
+    box-shadow:0 8px 28px rgba(0,0,0,.3); text-align:center;
+  ">
+    <div id="confirmText" style="font-size:15px; margin-bottom:18px; font-weight:700;"></div>
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button id="confirmNo" class="btn" style="background:#9ca3af;">취소</button>
+      <button id="confirmYes" class="btn">확인</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
+

@@ -28,15 +28,16 @@
       background: #f5f6fa;
     }
     .sidebar {
-      width: 250px;
-      background: #0f0f0f;
-      color: white;
+      width: 220px;        /* ← 펼쳐졌을 때 전체 폭 줄임 */
+      background: #ffffff; /* 사이드바 흰색 */
+      color: #000000;      /* 기본 글씨 검정 */
       transition: width 0.3s;
       display: flex;
       flex-direction: column;
       padding-top: 20px;
       align-items: stretch; 
       overflow-x: hidden;
+      border-right: 1px solid #d0d4dd; /* 오른쪽 얇은 구분선 */
     }
     .sidebar.collapsed {
       width: 80px;
@@ -54,7 +55,7 @@
       font-size: 20px;
       font-weight: bold;
       transition: opacity 0.3s;
-      color: #FFD400;
+      color: #000000; /* 관리자 글씨 검정 */
       opacity: 1;
     }
     .logo-img {
@@ -80,24 +81,27 @@
       position: relative;
       display: flex;
       align-items: center;
-      padding: 15px 17px;
+      padding: 15px 20px;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.2s, color 0.2s;
       width: 100%;
       opacity: 0;
       transform: translateX(-30px);
-      margin-bottom: 12px;
+      margin-bottom: 14px; /* ← 메뉴끼리 간격 넓힘 */
       animation: fadeInLeft 0.5s ease forwards;
+      color: #000000; /* 선택 안된 메뉴 글씨 검정 */
+      font-size: 14px;
     }
+
     .menu-item .active-bg {
       position: absolute;
       left: 12px;
       right: 12px;
       top: 3px;
       bottom: 3px;
-      background: #fff;
+      background: #3f5ba9; /* 옅은 남색 배경 */
       border-radius: 10px;
-      box-shadow: 0 2px 12px rgba(248, 246, 246, 0.133);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
       z-index: 0;
       opacity: 0;
       transition: opacity 0.18s;
@@ -105,24 +109,62 @@
     .menu-item.active .active-bg {
       opacity: 1;
     }
-    .menu-item img.menu-icon {
-      position: relative;
-      z-index: 2;
-      width: 20px;
-      height: 20px;
-      margin-right: 15px;
-      object-fit: contain;
-      margin-left: 11px;
-    }
+    
+    .menu-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 12px 14px; /* 네가 쓰는 값 그대로 두고, 필요하면 조절 */
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    width: 100%;
+    opacity: 0;
+    transform: translateX(-30px);
+    margin-bottom: 6px;
+    animation: fadeInLeft 0.5s ease forwards;
+    color: #000000; /* 선택 안된 메뉴 글씨 검정 */
+    font-size: 14px;
+  }
+
+  .sidebar:not(.collapsed) .menu-item {
+    padding-left: 28px;  /* ← 숫자 키우면 더 오른쪽으로 밀려감 */
+  }
+
+  /* 아이콘 기본: 펼쳐진 상태에서는 안 보이게 */
+  .menu-item .menu-icon {
+    display: none;
+    position: relative;
+    z-index: 1;
+    font-size: 18px;
+  }
+
+  /* 접혔을 때: 아이콘만 보이게 & 가운데 정렬 느낌 */
+  .sidebar.collapsed .menu-item {
+    justify-content: center;
+  }
+
+  .sidebar.collapsed .menu-item .menu-icon {
+    display: inline-flex;
+  }
+
+  /* 텍스트는 이미 아래 규칙으로 숨기고 있음 */
+  .sidebar.collapsed .menu-item span:not(.active-bg) {
+    max-width: 0;
+    opacity: 0;
+    transition: max-width .20s ease 0s, opacity .05s ease 0s;
+  }
+
+
     .menu-item span:not(.active-bg) {
       position: relative;
       z-index: 1;
       display: inline-block;
-      max-width: 140px;
+      max-width: 180px;
       overflow: hidden;
       white-space: nowrap;
       opacity: 1;
       transition: max-width .25s ease .30s, opacity .25s ease .30s;
+      color: inherit;
     }
     .sidebar.collapsed .menu-item span:not(.active-bg) {
       max-width: 0;
@@ -134,9 +176,7 @@
       opacity: 1;
       transition: opacity .22s .05s;
     }
-    .sidebar.collapsed .menu-item img.menu-icon {
-      display: inline-block !important;
-    }
+
     .menu-button {
       width: 20px;
       height: 20px;
@@ -153,7 +193,7 @@
     .menu-button span {
       display: block;
       position: absolute;
-      background-color: #fff;
+      background-color: #000000; /* 접는 버튼 막대 검정색 */
       border-radius: 2px;
       transition: all 0.4s cubic-bezier(.7,.2,.17,1.3);
       width: 100%;
@@ -171,21 +211,24 @@
     .menu-button.active span:nth-child(1) { left: 0px; }
     .menu-button.active span:nth-child(2) { left: 6.5px; }
     .menu-button.active span:nth-child(3) { left: 13px; }
+
     .menu-item:hover {
-      background: #1e1e1e;
+      background: #f2f4ff; /* hover 시 아주 옅은 남색 느낌 */
     }
     .menu-item.active {
-      color: #222;
+      color: #ffffff;             /* 선택된 메뉴 글씨 흰색 */
       font-weight: 600;
       background: none;
       box-shadow: none;
       border-radius: 0;
     }
-    .menu-item.active i {
-      color: #4b39ef;
+    .menu-item.active span:not(.active-bg) {
+      color: #ffffff;             /* 선택된 메뉴 텍스트 흰색 */
     }
+
     .spacer { flex-grow: 1; }
     .menu-item.logout { margin-bottom: 30px; }
+
     @keyframes fadeInLeft {
       to {
         opacity: 1;
@@ -200,13 +243,31 @@
       height: 100vh;
       background: #fff;
     }
+
+    /* 접히는 중간 단계: 글자 먼저 숨기기 */
+    .sidebar.hiding .menu-item span:not(.active-bg) {
+      max-width: 0;
+      opacity: 0;
+      transition: max-width .20s ease 0s, opacity .10s ease 0s;
+    }
+
+    /* 로고 글자도 같이 먼저 사라지게 */
+    .sidebar.hiding .logo-text {
+      opacity: 0;
+    }
+
+    /* 로고 아이콘은 반대로 미리 보이게 하고 싶으면 */
+    .sidebar.hiding .logo-img {
+      opacity: 1;
+    }
+
   </style>
 </head>
 <body>
   <div class="sidebar fade-in-left" id="sidebar">
     <div class="logo">
       <span class="logo-text">관리자</span>
-      <img src="logo.png" alt="로고" class="logo-img">
+      <img src="image_logo/logo.png" alt="로고" class="logo-img">
     </div>
     <button class="menu-button" id="toggleBtn" onclick="toggleSidebarAnim()" aria-label="사이드바 열기/닫기">
       <span></span>
@@ -214,57 +275,77 @@
       <span></span>
     </button>
     <div class="menu-list">
-      <div class="menu-item" id="menu1" data-url="admin_Membership.html">
-        <span class="active-bg"></span>
-        <img class="menu-icon" src="main_home_w.png" data-icon-black="main_home_b.png" data-icon-white="main_home_w.png" alt="" />
-        <span>회원관리</span>
-      </div>
-      <div class="menu-item" id="menu2" data-url="admin_DB.html">
-        <span class="active-bg"></span>
-        <img class="menu-icon" src="icon_book_w.png" data-icon-black="icon_book_b.png" data-icon-white="icon_book_w.png" alt="">
-        <span>문제관리</span>
-      </div>
-      <div class="menu-item" id="menu3" data-url="admin_upload.html">
-        <span class="active-bg"></span>
-        <img class="menu-icon" src="icon_school_w.png" data-icon-black="icon_school_b.png" data-icon-white="icon_school_w.png" alt="" />
-        <span>시험지업로드</span>
-      </div>
-      <div class="menu-item" id="menu4" data-url="admin_files.html">
-        <span class="active-bg"></span>
-        <img class="menu-icon" src="icon_bookcase_w.png" data-icon-black="icon_bookcase_b.png" data-icon-white="icon_bookcase_w.png" alt="" />
-        <span>시험지관리</span>
-      </div>
-      <div class="menu-item" id="menu5" data-url="admin_upload_review.html">
-        <span class="active-bg"></span>
-        <img class="menu-icon" src="icon_upload_w.png" data-icon-black="icon_upload_b.png" data-icon-white="icon_upload_w.png" alt="" />
-        <span>업로드관리</span>
-      </div>
-      <div class="menu-item" id="menu6" data-url="notice.html">
-        <span class="active-bg"></span>
-        <img class="menu-icon" src="icon_notification_w.png" data-icon-black="icon_notification_b.png" data-icon-white="icon_notification_w.png" alt="" />
-        <span>공지사항</span>
-      </div>
+<div class="menu-item" id="menu1" data-url="admin_Membership.html">
+  <span class="active-bg"></span>
+  <i class="fa-solid fa-user-group menu-icon"></i>
+  <span>회원관리</span>
+</div>
+<div class="menu-item" id="menu2" data-url="admin_DB.html">
+  <span class="active-bg"></span>
+  <i class="fa-solid fa-database menu-icon"></i>
+  <span>문제관리</span>
+</div>
+<div class="menu-item" id="menu3" data-url="admin_upload.html">
+  <span class="active-bg"></span>
+  <i class="fa-solid fa-file-arrow-up menu-icon"></i>
+  <span>시험지업로드</span>
+</div>
+<div class="menu-item" id="menu4" data-url="admin_files.html">
+  <span class="active-bg"></span>
+  <i class="fa-solid fa-folder-open menu-icon"></i>
+  <span>시험지관리</span>
+</div>
+<div class="menu-item" id="menu5" data-url="admin_upload_review.html">
+  <span class="active-bg"></span>
+  <i class="fa-solid fa-list-check menu-icon"></i>
+  <span>업로드관리</span>
+</div>
+<div class="menu-item" id="menu6" data-url="notice.html">
+  <span class="active-bg"></span>
+  <i class="fa-solid fa-bullhorn menu-icon"></i>
+  <span>공지사항</span>
+</div>
     </div>
     <div class="spacer"></div>
-    <div class="menu-item" id="menu7">
-      <span class="active-bg"></span>
-      <img class="menu-icon" src="main_home_w.png" data-icon-black="main_home_b.png" data-icon-white="main_home_w.png" alt="" />
-      <span>메인홈</span>
-    </div>
+<div class="menu-item" id="menu7">
+  <span class="active-bg"></span>
+  <i class="fa-solid fa-house menu-icon"></i>
+  <span>메인홈</span>
+</div>
   </div>
   <iframe id="contentFrame" src="admin_Membership.html"></iframe>
   <script>
-    function toggleSidebarAnim () {
-      const sb  = document.getElementById('sidebar');
-      const btn = document.getElementById('toggleBtn');
-      const willOpen = sb.classList.contains('collapsed');
-      sb.classList.toggle('collapsed');
-      btn.classList.toggle('active');
-      sb.classList.remove('expanded');
-      if (willOpen) {
-        setTimeout(() => sb.classList.add('expanded'), 300);
-      }
-    }
+function toggleSidebarAnim () {
+  const sb  = document.getElementById('sidebar');
+  const btn = document.getElementById('toggleBtn');
+  const isCollapsed = sb.classList.contains('collapsed');
+
+  // 혹시 남아 있을지 모르는 상태 초기화
+  sb.classList.remove('hiding');
+
+  if (isCollapsed) {
+    // 🔓 열기: 먼저 너비 키우고 → 다 펼쳐진 뒤에 텍스트 나타나게
+    sb.classList.remove('collapsed');
+    btn.classList.remove('active');
+
+    // width transition(0.3s) 끝난 후 글자 나타나게
+    setTimeout(() => {
+      sb.classList.add('expanded');
+    }, 300);
+  } else {
+    // 🔒 닫기: 텍스트 먼저 숨기고 → 그 다음 너비 줄이기
+    sb.classList.remove('expanded');
+    sb.classList.add('hiding');   // 글자 숨기는 중간 단계
+    btn.classList.add('active');  // 버튼은 접힌 상태 모양으로
+
+    // 글자 숨김 애니메이션 끝난 뒤 너비 줄이기
+    setTimeout(() => {
+      sb.classList.add('collapsed');  // 실제로 접힘 (width: 80px)
+      sb.classList.remove('hiding');  // 중간 상태 제거
+    }, 220); // 위 CSS에서 max-width/opacity 0.2s 정도라 이 정도면 자연스러움
+  }
+}
+
 
     document.querySelectorAll('.menu-item').forEach(item => {
       item.addEventListener('click', function() {
@@ -275,12 +356,8 @@
         }
         document.querySelectorAll('.menu-item').forEach(i => {
           i.classList.remove('active');
-          var icon = i.querySelector('.menu-icon');
-          if (icon) icon.src = icon.dataset.iconWhite;
         });
         this.classList.add('active');
-        var activeIcon = this.querySelector('.menu-icon');
-        if (activeIcon) activeIcon.src = activeIcon.dataset.iconBlack;
         const url = this.dataset.url;
         if (url) {
           document.getElementById('contentFrame').src = url;
@@ -291,11 +368,6 @@
     window.addEventListener('DOMContentLoaded', () => {
       const first = document.getElementById('menu1');
       first.classList.add('active');
-      const firstIcon = first.querySelector('.menu-icon');
-      firstIcon.src = firstIcon.dataset.iconBlack;
-      document.querySelectorAll('.menu-item:not(#menu1) .menu-icon').forEach(icon => {
-        icon.src = icon.dataset.iconWhite;
-      });
       document.getElementById('contentFrame').src = first.dataset.url;
     });
   </script>

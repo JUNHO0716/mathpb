@@ -3,12 +3,14 @@ window.initializeHomePage = function(user) {
 
   // --- 원본 스크립트 기능 100% 유지 ---
   
+  // ⬇⬇⬇ 이미지 없이 색 카드 정보만 넘김 (img 제거)
   const ad = window.initAdBanner('#AdBannerRoot', [
-    { img: 'image_banner/ad1.jpg', url: 'promo1.html', title: '프로모션 1' },
-    { img: 'image_banner/ad2.jpg', url: 'promo2.html', title: '프로모션 2' },
-    { img: 'image_banner/ad3.jpg', url: 'promo3.html', title: '프로모션 3' },
-    { img: 'image_banner/ad4.jpg', url: 'promo4.html', title: '프로모션 4' }
+    { id: 'card1', url: 'promo1.html', title: '프로모션 1' },
+    { id: 'card2', url: 'promo2.html', title: '프로모션 2' },
+    { id: 'card3', url: 'promo3.html', title: '프로모션 3' },
+    { id: 'card4', url: 'promo4.html', title: '프로모션 4' }
   ], { delay: 4500 });
+  // ⬆⬆⬆ 여기까지만 교체
 
   // 2. 탭 기능 카드 캐러셀 관련 로직 실행
   setupTabbedCarousel();

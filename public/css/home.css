@@ -1199,7 +1199,7 @@
 
 /* 최근 업로드 표: 클릭 가능한 행 */
 .home-uploads-card .home-rf-table tr.rf-clickable { cursor: pointer; }
-.home-uploads-card .home-rf-table tr.rf-clickable:hover { background-color: #f5f5f5; }
+.home-uploads-card .home-rf-table tr.rf-clickable:hover { background-color: #f5f5f5; }z
 
 /* === [텍스트형 탭: 아이콘+글자] === */
 .covsch-links{ display:flex; align-items:center; gap:10px; }

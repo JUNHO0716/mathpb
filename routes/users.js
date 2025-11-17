@@ -148,26 +148,31 @@ router.post('/api/change-email', isLoggedIn, async (req, res) => {
 
 // 사용자 파일 업로드
 router.post('/api/user-upload', requirePlan('standard'), fileUpload.array('fileInput', 10), async (req, res) => {
-    try {
-      const userId = req.session.user.id;
-      const files  = req.files;
-      if (!files || !files.length) {
-        return res.status(400).json({ msg: '파일이 없습니다.' });
-      }
-      for (const f of files) {
-       const decodedName = Buffer.from(f.originalname, 'latin1').toString('utf8');
-        await db.query(
-          'INSERT INTO uploads (user_id, filename, s3_key, status) VALUES (?, ?, ?, ?)',
-          [userId, decodedName, f.key, '확인중']
-        );
-      }
-      res.json({ msg: '업로드 성공' });
-    } catch (e) {
-      console.error(e);
-      res.status(500).json({ msg: '서버 오류', error: e.message });
+  try {
+    const u = req.session.user || {};
+    // ✅ 가능하면 이메일을 user_id 로 저장, 없으면 기존 id 사용
+    const userId = (u.email && u.email.trim()) || u.id;
+
+    const files  = req.files;
+    if (!files || !files.length) {
+      return res.status(400).json({ msg: '파일이 없습니다.' });
     }
+
+    for (const f of files) {
+      const decodedName = Buffer.from(f.originalname, 'latin1').toString('utf8');
+      await db.query(
+        'INSERT INTO uploads (user_id, filename, s3_key, status) VALUES (?, ?, ?, ?)',
+        [userId, decodedName, f.key, '확인중']
+      );
+    }
+
+    res.json({ msg: '업로드 성공' });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ msg: '서버 오류', error: e.message });
   }
-);
+});
+
 
 // 내 업로드 목록
 router.get('/api/my-uploads', isLoggedIn, async (req, res) => {

@@ -63,7 +63,8 @@ router.post('/login', async (req, res, next) => {
       name: user.name,
       role: user.role || 'user',
       avatarUrl: user.avatarUrl || '/image_index/profile.svg',
-      isAdmin: user.is_admin == 1            // ✅ 추가
+      isAdmin: user.is_admin == 1,
+      loginType: 'local'              // ✅ 일반 로그인 표시
     };
 
     req.login(userForSession, async (err) => {

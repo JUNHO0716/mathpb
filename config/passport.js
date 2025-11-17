@@ -42,7 +42,8 @@ export default function(passport) {
         email: user.email,
         name: user.name,
         role: user.role,
-        avatarUrl: user.avatarUrl || '/icon_my_b.png'
+        avatarUrl: user.avatarUrl || '/icon_my_b.png',
+        loginType: 'google'             // ✅ 소셜 타입 표시
       });
     } catch (err) {
       console.error('Google Strategy error:', err);
@@ -87,7 +88,8 @@ export default function(passport) {
         email: user.email,
         name: user.name,
         role: user.role,
-        avatarUrl: user.avatarUrl || '/icon_my_b.png'
+        avatarUrl: user.avatarUrl || '/icon_my_b.png',
+        loginType: 'naver'              // ✅
       });
     } catch (err) {
       console.error('Naver Strategy error:', err);
@@ -141,13 +143,13 @@ export default function(passport) {
       }
       
       const [[user]] = await db.query('SELECT * FROM users WHERE id = ?', [id]);
-      
       return done(null, {
         id: user.id,
         email: user.email,
         name: user.name,
         role: user.role,
-        avatarUrl: user.avatarUrl || '/icon_my_b.png'
+        avatarUrl: user.avatarUrl || '/icon_my_b.png',
+        loginType: 'kakao'              // ✅
       });
     } catch (err) {
       console.error('Kakao Strategy error:', err);

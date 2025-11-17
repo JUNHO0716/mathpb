@@ -3,96 +3,866 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="robots" content="noindex, nofollow">
-  <title>회원관리 | 관리자페이지</title>
+  <title>회원관리 & 통계 | 관리자페이지</title>
   <style>
     body {
       font-family: 'Noto Sans KR', sans-serif;
-      background: #f9f9f9;
+      background: #f3f4f6;
       margin: 0;
       padding: 40px;
+      box-sizing: border-box;
     }
-    h1 { font-size: 24px; margin-bottom: 20px; }
-    .search-bar { margin-bottom: 20px; }
+    h1 {
+      font-size: 24px;
+      margin: 0 0 20px;
+    }
+
+    /* ===== 공통 카드 스타일 ===== */
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 18px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.06);
+    }
+
+    /* ===== KPI 카드 행 ===== */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 14px 16px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 80px;
+    }
+    .kpi-label {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+    .kpi-sub {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    /* ===== 메인 레이아웃 (그래프 + 사이드 카드) ===== */
+    .main-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(260px, 1.4fr);
+      gap: 20px;
+      align-items: flex-start;
+      margin-bottom: 24px;
+    }
+    .main-left {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .main-right {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* ===== 그래프 카드 ===== */
+    .chart-card {
+      min-height: 280px;
+    }
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .chart-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #111827;
+    }
+    .chart-filters {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .chart-series {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: #374151;
+    }
+    .chart-series label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 9999px;
+      background: #f3f4f6;
+    }
+    .chart-range-select {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 9999px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+    }
+    .chart-body {
+      margin-top: 6px;
+      height: 240px;
+    }
+    #userChart {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ===== 사이드 카드 리스트 ===== */
+    .side-card h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 0 0 8px;
+      color: #111827;
+    }
+    .side-card-sub {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-bottom: 8px;
+    }
+    .side-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .side-list li {
+      font-size: 12px;
+      color: #374151;
+      padding: 4px 0;
+      border-bottom: 1px dashed #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      align-items: center;
+    }
+    .side-list li:last-child {
+      border-bottom: none;
+    }
+    .side-badge {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 9999px;
+      background: #eef2ff;
+      color: #4338ca;
+      white-space: nowrap;
+    }
+    .side-id {
+      font-weight: 500;
+      color: #111827;
+    }
+    .side-empty {
+      font-size: 12px;
+      color: #9ca3af;
+      padding: 4px 0;
+    }
+
+    /* ===== 탭 카드 ===== */
+    .tabs-card {
+      padding: 0;
+    }
+    .tab-header {
+      display: flex;
+      gap: 4px;
+      padding: 0 12px;
+      border-bottom: 1px solid #e5e7eb;
+      background: #f9fafb;
+    }
+    .tab-btn {
+      border: none;
+      background: transparent;
+      padding: 10px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      color: #6b7280;
+      border-bottom: 2px solid transparent;
+    }
+    .tab-btn.active {
+      color: #111827;
+      font-weight: 600;
+      border-bottom-color: #3b82f6;
+    }
+    .tab-body {
+      padding: 14px 18px 18px;
+    }
+    .tab-pane {
+      display: none;
+    }
+    .tab-pane.active {
+      display: block;
+    }
+
+/* ===== 검색바 / 테이블 (회원 리스트용 카드형 스타일) ===== */
+    .search-bar {
+      margin-bottom: 20px;
+      display: flex;              /* 같은 줄에 배치 */
+      align-items: center;
+      justify-content: space-between;  /* 왼쪽: 검색 + 플랜필터, 오른쪽: 관리자 보기 */
+      gap: 12px;
+      width: 100%;                /* 전체 폭 사용해서 관리자 보기가 맨 오른쪽으로 */
+    }
+    .search-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;      /* 검색창과 플랜 필터 사이 간격 */
+      flex: 1;
+    }
+
+    .search-plan-select {
+      padding: 7px 10px;
+      font-size: 13px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #374151;
+    }
     .search-bar input {
-      padding: 8px 12px; width: 300px;
-      font-size: 14px; border: 1px solid #ccc;
+      padding: 8px 12px;
+      width: 300px;
+      font-size: 14px;
+      border: 1px solid #ccc;
       border-radius: 6px;
     }
-    table {
-      width: 100%; border-collapse: collapse;
-      background: #fff; border: 1px solid #ddd;
+    .search-admin-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: #4b5563;
+      cursor: pointer;
+      user-select: none;
     }
-    th, td {
-      padding: 12px; text-align: center;
-      border-bottom: 1px solid #eee;
+    .search-admin-toggle input[type="checkbox"] {
+      margin: 0;
+      width: 14px;
+      height: 14px;
     }
-    th { background: #f1f1f1; font-weight: 600; }
+    /* 회원 리스트 테이블을 카드 리스트처럼 보이게 */
+    #userTable {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 10px; /* 카드 사이 간격 */
+      background: transparent;
+      border: none;
+    }
+    #userTable thead {
+      display: none; /* 아이디/이메일/이름 헤더 행 숨김 */
+    }
+    #userTable tbody tr {
+      border: none;
+    }
+    #userTable td {
+      padding: 0;
+      border: none;
+      text-align: left;
+      font-size: 13px;
+    }
+    /* ===== 회원 카드 리스트 스타일 ===== */
+    .user-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+    }
+    .user-main {
+      flex: 1;
+      min-width: 0;
+      display: grid;
+      /* 6개 컬럼: 아바타 / 아이디+이메일 / 이름+관리자 / 가입+구독상태 / 플랜 / 기간 */
+      grid-template-columns:
+        auto                 /* 프로필 이미지 */
+        minmax(0, 260px)     /* 아이디 + 이메일 (조금 넓게) */
+        minmax(0, 120px)     /* 이름 + 관리자 배지 */
+        minmax(0, 140px)     /* 가입일 + 구독 상태 */
+        minmax(0, 130px)     /* 구독 플랜 셀렉트 */
+        minmax(0, 180px);    /* 시작일 / 종료일 */
+      column-gap: 20px;
+      align-items: center;
+    }
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #e5e7eb;
+      flex-shrink: 0;
+    }
+    .user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .user-id-email {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 12px;
+      min-width: 130px;
+    }
+    .user-id-email .uid {
+      font-size: 13px;
+      font-weight: 600;
+      color: #111827;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      max-width: 220px;  /* 아이디 조금 더 길게 */
+    }
+    .user-id-email .uemail {
+      color: #6b7280;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      max-width: 220px;
+    }
+    .user-name {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 13px;
+      color: #111827;
+      min-width: 60px;
+      white-space: nowrap;
+    }
+    .user-name .name-line {
+      font-weight: 500;
+    }
+    .user-name .admin-tag {
+      align-self: flex-start;
+      margin-left: 0;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4338ca;
+      font-size: 11px;
+    }
+    .user-join-sub {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 12px;
+      color: #4b5563;
+      min-width: 120px;
+    }
+    .user-join-sub .join {
+      font-weight: 500;
+    }
+    .user-join-sub .substate-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      color: #6b7280;
+      font-size: 11px;
+      width: fit-content;
+    }
+    .user-join-sub .substate-pill.on {
+      background: #ecfdf3;
+      color: #166534;
+    }
+    .user-plan {
+      min-width: 120px;
+    }
+    .user-plan select {
+      width: 100%;
+      padding: 4px 8px;
+      font-size: 12px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: #f9fafb;
+    }
+    .user-period {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 12px;
+      color: #4b5563;
+      min-width: 140px;
+    }
+    .user-period span {
+      white-space: nowrap;
+    }
+
+    .user-more-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+    .more-btn {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: transparent; /* 회색 동그라미 제거 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+    }
+    .more-btn:hover {
+      background: transparent; /* hover 때도 배경 없음 */
+      transform: none;
+    }
+    .more-btn-icon {
+      font-size: 18px;
+      line-height: 1;
+    }
+    .more-menu {
+      position: absolute;
+      top: 34px;
+      right: 0;
+      min-width: 150px;
+      background: #ffffff;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 10px 25px rgba(15,23,42,0.16);
+      padding: 6px 0;
+      z-index: 20;
+      display: none;
+    }
+    .more-menu.open {
+      display: block;
+    }
+    .more-menu-item {
+      padding: 7px 12px;
+      font-size: 12px;
+      color: #374151;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .more-menu-item:hover {
+      background: #f3f4ff;
+      color: #1d4ed8;
+    }
+    .more-menu-item.danger {
+      color: #b91c1c;
+    }
+    .more-menu-item.danger:hover {
+      background: #fef2f2;
+      color: #b91c1c;
+    }
+    .more-menu-item .label {
+      flex: 1;
+    }
+
     .btn {
-      padding: 6px 12px; font-size: 14px;
-      border: none; border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 13px;
+      border: none;
+      border-radius: 4px;
       cursor: pointer;
     }
-    .btn-extend { background: #4CAF50; color: #fff; }
-    .btn-cancel { background: #f44336; color: #fff; }
+    .btn-extend {
+      background: #4CAF50;
+      color: #fff;
+    }
+    .btn-cancel {
+      background: #f44336;
+      color: #fff;
+    }
+
+    /* 모달 */
     .modal-overlay {
-      display: none; position: fixed; z-index: 9999;
-      top: 0; left: 0; width: 100vw; height: 100vh;
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.5);
     }
-    .modal { background: #fff; padding: 20px; border-radius: 8px; width: 360px; margin: 200px auto; }
-    .modal-buttons { text-align: right; margin-top: 20px; }
-    .modal-buttons button { margin-left: 8px; }
-
-    /* ▼▼ 추가: 권한/플랜/구독 배지 */
-    .role-badge{padding:4px 8px;border-radius:12px;border:1px solid #ddd;display:inline-block;margin-right:6px;}
-    .role-admin{background:#eef5ff;}
-    .role-user{background:#f6f6f6;}
-    .plan-badge{padding:3px 8px;border-radius:12px;font-size:12px;border:1px solid #e5e7eb;margin-right:6px;display:inline-block}
-    .plan-basic{background:#f3f4f6;color:#6b7280;}
-    .plan-standard{background:#eafaf1;color:#15803d;border-color:#ccebd8;}
-    .plan-pro{background:#eef2ff;color:#4338ca;border-color:#d9ddff;}
-    .substate{font-size:12px;color:#6b7280;}
-    .substate.on{color:#16a34a;}
     .modal {
-      background: #fff; padding: 24px; border-radius: 8px;
-      width: 300px; margin: 150px auto;
+      background: #fff;
+      padding: 24px;
+      border-radius: 8px;
+      width: 300px;
+      margin: 150px auto;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
-    .modal-buttons { text-align: right; margin-top: 20px; }
-    .modal-buttons button { margin-left: 8px; }
+    .modal-buttons {
+      text-align: right;
+      margin-top: 20px;
+    }
+    .modal-buttons button {
+      margin-left: 8px;
+    }
+
+    /* ▼▼ 추가: 권한/플랜/구독 배지 (기존 유지) */
+    .role-badge {
+      padding: 4px 8px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      display: inline-block;
+      margin-right: 6px;
+      font-size: 12px;
+    }
+    .role-admin {
+      background: #eef5ff;
+    }
+    .role-user {
+      background: #f6f6f6;
+    }
+    .plan-badge {
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      border: 1px solid #e5e7eb;
+      margin-right: 6px;
+      display: inline-block;
+    }
+    .plan-basic {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+    .plan-standard {
+      background: #eafaf1;
+      color: #15803d;
+      border-color: #ccebd8;
+    }
+    .plan-pro {
+      background: #eef2ff;
+      color: #4338ca;
+      border-color: #d9ddff;
+    }
+    .substate {
+      font-size: 12px;
+      color: #6b7280;
+    }
+    .substate.on {
+      color: #16a34a;
+    }
+
+    /* ===== 로딩 스피너 ===== */
+    #loadingArea {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 0;
+    }
+    .loader {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 4px solid #e5e7eb;
+      border-top-color: #3f5ba9;
+      animation: spin 0.9s linear infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* ===== 탭 안의 안내 텍스트 ===== */
+    .placeholder-text {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+
+    /* 각 영역이 줄 안 넘치게 공통 설정 */
+.user-id-email,
+.user-name-block,
+.user-join-sub,
+.user-period {
+  min-width: 0;
+}
+
+/* 한 줄 + 말줄임 처리 */
+.user-id-email .uid,
+.user-id-email .uemail,
+.user-name-block .uname,
+.user-name-block .role-line,
+.user-join-sub div,
+.user-period div {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 플랜 셀렉트 고정 폭 */
+.user-plan {
+  min-width: 130px;
+}
+.user-plan select {
+  width: 100%;
+}
   </style>
 </head>
 <body>
-  <h1>회원 관리</h1>
+  <h1>회원 관리 & 통계</h1>
 
-  <div class="search-bar">
-    <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="아이디, 이메일 또는 이름 검색" />
+  <!-- ===== 상단 KPI 카드 6개 ===== -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">오늘 방문자수</div>
+      <div class="kpi-value" id="kpiTodayVisitors">-</div>
+      <div class="kpi-sub" id="kpiTodayVisitorsSub">로그 연동 후 표시</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">오늘 가입수</div>
+      <div class="kpi-value" id="kpiTodaySignups">-</div>
+      <div class="kpi-sub" id="kpiTodaySignupsSub">회원 가입일 기준</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">활성 회원 수 (최근 30일 로그인)</div>
+      <div class="kpi-value" id="kpiActiveUsers">-</div>
+      <div class="kpi-sub" id="kpiActiveUsersSub">last_login 필드 기준</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">구독 중 회원 수</div>
+      <div class="kpi-value" id="kpiSubscribers">-</div>
+      <div class="kpi-sub" id="kpiSubscribersSub">Basic / Standard / Pro 합계</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">오늘 파일 다운로드 수</div>
+      <div class="kpi-value" id="kpiTodayDownloads">-</div>
+      <div class="kpi-sub" id="kpiTodayDownloadsSub">로그 연동 후 표시</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">오늘 시험지 업로드 수</div>
+      <div class="kpi-value" id="kpiTodayUploads">-</div>
+      <div class="kpi-sub" id="kpiTodayUploadsSub">로그 연동 후 표시</div>
+    </div>
   </div>
 
-  <table id="userTable">
-    <thead>
-        <tr>
-          <th>아이디</th>
-          <th>이메일</th>
-          <th>이름</th>
-          <th>가입일</th>
-          <th>구독 상태</th>
-          <th>구독 플랜</th>   <!-- ✅ Basic / Standard / Pro -->
-          <th>시작일</th>
-          <th>종료일</th>
-          <th>권한</th>        <!-- ✅ 추가 -->
-          <th>관리</th>
-        </tr>
-        </thead>
-    <tbody id="userTbody">
-      <!-- JS에서 불러옴 -->
-    </tbody>
-  </table>
+  <!-- ===== 가운데: 그래프 + 오른쪽 사이드 카드 ===== -->
+  <div class="main-layout">
+    <!-- 왼쪽: 그래프 + 탭 -->
+    <div class="main-left">
+      <!-- 그래프 카드 -->
+      <div class="card chart-card">
+        <div class="chart-header">
+          <div class="chart-title">일별 지표 추이</div>
+          <div class="chart-filters">
+            <div class="chart-series">
+              <label>
+                <input type="checkbox" class="series-toggle" data-series="visitors" checked>
+                방문자
+              </label>
+              <label>
+                <input type="checkbox" class="series-toggle" data-series="signups" checked>
+                가입
+              </label>
+              <label>
+                <input type="checkbox" class="series-toggle" data-series="downloads" checked>
+                다운로드
+              </label>
+              <label>
+                <input type="checkbox" class="series-toggle" data-series="uploads" checked>
+                업로드
+              </label>
+            </div>
+            <select id="chartRange" class="chart-range-select">
+              <option value="7">최근 7일</option>
+              <option value="30" selected>최근 30일</option>
+              <option value="90">최근 90일</option>
+            </select>
+          </div>
+        </div>
+        <div class="chart-body">
+          <canvas id="userChart"></canvas>
+        </div>
+      </div>
+
+      <!-- 아래 탭 카드 -->
+      <div class="card tabs-card">
+        <div class="tab-header">
+          <button class="tab-btn active" data-target="tab-members">회원 리스트</button>
+          <button class="tab-btn" data-target="tab-subscription">구독 / 결제</button>
+          <button class="tab-btn" data-target="tab-logs">로그 / 활동</button>
+        </div>
+        <div class="tab-body">
+          <!-- 회원 리스트 탭 (기존 회원 관리 UI 전부 여기로 이동) -->
+          <div class="tab-pane active" id="tab-members">
+            <div class="search-bar">
+              <div class="search-left">
+                <input
+                  type="text"
+                  id="searchInput"
+                  name="userSearch"
+                  onkeyup="filterTable()"
+                  placeholder="아이디, 이메일 또는 이름 검색"
+                  autocomplete="off"
+                  value=""
+                />
+                <select
+                  id="planFilter"
+                  class="search-plan-select"
+                  onchange="filterTable()"
+                >
+                  <option value="">구독 플랜 전체</option>
+                  <option value="none">미구독</option>
+                  <option value="basic">베이직</option>
+                  <option value="standard">스탠다드</option>
+                  <option value="pro">프로</option>
+                </select>
+              </div>
+
+              <label class="search-admin-toggle">
+                <input
+                  type="checkbox"
+                  id="showAdminCheckbox"
+                  checked
+                  onchange="filterTable()"
+                >
+                <span>관리자 보기</span>
+              </label>
+            </div>
+
+            <!-- 회원 목록 로딩 중에만 보이는 영역 -->
+            <div id="loadingArea">
+              <div class="loader"></div>
+              <span style="font-size:14px;color:#666;">회원 목록을 불러오는 중...</span>
+            </div>
+
+            <table id="userTable">
+              <thead>
+                <tr>
+                  <th>아이디</th>
+                  <th>이메일</th>
+                  <th>이름</th>
+                  <th>가입일</th>
+                  <th>구독 상태</th>
+                  <th>구독 플랜</th>
+                  <th>시작일</th>
+                  <th>종료일</th>
+                  <th>권한</th>
+                  <th>관리</th>
+                </tr>
+              </thead>
+              <tbody id="userTbody">
+                <!-- JS에서 불러옴 -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 구독 / 결제 탭 (추후 확장용) -->
+          <div class="tab-pane" id="tab-subscription">
+            <p class="placeholder-text">
+              이 영역에는 구독/결제 통계를 요약해서 보여줄 수 있어요.<br/>
+              예: 플랜별 회원 수, 월별 결제 금액, 결제 수단 비율 등.<br/>
+              우선은 위의 KPI와 회원 리스트를 기준으로 운영하고,<br/>
+              나중에 server.js에서 결제 로그 API가 정리되면 여기로 붙이면 됩니다.
+            </p>
+          </div>
+
+          <!-- 로그 / 활동 탭 (추후 확장용) -->
+          <div class="tab-pane" id="tab-logs">
+            <p class="placeholder-text">
+              이 영역에는 로그인 로그 / 다운로드 로그 / 업로드 로그의 요약을 넣을 수 있어요.<br/>
+              예: 최근 7일간 로그인 많은 회원 TOP5, 다운로드 많은 회원 TOP5 등.<br/>
+              지금은 기본 UI 구조만 만들어두었고,<br/>
+              로그 테이블과 API가 준비되면 테이블/그래프를 추가하면 됩니다.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 오른쪽: 사이드 카드 3개 -->
+    <div class="main-right">
+      <!-- 구독 해지한 회원 10명 (최신순) -->
+      <div class="card side-card">
+        <h3>구독 해지한 회원 10명</h3>
+        <div class="side-card-sub">최근 해지 순</div>
+        <ul class="side-list" id="cancelledList">
+          <li class="side-empty">데이터를 불러오는 중.</li>
+        </ul>
+      </div>
+
+      <!-- 최근 신규 구독결제 20명 -->
+      <div class="card side-card">
+        <h3>최근 신규 구독결제 20명</h3>
+        <div class="side-card-sub">최근 결제 순</div>
+        <ul class="side-list" id="newSubsList">
+          <li class="side-empty">데이터를 불러오는 중.</li>
+        </ul>
+      </div>
+
+      <!-- 신규 가입 15명 (최근 가입순) -->
+      <div class="card side-card">
+        <h3>신규 가입 15명</h3>
+        <div class="side-card-sub">최근 가입순</div>
+        <ul class="side-list" id="newUsersList">
+          <li class="side-empty">데이터를 불러오는 중.</li>
+        </ul>
+      </div>
+
+      <!-- 업로드 확인 요청 목록 (확인중) -->
+      <div class="card side-card">
+        <h3>업로드 확인 요청 목록</h3>
+        <div class="side-card-sub">확인중 상태 · 요청 빠른 순</div>
+        <ul class="side-list" id="uploadPendingList">
+          <li class="side-empty">데이터를 불러오는 중.</li>
+        </ul>
+      </div>
+
+      <!-- 업로드 제작 진행 목록 (제작중) -->
+      <div class="card side-card">
+        <h3>업로드 제작 진행 목록</h3>
+        <div class="side-card-sub">제작중 상태 · 진행 시작 빠른 순</div>
+        <ul class="side-list" id="uploadInProgressList">
+          <li class="side-empty">데이터를 불러오는 중.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
 
   <!-- 모달 -->
   <div id="subscriptionModal" class="modal-overlay">
     <div class="modal">
       <p id="modalText">이 사용자의 구독을 연장하시겠습니까?</p>
+
+      <!-- 회원 삭제 때만 사용하는 관리자 비밀번호 입력 -->
+      <div id="adminPwWrapper" style="margin-top:10px; display:none;">
+        <label style="font-size:13px; color:#555; display:block; margin-bottom:4px;">
+          관리자 로그인 비밀번호를 입력하세요.
+        </label>
+        <input
+          type="password"
+          id="adminPasswordInput"
+          placeholder="비밀번호"
+          style="width:100%; padding:6px 8px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px;"
+        >
+      </div>
+
       <div class="modal-buttons">
         <button onclick="confirmAction()">✅ 확인</button>
         <button onclick="closeModal()">❌ 취소</button>
@@ -100,75 +870,903 @@
     </div>
   </div>
 
+  <!-- Chart.js (그래프용) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <script>
     let selectedUser = null;
     let selectedAction = null;
 
-    async function loadUsers() {
-      const res = await fetch('/api/admin/users', { credentials: 'include' });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.success) {
-        console.error('회원 로드 실패:', data);
-        alert(data.message || '회원 목록을 불러오지 못했습니다.');
-        return;
+    // 대시보드 상태
+    const dashboardState = {
+      users: [],
+      userMap: new Map(),   // 🔹 id → user 객체 매핑
+      chart: null,
+      range: 30, // 기본 30일
+      seriesEnabled: {
+        visitors: true,
+        signups: true,
+        downloads: true,
+        uploads: true
       }
+    };
 
-    const users = data.users || [];
-    const tbody = document.getElementById('userTbody');
-    tbody.innerHTML = '';
+    // ===== 회원 목록 로드 (대시보드 연동 + 카드형 렌더) =====
+    async function loadUsers() {
+      const tbody   = document.getElementById('userTbody');
+      const table   = document.getElementById('userTable');
+      const loading = document.getElementById('loadingArea');
 
-    users.forEach(u => {
-      const isAdmin     = !!u.isAdmin;              // 응답은 isAdmin 키로 들어옴
-      const currentPlan = (u.plan || '').toLowerCase();
-        const subscribedByPlan = ['basic','standard','pro'].includes(currentPlan); // ✅ 세 플랜은 모두 '구독'
-      const planClass   = currentPlan ? `plan-${currentPlan}` : '';
-      const planLabel   = currentPlan ? (currentPlan[0].toUpperCase() + currentPlan.slice(1)) : '';
+      // 로딩 시작: 테이블 감추고 스피너 보이기
+      if (loading) loading.style.display = 'flex';
+      if (table)   table.style.display   = 'none';
 
-      const row = document.createElement('tr');
-      // 🔁 시작/종료일 키 다양성 흡수
-      const subStart = u.subscription_start ?? u.sub_start ?? u.plan_start ?? u.start_at ?? u.start_date ?? null;
-      const subEnd   = u.subscription_end   ?? u.sub_end   ?? u.plan_end   ?? u.end_at   ?? u.end_date   ?? null;
+      try {
+        const res  = await fetch('/api/admin/users', { credentials: 'include' });
+        const data = await res.json().catch(() => ({}));
 
-      row.innerHTML = `
-        <td>${u.id}</td>
-        <td>${u.email}</td>
-        <td>${u.name}</td>
-        <td>${u.created_at?.slice(0,10) || '-'}</td>
-        <td style="color:${currentPlan ? 'green' : 'gray'}">
-          ${
-            currentPlan
-              ? (currentPlan==='basic' ? '베이직' : currentPlan==='standard' ? '스탠다드' : currentPlan==='pro' ? '프로' : currentPlan)
-              : '미구독'
-          }
-        </td>
-        <td>
-          <select data-user-id="${u.id}" onchange="changePlan(this)">
-            <option value="">-</option>
-            <option value="basic" ${currentPlan === 'basic' ? 'selected' : ''}>Basic</option>
-            <option value="standard" ${currentPlan === 'standard' ? 'selected' : ''}>Standard</option>
-            <option value="pro" ${currentPlan === 'pro' ? 'selected' : ''}>Pro</option>
-          </select>
-        </td>
-        <td>${subStart ? String(subStart).slice(0,10) : '-'}</td>
-        <td>${subEnd ? String(subEnd).slice(0,10) : '-'}</td>
-        <td>
-          <span class="role-badge ${isAdmin ? 'role-admin' : 'role-user'}">${isAdmin ? '관리자' : '일반'}</span>
-        </td>
-        <td>
-          <button class="btn btn-extend" onclick="openModal('extend','${u.id}')">🔄 연장</button>
-          <button class="btn btn-cancel" onclick="openModal('cancel','${u.id}')">❌ 해지</button>
-          ${
-            isAdmin
-              ? `<button class="btn" style="margin-left:6px;background:#ff9800;color:#fff" onclick="openModal('revoke_admin','${u.id}')">관리자 해제</button>`
-              : `<button class="btn" style="margin-left:6px;background:#3f51b5;color:#fff" onclick="openModal('grant_admin','${u.id}')">관리자 부여</button>`
-          }
-        </td>
-      `;
-      tbody.appendChild(row);
-    });
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || '회원 목록을 불러오지 못했습니다.');
+        }
 
+        const users = data.users || [];
+        dashboardState.users = users;
+
+        // 🔹 id / email 둘 다로 찾아쓸 수 있게 매핑
+        const map = new Map();
+        users.forEach(u => {
+          if (!u) return;
+
+          const idKey    = (u.id    != null) ? String(u.id).trim()    : '';
+          const emailKey = (u.email != null) ? String(u.email).trim() : '';
+
+          if (idKey)    map.set(idKey, u);    // social ID, 로컬 ID
+          if (emailKey) map.set(emailKey, u); // 이메일로도 접근 가능
+        });
+        dashboardState.userMap = map;
+
+        if (tbody) tbody.innerHTML = '';
+
+        users.forEach(u => {
+          const isAdmin = !!u.isAdmin;
+          const plan = (u.plan || '').toLowerCase();
+          const subscribedByPlan = ['basic','standard','pro'].includes(plan);
+
+          const subStartRaw =
+            u.subscription_start ?? u.sub_start ?? u.plan_start ?? u.start_at ?? u.start_date ?? null;
+          const subEndRaw =
+            u.subscription_end   ?? u.sub_end   ?? u.plan_end   ?? u.end_at   ?? u.end_date   ?? null;
+
+          const avatar    = u.avatarUrl || 'default-avatar.png'; // 프로필사진 (없으면 기본 이미지)
+          const displayId = getDisplayId(u) || (u.id && String(u.id)) || '';
+          const createdAtStr = formatDateYMD(u.created_at || u.createdAt);
+
+          const subStateLabel = subscribedByPlan
+            ? (plan === 'basic'
+                ? '베이직'
+                : plan === 'standard'
+                  ? '스탠다드'
+                  : plan === 'pro'
+                    ? '프로'
+                    : plan)
+            : '미구독';
+
+          const row = document.createElement('tr');
+          // 검색/필터용 데이터 셋팅
+          row.dataset.id      = displayId;
+          row.dataset.email   = u.email || '';
+          row.dataset.name    = u.name || '';
+          row.dataset.isAdmin = isAdmin ? '1' : '0';
+          row.dataset.plan    = subscribedByPlan ? plan : 'none';  // basic / standard / pro / none
+
+
+          row.innerHTML = `
+            <td colspan="10">
+              <div class="user-card">
+                <div class="user-main">
+                  <div class="user-profile">
+                    <img
+                      class="user-avatar"
+                      src="${u.avatarUrl || '/image_index/profile.svg'}"
+                      alt="프로필"
+                    >
+                  </div>
+
+                  <div class="user-id-email">
+                    <div class="uid">${displayId || '-'}</div>
+                    <div class="uemail">${u.email || '-'}</div>
+                  </div>
+
+                  <div class="user-name">
+                    <div class="name-line">${u.name || '-'}</div>
+                    ${isAdmin ? '<div class="admin-tag">관리자</div>' : ''}
+                  </div>
+
+                  <div class="user-join-sub">
+                    <div class="join">${createdAtStr}</div>
+                    <div class="substate-pill ${subscribedByPlan ? 'on' : ''}">
+                      ${subStateLabel}
+                    </div>
+                  </div>
+
+                  <div class="user-plan">
+                    <select data-user-id="${u.id}" onchange="changePlan(this)">
+                      <option value="">-</option>
+                      <option value="basic" ${plan === 'basic' ? 'selected' : ''}>Basic</option>
+                      <option value="standard" ${plan === 'standard' ? 'selected' : ''}>Standard</option>
+                      <option value="pro" ${plan === 'pro' ? 'selected' : ''}>Pro</option>
+                    </select>
+                  </div>
+
+                  <div class="user-period">
+                    <span>시작일: ${formatDateYMD(subStartRaw)}</span>
+                    <span>종료일: ${formatDateYMD(subEndRaw)}</span>
+                  </div>
+                </div>
+
+                <div class="user-more-wrap">
+                  <button type="button" class="more-btn" data-user-id="${u.id}">
+                    <span class="more-btn-icon">⋮</span>
+                  </button>
+                  <div class="more-menu">
+                    <div class="more-menu-item" data-action="extend" data-user-id="${u.id}">
+                      <span class="label">연장</span>
+                    </div>
+                    <div class="more-menu-item" data-action="cancel" data-user-id="${u.id}">
+                      <span class="label">해지</span>
+                    </div>
+                    <div class="more-menu-item"
+                         data-action="${isAdmin ? 'revoke_admin' : 'grant_admin'}"
+                         data-user-id="${u.id}">
+                      <span class="label">${isAdmin ? '관리자 해제' : '관리자 부여'}</span>
+                    </div>
+                    <div class="more-menu-item danger" data-action="delete_user" data-user-id="${u.id}">
+                      <span class="label">회원 삭제</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          `;
+
+          if (tbody) tbody.appendChild(row);
+        });
+
+        // 대시보드, 사이드바, 그래프 갱신
+        updateKpiFromUsers(users);
+        updateSidebarFromUsers(users);
+        rebuildChart();
+
+        // 더보기 드롭다운 이벤트 (최초 1회만 바인딩)
+        bindMoreMenuEvents();
+
+      } catch (e) {
+        console.error('회원 로드 실패:', e);
+        alert(e.message || '회원 목록을 불러오지 못했습니다.');
+      } finally {
+        if (loading) loading.style.display = 'none';
+        if (table)   table.style.display   = 'table';
+      }
     }
 
+    function updateKpiFromUsers(users) {
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const todayKey = today.toISOString().slice(0,10);
+
+      let todaySignups   = 0;
+      let subscribers    = 0;
+      let activeUsers30d = 0;
+
+      // 플랜별 카운트
+      let basicCount    = 0;
+      let standardCount = 0;
+      let proCount      = 0;
+
+      const nowMs = Date.now();
+      const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+
+      let hasLastLoginField = false;
+
+      users.forEach(u => {
+        const plan = (u.plan || '').toLowerCase();
+        if (['basic','standard','pro'].includes(plan)) {
+          subscribers++;
+          if (plan === 'basic')      basicCount++;
+          else if (plan === 'standard') standardCount++;
+          else if (plan === 'pro')   proCount++;
+        }
+
+        const created = u.created_at || u.createdAt || null;
+        if (created) {
+          const d = new Date(created);
+          if (!isNaN(d)) {
+            const key = d.toISOString().slice(0,10);
+            if (key === todayKey) {
+              todaySignups++;
+            }
+          }
+        }
+
+        const lastLoginRaw =
+          u.last_login || u.lastLogin || u.last_login_at || u.lastLoginAt || null;
+        if (lastLoginRaw) {
+          hasLastLoginField = true;
+          const d = new Date(lastLoginRaw);
+          if (!isNaN(d)) {
+            if (nowMs - d.getTime() <= THIRTY_DAYS) {
+              activeUsers30d++;
+            }
+          }
+        }
+      });
+
+      // KPI 반영
+      const elTodaySignups     = document.getElementById('kpiTodaySignups');
+      const elTodaySignupsSub  = document.getElementById('kpiTodaySignupsSub');
+      if (elTodaySignups)    elTodaySignups.textContent = todaySignups + '명';
+      if (elTodaySignupsSub) elTodaySignupsSub.textContent = '오늘 가입한 회원 수';
+
+      const elSubscribers    = document.getElementById('kpiSubscribers');
+      const elSubscribersSub = document.getElementById('kpiSubscribersSub');
+      if (elSubscribers)    elSubscribers.textContent = subscribers + '명';
+      if (elSubscribersSub) {
+        if (subscribers === 0) {
+          elSubscribersSub.textContent = '구독 중인 회원이 없습니다.';
+        } else {
+          elSubscribersSub.textContent =
+            `베이직 ${basicCount}명 · 스탠다드 ${standardCount}명 · 프로 ${proCount}명`;
+        }
+      }
+
+      const elActive    = document.getElementById('kpiActiveUsers');
+      const elActiveSub = document.getElementById('kpiActiveUsersSub');
+      if (hasLastLoginField) {
+        if (elActive)    elActive.textContent = activeUsers30d + '명';
+        if (elActiveSub) elActiveSub.textContent = '최근 30일 내 로그인한 회원 수';
+      } else {
+        if (elActive)    elActive.textContent = '-';
+        if (elActiveSub) elActiveSub.textContent = 'last_login 로그 연동 후 표시';
+      }
+
+      // 방문자 / 다운로드 / 업로드는 일단 서버 로그 연동 전이라 그대로 둠
+      const elVisitors    = document.getElementById('kpiTodayVisitors');
+      const elVisitorsSub = document.getElementById('kpiTodayVisitorsSub');
+      if (elVisitors)    elVisitors.textContent = '-';
+      if (elVisitorsSub) elVisitorsSub.textContent = '로그 연동 후 표시';
+
+      const elDown    = document.getElementById('kpiTodayDownloads');
+      const elDownSub = document.getElementById('kpiTodayDownloadsSub');
+      if (elDown)    elDown.textContent = '-';
+      if (elDownSub) elDownSub.textContent = '다운로드 로그 연동 후 표시';
+
+      const elUp    = document.getElementById('kpiTodayUploads');
+      const elUpSub = document.getElementById('kpiTodayUploadsSub');
+      if (elUp)    elUp.textContent = '-';
+      if (elUpSub) elUpSub.textContent = '업로드 로그 연동 후 표시';
+    }
+
+
+    // ===== 오른쪽 사이드 카드 내용 갱신 =====
+    function updateSidebarFromUsers(users) {
+      const cancelledList = document.getElementById('cancelledList'); // 구독 해지 10명
+      const newSubsList   = document.getElementById('newSubsList');   // 최근 신규 구독결제 20명
+      const newUsersList  = document.getElementById('newUsersList');  // 오늘 신규 가입 10명
+
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const todayKey = today.toISOString().slice(0,10);
+
+      // 1) 구독 해지한 회원 10명 (최신순)
+      if (cancelledList) {
+        cancelledList.innerHTML = '';
+        const cancelled = [];
+
+        users.forEach(u => {
+          // 해지일 후보: 전용 필드가 있으면 그걸 쓰고, 없으면 플랜이 없고 종료일 있는 경우 종료일 사용
+          const rawCancel =
+            u.subscription_cancelled_at ??
+            u.cancelled_at ??
+            u.canceled_at ??
+            u.sub_cancelled_at ??
+            null;
+
+          let d = null;
+
+          if (rawCancel) {
+            d = new Date(rawCancel);
+          } else {
+            const rawEnd =
+              u.subscription_end ?? u.sub_end ?? u.plan_end ?? u.end_at ?? u.end_date ?? null;
+            const plan = (u.plan || '').toLowerCase();
+            if (!plan && rawEnd) {
+              d = new Date(rawEnd);
+            }
+          }
+
+          if (!d || isNaN(d)) return;
+
+          cancelled.push({ user: u, cancelAt: d });
+        });
+
+        // 최신 해지 순 정렬
+        cancelled.sort((a, b) => b.cancelAt - a.cancelAt);
+        const top10 = cancelled.slice(0, 10);
+
+        if (top10.length === 0) {
+          cancelledList.innerHTML =
+            '<li class="side-empty">구독 해지한 회원이 아직 없습니다.</li>';
+        } else {
+          top10.forEach(({ user, cancelAt }) => {
+            const dateStr = cancelAt.toISOString().slice(0, 10);
+            const li = document.createElement('li');
+            li.innerHTML = `
+              <span class="side-id">${getDisplayId(user) || user.id}</span>
+              <span class="side-badge">${dateStr}</span>
+            `;
+            cancelledList.appendChild(li);
+          });
+        }
+      }
+
+      // 2) 최근 신규 구독결제 20명 (플랜 시작일 기준, 최신순)
+      if (newSubsList) {
+        newSubsList.innerHTML = '';
+        const subs = [];
+
+        users.forEach(u => {
+          const plan = (u.plan || '').toLowerCase();
+          if (!['basic', 'standard', 'pro'].includes(plan)) return;
+
+          const rawStart =
+            u.subscription_start ??
+            u.sub_start ??
+            u.plan_start ??
+            u.start_at ??
+            u.start_date ??
+            null;
+          if (!rawStart) return;
+
+          const d = new Date(rawStart);
+          if (isNaN(d)) return;
+
+          subs.push({ user: u, startAt: d, plan });
+        });
+
+        subs.sort((a, b) => b.startAt - a.startAt);
+        const top20 = subs.slice(0, 20);
+
+        if (top20.length === 0) {
+          newSubsList.innerHTML =
+            '<li class="side-empty">구독 중인 회원이 아직 없습니다.</li>';
+        } else {
+          top20.forEach(({ user, startAt, plan }) => {
+            const dateStr = startAt.toISOString().slice(0, 10);
+            const planLabel =
+              plan === 'basic'
+                ? 'Basic'
+                : plan === 'standard'
+                ? 'Standard'
+                : plan === 'pro'
+                ? 'Pro'
+                : plan;
+            const li = document.createElement('li');
+            li.innerHTML = `
+              <span class="side-id">${getDisplayId(user) || user.id}</span>
+              <span class="side-badge">${planLabel} · ${dateStr}</span>
+            `;
+            newSubsList.appendChild(li);
+          });
+        }
+      }
+
+      // 3) 신규 가입 15명 (최근 가입순)
+      if (newUsersList) {
+        newUsersList.innerHTML = '';
+        const recentNew = [];
+
+        users.forEach(u => {
+          const created = u.created_at || u.createdAt || null;
+          if (!created) return;
+          const d = new Date(created);
+          if (isNaN(d)) return;
+
+          recentNew.push({ user: u, createdAt: d });
+        });
+
+        // 최근 가입 순 (가장 최근이 위로)
+        recentNew.sort((a, b) => b.createdAt - a.createdAt);
+        const top15New = recentNew.slice(0, 15);
+
+        if (top15New.length === 0) {
+          newUsersList.innerHTML =
+            '<li class="side-empty">최근 가입한 회원이 없습니다.</li>';
+        } else {
+          top15New.forEach(({ user, createdAt }) => {
+            const dateStr = createdAt.toISOString().slice(0, 10); // YYYY-MM-DD
+            const li = document.createElement('li');
+            li.innerHTML = `
+              <span class="side-id">${getDisplayId(user) || user.id}</span>
+              <span class="side-badge">${dateStr}</span>
+            `;
+            newUsersList.appendChild(li);
+          });
+        }
+      }
+    }
+
+        // ===== 업로드 요약 패널 (확인 요청 / 제작 진행) =====
+    async function loadUploadPanels() {
+      const pendingList  = document.getElementById('uploadPendingList');
+      const progressList = document.getElementById('uploadInProgressList');
+
+      if (!pendingList && !progressList) return;
+
+      if (pendingList)  pendingList.innerHTML  = '<li class="side-empty">데이터를 불러오는 중.</li>';
+      if (progressList) progressList.innerHTML = '<li class="side-empty">데이터를 불러오는 중.</li>';
+
+      try {
+        // admin_upload_review.html 과 동일한 API 사용
+        const res  = await fetch('/api/admin/uploads', { credentials: 'include' });
+        const data = await res.json().catch(() => []);
+        if (!Array.isArray(data)) throw new Error('업로드 목록 형식 오류');
+        updateUploadPanels(data);
+      } catch (e) {
+        console.error('업로드 요약 패널 로드 실패:', e);
+        if (pendingList) {
+          pendingList.innerHTML =
+            '<li class="side-empty">업로드 확인 요청 목록을 불러오지 못했습니다.</li>';
+        }
+        if (progressList) {
+          progressList.innerHTML =
+            '<li class="side-empty">업로드 제작 진행 목록을 불러오지 못했습니다.</li>';
+        }
+      }
+    }
+
+    function updateUploadPanels(uploads) {
+      const pendingList  = document.getElementById('uploadPendingList');
+      const progressList = document.getElementById('uploadInProgressList');
+
+      if (!pendingList && !progressList) return;
+
+      if (pendingList)  pendingList.innerHTML  = '';
+      if (progressList) progressList.innerHTML = '';
+
+      // 업로드 객체 안에서 날짜 필드 여러 후보를 순서대로 찾아서 Date로 변환
+      const parseDateFromKeys = (u, keys) => {
+        for (const key of keys) {
+          const v = u[key];
+          if (!v) continue;
+          const d = new Date(v);
+          if (!isNaN(d)) {
+            d.setHours(0, 0, 0, 0);
+            return d;
+          }
+        }
+        return null;
+      };
+
+      // ✅ 업로더 표시용: 이메일 앞부분 우선, 그다음 사용자 정보, 마지막에 user_id
+const formatUploadUser = (u) => {
+  if (!u) return '';
+
+  // 1) 이메일 계열 먼저 확인 (소셜 로그인 포함 + user_id 도 같이 본다)
+  const emailLike = (
+    u.email ||
+    u.user_email ||
+    u.owner_email ||
+    u.uploader_email ||
+    u.user_id ||          // ✅ 추가
+    u.uploader ||
+    ''
+  ).trim();
+
+  if (emailLike && emailLike.includes('@')) {
+    // 이메일이면 @ 앞부분만 사용
+    return emailLike.split('@')[0];
+  }
+
+  // 2) 그 다음 user_id 계열 (이메일형이 아니라고 판단된 경우)
+  const rawId = (
+    u.user_id ||
+    u.userId ||
+    u.owner_id ||
+    u.ownerId ||
+    ''
+  ).trim();
+
+  // rawId 가 이메일 형식이면 마찬가지로 @ 앞부분만
+  if (rawId && rawId.includes('@')) {
+    return rawId.split('@')[0];
+  }
+
+  // 3) 둘 다 이메일이 아니면 있는 값 그대로
+  if (rawId) return rawId;
+  if (emailLike) return emailLike;
+  return '';
+};
+
+
+
+      // 1) 업로드 확인 요청 목록 (status === '확인중')
+      if (pendingList) {
+        const pending = uploads
+          .filter(u => u.status === '확인중')
+          .map(u => ({
+            userLabel: formatUploadUser(u),
+            requestedAt: parseDateFromKeys(u, [
+              'requested_at', 'request_at', 'request_date',
+              'created_at', 'createdAt', 'uploaded_at', 'uploadedAt'
+            ])
+          }))
+          // 요청일이 있는 건 먼저, 없는 건 뒤로
+          .sort((a, b) => {
+            const t1 = a.requestedAt ? a.requestedAt.getTime() : Infinity;
+            const t2 = b.requestedAt ? b.requestedAt.getTime() : Infinity;
+            return t1 - t2;
+          });
+
+        if (!pending.length) {
+          pendingList.innerHTML =
+            '<li class="side-empty">확인중인 업로드가 없습니다.</li>';
+        } else {
+          // 🔸 여기서는 slice 안 쓰고 전체를 다 그린다 (스크롤은 CSS max-height로 처리)
+          pending.forEach(item => {
+            let dateStr = '-';
+            let daysLabel = '';
+
+            if (item.requestedAt) {
+              const days = calcElapsedDays(item.requestedAt);
+              dateStr = formatDateYMD(item.requestedAt);
+              if (days != null) {
+                daysLabel =
+                  days === 0 ? ' · 오늘 요청' : ` · 요청 후 ${days}일 경과`;
+              }
+            }
+
+            const li = document.createElement('li');
+            li.innerHTML = `
+              <span class="side-id">${item.userLabel}</span>
+              <span class="side-badge">${dateStr}${daysLabel}</span>
+            `;
+            pendingList.appendChild(li);
+          });
+        }
+      }
+
+      // 2) 업로드 제작 진행 목록 (status === '제작중')
+      if (progressList) {
+        const progresses = uploads
+          .filter(u => u.status === '제작중')
+          .map(u => ({
+            userLabel: formatUploadUser(u),
+            startedAt: parseDateFromKeys(u, [
+              'in_progress_at', 'progress_started_at', 'progress_at',
+              'updated_at', 'updatedAt', 'started_at',
+              // 날짜가 따로 없으면 업로드일이라도 사용
+              'requested_at', 'request_at', 'request_date',
+              'created_at', 'createdAt', 'uploaded_at', 'uploadedAt'
+            ])
+          }))
+          // 시작일 있는 건 먼저, 없는 건 뒤로
+          .sort((a, b) => {
+            const t1 = a.startedAt ? a.startedAt.getTime() : Infinity;
+            const t2 = b.startedAt ? b.startedAt.getTime() : Infinity;
+            return t1 - t2;
+          });
+
+        if (!progresses.length) {
+          progressList.innerHTML =
+            '<li class="side-empty">제작중인 업로드가 없습니다.</li>';
+        } else {
+          // 🔸 여기도 slice 없이 전체 렌더 → 많아지면 스크롤
+          progresses.forEach(item => {
+            let dateStr = '-';
+            let daysLabel = '';
+
+            if (item.startedAt) {
+              const days = calcElapsedDays(item.startedAt);
+              dateStr = formatDateYMD(item.startedAt);
+              if (days != null) {
+                daysLabel =
+                  days === 0 ? ' · 오늘 시작' : ` · 제작 ${days}일째`;
+              }
+            }
+
+            const li = document.createElement('li');
+            li.innerHTML = `
+              <span class="side-id">${item.userLabel}</span>
+              <span class="side-badge">${dateStr}${daysLabel}</span>
+            `;
+            progressList.appendChild(li);
+          });
+        }
+      }
+    }
+
+    function getDisplayId(u) {
+      if (!u) return '';
+
+      const rawId    = (u.id && String(u.id).trim()) || '';
+      const rawEmail = (u.email || '').trim();
+      const name     = (u.name || '').trim();
+
+      // "소셜 로그인처럼 보이는 ID" 여부 (길고 숫자만 있는 경우)
+      const isWeirdId = rawId && /^[0-9]{10,}$/.test(rawId);
+
+      // 이메일이 있으면 @ 앞부분 추출
+      let emailPrefix = '';
+      if (rawEmail && rawEmail !== 'Kakao') {
+        emailPrefix = rawEmail.includes('@') ? rawEmail.split('@')[0] : rawEmail;
+      }
+
+      // 1) 구글/네이버/카카오처럼 숫자 ID인 경우 → 이메일 prefix 우선
+      if (isWeirdId && emailPrefix) return emailPrefix;
+
+      // 2) 일반 계정 (gh_6399 같은 것)은 원래 아이디 우선
+      if (!isWeirdId && rawId) return rawId;
+
+      // 3) 아이디가 없고 이메일만 있는 경우 → 이메일 prefix
+      if (emailPrefix) return emailPrefix;
+
+      // 4) 그 외 username / loginId / 이름 순
+      const fallback =
+        (u.username && String(u.username).trim()) ||
+        (u.loginId && String(u.loginId).trim()) ||
+        name ||
+        '';
+
+      return fallback;
+    }
+
+
+    function formatDateYMD(value) {
+      if (!value) return '-';
+      if (value instanceof Date) {
+        if (isNaN(value)) return '-';
+        return value.toISOString().slice(0, 10);
+      }
+      try {
+        const d = new Date(value);
+        if (!isNaN(d)) {
+          return d.toISOString().slice(0, 10);
+        }
+      } catch (e) {}
+      const s = String(value);
+      return s.length >= 10 ? s.slice(0, 10) : s;
+    }
+
+    // 기준 날짜(오늘) 대비 며칠 지났는지 (음수면 0일로 처리)
+    function calcElapsedDays(value) {
+      if (!value) return null;
+      let d = value instanceof Date ? value : new Date(value);
+      if (isNaN(d)) return null;
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      d.setHours(0, 0, 0, 0);
+
+      const diffMs = today.getTime() - d.getTime();
+      if (diffMs < 0) return 0;
+      return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    }
+
+    // ===== 더보기(⋮) 드롭다운 바인딩 =====
+
+    let moreMenuBound = false;
+    function bindMoreMenuEvents() {
+      if (moreMenuBound) return;
+      moreMenuBound = true;
+
+      const tbody = document.getElementById('userTbody');
+      if (!tbody) return;
+
+      // tbody 안에서 버튼 / 메뉴 클릭 처리
+      tbody.addEventListener('click', function(e) {
+        const btn = e.target.closest('.more-btn');
+        if (btn) {
+          const wrap = btn.closest('.user-more-wrap');
+          const menu = wrap ? wrap.querySelector('.more-menu') : null;
+          if (!menu) return;
+
+          // 다른 열린 메뉴들 닫기
+          tbody.querySelectorAll('.more-menu.open').forEach(m => {
+            if (m !== menu) m.classList.remove('open');
+          });
+
+          menu.classList.toggle('open');
+          return;
+        }
+
+        const item = e.target.closest('.more-menu-item');
+        if (item) {
+          const uid = item.dataset.userId;
+          const action = item.dataset.action;
+          if (uid && action) {
+            // 기존 모달 로직 그대로 사용
+            openModal(action, uid);
+          }
+
+          const menu = item.closest('.more-menu');
+          if (menu) menu.classList.remove('open');
+        }
+      });
+
+      // 바깥 클릭 시 메뉴 닫기
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.user-more-wrap')) {
+          document.querySelectorAll('.more-menu.open').forEach(m => m.classList.remove('open'));
+        }
+      });
+    }
+
+    // ===== 그래프 (Chart.js) 재구성 =====
+    function rebuildChart() {
+      const canvas = document.getElementById('userChart');
+      if (!canvas || typeof Chart === 'undefined') return;
+
+      const users = dashboardState.users || [];
+      const range = dashboardState.range || 30;
+
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      const signupCountByDate = {};
+
+      users.forEach(u => {
+        const created = u.created_at || u.createdAt || null;
+        if (!created) return;
+        const d = new Date(created);
+        if (isNaN(d)) return;
+        const key = d.toISOString().slice(0,10);
+        signupCountByDate[key] = (signupCountByDate[key] || 0) + 1;
+      });
+
+      const labels = [];
+      const visitorsData = [];
+      const signupsData  = [];
+      const downloadsData = [];
+      const uploadsData   = [];
+
+      for (let i = range - 1; i >= 0; i--) {
+        const dt = new Date(today);
+        dt.setDate(today.getDate() - i);
+        const key = dt.toISOString().slice(0,10);
+        labels.push((dt.getMonth() + 1) + '/' + dt.getDate());
+
+        signupsData.push(signupCountByDate[key] || 0);
+        visitorsData.push(0);  // 방문자수는 추후 로그 연동
+        downloadsData.push(0); // 다운로드수 추후 로그 연동
+        uploadsData.push(0);   // 업로드수 추후 로그 연동
+      }
+
+      if (!dashboardState.chart) {
+        const ctx = canvas.getContext('2d');
+        dashboardState.chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: '방문자',
+                data: visitorsData,
+                borderWidth: 2,
+                tension: 0.3
+              },
+              {
+                label: '가입 수',
+                data: signupsData,
+                borderWidth: 2,
+                tension: 0.3
+              },
+              {
+                label: '다운로드 수',
+                data: downloadsData,
+                borderWidth: 2,
+                tension: 0.3
+              },
+              {
+                label: '업로드 수',
+                data: uploadsData,
+                borderWidth: 2,
+                tension: 0.3
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } }
+            },
+            scales: {
+              x: { ticks: { font: { size: 11 } } },
+              y: {
+                beginAtZero: true,
+                ticks: { stepSize: 1, font: { size: 11 } }
+              }
+            }
+          }
+        });
+      } else {
+        const chart = dashboardState.chart;
+        chart.data.labels = labels;
+        chart.data.datasets[0].data = visitorsData;
+        chart.data.datasets[1].data = signupsData;
+        chart.data.datasets[2].data = downloadsData;
+        chart.data.datasets[3].data = uploadsData;
+        chart.update();
+      }
+
+      // 시리즈 토글 상태 반영
+      applySeriesToggleToChart();
+    }
+
+    // 체크박스로 시리즈 온/오프
+    function applySeriesToggleToChart() {
+      const chart = dashboardState.chart;
+      if (!chart) return;
+
+      const map = {
+        visitors: 0,
+        signups: 1,
+        downloads: 2,
+        uploads: 3
+      };
+
+      Object.keys(map).forEach(key => {
+        const idx = map[key];
+        const enabled = dashboardState.seriesEnabled[key];
+        if (chart.data.datasets[idx]) {
+          chart.data.datasets[idx].hidden = !enabled;
+        }
+      });
+
+      chart.update();
+    }
+
+    // ===== 탭 초기화 =====
+    function initTabs() {
+      const btns = document.querySelectorAll('.tab-btn');
+      const panes = document.querySelectorAll('.tab-pane');
+
+      btns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-target');
+          btns.forEach(b => b.classList.remove('active'));
+          panes.forEach(p => p.classList.remove('active'));
+
+          btn.classList.add('active');
+          const pane = document.getElementById(target);
+          if (pane) pane.classList.add('active');
+        });
+      });
+    }
+
+    // ===== 차트 필터(체크박스, 기간) 이벤트 =====
+    function initChartControls() {
+      const rangeSelect = document.getElementById('chartRange');
+      if (rangeSelect) {
+        rangeSelect.addEventListener('change', () => {
+          const v = parseInt(rangeSelect.value, 10);
+          dashboardState.range = isNaN(v) ? 30 : v;
+          rebuildChart();
+        });
+      }
+
+      document.querySelectorAll('.series-toggle').forEach(chk => {
+        chk.addEventListener('change', () => {
+          const key = chk.getAttribute('data-series');
+          if (!key) return;
+          dashboardState.seriesEnabled[key] = chk.checked;
+          applySeriesToggleToChart();
+        });
+      });
+    }
+
+    // ===== 모달 관련 기존 로직 유지 =====
     function openModal(action, userId) {
       selectedUser = userId;
       selectedAction = action;
@@ -178,55 +1776,85 @@
       else if (action === 'cancel') text = `'${userId}' 사용자의 구독을 해지하시겠습니까?`;
       else if (action === 'grant_admin') text = `'${userId}' 사용자에게 관리자 권한을 부여하시겠습니까?`;
       else if (action === 'revoke_admin') text = `'${userId}' 사용자의 관리자 권한을 해제하시겠습니까?`;
+      else if (action === 'delete_user')
+        text = `'${userId}' 회원을 정말 삭제하시겠습니까?\n(삭제 후 되돌릴 수 없습니다.)`;
 
       document.getElementById('modalText').innerText = text;
+
+      const pwWrap  = document.getElementById('adminPwWrapper');
+      const pwInput = document.getElementById('adminPasswordInput');
+      if (pwInput) pwInput.value = '';
+      if (pwWrap) pwWrap.style.display = (action === 'delete_user') ? 'block' : 'none';
+
       document.getElementById('subscriptionModal').style.display = 'block';
     }
 
-      // ✅ 추가: 모달 닫기
-  function closeModal() {
-    const m = document.getElementById('subscriptionModal');
-    if (m) m.style.display = 'none';
-    selectedUser = null;
-    selectedAction = null;
-  }
+    function closeModal() {
+      const m = document.getElementById('subscriptionModal');
+      if (m) m.style.display = 'none';
 
-async function confirmAction() {
-  let url = '';
-  let payload = {};
+      const pwWrap  = document.getElementById('adminPwWrapper');
+      const pwInput = document.getElementById('adminPasswordInput');
+      if (pwInput) pwInput.value = '';
+      if (pwWrap) pwWrap.style.display = 'none';
 
-  if (selectedAction === 'extend' || selectedAction === 'cancel') {
-    url = '/api/admin/update-subscription';
-    payload = { userId: selectedUser, action: selectedAction };
-  } else if (selectedAction === 'grant_admin' || selectedAction === 'revoke_admin') {
-    url = '/api/admin/update-role';
-    payload = { userId: selectedUser, makeAdmin: selectedAction === 'grant_admin' };
-  }
+      selectedUser = null;
+      selectedAction = null;
+    }
 
-  try {
-    const res  = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',            // 👈 추가
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json().catch(()=>({}));
-    alert(data.message || (res.ok ? '처리되었습니다.' : '요청 실패'));
-  } catch (e) {
-    alert('요청 처리 중 오류가 발생했습니다.');
-  } finally {
-    closeModal();
-    loadUsers();
-  }
-}
+    async function confirmAction() {
+      let url = '';
+      let payload = {};
 
+      if (selectedAction === 'extend' || selectedAction === 'cancel') {
+        url = '/api/admin/update-subscription';
+        payload = { userId: selectedUser, action: selectedAction };
+      } else if (selectedAction === 'grant_admin' || selectedAction === 'revoke_admin') {
+        url = '/api/admin/update-role';
+        payload = { userId: selectedUser, makeAdmin: selectedAction === 'grant_admin' };
+      } else if (selectedAction === 'delete_user') {
+        url = '/api/admin/delete-user';
+
+        const pwInput = document.getElementById('adminPasswordInput');
+        const adminPassword = pwInput ? pwInput.value.trim() : '';
+        if (!adminPassword) {
+          alert('관리자 비밀번호를 입력해주세요.');
+          if (pwInput) pwInput.focus();
+          return;
+        }
+        payload = { userId: selectedUser, adminPassword };
+      }
+
+      if (!url) {
+        closeModal();
+        return;
+      }
+
+      try {
+        const res  = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(()=>({}));
+        alert(data.message || (res.ok ? '처리되었습니다.' : '요청 실패'));
+      } catch (e) {
+        alert('요청 처리 중 오류가 발생했습니다.');
+      } finally {
+        closeModal();
+        loadUsers();
+      }
+    }
+
+// ===== 플랜 변경 (수정된 버전) =====
 async function changePlan(selectEl) {
   const userId = selectEl.dataset.userId;
-  const plan   = selectEl.value;   // '', 'basic', 'standard', 'pro'
+  const plan   = selectEl.value;
   if (!userId) return;
 
   const msg = plan
-    ? `이 사용자의 구독 플랜을 ${plan.toUpperCase()}로 변경할까요?`
+    ? '이 사용자의 구독 플랜을 ' + plan.toUpperCase() + '로 변경할까요?'
     : '이 사용자의 구독 플랜을 제거할까요?';
   if (!confirm(msg)) {
     loadUsers();
@@ -243,34 +1871,110 @@ async function changePlan(selectEl) {
 
     const raw = await res.text();
     let data;
-    try { data = JSON.parse(raw); } catch { data = { success:false, message: raw }; }
+    try {
+      data = JSON.parse(raw);
+    } catch (e) {
+      data = { success: false, message: raw };
+    }
 
-    if (!res.ok || !data?.success) {
-      throw new Error(`[${res.status}] ${data?.message || raw || '플랜 변경 실패'}`);
+    if (!res.ok || !data || !data.success) {
+      const errMsg =
+        '[' + res.status + '] ' + (data && data.message ? data.message : (raw || '플랜 변경 실패'));
+      throw new Error(errMsg);
     }
 
     alert(data.message || '플랜이 변경되었습니다.');
     loadUsers();
   } catch (e) {
     console.error('changePlan error:', e);
-    alert(`플랜 변경에 실패했습니다.\n사유: ${e.message}\n\n점검:\n1) 서버 재기동\n2) http://localhost:3001/api/admin/_ping-update-plan 접속해 { ok:true } 확인\n3) 현재 페이지가 admin_Membership.html인지 확인`);
+    alert(
+      '플랜 변경에 실패했습니다.\n' +
+      '사유: ' + e.message + '\n\n' +
+      '점검:\n' +
+      '1) 서버 재기동\n' +
+      '2) /api/admin/update-plan 라우터 정상 동작 확인\n' +
+      '3) 현재 페이지가 admin_Membership.html인지 확인'
+    );
     loadUsers();
   }
 }
 
-
+    // 검색: 아이디 / 이메일 / 이름 + 관리자 보기 + 구독 플랜 필터
     function filterTable() {
-      const input = document.getElementById("searchInput").value.toLowerCase();
+      const inputEl  = document.getElementById("searchInput");
+      const adminChk = document.getElementById("showAdminCheckbox");
+      const planSel  = document.getElementById("planFilter");
+
+      const keyword    = (inputEl?.value || '').toLowerCase();
+      const showAdmins = !adminChk || adminChk.checked;        // 체크 없으면 기본 true
+      const planFilter = (planSel?.value || '').toLowerCase(); // '' | none | basic | standard | pro
+
       const rows = document.getElementById("userTbody").getElementsByTagName("tr");
 
       for (let i = 0; i < rows.length; i++) {
-        const cells = rows[i].getElementsByTagName("td");
-        const match = [0,1,2].some(j => cells[j].innerText.toLowerCase().includes(input));
-        rows[i].style.display = match ? "" : "none";
+        const row = rows[i];
+
+        const id    = (row.dataset.id    || '').toLowerCase();
+        const email = (row.dataset.email || '').toLowerCase();
+        const name  = (row.dataset.name  || '').toLowerCase();
+        const isAdmin = row.dataset.isAdmin === '1';
+        const rowPlan = (row.dataset.plan || '').toLowerCase(); // none | basic | standard | pro
+
+        // 1) 관리자 보기 체크 해제면 관리자 숨김
+        if (!showAdmins && isAdmin) {
+          row.style.display = "none";
+          continue;
+        }
+
+        // 2) 구독 플랜 필터
+        if (planFilter) {
+          if (planFilter === 'none') {
+            if (rowPlan !== 'none') {
+              row.style.display = "none";
+              continue;
+            }
+          } else {
+            if (rowPlan !== planFilter) {
+              row.style.display = "none";
+              continue;
+            }
+          }
+        }
+
+        // 3) 검색어 필터 (아이디 / 이메일 / 이름)
+        const text = id + ' ' + email + ' ' + name;
+        row.style.display = text.includes(keyword) ? "" : "none";
       }
     }
 
-    loadUsers();
+    // ===== 검색창 자동완성 초기화 (기존) =====
+    function resetSearchBox() {
+      const s = document.getElementById('searchInput');
+      if (!s) return;
+      s.value = '';
+      s.setAttribute('value', '');
+    }
+
+    // DOM 준비 시: 탭, 차트 컨트롤 초기화
+    document.addEventListener('DOMContentLoaded', () => {
+      resetSearchBox();
+      initTabs();
+      initChartControls();
+    });
+
+    // window load 시: 검색창 몇 번 더 리셋 + 회원 목록 로드
+    window.addEventListener('load', async () => {
+      resetSearchBox();
+      setTimeout(resetSearchBox, 50);
+      setTimeout(resetSearchBox, 200);
+
+      // 🔹 회원 목록 먼저 불러오고 userMap 만든 다음에
+      await loadUsers();        // users + userMap 준비
+      // 🔹 그 다음 업로드 패널 그리기
+      loadUploadPanels();       // 업로드 확인/제작 진행 패널
+    });
+
+    window.addEventListener('pageshow', resetSearchBox);
   </script>
 </body>
 </html>

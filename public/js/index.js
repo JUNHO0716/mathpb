@@ -180,27 +180,47 @@ async function bindUser() {
     
     let displayName;
 
-    // 1) 카카오는 기존처럼 닉네임 그대로
-    if (u?.email === 'Kakao') {
-      displayName = u?.name || 'Guest';
+    const loginType = u?.loginType || 'local';
+    const rawId     = (typeof u?.id === 'string' ? u.id.trim() : '');
+    const rawEmail  = (u?.email || '').trim();
+    const name      = (u?.name || '').trim();
+
+    // 이메일이 있으면 @ 앞부분
+    let emailPrefix = '';
+    if (rawEmail && rawEmail !== 'Kakao') {
+      emailPrefix = rawEmail.includes('@') ? rawEmail.split('@')[0] : rawEmail;
     }
-    // 2) 그 외는 'ID'를 최우선으로 표기
-    else if (typeof u?.id === 'string' && u.id.trim()) {
-      displayName = u.id.trim();
+
+    // 1) 소셜 로그인(google/naver/kakao) → 이메일 @ 앞부분 우선
+    if (loginType !== 'local') {
+      if (emailPrefix)      displayName = emailPrefix;
+      else if (name)        displayName = name;
+      else if (rawId)       displayName = rawId;
+      else                  displayName = 'Guest';
+    }
+    // 2) 예전 카카오(이메일이 'Kakao'로만 오는 경우) → 이름 사용
+    else if (rawEmail === 'Kakao' && name) {
+      displayName = name;
+    }
+    // 3) 일반 로그인 → 아이디 / username / loginId
+    else if (rawId) {
+      displayName = rawId;
     } else if (typeof u?.username === 'string' && u.username.trim()) {
       displayName = u.username.trim();
     } else if (typeof u?.loginId === 'string' && u.loginId.trim()) {
       displayName = u.loginId.trim();
     }
-    // 3) 폴백: 이메일 @앞 → 이름 → Guest
-    else if (u?.email) {
-      displayName = u.email.split('@')[0];
+    // 4) 그 외는 이메일 @앞 → 이름 → Guest
+    else if (emailPrefix) {
+      displayName = emailPrefix;
+    } else if (name) {
+      displayName = name;
     } else {
-      displayName = u?.name || 'Guest';
+      displayName = 'Guest';
     }
 
-    document.getElementById('index-headerProfileName').textContent = displayName || 'Guest';
-
+    document.getElementById('index-headerProfileName').textContent =
+      displayName || 'Guest';
     
     const avatarEl = document.getElementById('index-headerAvatar');
     

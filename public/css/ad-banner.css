@@ -33,7 +33,7 @@
   height: 100%;
 }
 
-/* 모든 카드 공통 스타일 */
+/* 모든 카드 공통 스타일 (이미지 → 텍스트 패널 카드) */
 .ad-card{
   position: absolute;
   bottom: 0;
@@ -42,13 +42,27 @@
   height: 95%;
   border-radius: 20px;
   overflow: hidden;
-  background: #f7f7fb;
   box-shadow: 0 12px 24px rgba(0,0,0,.15);
   transform-origin: bottom right;
   opacity: 0;
   transition: transform .7s cubic-bezier(.25,1,.35,1), opacity .7s;
   will-change: transform, opacity;
+
+  /* 텍스트 카드용 추가 */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 24px 28px;
+  color: #fff;
+  background: #111827; /* 기본 배경 (개별 카드 색으로 덮어씀) */
 }
+
+/* 기존 이미지 전용 스타일은 더 이상 필요 없지만 있어도 상관 없음.
+   깔끔하게 없애고 싶으면 아래 블록 삭제해도 됨. */
+/* .ad-card img{
+  width:100%; height:100%; object-fit:cover; display:block;
+} */
+
 
 /* 계단 구조 */
 /* 맨 아래(가장 작음) – 오른쪽·아래 쪽에 근접 */
@@ -68,12 +82,6 @@
   transform: translate(-8%, -2px) scale(1) rotateY(0deg);
   opacity: 1; z-index: 3;
 }
-
-/* 이미지 꽉 채움 */
-.ad-card img{
-  width:100%; height:100%; object-fit:cover; display:block;
-}
-
 /* 도트 동일 */
 .ad-dots{
   position:absolute; left:14px; bottom:14px; display:flex; gap:8px; z-index:5;
@@ -312,4 +320,54 @@
   transform: translateX(6px); /* 4~8px 사이로 미세 조정 */
   will-change: transform;
   transition: none;           /* 호버 때 흔들림 방지 */
+}
+
+/* ===== 색 카드 내부 레이아웃 / 타이포 ===== */
+
+.ad-card-content{
+  max-width: 75%;
+}
+
+.ad-card-tag{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:0.7rem;
+  font-weight:600;
+  letter-spacing:0.02em;
+  background:rgba(0,0,0,0.16);
+  backdrop-filter:blur(6px);
+  margin-bottom:8px;
+}
+
+.ad-card-title{
+  font-size:1.3rem;
+  font-weight:800;
+  letter-spacing:-0.02em;
+  margin-bottom:6px;
+}
+
+.ad-card-desc{
+  font-size:0.9rem;
+  opacity:0.9;
+}
+
+/* ===== 카드별 배경 색 (1~4번) ===== */
+
+#AdBannerRoot .ad-card-1{
+  background: radial-gradient(circle at 0% 0%, #6ac26f 0%, #4b9b52 45%, #2f7f3a 100%);
+}
+
+#AdBannerRoot .ad-card-2{
+  background: radial-gradient(circle at 0% 0%, #8ec5fc 0%, #4facfe 45%, #3b82f6 100%);
+}
+
+#AdBannerRoot .ad-card-3{
+  background: radial-gradient(circle at 0% 0%, #ffe082 0%, #ffb74d 45%, #ff8a65 100%);
+}
+
+#AdBannerRoot .ad-card-4{
+  background: radial-gradient(circle at 0% 0%, #a18cd1 0%, #fbc2eb 45%, #f48fb1 100%);
 }

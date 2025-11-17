@@ -7,31 +7,178 @@
   <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR:700,400&display=swap" rel="stylesheet">
   <style>
     body { background: #f5f5f7; font-family: 'Noto Sans KR', Arial, sans-serif; }
-    .admin-table-box {
-      max-width: 1480px;   /* ✅ 더 넓게 */
-      margin: 50px auto 0;
-      background: #fff;
-      border-radius: 22px;
-      box-shadow: 0 4px 32px #0001;
-      padding: 38px 36px 40px 36px;
-    }
+
+    /* 제목은 전체 폭 기준으로 */
     h2 {
-      margin-bottom: 30px;
+      max-width: 1480px;
+      margin: 40px auto 16px;
       text-align: left;
       font-size: 1.48rem;  /* 글씨 약간 축소 */
       font-weight: 900;
       color: #181818;
       letter-spacing: -2px;
     }
+
+    .admin-table-box {
+      max-width: 1480px;   /* 내용 패널 폭 */
+      margin: 0 auto 40px; /* 위에는 커버리지, 아래 여백 */
+      background: #fff;
+      border-radius: 22px;
+      box-shadow: 0 4px 32px #0001;
+      padding: 38px 36px 40px 36px;
+    }
+
+    /* ===== 커버리지 요약 영역 ===== */
+    .cov-section {
+      max-width: 1480px;          /* 박스 밖으로 빼도 가운데 정렬 */
+      margin: 0 auto 22px;
+      padding: 12px 16px 16px 16px;
+      border-radius: 18px;
+      background: #f7f8ff;
+      border: 1px solid #e2e5ff;
+    }
+
+    .cov-filter-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .cov-filter-left {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .cov-filter-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .cov-filter-row select {
+      background: #ffffff;
+      border-radius: 999px;
+      border: 1px solid #dde1ff;
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      min-width: 90px;
+      color: #111827;
+      outline: none;
+      transition: border 0.13s, box-shadow 0.13s;
+    }
+    .cov-filter-row select:focus {
+      border-color: #4b7cff;
+      box-shadow: 0 0 0 1px #4b7cff33;
+    }
+
+    .cov-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: stretch;
+    }
+    .cov-card {
+      flex: 1 1 180px;
+      min-width: 0;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 10px 12px 11px 12px;
+      box-shadow: 0 4px 12px rgba(31, 41, 68, 0.06);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: box-shadow .15s, transform .12s, border-color .15s, background .15s;
+    }
+    .cov-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(31, 41, 68, 0.09);
+    }
+    .cov-card.cov-card-selected {
+      border-color: #4b7cff;
+      box-shadow: 0 0 0 1px rgba(75, 124, 255, 0.4), 0 8px 20px rgba(53, 86, 182, 0.18);
+      background: linear-gradient(135deg, #f5f7ff, #f9fffb);
+    }
+    .cov-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+      gap: 6px;
+    }
+    .cov-city {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #111827;
+      letter-spacing: -0.03em;
+    }
+    .cov-pct {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #4b7cff;
+    }
+    .cov-bar {
+      position: relative;
+      width: 100%;
+      height: 7px;
+      border-radius: 999px;
+      background: #eef0ff;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+    .cov-bar-inner {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0;
+      border-radius: 999px;
+      background-image: linear-gradient(90deg, #4b7cff, #6ee7b7);
+      transition: width 0.25s ease-out;
+    }
+    .cov-count {
+      font-size: 0.78rem;
+      color: #6b7280;
+    }
+    .cov-loading, .cov-empty, .cov-error {
+      font-size: 0.9rem;
+      color: #6b7280;
+    }
+
+    /* ===== 좌측 테이블 + 우측 상세 레이아웃 ===== */
+    .admin-main {
+      display: grid;
+      grid-template-columns: minmax(0, 2.4fr) minmax(260px, 0.9fr);
+      gap: 24px;
+      align-items: flex-start;
+      margin-top: 10px;
+    }
+    .admin-main-left { min-width: 0; }
+    .admin-main-right { min-width: 0; }
+
     .search-bar {
       display: flex;
       gap: 10px;
-      margin-bottom: 20px;
+      margin-bottom: 12px;
       justify-content: flex-end;
       align-items: center;
       flex-wrap: wrap;
     }
-    .search-bar select,
+    .search-bar select {
+      background: #fafafc;
+      border: 1.5px solid #d3d4da;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.95rem;
+      color: #222;
+      outline: none;
+      min-width: 90px;
+      margin-bottom: 3px;
+    }
+    .search-bar select:focus {
+      border-color: #ffc400;
+      background: #fffbe9;
+    }
     .search-bar input {
       background: #fafafc;
       border: 1.5px solid #d3d4da;
@@ -44,11 +191,12 @@
       min-width: 82px;
       margin-bottom: 3px;
     }
+
     .search-bar input[type="number"] {
       width: 70px;
       min-width: 60px;
     }
-    .search-bar select:focus, .search-bar input:focus {
+    .search-bar input:focus {
       border-color: #ffc400;
       background: #fffbe9;
     }
@@ -74,13 +222,14 @@
       font-weight: 500;
     }
     .search-bar button:active { background: #ffd54f; }
-    .msg { text-align: center; margin-top: 8px; font-size: 0.98rem; color: #181818; }
+
+    .msg { text-align: left; margin: 4px 0 6px; font-size: 0.95rem; color: #555; }
 
     table {
       width: 100%;
       border-collapse: separate;
       border-spacing: 0;
-      margin-top: 10px;
+      margin-top: 4px;
       background: #fff;
       border-radius: 14px;
       overflow: hidden;
@@ -117,7 +266,11 @@
       background: #fffbe8 !important;
       transition: background 0.16s;
     }
-    /* 다운로드 버튼만 남기고, 노란색 */
+    tr.row-selected td {
+      background: #eff6ff !important;
+    }
+
+    /* 다운로드 버튼 */
     .download-btn {
       background: #fffbe8;
       color: #ffa900;
@@ -131,6 +284,8 @@
       vertical-align: middle;
       margin: 0 2px;
       min-width: 72px;
+      text-decoration: none;
+      display: inline-block;
     }
     .download-btn:hover {
       background: #fffde2;
@@ -156,11 +311,147 @@
     .edit-btn:hover { background: #ffe46e; }
     .delete-btn:hover { background: #2d2d2d; color: #ff5353; }
     .delete-btn:disabled, .edit-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    /* ===== 우측 파일 상세 패널 ===== */
+    .file-detail-panel {
+      background: #f9fafb;
+      border-radius: 20px;
+      padding: 18px 18px 16px 18px;
+      box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06) inset;
+      border: 1px solid #e5e7eb;
+      font-size: 0.9rem;
+      min-height: 230px;
+    }
+    .detail-empty {
+      color: #9ca3af;
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 40px 8px;
+    }
+    .detail-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .detail-file-icon {
+      width: 48px;
+      height: 64px;
+      border-radius: 14px;
+      background: linear-gradient(145deg, #f97373, #fbbf24);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 12px rgba(248, 113, 113, 0.35);
+    }
+    .detail-icon-ext {
+      color: #fff;
+      font-weight: 800;
+      font-size: 0.85rem;
+    }
+    .detail-title {
+      font-weight: 800;
+      font-size: 1.0rem;
+      color: #111827;
+      margin-bottom: 4px;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .detail-sub {
+      font-size: 0.82rem;
+      color: #6b7280;
+    }
+    .detail-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .detail-tag {
+      font-size: 0.76rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #e5edff;
+      color: #1f2937;
+    }
+    .detail-meta {
+      border-top: 1px solid #e5e7eb;
+      padding-top: 8px;
+      margin-top: 4px;
+      margin-bottom: 12px;
+    }
+    .detail-meta-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      margin: 4px 0;
+      font-size: 0.83rem;
+    }
+    .detail-meta-label {
+      color: #9ca3af;
+      min-width: 52px;
+    }
+    .detail-meta-value {
+      color: #374151;
+      text-align: right;
+      flex: 1;
+    }
+    .detail-memo {
+      white-space: pre-line;
+    }
+    .detail-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .detail-btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: none;
+      text-decoration: none;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 7px rgba(15, 23, 42, 0.18);
+      background: #111827;
+      color: #fbbf24;
+      transition: background .15s, transform .12s, box-shadow .15s;
+    }
+    .detail-btn.secondary {
+      background: #e5e7eb;
+      color: #111827;
+      box-shadow: none;
+    }
+    .detail-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.22);
+    }
+    .detail-btn.secondary:hover {
+      background: #d1d5db;
+    }
+
     /* 반응형 */
     @media (max-width: 1200px) {
       .admin-table-box { max-width: 99vw; padding: 14px 2vw 16px 2vw; }
       table, th, td { font-size: 0.93rem; }
       th, td { padding: 6px 2px; }
+    }
+    @media (max-width: 1024px) {
+      .admin-main {
+        grid-template-columns: 1fr;
+      }
+      .admin-main-right {
+        order: -1;
+      }
+      .file-detail-panel {
+        margin-bottom: 14px;
+      }
     }
     @media (max-width: 950px) {
       .admin-table-box { padding: 8px 1vw 10px 1vw; }
@@ -168,6 +459,8 @@
       table, th, td { font-size: 0.89rem; }
       th, td { padding: 4px 1px; }
     }
+
+    /* ====== 이하 기존 모달/업로드 스타일 그대로 ====== */
 #edit-bg {
   display: none;
   position: fixed;
@@ -327,38 +620,137 @@
   </style>
 </head>
 <body>
-  <div class="admin-table-box">
-    <h2>자료 관리 (관리자)</h2>
-    <div class="search-bar">
-      <select id="search-level"><option value="">관 전체</option><option>중등</option><option>고등</option></select>
-      <select id="search-region"><option value="">지역 전체</option><option>서울</option><option>경기</option><option>인천</option><option>부산</option><option>대구</option><option>광주</option><option>대전</option><option>기타</option></select>
-      <input id="search-school" placeholder="학교명" style="width:95px;" />
-      <input id="search-title"  placeholder="자료명" style="width:95px;" />
-      <input id="search-year"   placeholder="연도"   style="width:70px;" type="number"/>
-      <button onclick="doSearch()">검색</button>
-      <button onclick="resetSearch()" style="margin-left:2px;">초기화</button>
+  <!-- 제목은 바깥으로 분리 -->
+  <h2>자료 관리 (관리자)</h2>
+
+  <!-- ===== 상단 커버리지 필터 + 카드 (패널 밖으로 분리) ===== -->
+  <div class="cov-section">
+    <div class="cov-filter-row">
+      <div class="cov-filter-left">
+        <select id="cov-level">
+          <option value="고등">고등</option>
+          <option value="중등">중등</option>
+        </select>
+        <select id="cov-grade">
+          <option value="">학년 전체</option>
+          <option value="1">1학년</option>
+          <option value="2">2학년</option>
+          <option value="3">3학년</option>
+        </select>
+        <select id="cov-year">
+          <!-- JS에서 /api/coverage/years 로 채움 -->
+        </select>
+      </div>
+      <div class="cov-filter-right">
+        <select id="cov-sort">
+          <option value="pct-desc">% 높은순</option>
+          <option value="pct-asc">% 낮은순</option>
+          <option value="filled-desc">파일 많은순</option>
+          <option value="name">지역 이름순</option>
+        </select>
+      </div>
     </div>
-    <div class="msg" id="msg"></div>
-    <table>
-      <thead>
-        <tr>
-          <th style="width: 55px;">ID</th>
-          <th style="width: 65px;">관</th>
-          <th style="width: 75px;">지역</th>
-          <th style="width: 85px;">구/군</th>
-          <th style="width: 155px;">학교</th>
-          <th style="width: 65px;">학년</th>
-          <th style="width: 70px;">연도</th>
-          <th style="width: 95px;">학기</th>
-          <th style="width: 260px;">제목</th>
-          <th style="width: 105px;">한글</th>
-          <th style="width: 105px;">PDF</th>
-          <th style="width: 155px;">관리</th>
-        </tr>
-      </thead>
-      <tbody id="file-list"><!-- JS로 채움 --></tbody>
-    </table>
+    <div class="cov-summary" id="cov-summary">
+      <!-- JS로 카드 렌더링 -->
+    </div>
   </div>
+
+  <!-- ===== 아래는 자료 리스트용 패널 ===== -->
+  <div class="admin-table-box">
+    <div class="admin-main">
+      <!-- 좌측 : 검색 + 테이블 -->
+      <div class="admin-main-left">
+        <div class="search-bar">
+          <!-- 파일 리스트 전용 필터 -->
+          <select id="file-semester">
+            <option value="">학기 전체</option>
+            <option value="1학기">1학기</option>
+            <option value="2학기">2학기</option>
+          </select>
+          <select id="file-exam-type">
+            <option value="">구분 전체</option>
+            <option value="중간">중간</option>
+            <option value="기말">기말</option>
+          </select>
+          <input id="search-school" placeholder="학교명" style="width:110px;" />
+          <input id="search-title"  placeholder="자료명" style="width:140px;" />
+          <button onclick="doSearch()">검색</button>
+          <button onclick="resetSearch()" style="margin-left:2px;">초기화</button>
+        </div>
+
+        <div class="msg" id="msg"></div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 55px;">ID</th>
+              <th style="width: 65px;">관</th>
+              <th style="width: 75px;">지역</th>
+              <th style="width: 85px;">구/군</th>
+              <th style="width: 155px;">학교</th>
+              <th style="width: 65px;">학년</th>
+              <th style="width: 70px;">연도</th>
+              <th style="width: 95px;">학기</th>
+              <th style="width: 260px;">제목</th>
+              <th style="width: 105px;">한글</th>
+              <th style="width: 105px;">PDF</th>
+              <th style="width: 155px;">관리</th>
+            </tr>
+          </thead>
+          <tbody id="file-list"><!-- JS로 채움 --></tbody>
+        </table>
+      </div>
+
+      <!-- 우측 : 선택한 파일 상세 패널 -->
+      <div class="admin-main-right">
+        <div class="file-detail-panel" id="file-detail-panel">
+          <div id="detail-empty" class="detail-empty">
+            왼쪽 목록에서 파일을 선택하면<br>상세 정보가 여기에 표시됩니다.
+          </div>
+          <div id="detail-body" style="display:none;">
+            <div class="detail-header">
+              <div class="detail-file-icon">
+                <span class="detail-icon-ext">FILE</span>
+              </div>
+              <div>
+                <div id="detail-title" class="detail-title"></div>
+                <div id="detail-sub" class="detail-sub"></div>
+              </div>
+            </div>
+            <div id="detail-tags" class="detail-tags"></div>
+            <div class="detail-meta">
+              <div class="detail-meta-row">
+                <span class="detail-meta-label">학교</span>
+                <span id="detail-meta-school" class="detail-meta-value"></span>
+              </div>
+              <div class="detail-meta-row">
+                <span class="detail-meta-label">지역</span>
+                <span id="detail-meta-region" class="detail-meta-value"></span>
+              </div>
+              <div class="detail-meta-row">
+                <span class="detail-meta-label">학년</span>
+                <span id="detail-meta-grade" class="detail-meta-value"></span>
+              </div>
+              <div class="detail-meta-row">
+                <span class="detail-meta-label">연도/학기</span>
+                <span id="detail-meta-year" class="detail-meta-value"></span>
+              </div>
+              <div class="detail-meta-row">
+                <span class="detail-meta-label">메모</span>
+                <span id="detail-meta-memo" class="detail-meta-value detail-memo"></span>
+              </div>
+            </div>
+            <div class="detail-actions">
+              <a id="detail-download-hwp" class="detail-btn" target="_blank">한글 다운로드</a>
+              <a id="detail-download-pdf" class="detail-btn secondary" target="_blank">PDF 다운로드</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==== 기존 수정 모달 / 프리뷰 ==== -->
   <div id="edit-bg">
     <div class="modal-box">
       <h3 style="margin-top:0">자료 정보 수정</h3>
@@ -370,13 +762,13 @@
         </select>
         <select name="region" required>
           <option value="">지역 선택</option>
-          <option>서울</option>
-          <option>경기</option>
-          <option>인천</option>
-          <option>부산</option>
-          <option>대구</option>
-          <option>광주</option>
-          <option>대전</option>
+          <option>서울특별시</option>
+          <option>경기도</option>
+          <option>인천광역시</option>
+          <option>부산광역시</option>
+          <option>대구광역시</option>
+          <option>광주광역시</option>
+          <option>대전광역시</option>
           <option>기타</option>
         </select>
         <input name="district"  placeholder="구/군"         required />
@@ -413,42 +805,83 @@
       </form>
     </div>
   </div>
+
   <div class="preview-bg" id="preview-bg">
     <div class="preview-content" id="preview-content">
       <button onclick="closePreview()" style="float:right;font-size:1.1rem;background:none;border:none;color:#f45a6a;">✕</button>
       <div id="preview-body"></div>
     </div>
   </div>
+
   <script>
-    // JS는 100% 그대로, 버튼만 수정
     let fileListOrigin = [];
     let editTargetId   = null;
+    let selectedFileId = null;
+
+    const covState = {
+      level: '고등',
+      grade: '',
+      year: '',
+      sort: 'pct-desc',
+      selectedCity: ''
+    };
+    let covSummaryData = [];
+
+    // ===== 공통 유틸 =====
+    function normalizeGradeNumber(g){
+      const m = String(g || '').match(/[1-3]/);
+      return m ? m[0] : '';
+    }
+    function shortCityName(name){
+      return String(name || '').replace(/(특별자치도|특별자치시|광역시|특별시|자치도|도)$/,'');
+    }
+
+    function shortCityName(name){
+      return String(name || '').replace(/(특별자치도|특별자치시|광역시|특별시|자치도|도)$/,'');
+    }
+
+    // 학기/중간·기말 텍스트 조합
+    function formatSemesterCell(r){
+      const sem  = (r.semester || '').trim();   // 예: '1학기'
+      const exam = (r.exam_type || '').trim();  // 예: '중간', '기말'
+      if (sem && exam) return `${sem} ${exam}`;
+      return sem || exam || '';
+    }
+
+    // ===== 파일 목록 불러오기 =====
     async function fetchFiles(){
       const res  = await fetch('/api/files',{credentials:'include'});
       if(res.status===401){
         alert('로그인 필요!'); location.href='/login.html'; return;
       }
       const list = await res.json();
-      fileListOrigin = list;
-      renderTable(list);
+      fileListOrigin = list || [];
     }
+
     function renderTable(list){
       const tbody = document.getElementById('file-list');
+      if(!tbody) return;
+
       if(!list.length){
         tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;color:#bbb;">자료가 없습니다</td></tr>`;
+        updateDetailPanel(null);
         return;
       }
-      tbody.innerHTML = list.map(r=>`
-        <tr>
+
+      tbody.innerHTML = list.map(r=>{
+        const isSel   = (selectedFileId === r.id);
+        const semText = formatSemesterCell(r);
+        return `
+        <tr class="${isSel ? 'row-selected' : ''}" onclick="onRowClick(event, ${r.id})">
           <td>${r.id}</td>
-          <td>${r.level||'-'}</td>
-          <td>${r.region}</td>
-          <td>${r.district}</td>
-          <td>${r.school}</td>
-          <td>${r.grade}</td>
-          <td>${r.year}</td>
-          <td>${r.semester}</td>
-          <td>${r.title}</td>
+          <td>${r.level || '-'}</td>
+          <td>${r.region || ''}</td>
+          <td>${r.district || ''}</td>
+          <td>${r.school || ''}</td>
+          <td>${r.grade || ''}</td>
+          <td>${r.year || ''}</td>
+          <td>${semText}</td>
+          <td>${r.title || ''}</td>
           <td>
             ${r.files && r.files.hwp ? `
               <a href="/api/download/${r.id}?type=hwp" class="download-btn" target="_blank">다운로드</a>
@@ -460,90 +893,345 @@
             ` : '-'}
           </td>
           <td>
-            <button class="edit-btn"   onclick="editFile(${r.id})">수정</button>
-            <button class="delete-btn" onclick="deleteFile(${r.id},this)">삭제</button>
+            <button class="edit-btn"   onclick="editFile(${r.id});event.stopPropagation();">수정</button>
+            <button class="delete-btn" onclick="deleteFile(${r.id},this);event.stopPropagation();">삭제</button>
           </td>
-        </tr>
-      `).join('');
+        </tr>`;
+      }).join('');
+
+      // 선택된 파일이 현재 리스트에 없으면 상세 패널 리셋
+      const selected = list.find(r => r.id === selectedFileId);
+      updateDetailPanel(selected || null);
     }
-    function doSearch(){
-      let level = document.getElementById('search-level').value;
-      let region= document.getElementById('search-region').value;
-      let school= document.getElementById('search-school').value.trim();
-      let title = document.getElementById('search-title').value.trim();
-      let year  = document.getElementById('search-year').value.trim();
-      let filtered = fileListOrigin.filter(r=>
-        (!level || r.level===level) &&
-        (!region|| r.region===region) &&
-        (!school|| (r.school && r.school.includes(school))) &&
-        (!title || (r.title  && r.title.includes(title))) &&
-        (!year  || String(r.year).includes(year))
-      );
+
+    // 행 클릭 시 선택 처리
+    function onRowClick(ev, id){
+      // 버튼/링크 클릭은 무시
+      if (ev.target.closest('button') || ev.target.closest('a')) return;
+      selectFile(id);
+    }
+    function selectFile(id){
+      selectedFileId = id;
+      applyFiltersAndRender();  // 다시 그리면서 선택 행 강조
+    }
+
+    // 텍스트 검색 + 상단 필터 종합 적용
+    // 텍스트 검색 + 파일 전용 필터 적용 (커버리지 필터와 분리)
+    function applyFiltersAndRender(){
+      const schoolTxt = document.getElementById('search-school')?.value.trim() || '';
+      const titleTxt  = document.getElementById('search-title')?.value.trim() || '';
+      const semFilter  = document.getElementById('file-semester')?.value.trim() || '';
+      const examFilter = document.getElementById('file-exam-type')?.value.trim() || '';
+
+      const filtered = fileListOrigin.filter(r=>{
+        // 학교명 / 제목 검색
+        if (schoolTxt && (!r.school || !String(r.school).includes(schoolTxt))) return false;
+        if (titleTxt && (!r.title || !String(r.title).includes(titleTxt))) return false;
+
+        // 학기(1학기 / 2학기) 필터 - '1학기중간' 같은 옛 데이터도 대응
+        if (semFilter) {
+          const semField = (r.semester || '').trim();
+          if (!(semField === semFilter || semField.startsWith(semFilter))) return false;
+        }
+
+        // 구분(중간 / 기말) 필터 - exam_type 분리 + 예전 문자열까지 처리
+        if (examFilter) {
+          const examType = (r.exam_type || '').trim();
+          const semField = (r.semester || '').trim();
+          if (examType) {
+            if (examType !== examFilter) return false;
+          } else {
+            if (!semField.includes(examFilter)) return false;
+          }
+        }
+
+        return true;
+      });
+
       renderTable(filtered);
     }
+
+
+    function doSearch(){
+      applyFiltersAndRender();
+    }
     function resetSearch(){
-      document.getElementById('search-level').value = '';
-      document.getElementById('search-region').value = '';
-      document.getElementById('search-school').value = '';
-      document.getElementById('search-title').value = '';
-      document.getElementById('search-year').value = '';
-      renderTable(fileListOrigin);
-    }
-    
-async function deleteFile(id, btn){
-  if (!confirm('정말 삭제하시겠습니까?')) return;
-  btn.disabled = true;
-  try {
-    const res = await fetch('/api/admin/files/' + id, {
-      method: 'DELETE',
-      credentials: 'include'
-    });
+      const school = document.getElementById('search-school');
+      const title  = document.getElementById('search-title');
+      const semSel  = document.getElementById('file-semester');
+      const examSel = document.getElementById('file-exam-type');
 
-    if (res.status === 401) {
-      alert('로그인 필요!');
-      location.href = '/login.html';
-      return;
+      if (school) school.value = '';
+      if (title)  title.value  = '';
+      if (semSel) semSel.value = '';
+      if (examSel) examSel.value = '';
+
+      // 커버리지 필터는 그대로 두고, 파일 리스트만 초기화
+      applyFiltersAndRender();
     }
 
-    let msg = '';
-    const ct = res.headers.get('content-type') || '';
+    // ===== 상세 패널 업데이트 =====
+    function updateDetailPanel(file){
+      const emptyBox = document.getElementById('detail-empty');
+      const bodyBox  = document.getElementById('detail-body');
+      if (!emptyBox || !bodyBox) return;
 
-    if (res.ok) {
-      if (ct.includes('application/json')) {
-        const r = await res.json().catch(() => ({}));
-        msg = r.message || r.msg || '삭제되었습니다.';
-      } else {
-        // 204 No Content 또는 텍스트 응답
-        msg = (await res.text().catch(() => '')) || '삭제되었습니다.';
+      if (!file) {
+        emptyBox.style.display = 'block';
+        bodyBox.style.display  = 'none';
+        return;
       }
-      document.getElementById('msg').textContent = msg;
-      await fetchFiles();
-    } else {
-      // 실패 응답 본문 보여주기
-      const errText = ct.includes('application/json')
-        ? (await res.json().catch(() => ({}))).message || (await res.text().catch(() => ''))
-        : (await res.text().catch(() => ''));
-      document.getElementById('msg').textContent = `삭제 실패(${res.status}) ${errText || ''}`.trim();
+      emptyBox.style.display = 'none';
+      bodyBox.style.display  = 'block';
+
+      document.getElementById('detail-title').textContent = file.title || '제목 없음';
+      document.getElementById('detail-sub').textContent =
+        `${file.school || '-'} · ${file.region || '-'} ${file.district || ''}`.trim();
+
+      const gradeText = file.grade || '';
+      const yearText  = file.year ? `${file.year}년` : '';
+      const sem       = file.semester || '';
+      const examType  = file.exam_type || '';
+      const subject   = file.subject || '';
+      const level     = file.level || '';
+
+      const tags = [];
+      if (level)   tags.push(level);
+      if (gradeText) tags.push(gradeText);
+      if (subject) tags.push(subject);
+      if (yearText) tags.push(yearText);
+      if (sem) tags.push(sem);
+      if (examType) tags.push(examType);
+
+      const tagsBox = document.getElementById('detail-tags');
+      tagsBox.innerHTML = tags.map(t => `<span class="detail-tag">${t}</span>`).join('');
+
+      document.getElementById('detail-meta-school').textContent = file.school || '-';
+      document.getElementById('detail-meta-region').textContent =
+        `${file.region || '-'} ${file.district || ''}`.trim();
+      document.getElementById('detail-meta-grade').textContent = gradeText || '-';
+      document.getElementById('detail-meta-year').textContent =
+        [yearText, sem || '', examType || ''].filter(Boolean).join(' / ') || '-';
+      document.getElementById('detail-meta-memo').textContent = file.memo || '-';
+
+      const hwpLink = document.getElementById('detail-download-hwp');
+      const pdfLink = document.getElementById('detail-download-pdf');
+      if (hwpLink) {
+        if (file.files && file.files.hwp) {
+          hwpLink.style.display = 'inline-flex';
+          hwpLink.href = `/api/download/${file.id}?type=hwp`;
+        } else {
+          hwpLink.style.display = 'none';
+        }
+      }
+      if (pdfLink) {
+        if (file.files && file.files.pdf) {
+          pdfLink.style.display = 'inline-flex';
+          pdfLink.href = `/api/download/${file.id}?type=pdf`;
+        } else {
+          pdfLink.style.display = 'none';
+        }
+      }
     }
-  } catch (e) {
-    document.getElementById('msg').textContent = '삭제 오류: ' + (e?.message || '');
-  } finally {
-    btn.disabled = false;
-  }
-}
+
+    // ===== 커버리지 요약 =====
+    async function initCoverageFilters(){
+      const levelSel = document.getElementById('cov-level');
+      const gradeSel = document.getElementById('cov-grade');
+      const yearSel  = document.getElementById('cov-year');
+      const sortSel  = document.getElementById('cov-sort');
+
+      if (levelSel) covState.level = levelSel.value || '고등';
+      if (sortSel)  covState.sort  = sortSel.value || 'pct-desc';
+
+      // 연도 목록 불러오기
+      try {
+        const res = await fetch('/api/coverage/years');
+        const data = await res.json().catch(()=>null);
+        if (data && Array.isArray(data.years) && data.years.length) {
+          yearSel.innerHTML = data.years.map(y => `<option value="${y}">${y}년</option>`).join('');
+          const last = data.years[data.years.length - 1];
+          covState.year = String(last);
+          yearSel.value = String(last);
+        } else {
+          const cur = new Date().getFullYear();
+          yearSel.innerHTML = `<option value="${cur}">${cur}년</option>`;
+          covState.year = String(cur);
+        }
+      } catch(e) {
+        const cur = new Date().getFullYear();
+        if (yearSel) {
+          yearSel.innerHTML = `<option value="${cur}">${cur}년</option>`;
+        }
+        covState.year = String(cur);
+      }
+
+      levelSel?.addEventListener('change', ()=>{
+        covState.level = levelSel.value;
+        covState.selectedCity = '';
+        refreshCoverageSummary();   // 퍼센트 카드만 갱신
+      });
+      gradeSel?.addEventListener('change', ()=>{
+        covState.grade = gradeSel.value;
+        refreshCoverageSummary();
+      });
+      yearSel?.addEventListener('change', ()=>{
+        covState.year = yearSel.value;
+        refreshCoverageSummary();
+      });
+
+      sortSel?.addEventListener('change', ()=>{
+        covState.sort = sortSel.value;
+        sortCoverageSummary();
+        renderCoverageCards();
+      });
+    }
+
+    function sortCoverageSummary(){
+      const mode = covState.sort || 'pct-desc';
+      covSummaryData.sort((a,b)=>{
+        if (mode === 'pct-asc')   return a.pct - b.pct;
+        if (mode === 'filled-desc') return b.filled - a.filled;
+        if (mode === 'name')      return (a.city || '').localeCompare(b.city || '', 'ko');
+        return b.pct - a.pct; // pct-desc
+      });
+    }
+
+    async function refreshCoverageSummary(){
+      const box = document.getElementById('cov-summary');
+      if (!box) return;
+      box.innerHTML = `<div class="cov-loading">지역별 커버리지를 불러오는 중...</div>`;
+
+      try {
+        const qLevel = encodeURIComponent(covState.level || '');
+        const resCities = await fetch(`/api/coverage/cities?level=${qLevel}`);
+        if (!resCities.ok) throw new Error('지역 목록 오류');
+        const cities = await resCities.json().catch(()=>[]);
+        if (!Array.isArray(cities) || !cities.length){
+          covSummaryData = [];
+          box.innerHTML = `<div class="cov-empty">학교 데이터가 없습니다.</div>`;
+          return;
+        }
+
+        const statsPromises = cities.map(async city => {
+          const params = new URLSearchParams();
+          if (covState.level) params.append('level', covState.level);
+          if (covState.year)  params.append('year',  covState.year);
+          if (covState.grade) params.append('grade', covState.grade);
+          params.append('city', city);
+
+          const r = await fetch(`/api/coverage/stats?${params.toString()}`);
+          if (!r.ok) return { city, total:0, filled:0, pct:0 };
+          const j = await r.json().catch(()=>({}));
+          return {
+            city,
+            total: Number(j.total)  || 0,
+            filled: Number(j.filled) || 0,
+            pct: Number(j.pct) || 0
+          };
+        });
+
+        covSummaryData = await Promise.all(statsPromises);
+        sortCoverageSummary();
+        renderCoverageCards();
+      } catch(e) {
+        console.error(e);
+        box.innerHTML = `<div class="cov-error">커버리지 데이터를 불러오지 못했습니다.</div>`;
+      }
+    }
+
+    function renderCoverageCards(){
+      const box = document.getElementById('cov-summary');
+      if (!box) return;
+
+      if (!covSummaryData.length){
+        box.innerHTML = `<div class="cov-empty">표시할 데이터가 없습니다.</div>`;
+        return;
+      }
+
+      box.innerHTML = covSummaryData.map(r=>{
+        const pct = Math.max(0, Math.min(100, isFinite(r.pct) ? r.pct : 0));
+        const filled = r.filled || 0;
+        const total  = r.total  || 0;
+        const selected = (covState.selectedCity === r.city) ? 'cov-card-selected' : '';
+        return `
+          <div class="cov-card ${selected}" data-city="${r.city}">
+            <div class="cov-card-top">
+              <div class="cov-city">${shortCityName(r.city) || '지역 미지정'}</div>
+              <div class="cov-pct">${pct}%</div>
+            </div>
+            <div class="cov-bar">
+              <div class="cov-bar-inner" style="width:${pct}%;"></div>
+            </div>
+            <div class="cov-count">${filled} / ${total} 개</div>
+          </div>
+        `;
+      }).join('');
+
+      box.querySelectorAll('.cov-card').forEach(card=>{
+        card.addEventListener('click', ()=>{
+          const city = card.getAttribute('data-city') || '';
+          covState.selectedCity = (covState.selectedCity === city ? '' : city);
+          renderCoverageCards();   // 선택 스타일만 갱신 (파일 리스트는 별도 필터)
+        });
+      });
+    }
+
+    // ===== 삭제 / 수정 =====
+    async function deleteFile(id, btn){
+      if (!confirm('정말 삭제하시겠습니까?')) return;
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/admin/files/' + id, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+
+        if (res.status === 401) {
+          alert('로그인 필요!');
+          location.href = '/login.html';
+          return;
+        }
+
+        let msg = '';
+        const ct = res.headers.get('content-type') || '';
+
+        if (res.ok) {
+          if (ct.includes('application/json')) {
+            const r = await res.json().catch(() => ({}));
+            msg = r.message || r.msg || '삭제되었습니다.';
+          } else {
+            msg = (await res.text().catch(() => '')) || '삭제되었습니다.';
+          }
+          document.getElementById('msg').textContent = msg;
+          await fetchFiles();
+          applyFiltersAndRender();
+        } else {
+          const errText = ct.includes('application/json')
+            ? (await res.json().catch(() => ({}))).message || (await res.text().catch(() => ''))
+            : (await res.text().catch(() => ''));
+          document.getElementById('msg').textContent = `삭제 실패(${res.status}) ${errText || ''}`.trim();
+        }
+      } catch (e) {
+        document.getElementById('msg').textContent = '삭제 오류: ' + (e?.message || '');
+      } finally {
+        btn.disabled = false;
+      }
+    }
 
     function editFile(id){
       editTargetId = id;
       const row    = fileListOrigin.find(r=>r.id===id);
       const form   = document.getElementById('edit-form');
-      form.level.value    = row.level;
-      form.region.value   = row.region;
-      form.district.value = row.district;
-      form.school.value   = row.school;
-      form.grade.value    = row.grade;
-      form.year.value     = row.year;
-      form.semester.value = row.semester;
-      form.title.value    = row.title;
+      if (!row || !form) return;
+      form.level.value    = row.level || '';
+      form.region.value   = row.region || '';
+      form.district.value = row.district || '';
+      form.school.value   = row.school || '';
+      form.grade.value    = row.grade || '';
+      form.year.value     = row.year || '';
+      form.semester.value = row.semester || '';
+      form.title.value    = row.title || '';
       form.files.value    = '';
       document.getElementById('edit-bg').style.display='flex';
     }
@@ -551,127 +1239,136 @@ async function deleteFile(id, btn){
       document.getElementById('edit-bg').style.display='none';
       document.getElementById('edit-form').reset();
     }
-document.getElementById('edit-form').onsubmit = async function(e){
-  e.preventDefault();
-  const btn = document.getElementById('edit-save-btn');
-  btn.disabled = true;
 
-  try {
-    const fd  = new FormData(e.target);
-    const res = await fetch('/api/admin/files/' + editTargetId, {
-      method: 'PUT',
-      body: fd,
-      credentials: 'include'
+    document.getElementById('edit-form').onsubmit = async function(e){
+      e.preventDefault();
+      const btn = document.getElementById('edit-save-btn');
+      btn.disabled = true;
+
+      try {
+        const fd  = new FormData(e.target);
+        const res = await fetch('/api/admin/files/' + editTargetId, {
+          method: 'PUT',
+          body: fd,
+          credentials: 'include'
+        });
+
+        let msg = '';
+        const ct = res.headers.get('content-type') || '';
+
+        if (ct.includes('application/json')) {
+          const r = await res.json().catch(() => ({}));
+          msg = r.message || r.msg || (res.ok ? '저장되었습니다.' : '저장 실패');
+        } else {
+          msg = (await res.text().catch(() => '')) || (res.ok ? '저장되었습니다.' : '저장 실패');
+        }
+
+        document.getElementById('msg').textContent = msg;
+      } catch (err) {
+        document.getElementById('msg').textContent = '저장 오류: ' + (err?.message || '');
+      } finally {
+        btn.disabled = false;
+        closeEdit();
+        await fetchFiles();
+        applyFiltersAndRender();
+      }
+    };
+
+    // 파일 드래그앤드롭 + 커스텀 업로드 버튼 (기존 그대로)
+    const dropArea   = document.getElementById('fileDropArea');
+    const fileInput  = document.getElementById('fileInput');
+    const fileBtn    = document.getElementById('fileSelectBtn');
+    const fileListEl = document.getElementById('fileList');
+    const fileTextEl = document.getElementById('fileUploadText');
+
+    fileBtn.onclick = () => fileInput.click();
+
+    dropArea.addEventListener('dragover', e => {
+      e.preventDefault(); dropArea.classList.add('dragover');
     });
+    dropArea.addEventListener('dragleave', e => {
+      e.preventDefault(); dropArea.classList.remove('dragover');
+    });
+    dropArea.addEventListener('drop', e => {
+      e.preventDefault(); dropArea.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        fileInput.files = e.dataTransfer.files;
+        updateFileList();
+      }
+    });
+    fileInput.addEventListener('change', updateFileList);
 
-    let msg = '';
-    const ct = res.headers.get('content-type') || '';
+    function updateFileList() {
+      fileListEl.innerHTML = '';
+      if (!fileInput.files.length) {
+        fileTextEl.innerHTML = '여기로 파일을 드래그하거나 <b>파일 추가</b> 버튼을 클릭하세요';
+        return;
+      }
 
-    if (ct.includes('application/json')) {
-      const r = await res.json().catch(() => ({}));
-      msg = r.message || r.msg || (res.ok ? '저장되었습니다.' : '저장 실패');
-    } else {
-      msg = (await res.text().catch(() => '')) || (res.ok ? '저장되었습니다.' : '저장 실패');
+      const firstFile = fileInput.files[0];
+      const filename = firstFile.name.replace(/\.[^/.]+$/, "");
+      const parts = filename.split(' ');
+
+      if (parts.length >= 6) {
+        const [year, school, grade, semester, exam, ...subjectParts] = parts;
+        const subject = subjectParts.join(' ');
+
+        const form = document.getElementById('edit-form');
+
+        if (form) {
+          form.year.value = parseInt(year, 10) || '';
+          form.school.value = school || '';
+          form.title.value = filename;
+
+          const level = form.level.value;
+          if (grade === '1학년') form.grade.value = (level === '고등') ? '고1' : '중1';
+          else if (grade === '2학년') form.grade.value = (level === '고등') ? '고2' : '중2';
+          else if (grade === '3학년') form.grade.value = (level === '고등') ? '고3' : '중3';
+
+          const term = `${semester} ${exam}`;
+          if (term === '1학기 중간') form.semester.value = '1학기중간';
+          else if (term === '1학기 기말') form.semester.value = '1학기기말';
+          else if (term === '2학기 중간') form.semester.value = '2학기중간';
+          else if (term === '2학기 기말') form.semester.value = '2학기기말';
+        }
+      }
+
+      Array.from(fileInput.files).forEach(f => {
+        const span = document.createElement('span');
+        span.className = 'file-item';
+        span.textContent = f.name;
+        fileListEl.appendChild(span);
+      });
+      fileTextEl.textContent = '선택된 파일:';
     }
-
-    document.getElementById('msg').textContent = msg;
-  } catch (err) {
-    document.getElementById('msg').textContent = '저장 오류: ' + (err?.message || '');
-  } finally {
-    btn.disabled = false;
-    closeEdit();
-    fetchFiles();
-  }
-}
-
-
-// 파일 드래그앤드롭 + 커스텀 업로드 버튼
-const dropArea   = document.getElementById('fileDropArea');
-const fileInput  = document.getElementById('fileInput');
-const fileBtn    = document.getElementById('fileSelectBtn');
-const fileListEl = document.getElementById('fileList');
-const fileTextEl = document.getElementById('fileUploadText');
-
-fileBtn.onclick = () => fileInput.click();
-
-dropArea.addEventListener('dragover', e => {
-  e.preventDefault(); dropArea.classList.add('dragover');
-});
-dropArea.addEventListener('dragleave', e => {
-  e.preventDefault(); dropArea.classList.remove('dragover');
-});
-dropArea.addEventListener('drop', e => {
-  e.preventDefault(); dropArea.classList.remove('dragover');
-  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-    fileInput.files = e.dataTransfer.files;
-    updateFileList();
-  }
-});
-fileInput.addEventListener('change', updateFileList);
-
-function updateFileList() {
-  fileListEl.innerHTML = '';
-  if (!fileInput.files.length) {
-    fileTextEl.innerHTML = '여기로 파일을 드래그하거나 <b>파일 추가</b> 버튼을 클릭하세요';
-    return;
-  }
-  
-  // ✅ 1. 첫 번째 파일 이름을 기준으로 파싱
-  const firstFile = fileInput.files[0];
-  const filename = firstFile.name.replace(/\.[^/.]+$/, ""); // 확장자 제거
-  
-  // ✅ 2. 요청하신 파싱 로직 (공백 기준)
-  // "2025 검단고 1학년 1학기 중간 공통수학1"
-  const parts = filename.split(' ');
-  
-  // ✅ 3. 폼 자동 채우기 시도
-  if (parts.length >= 6) {
-    const [year, school, grade, semester, exam, ...subjectParts] = parts;
-    const subject = subjectParts.join(' '); // "공통수학1" 또는 "확률과 통계"
-    
-    // admin_files.html의 'edit-form'을 사용
-    const form = document.getElementById('edit-form');
-    
-    if (form) { // 폼이 존재할 때만 실행
-      form.year.value = parseInt(year, 10) || '';
-      form.school.value = school || '';
-      form.title.value = filename; // 제목은 파일명 전체로
-
-      // 학년 매핑
-      // 'level'('관')이 먼저 선택되어 있어야 정확합니다.
-      const level = form.level.value; 
-      if (grade === '1학년') form.grade.value = (level === '고등') ? '고1' : '중1';
-      else if (grade === '2학년') form.grade.value = (level === '고등') ? '고2' : '중2';
-      else if (grade === '3학년') form.grade.value = (level === '고등') ? '고3' : '중3';
-
-      // 학기 매핑
-      const term = `${semester} ${exam}`;
-      if (term === '1학기 중간') form.semester.value = '1학기중간';
-      else if (term === '1학기 기말') form.semester.value = '1학기기말';
-      else if (term === '2학기 중간') form.semester.value = '2학기중간';
-      else if (term === '2학기 기말') form.semester.value = '2학기기말';
-    }
-  }
-
-  // (기존) 파일 목록 표시
-  Array.from(fileInput.files).forEach(f => {
-    const span = document.createElement('span');
-    span.className = 'file-item';
-    span.textContent = f.name;
-    fileListEl.appendChild(span);
-  });
-  fileTextEl.textContent = '선택된 파일:';
-}
-
 
     function previewFile(filename){
-      // 이 함수는 더 이상 호출되지 않으나 미리보기 삭제 요청에 따라 내용 그대로 둡니다.
+      // 이 함수는 더 이상 호출되지 않으나 기존 구조 유지
     }
     function closePreview(){
       document.getElementById('preview-bg').style.display='none';
       document.getElementById('preview-body').innerHTML='';
     }
-    fetchFiles();
+
+        // 파일 리스트 전용 필터는 셀렉트 변경 시 바로 반영
+    document.getElementById('file-semester')?.addEventListener('change', applyFiltersAndRender);
+    document.getElementById('file-exam-type')?.addEventListener('change', applyFiltersAndRender);
+
+    // 초기 실행
+    (async function init(){
+      await fetchFiles();
+      await initCoverageFilters();
+      await refreshCoverageSummary();
+      applyFiltersAndRender();
+    })();
+
+    // 초기 실행
+    (async function init(){
+      await fetchFiles();
+      await initCoverageFilters();
+      await refreshCoverageSummary();
+      applyFiltersAndRender();
+    })();
   </script>
 </body>
 </html>
