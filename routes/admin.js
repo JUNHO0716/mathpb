@@ -32,6 +32,7 @@ router.get('/users', ensureAdmin, async (req, res) => {
         u.email,
         u.name,
         DATE_FORMAT(u.created_at, '%Y-%m-%d')          AS created_at,
+        DATE_FORMAT(u.last_login, '%Y-%m-%d %H:%i:%s') AS last_login,   -- ⭐ 추가
         u.is_subscribed,
         DATE_FORMAT(u.subscription_start, '%Y-%m-%d')  AS subscription_start,
         DATE_FORMAT(u.subscription_end,   '%Y-%m-%d')  AS subscription_end,
@@ -47,6 +48,7 @@ router.get('/users', ensureAdmin, async (req, res) => {
     res.status(500).json({ success: false, message: '서버 오류' });
   }
 });
+
 
 router.post('/update-subscription', ensureAdmin, async (req, res) => {
   const { userId, action } = req.body;

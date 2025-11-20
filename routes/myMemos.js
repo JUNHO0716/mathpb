@@ -12,15 +12,60 @@ function requireLogin(req, res, next) {
 router.get('/api/my/memos/:fileId', requireLogin, async (req, res) => {
   try {
     const uid = String(
-      req.user.id ?? req.user.user_id ?? req.user.username ?? req.session?.user?.id
+      req.user?.id ??
+      req.user?.user_id ??
+      req.user?.username ??
+      req.session?.user?.id
     );
     const fid = String(req.params.fileId);
 
     const [rows] = await db.query(
-      'SELECT memo FROM file_memos WHERE user_id=? AND file_id=? LIMIT 1',
+      `
+      SELECT
+        fm.memo,
+        fm.created_at,
+        fm.updated_at,
+        fm.user_id AS raw_user_id,
+        u.id       AS user_pk,
+        u.email    AS user_email,
+        u.name     AS user_name
+      FROM file_memos AS fm
+      LEFT JOIN users AS u
+        ON (
+          BINARY fm.user_id = BINARY u.id OR
+          BINARY fm.user_id = BINARY u.email
+        )
+      WHERE fm.user_id = ?
+        AND fm.file_id = ?
+      ORDER BY fm.updated_at DESC, fm.created_at DESC
+      LIMIT 1
+      `,
       [uid, fid]
     );
-    return res.json({ memo: rows.length ? rows[0].memo : '' });
+
+    // 메모가 아직 없을 때도 현재 로그인 유저 정보는 내려주기
+    if (!rows.length) {
+      const u = req.session?.user || req.user || {};
+      return res.json({
+        memo: '',
+        user_id:   u.id   ?? null,
+        user_name: u.name ?? null,
+        user_email:u.email?? null,
+        created_at: null,
+        updated_at: null
+      });
+    }
+
+    const r = rows[0];
+    return res.json({
+      memo:       r.memo       || '',
+      // 조인 성공하면 user_pk 사용, 아니면 file_memos.user_id 그대로 사용
+      user_id:    r.user_pk    || r.raw_user_id || null,
+      user_name:  r.user_name  || null,
+      user_email: r.user_email || null,
+      created_at: r.created_at || null,
+      updated_at: r.updated_at || null
+    });
   } catch (err) {
     console.error('[myMemos:get]', err);
     return res.status(500).json({ error: 'get_failed' });

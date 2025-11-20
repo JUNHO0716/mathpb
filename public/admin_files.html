@@ -19,15 +19,6 @@
       letter-spacing: -2px;
     }
 
-    .admin-table-box {
-      max-width: 1480px;   /* 내용 패널 폭 */
-      margin: 0 auto 40px; /* 위에는 커버리지, 아래 여백 */
-      background: #fff;
-      border-radius: 22px;
-      box-shadow: 0 4px 32px #0001;
-      padding: 38px 36px 40px 36px;
-    }
-
     /* ===== 커버리지 요약 영역 ===== */
     .cov-section {
       max-width: 1480px;          /* 박스 밖으로 빼도 가운데 정렬 */
@@ -62,7 +53,7 @@
       border-radius: 999px;
       border: 1px solid #dde1ff;
       padding: 6px 12px;
-      font-size: 0.9rem;
+      font-size: 0.8rem;   /* 글씨 크기 ↓ */
       min-width: 90px;
       color: #111827;
       outline: none;
@@ -74,13 +65,27 @@
     }
 
     .cov-summary {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr)); /* 한 줄에 6칸, 좌우 꽉 차게 */
       gap: 10px;
       align-items: stretch;
     }
+
+    /* 화면 폭 줄어들 때 열 개수 조절 (반응형) */
+    @media (max-width: 1400px) {
+      .cov-summary { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    }
+    @media (max-width: 1200px) {
+      .cov-summary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    @media (max-width: 900px) {
+      .cov-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .cov-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
     .cov-card {
-      flex: 1 1 180px;
+      width: 90%;          /* 그리드 칸 너비를 그대로 사용 */
       min-width: 0;
       background: #ffffff;
       border-radius: 16px;
@@ -145,17 +150,6 @@
       color: #6b7280;
     }
 
-    /* ===== 좌측 테이블 + 우측 상세 레이아웃 ===== */
-    .admin-main {
-      display: grid;
-      grid-template-columns: minmax(0, 2.4fr) minmax(260px, 0.9fr);
-      gap: 24px;
-      align-items: flex-start;
-      margin-top: 10px;
-    }
-    .admin-main-left { min-width: 0; }
-    .admin-main-right { min-width: 0; }
-
     .search-bar {
       display: flex;
       gap: 10px;
@@ -164,459 +158,717 @@
       align-items: center;
       flex-wrap: wrap;
     }
+
+    /* 아래 리스트 필터도 위 커버리지 필터처럼 동그란 흰색 셀렉트로 */
     .search-bar select,
     .search-bar input {
-      background: #fafafc;
-      border: 1.5px solid #d3d4da;
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 0.95rem;   /* 글씨 약간 축소 */
-      color: #222;
+      background: #ffffff;
+      border-radius: 999px;
+      border: 1px solid #dde1ff;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      color: #111827;
       outline: none;
-      transition: border 0.13s;
+      transition: border 0.13s, box-shadow 0.13s;
       min-width: 82px;
       margin-bottom: 3px;
     }
 
     .search-bar select {
-      background: #fafafc;
-      border: 1.5px solid #d3d4da;
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 0.95rem;
-      color: #222;
+      background: #ffffff;
+      border-radius: 999px;
+      border: 1px solid #dde1ff;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      color: #111827;
       outline: none;
       min-width: 90px;
       margin-bottom: 3px;
     }
-    .search-bar select:focus {
-      border-color: #ffc400;
-      background: #fffbe9;
+
+    .search-bar select:focus,
+    .search-bar input:focus {
+      border-color: #4b7cff;
+      box-shadow: 0 0 0 1px #4b7cff33;
+      background: #ffffff;
     }
+
     .search-bar input[type="number"] {
       width: 70px;
       min-width: 60px;
     }
-    .search-bar input:focus {
-      border-color: #ffc400;
-      background: #fffbe9;
-    }
+
     .search-bar button {
-      background: #ffc400;
-      color: #181818;
+      background: #1a73ff;          /* 진한 파란색 */
+      color: #ffffff;
+      border-radius: 999px;
       border: none;
-      border-radius: 8px;
-      padding: 8px 20px;
-      font-size: 0.96rem;
-      font-weight: bold;
+      padding: 7px 22px;
+      font-size: 0.86rem;
+      font-weight: 700;
       cursor: pointer;
       margin-bottom: 3px;
-      box-shadow: 0 2px 7px #ffc40011;
-      letter-spacing: 0.03em;
-      transition: background 0.16s;
+      box-shadow: 0 2px 8px rgba(26, 115, 255, 0.35);
+      letter-spacing: 0.02em;
+      transition: background 0.15s, box-shadow 0.15s, transform 0.05s;
     }
+    /* 초기화 버튼 (마지막 버튼)만 연한 회색톤으로 */
     .search-bar button:last-child {
-      background: #ececec;
-      color: #222;
       margin-left: 4px;
-      border: 1px solid #dedede;
-      font-weight: 500;
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+      box-shadow: none;
+      font-weight: 600;
     }
-    .search-bar button:active { background: #ffd54f; }
+    .search-bar button:hover {
+      background: #1664e4;
+      box-shadow: 0 3px 10px rgba(22, 100, 228, 0.4);
+    }
+    .search-bar button:last-child:hover {
+      background: #e5e7eb;
+      box-shadow: 0 1px 4px rgba(148, 163, 184, 0.4);
+    }
+    .search-bar button:active {
+      transform: translateY(1px);
+      box-shadow: 0 0 0 rgba(0,0,0,0.2);
+    }
 
     .msg { text-align: left; margin: 4px 0 6px; font-size: 0.95rem; color: #555; }
 
-    table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      margin-top: 4px;
-      background: #fff;
-      border-radius: 14px;
+    .files-table-wrap {
+      background: #ffffff;
+      border-radius: 18px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
       overflow: hidden;
-      font-size: 0.97rem;   /* 글씨 약간 축소 */
-      table-layout: fixed;
-      word-break: keep-all;
-    }
-    th, td {
-      padding: 8px 7px;
-      text-align: center;
-      font-size: 0.97rem;    /* 글씨 약간 축소 */
-      border-bottom: 1.1px solid #f1f1f3;
-      word-break: keep-all;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    th {
-      background: #181818;
-      color: #fff;
-      font-weight: 800;
-      font-size: 1rem;
-      letter-spacing: 0.01em;
-      border-bottom: 2.2px solid #ffc400;
-    }
-    tr:last-child td { border-bottom: none; }
-    td {
-      color: #212327;
-      background: #fff;
-      transition: background 0.14s;
-      vertical-align: middle;
-    }
-    tr:hover td {
-      background: #fffbe8 !important;
-      transition: background 0.16s;
-    }
-    tr.row-selected td {
-      background: #eff6ff !important;
     }
 
-    /* 다운로드 버튼 */
-    .download-btn {
-      background: #fffbe8;
-      color: #ffa900;
-      border: 1.5px solid #ffd54f;
-      border-radius: 6px;
-      padding: 5px 14px;
-      cursor: pointer;
+    .files-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: auto;       /* 내용에 맞게 자동 폭 조절 */
       font-size: 0.95rem;
-      font-weight: bold;
-      transition: background 0.12s, color 0.12s, border 0.12s;
-      vertical-align: middle;
+    }
+
+    /* 상단 헤더: 연한 회색 바 + 얇은 구분선 */
+    .files-table thead {
+      background: #f9fafb;
+    }
+
+    .files-table thead th {
+      padding: 9px 12px;
+      color: #6b7280;              /* 연한 회색 텍스트 */
+      font-weight: 600;
+      font-size: 0.9rem;
+      letter-spacing: 0.02em;
+      text-align: center;          /* 가운데 정렬 */
+      border-bottom: 1px solid #e5e7eb;
+      white-space: nowrap;
+    }
+
+    .files-table tbody td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #eef2f7;
+      text-align: center;   /* 가운데 정렬로 변경 */
+      color: #111827;
+      background: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .files-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .files-table tbody tr:hover td {
+      background: #f9fafb;         /* 살짝 회색 하이라이트 */
+    }
+
+    /* 열별로 조금씩 폭 가중치 (가로폭 너무 길지 않게 비율만 조절) */
+    .files-table th:nth-child(1),
+    .files-table td:nth-child(1) { width: 8%; }   /* 지역 */
+    .files-table th:nth-child(2),
+    .files-table td:nth-child(2) { width: 9%; }   /* 구/군 */
+    .files-table th:nth-child(3),
+    .files-table td:nth-child(3) { width: 14%; }  /* 학교 */
+    .files-table th:nth-child(4),
+    .files-table td:nth-child(4) { width: 6%; }   /* 학년 */
+    .files-table th:nth-child(5),
+    .files-table td:nth-child(5) { width: 7%; }   /* 연도 */
+    .files-table th:nth-child(6),
+    .files-table td:nth-child(6) { width: 7%; }   /* 학기 */
+    .files-table th:nth-child(7),
+    .files-table td:nth-child(7) { width: 8%; }   /* 중간/기말 */
+    .files-table th:nth-child(8),
+    .files-table td:nth-child(8) { width: 20%; }  /* 제목 */
+    .files-table th:nth-child(9),
+    .files-table td:nth-child(9),
+    .files-table th:nth-child(10),
+    .files-table td:nth-child(10),
+    .files-table th:nth-child(11),
+    .files-table td:nth-child(11) { width: 7%; }  /* 한글/PDF/관리 */
+
+    /* 필요하면 세로 스크롤: 행 많을 때만 안에서 스크롤 */
+    .files-table-wrap {
+      max-height: 360px;
+      overflow-y: auto;
+    }
+
+
+    /* 다운로드 아이콘 버튼 */
+    .download-btn {
+      background: transparent;
+      border: none;
+      padding: 0;
+      cursor: pointer;
       margin: 0 2px;
-      min-width: 72px;
       text-decoration: none;
       display: inline-block;
     }
     .download-btn:hover {
-      background: #fffde2;
-      color: #181818;
-      border-color: #ffc400;
+      transform: scale(1.05);
     }
-    /* 관리 버튼 */
-    .delete-btn, .edit-btn {
-      background: #181818;
-      color: #ffc400;
-      border: none;
-      border-radius: 7px;
-      padding: 5px 13px;
-      cursor: pointer;
-      font-size: 0.92rem;
-      font-weight: bold;
-      margin: 0 1.5px;
-      transition: background .12s, color .12s;
-      letter-spacing: 0.02em;
-      min-width: 50px;
+    .download-btn img {
+      width: 22px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
     }
-    .edit-btn { background: #ffc400; color: #181818; }
-    .edit-btn:hover { background: #ffe46e; }
-    .delete-btn:hover { background: #2d2d2d; color: #ff5353; }
-    .delete-btn:disabled, .edit-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
-    /* ===== 우측 파일 상세 패널 ===== */
-    .file-detail-panel {
-      background: #f9fafb;
-      border-radius: 20px;
-      padding: 18px 18px 16px 18px;
-      box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06) inset;
-      border: 1px solid #e5e7eb;
-      font-size: 0.9rem;
-      min-height: 230px;
-    }
-    .detail-empty {
-      color: #9ca3af;
-      font-size: 0.9rem;
-      text-align: center;
-      padding: 40px 8px;
-    }
-    .detail-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-    .detail-file-icon {
-      width: 48px;
-      height: 64px;
-      border-radius: 14px;
-      background: linear-gradient(145deg, #f97373, #fbbf24);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 6px 12px rgba(248, 113, 113, 0.35);
-    }
-    .detail-icon-ext {
-      color: #fff;
-      font-weight: 800;
-      font-size: 0.85rem;
-    }
-    .detail-title {
-      font-weight: 800;
-      font-size: 1.0rem;
+    /* 수정 버튼: 회색 캡슐 */
+    .edit-btn {
+      background: #f3f4f6;          /* 연한 회색 */
       color: #111827;
-      margin-bottom: 4px;
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-    .detail-sub {
-      font-size: 0.82rem;
-      color: #6b7280;
-    }
-    .detail-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
-    .detail-tag {
-      font-size: 0.76rem;
-      padding: 3px 8px;
       border-radius: 999px;
-      background: #e5edff;
-      color: #1f2937;
+      border: 1px solid #d1d5db;
+      padding: 4px 16px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin: 0 2px;
+      letter-spacing: 0.02em;
+      min-width: 60px;
+      box-shadow: 0 2px 6px rgba(148, 163, 184, 0.35);
+      transition: background 0.15s, box-shadow 0.15s, transform 0.05s, color 0.15s;
     }
-    .detail-meta {
-      border-top: 1px solid #e5e7eb;
-      padding-top: 8px;
-      margin-top: 4px;
+
+    /* 삭제 버튼: 빨간 캡슐 그대로 유지 */
+    .delete-btn {
+      background: #f97373;          /* 연한 빨간 느낌 */
+      color: #ffffff;
+      border-radius: 999px;
+      border: none;
+      padding: 4px 16px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin: 0 2px;
+      letter-spacing: 0.02em;
+      min-width: 60px;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
+      transition: background 0.15s, box-shadow 0.15s, transform 0.05s;
+    }
+
+    .edit-btn:hover {
+      background: #e5e7eb;          /* 살짝 진한 회색 */
+      box-shadow: 0 3px 9px rgba(148, 163, 184, 0.45);
+    }
+    .delete-btn:hover {
+      background: #dc2626;
+      box-shadow: 0 3px 10px rgba(220, 38, 38, 0.45);
+    }
+
+    .delete-btn:disabled,
+    .edit-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+
+    /* 하단 파일 관리 2패널 레이아웃 */
+    .admin-main {
+      max-width: 1480px;
+      margin: 0 auto 40px;
+      display: grid;
+      /* 왼쪽(테이블) 더 넓게, 오른쪽(상세) 더 좁게 */
+      grid-template-columns: minmax(0, 8fr) minmax(260px, 2.8fr);
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .files-panel-left,
+    .files-panel-right {
+      min-width: 0;
+      background: #ffffff;
+      border-radius: 18px;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+      padding: 16px 18px 18px 18px;
+    }
+
+    /* 오른쪽 상세 패널 스타일 */
+    .file-detail-title {
+      margin: 0 0 10px 0;
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .file-detail-empty {
+      font-size: 0.9rem;
+      color: #6b7280;
+      line-height: 1.6;
+      text-align: center;
+      padding: 40px 6px;
+    }
+
+    .file-detail-body {
+      font-size: 0.9rem;
+      color: #111827;
+    }
+
+    /* 상세 상단 좌측: 메모 전체보기 버튼 영역 */
+    .file-detail-topbar {
+      display: flex;
+      justify-content: flex-start;
       margin-bottom: 12px;
     }
-    .detail-meta-row {
+
+    .memo-all-btn {
+      padding: 5px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: #e5edff;
+      color: #1d4ed8;
+      box-shadow: 0 1px 4px rgba(37, 99, 235, 0.25);
+      transition: background 0.15s, box-shadow 0.15s, transform 0.05s;
+    }
+
+    .memo-all-btn:hover {
+      background: #d4e3ff;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+      transform: translateY(1px);
+    }
+
+    /* 라벨 / 값 한 줄로 표시 */
+    .file-detail-row {
+      margin-bottom: 20px;           /* 각 줄 사이 간격 */
       display: flex;
-      justify-content: space-between;
-      gap: 6px;
-      margin: 4px 0;
-      font-size: 0.83rem;
+      align-items: flex-start;
     }
-    .detail-meta-label {
+
+    /* 왼쪽 라벨 (지역 / 학교, 연도 / 학년 / 학기 / 구분 등) */
+    .file-detail-row span {
+      flex: 0 0 auto;
+      min-width: 130px;              /* 라벨 영역 고정 폭 */
+      padding-right: 12px;
+      font-size: 0.78rem;
       color: #9ca3af;
-      min-width: 52px;
+      margin-bottom: 0;              /* 아래 여백 제거 */
     }
-    .detail-meta-value {
-      color: #374151;
-      text-align: right;
+
+    /* 오른쪽 값 부분 */
+    .file-detail-row strong,
+    .file-detail-row p {
       flex: 1;
+      line-height: 1.6;
+      text-align: right;             /* 값은 오른쪽 정렬 (윈도우 스타일) */
     }
-    .detail-memo {
-      white-space: pre-line;
+
+    .file-detail-row strong {
+      font-weight: 600;
     }
-    .detail-actions {
+
+    .file-detail-row p {
+      margin: 0;
+      white-space: pre-wrap;
+    }
+
+    /* 메모 행: "메모" 라벨 위, 아래에 카드가 길게 쌓이도록 세로 배치 */
+    .file-detail-row.memo-row {
+      flex-direction: column;    /* 라벨 위, 메모리스트 아래로 */
+      align-items: stretch;      /* 폭 100% */
+    }
+
+    /* 메모 행에서만 라벨은 한 줄 쓰고, 아래에 여백만 살짝 */
+    .file-detail-row.memo-row > span {
+      min-width: 0;
+      padding-right: 0;
+      margin-bottom: 6px;
+    }
+
+
+    /* 메모 전체 리스트 */
+    .memo-list {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;           /* 메모끼리 간격 */
+    }
+
+    /* 메모 1개 카드 */
+    .memo-item {
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #f7f7fb;
+      border: 1px solid #eef0f5;
+    }
+
+    /* 메모 상단 영역(작성자/이메일, 날짜) */
+    .memo-meta {
+      display: flex;
+      justify-content: space-between; /* 왼쪽: 아이디/이름/메일, 오른쪽: 날짜 */
+      align-items: center;            /* 세로 중앙 정렬 */
+      gap: 8px;                       /* 너무 붙지 않게 약간 간격 */
+      margin-bottom: 4px;
+    }
+
+    /* 작성자 / 이메일 묶음 */
+    .memo-author-wrap {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 아이디(이름) – 글씨 조금 작게 */
+    .memo-author {
+      font-weight: 600;
+      font-size: 0.85rem;   /* ↓ 기존보다 살짝 줄임 */
+    }
+
+    /* 이메일 (회색, 작게) */
+    .memo-email {
+      font-size: 12px;
+      color: #9b9b9b;
+    }
+
+    /* 작성일 (오른쪽 끝) */
+    .memo-date {
+      font-size: 12px;
+      color: #9b9b9b;
+    }
+
+    /* 메모 내용 */
+    .memo-content {
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    /* 메모 없을 때 문구 */
+    .memo-empty {
+      font-size: 14px;
+      color: #9b9b9b;
+      margin: 0;
+    }
+
+    /* === 파일 상세 상단 아이콘 + 파일명 헤더 (윈도우 스타일) === */
+    .file-detail-header {
+      margin: 30px 0 24px 0;   /* 아래 여백 50px → 24px */
+    }
+
+    /* 위의 큰 아이콘 (배경 없이 PNG만) */
+    .file-detail-icon-large {
+      text-align: center;
+      margin-bottom: 16px;
+      margin: 50px 0 70px 0; 
+    }
+    .file-detail-icon-large img {
+      width: 85px;       /* 큰 아이콘 크기 */
+      height: auto;
+      display: inline-block;
+    }
+
+    /* 아래 작은 아이콘 + 파일명 줄 */
+    .file-detail-name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .file-detail-name-row img {
+      width: 20px;       /* 작은 아이콘 크기 */
+      height: auto;
+      flex-shrink: 0;
+      display: block;
+    }
+
+    .file-detail-filename {
+      margin-top: 0;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #111827;
+      word-break: break-all;
+      text-align: left;
+    }
+
+    /* 파일명 아래 다운로드 버튼 줄 */
+    .file-detail-download-row {
+      margin-top: 18px;   /* ← 8px → 18px 정도로 넉넉하게 */
       display: flex;
       gap: 8px;
-      margin-top: 8px;
     }
-    .detail-btn {
-      flex: 1;
+
+    .detail-download-btn {
+      border-radius: 8px;
+      padding: 4px 12px;          /* ← 세로·가로 패딩 줄임 */
+      font-size: 0.78rem;         /* ← 글씨도 살짝 줄임 */
+      font-weight: 700;
+      color: #ffffff;
+      text-decoration: none;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 7px 10px;
-      border-radius: 999px;
-      border: none;
-      text-decoration: none;
-      font-size: 0.84rem;
-      font-weight: 600;
       cursor: pointer;
-      box-shadow: 0 2px 7px rgba(15, 23, 42, 0.18);
-      background: #111827;
-      color: #fbbf24;
-      transition: background .15s, transform .12s, box-shadow .15s;
-    }
-    .detail-btn.secondary {
-      background: #e5e7eb;
-      color: #111827;
-      box-shadow: none;
-    }
-    .detail-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.22);
-    }
-    .detail-btn.secondary:hover {
-      background: #d1d5db;
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25); /* 그림자도 조금 약하게 */
+      transition: transform 0.05s, box-shadow 0.15s, opacity 0.1s;
     }
 
-    /* 반응형 */
-    @media (max-width: 1200px) {
-      .admin-table-box { max-width: 99vw; padding: 14px 2vw 16px 2vw; }
-      table, th, td { font-size: 0.93rem; }
-      th, td { padding: 6px 2px; }
+    .detail-download-btn.pdf {
+      background: #ef4444; /* 빨간색(PDF) */
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.45);
     }
-    @media (max-width: 1024px) {
+
+    .detail-download-btn.hwp {
+      background: #2563eb; /* 파란색(HWP) */
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.45);
+    }
+
+    .detail-download-btn:hover {
+      transform: translateY(1px);
+      box-shadow: 0 3px 10px rgba(15, 23, 42, 0.35);
+    }
+
+
+
+    /* 반응형: 화면 좁아지면 1열로 쌓기 */
+    @media (max-width: 1200px) {
       .admin-main {
         grid-template-columns: 1fr;
       }
-      .admin-main-right {
-        order: -1;
-      }
-      .file-detail-panel {
-        margin-bottom: 14px;
-      }
     }
+
     @media (max-width: 950px) {
-      .admin-table-box { padding: 8px 1vw 10px 1vw; }
-      .search-bar { flex-direction: column; gap: 4px; align-items: stretch; }
-      table, th, td { font-size: 0.89rem; }
-      th, td { padding: 4px 1px; }
+      .search-bar {
+        flex-direction: column;
+        gap: 4px;
+        align-items: stretch;
+      }
+      .files-table,
+      .files-table th,
+      .files-table td {
+        font-size: 0.89rem;
+      }
+      .files-table th,
+      .files-table td {
+        padding: 4px 2px;
+      }
     }
 
-    /* ====== 이하 기존 모달/업로드 스타일 그대로 ====== */
-#edit-bg {
-  display: none;
-  position: fixed;
-  left: 0; top: 0; width: 100vw; height: 100vh;
-  background: #18181899;
-  z-index: 1000;
-  align-items: center;
-  justify-content: center;
-}
-#edit-bg .modal-box {
-  background: #fff;
-  border-radius: 22px;
-  box-shadow: 0 10px 40px #2222;
-  width: 420px;
-  max-width: 96vw;
-  padding: 34px 30px 26px 30px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-}
-#edit-bg .modal-box h3 {
-  margin: 0 0 26px 0;
-  text-align: center;
-  font-size: 1.17rem;
-  font-weight: 900;
-  color: #181818;
-  letter-spacing: -1.5px;
-}
-#edit-bg .modal-box form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-#edit-bg .modal-box select,
-#edit-bg .modal-box input[type="text"],
-#edit-bg .modal-box input[type="number"] {
-  border: 1.5px solid #ffe08a;
-  background: #fcfcfc;
-  border-radius: 13px;
-  padding: 13px 17px;
-  font-size: 1.09rem;
-  outline: none;
-  margin-bottom: 2px;
-  box-shadow: 0 2px 10px #fff8e06b inset;
-  transition: border 0.15s, box-shadow 0.16s;
-}
-#edit-bg .modal-box select:focus,
-#edit-bg .modal-box input[type="text"]:focus,
-#edit-bg .modal-box input[type="number"]:focus {
-  border: 1.8px solid #ffc400;
-  background: #fffbe8;
-  box-shadow: 0 2px 10px #ffe08a55 inset;
-}
-#edit-bg .modal-box input[type="file"] {
-  border: none;
-  background: none;
-  padding: 0;
-  font-size: 1rem;
-  margin-bottom: 2px;
-}
-#edit-bg .modal-box > div[style*="font-size:.9rem"] {
-  font-size: 0.97rem !important;
-  color: #555;
-  margin-bottom: 3px;
-}
-#edit-bg .modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 18px;
-}
-#edit-bg .modal-box button {
-  border: none;
-  border-radius: 8px;
-  font-size: 1.01rem;
-  padding: 9px 22px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.16s, color 0.13s;
-}
-#edit-bg .modal-box button[type="button"] {
-  background: #ececec;
-  color: #444;
-}
-#edit-bg .modal-box button[type="button"]:hover {
-  background: #e2e2e2;
-  color: #222;
-}
-#edit-bg .modal-box button[type="submit"] {
-  background: #21b661;
-  color: #fff;
-}
-#edit-bg .modal-box button[type="submit"]:hover {
-  background: #199b50;
-}
+    /* === 수정 모달 전체 레이아웃 (높이 ↓, 파란 톤) === */
+    #edit-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #11182788;
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
 
-.file-upload-area {
-  border: 2.2px dashed #ffd54f;
-  background: #fffbe8;
-  border-radius: 15px;
-  padding: 26px 14px 18px 14px;
-  text-align: center;
-  margin: 10px 0 6px 0;
-  transition: border-color 0.15s, background 0.15s;
-  position: relative;
-  min-height: 80px;
-}
-.file-upload-area.dragover {
-  border-color: #ffc400;
-  background: #fff8db;
-}
-#fileSelectBtn {
-  background: #ffc400;
-  color: #181818;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 34px;
-  font-size: 1.05rem;
-  font-weight: 700;
-  margin-bottom: 10px;
-  cursor: pointer;
-  box-shadow: 0 2px 10px #ffd54f44;
-  transition: background 0.15s, color 0.13s;
-}
-#fileSelectBtn:hover {
-  background: #ffdb3b;
-  color: #000;
-}
-#fileUploadText {
-  color: #444;
-  font-size: 1rem;
-  margin: 0 0 10px 0;
-  font-family: inherit;
-}
-#fileList {
-  margin-top: 2px;
-  color: #5c4a00;
-  font-size: 0.98rem;
-  min-height: 18px;
-  text-align: left;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px 14px;
-  justify-content: center;
-}
-.file-item {
-  background: #fff8df;
-  border-radius: 7px;
-  border: 1px solid #ffe08a;
-  padding: 4px 10px 4px 10px;
-  font-size: 0.96rem;
-  color: #7c6c12;
-  margin-bottom: 1px;
-}
+    #edit-bg .modal-box {
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.35);
+      width: 360px;       /* 420 → 360 으로 가로폭 줄이기 */
+      max-width: 92vw;    /* 모바일에서도 살짝 더 여유 있게 */
+      max-height: 80vh;
+      padding: 18px 18px 14px;  /* 좌우 패딩도 조금 줄임 */
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      overflow-y: auto;
+    }
+
+
+    #edit-bg .modal-box h3 {
+      margin: 0 0 18px 0;
+      text-align: center;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #111827;
+      letter-spacing: -0.06em;
+    }
+
+    /* 필드 간 간격 살짝 줄이기 */
+    #edit-bg .modal-box form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* === 필터 스타일: 기본은 얇은 파란 라인, 포커스 시 캡슐 강조 === */
+    #edit-bg .modal-box select,
+    #edit-bg .modal-box input[type="text"],
+    #edit-bg .modal-box input[type="number"] {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid #d2ddff;       /* 옅은 파란색 라인 */
+      background: #f8f9ff;             /* 옅은 파란 배경 */
+      padding: 8px 12px;
+      font-size: 0.92rem;
+      outline: none;
+      margin-bottom: 0;
+      box-shadow: none;
+      transition:
+        border-color 0.16s ease,
+        box-shadow   0.16s ease,
+        background   0.16s ease,
+        transform    0.08s ease;
+      color: #111827;
+    }
+
+    /* placeholder 톤 살짝 연하게 */
+    #edit-bg .modal-box input::placeholder {
+      color: #9ca3af;
+    }
+
+    /* 포커스(실제로 바꾸는 필터) → 이미지 가운데 필터처럼 파란 캡슐 느낌 */
+    #edit-bg .modal-box select:focus,
+    #edit-bg .modal-box input[type="text"]:focus,
+    #edit-bg .modal-box input[type="number"]:focus {
+      border-color: #2563eb;                       /* 진한 파랑 */
+      background: #eef4ff;                         /* 살짝 더 진한 파란 배경 */
+      box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.35);
+      transform: translateY(-1px);
+    }
+
+    /* 파일 input은 숨김 스타일 유지 */
+    #edit-bg .modal-box input[type="file"] {
+      border: none;
+      background: none;
+      padding: 0;
+      font-size: 0.9rem;
+      margin-bottom: 0;
+    }
+
+    #edit-bg .modal-box > div[style*="font-size:.9rem"] {
+      font-size: 0.9rem !important;
+      color: #4b5563;
+      margin-bottom: 2px;
+    }
+
+    /* 모달 버튼 영역 */
+    #edit-bg .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    /* 모달 버튼들 – 조금 더 작고 플랫하게 */
+    #edit-bg .modal-box button {
+      border: none;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      padding: 7px 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.16s, color 0.13s, box-shadow 0.16s, transform 0.05s;
+    }
+
+    /* 취소 버튼 */
+    #edit-bg .modal-box button[type="button"] {
+      background: #f3f4f6;
+      color: #374151;
+      box-shadow: 0 1px 3px rgba(148, 163, 184, 0.45);
+    }
+    #edit-bg .modal-box button[type="button"]:hover {
+      background: #e5e7eb;
+      color: #111827;
+      transform: translateY(1px);
+    }
+
+    /* 저장 버튼 – 파란색 */
+    #edit-bg .modal-box button[type="submit"] {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.45);
+    }
+    #edit-bg .modal-box button[type="submit"]:hover {
+      background: #1d4fd8;
+      transform: translateY(1px);
+    }
+
+    /* === 파일 업로드 영역도 노랑 → 파랑 계열로 통일 === */
+    .file-upload-area {
+      border: 2px dashed #c7d2fe;
+      background: #f5f7ff;
+      border-radius: 14px;
+      padding: 20px 14px 14px;
+      text-align: center;
+      margin: 10px 0 6px 0;
+      transition: border-color 0.15s, background 0.15s;
+      position: relative;
+      min-height: 70px;
+    }
+    .file-upload-area.dragover {
+      border-color: #2563eb;
+      background: #eef4ff;
+    }
+
+    #fileSelectBtn {
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      border-radius: 999px;
+      padding: 8px 26px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.45);
+      transition: background 0.15s, color 0.13s, transform 0.05s, box-shadow 0.15s;
+    }
+    #fileSelectBtn:hover {
+      background: #1d4fd8;
+      transform: translateY(1px);
+    }
+
+    #fileUploadText {
+      color: #4b5563;
+      font-size: 0.9rem;
+      margin: 0 0 8px 0;
+      font-family: inherit;
+    }
+
+    #fileList {
+      margin-top: 2px;
+      color: #1f2937;
+      font-size: 0.86rem;
+      min-height: 18px;
+      text-align: left;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px 10px;
+      justify-content: center;
+    }
+
+    .file-item {
+      background: #eef2ff;
+      border-radius: 999px;
+      border: 1px solid #c7d2fe;
+      padding: 3px 10px;
+      font-size: 0.84rem;
+      color: #1f2937;
+      margin-bottom: 1px;
+    }
 
   </style>
 </head>
@@ -627,33 +879,40 @@
   <!-- ===== 상단 커버리지 필터 + 카드 (패널 밖으로 분리) ===== -->
   <div class="cov-section">
       <div class="cov-filter-row">
-        <div class="cov-filter-left">
-          <select id="cov-level">
-            <option value="고등">고등</option>
-            <option value="중등">중등</option>
-          </select>
-          <select id="cov-grade">
-            <option value="">학년 전체</option>
-            <option value="1">1학년</option>
-            <option value="2">2학년</option>
-            <option value="3">3학년</option>
-          </select>
-          <select id="cov-year">
-            <!-- JS에서 /api/coverage/years 로 채움 -->
-          </select>
-          <!-- 🔽 추가: 학기 필터 (coverage 전용) -->
-          <select id="cov-semester">
-            <option value="">학기 전체</option>
-            <option value="1">1학기</option>
-            <option value="2">2학기</option>
-          </select>
-          <!-- 🔽 추가: 중간/기말 필터 (coverage 전용) -->
-          <select id="cov-exam">
-            <option value="">구분 전체</option>
-            <option value="mid">중간</option>
-            <option value="final">기말</option>
-          </select>
-        </div>
+      <div class="cov-filter-left">
+        <!-- 연도 먼저 -->
+        <select id="cov-year">
+          <!-- JS에서 /api/coverage/years 로 채움 -->
+        </select>
+
+        <!-- 관(고등/중등) -->
+        <select id="cov-level">
+          <option value="고등">고등</option>
+          <option value="중등">중등</option>
+        </select>
+
+        <!-- 학년 -->
+        <select id="cov-grade">
+          <option value="">학년 전체</option>
+          <option value="1">1학년</option>
+          <option value="2">2학년</option>
+          <option value="3">3학년</option>
+        </select>
+
+        <!-- 학기 -->
+        <select id="cov-semester">
+          <option value="">학기 전체</option>
+          <option value="1">1학기</option>
+          <option value="2">2학기</option>
+        </select>
+
+        <!-- 중간/기말 -->
+        <select id="cov-exam">
+          <option value="">구분 전체</option>
+          <option value="mid">중간</option>
+          <option value="final">기말</option>
+        </select>
+      </div>
         <div class="cov-filter-right">
           <select id="cov-sort">
             <option value="pct-desc">% 높은순</option>
@@ -669,126 +928,225 @@
     </div>
   </div>
 
-  <!-- ===== 아래는 자료 리스트용 패널 ===== -->
-  <div class="admin-table-box">
-    <div class="admin-main">
-      <!-- 좌측 : 검색 + 테이블 -->
-      <div class="admin-main-left">
-        <div class="search-bar">
-          <!-- 파일 리스트 전용 필터 -->
-          <select id="file-semester">
-            <option value="">학기 전체</option>
-            <option value="1학기">1학기</option>
-            <option value="2학기">2학기</option>
-          </select>
-          <select id="file-exam-type">
-            <option value="">구분 전체</option>
-            <option value="중간">중간</option>
-            <option value="기말">기말</option>
-          </select>
-          <input id="search-school" placeholder="학교명" style="width:110px;" />
-          <input id="search-title"  placeholder="자료명" style="width:140px;" />
-          <button onclick="doSearch()">검색</button>
-          <button onclick="resetSearch()" style="margin-left:2px;">초기화</button>
-        </div>
+  <!-- 하단 파일 관리 2패널 레이아웃 -->
+  <div class="admin-main">
 
-        <div class="msg" id="msg"></div>
+    <!-- ⬅ 왼쪽: 파일 리스트 패널 -->
+    <div class="files-panel-left">
 
-        <table>
+    <!-- 검색바 -->
+    <div class="search-bar">
+      <!-- 연도 (2024, 2025만) -->
+      <select id="file-year" style="width:110px;">
+        <option value="">연도 전체</option>
+        <option value="2024">2024</option>
+        <option value="2025">2025</option>
+      </select>
+
+      <!-- 관(고등/중등) -->
+      <select id="file-level" style="width:90px;">
+        <option value="">관 전체</option>
+        <option value="고등">고등</option>
+        <option value="중등">중등</option>
+      </select>
+
+      <!-- 지역 자동 생성 -->
+      <select id="file-region" style="width:120px;">
+        <option value="">지역 전체</option>
+      </select>
+
+      <!-- 구/군 자동 생성 -->
+      <select id="file-district" style="width:120px;">
+        <option value="">구/군 전체</option>
+      </select>
+
+      <!-- 학교명 -->
+      <input id="search-school" placeholder="학교명" style="width:110px;" />
+
+      <!-- 학년 -->
+      <select id="file-grade" style="width:110px;">
+        <option value="">학년 전체</option>
+        <option value="중1">중1</option>
+        <option value="중2">중2</option>
+        <option value="중3">중3</option>
+        <option value="고1">고1</option>
+        <option value="고2">고2</option>
+        <option value="고3">고3</option>
+      </select>
+
+      <!-- 학기 -->
+      <select id="file-semester" style="width:110px;">
+        <option value="">학기 전체</option>
+        <option value="1학기">1학기</option>
+        <option value="2학기">2학기</option>
+      </select>
+
+      <!-- 중간/기말 -->
+      <select id="file-exam" style="width:110px;">
+        <option value="">구분 전체</option>
+        <option value="중간">중간</option>
+        <option value="기말">기말</option>
+      </select>
+
+      <!-- 과목 (중등/고등에 따라 옵션이 바뀜) -->
+      <select id="file-subject" style="width:140px;">
+        <option value="">과목 전체</option>
+      </select>
+
+      <!-- 자료명 -->
+      <input id="search-title"  placeholder="자료명" style="width:130px;" />
+
+      <button onclick="doSearch()">검색</button>
+      <button onclick="resetSearch()" style="margin-left:2px;">초기화</button>
+    </div>
+
+      <!-- 파일 리스트 테이블 -->
+      <div class="msg" id="msg"></div>
+
+      <div class="files-table-wrap">
+        <table class="files-table">
           <thead>
             <tr>
-              <th style="width: 55px;">ID</th>
-              <th style="width: 65px;">관</th>
-              <th style="width: 75px;">지역</th>
-              <th style="width: 85px;">구/군</th>
-              <th style="width: 155px;">학교</th>
-              <th style="width: 65px;">학년</th>
-              <th style="width: 70px;">연도</th>
-              <th style="width: 95px;">학기</th>
-              <th style="width: 260px;">제목</th>
-              <th style="width: 105px;">한글</th>
-              <th style="width: 105px;">PDF</th>
-              <th style="width: 155px;">관리</th>
+              <th>지역</th>
+              <th>구/군</th>
+              <th>학교</th>
+              <th>학년</th>
+              <th>연도</th>
+              <th>학기</th>
+              <th>중간/기말</th>
+              <th>과목</th>   <!-- 제목 → 과목 -->
+              <th>한글</th>
+              <th>PDF</th>
+              <th>관리</th>
             </tr>
           </thead>
           <tbody id="file-list"><!-- JS로 채움 --></tbody>
         </table>
       </div>
 
-      <!-- 우측 : 선택한 파일 상세 패널 -->
-      <div class="admin-main-right">
-        <div class="file-detail-panel" id="file-detail-panel">
-          <div id="detail-empty" class="detail-empty">
-            왼쪽 목록에서 파일을 선택하면<br>상세 정보가 여기에 표시됩니다.
+
+    </div>
+
+    <!-- ➡ 오른쪽: 문제 파일 상세 정보 패널 -->
+    <div class="files-panel-right">
+      <!-- 제목 텍스트 제거됨 -->
+
+            <!-- 상단 좌측: 메모 전체보기 버튼 -->
+      <div class="file-detail-topbar">
+        <button type="button" id="memo-all-btn" class="memo-all-btn">
+          메모 전체보기
+        </button>
+      </div>
+
+      <!-- 아직 선택된 파일이 없을 때 -->
+      <div id="file-detail-empty" class="file-detail-empty">
+        왼쪽 목록에서 파일을 선택하면<br>상세 정보가 여기에 표시됩니다.
+      </div>
+
+      <!-- 파일 선택 후 상세 정보 영역 -->
+      <div id="file-detail-body" class="file-detail-body" style="display:none;">
+
+        <div class="file-detail-header">
+          <!-- 위의 큰 아이콘 -->
+          <div class="file-detail-icon-large">
+            <img id="detail-file-icon-main"
+                 src="image_download/pdf_download.png"
+                 alt="파일 아이콘">
           </div>
-          <div id="detail-body" style="display:none;">
-            <div class="detail-header">
-              <div class="detail-file-icon">
-                <span class="detail-icon-ext">FILE</span>
-              </div>
-              <div>
-                <div id="detail-title" class="detail-title"></div>
-                <div id="detail-sub" class="detail-sub"></div>
-              </div>
-            </div>
-            <div id="detail-tags" class="detail-tags"></div>
-            <div class="detail-meta">
-              <div class="detail-meta-row">
-                <span class="detail-meta-label">학교</span>
-                <span id="detail-meta-school" class="detail-meta-value"></span>
-              </div>
-              <div class="detail-meta-row">
-                <span class="detail-meta-label">지역</span>
-                <span id="detail-meta-region" class="detail-meta-value"></span>
-              </div>
-              <div class="detail-meta-row">
-                <span class="detail-meta-label">학년</span>
-                <span id="detail-meta-grade" class="detail-meta-value"></span>
-              </div>
-              <div class="detail-meta-row">
-                <span class="detail-meta-label">연도/학기</span>
-                <span id="detail-meta-year" class="detail-meta-value"></span>
-              </div>
-              <div class="detail-meta-row">
-                <span class="detail-meta-label">메모</span>
-                <span id="detail-meta-memo" class="detail-meta-value detail-memo"></span>
-              </div>
-            </div>
-            <div class="detail-actions">
-              <a id="detail-download-hwp" class="detail-btn" target="_blank">한글 다운로드</a>
-              <a id="detail-download-pdf" class="detail-btn secondary" target="_blank">PDF 다운로드</a>
-            </div>
+
+          <!-- 아래 작은 아이콘 + 파일명 (왼쪽 정렬) -->
+          <div class="file-detail-name-row">
+            <img id="detail-file-icon-small"
+                 src="image_download/pdf_download.png"
+                 alt="파일 아이콘">
+            <span class="file-detail-filename" id="detail-file-name">
+              파일을 선택하세요
+            </span>
+          </div>
+
+          <!-- 🔽 파일명 바로 아래 PDF/HWP 다운로드 버튼 -->
+          <div class="file-detail-download-row">
+            <a id="detail-download-pdf"
+               href="#"
+               class="detail-download-btn pdf"
+               style="display:none;">
+              PDF
+            </a>
+            <a id="detail-download-hwp"
+               href="#"
+               class="detail-download-btn hwp"
+               style="display:none;">
+              HWP
+            </a>
+          </div>
+        </div>
+
+        <!-- ⬇ 기존 정보들 -->
+        <div class="file-detail-row">
+          <span>지역 / 학교</span>
+          <strong id="detail-school">-</strong>
+        </div>
+        <div class="file-detail-row">
+          <span>연도 / 학년 / 학기 / 구분</span>
+          <strong id="detail-meta-year">-</strong>
+        </div>
+        <!-- 제목은 위에서 이미 표시되므로 상세 정보에서는 제거 -->
+        <div class="file-detail-row">
+          <span>과목</span>
+          <strong id="detail-subject">-</strong>
+        </div>
+
+        <!-- 🆕 PDF / HWP 업로드일 -->
+        <div class="file-detail-row">
+          <span>PDF 업로드일</span>
+          <strong id="detail-pdf-date">-</strong>
+        </div>
+        <div class="file-detail-row">
+          <span>HWP 업로드일</span>
+          <strong id="detail-hwp-date">-</strong>
+        </div>
+
+        <div class="file-detail-row memo-row">
+          <span>메모</span>
+          <!-- 여러 개 메모가 쌓이는 영역 -->
+          <div id="detail-memo-list" class="memo-list">
+            <p class="memo-empty">메모가 없습니다.</p>
           </div>
         </div>
       </div>
     </div>
-  </div>
+
+  </div> <!-- /.admin-main -->
+
 
   <!-- ==== 기존 수정 모달 / 프리뷰 ==== -->
   <div id="edit-bg">
     <div class="modal-box">
       <h3 style="margin-top:0">자료 정보 수정</h3>
       <form id="edit-form" enctype="multipart/form-data">
+        <!-- 관 (중등 / 고등) -->
         <select name="level" required>
           <option value="">관 선택</option>
           <option value="중등">중등</option>
           <option value="고등">고등</option>
         </select>
+
+        <!-- 지역: 커버리지에서 받아오는 드롭다운 (JS에서 채움) -->
         <select name="region" required>
           <option value="">지역 선택</option>
-          <option>서울특별시</option>
-          <option>경기도</option>
-          <option>인천광역시</option>
-          <option>부산광역시</option>
-          <option>대구광역시</option>
-          <option>광주광역시</option>
-          <option>대전광역시</option>
-          <option>기타</option>
         </select>
-        <input name="district"  placeholder="구/군"         required />
-        <input name="school"    placeholder="학교"          required />
+
+        <!-- 구/군: 커버리지에서 받아오는 드롭다운 (JS에서 채움) -->
+        <select name="district" required>
+          <option value="">구/군 선택</option>
+        </select>
+
+        <!-- 학교 이름: 직접 수정 가능 -->
+        <input name="school" placeholder="학교 이름" required />
+
+        <!-- 학년: 기존 페이지 필터와 동일 -->
         <select name="grade" required>
-          <option value="">학년</option>
+          <option value="">학년 선택</option>
           <option>중1</option>
           <option>중2</option>
           <option>중3</option>
@@ -796,15 +1154,30 @@
           <option>고2</option>
           <option>고3</option>
         </select>
-        <input name="year"      type="number" placeholder="연도" required />
-        <select name="semester" required>
-          <option value="">학기</option>
-          <option>1학기중간</option>
-          <option>1학기기말</option>
-          <option>2학기중간</option>
-          <option>2학기기말</option>
+
+        <!-- 연도: 2024 / 2025 드롭다운 -->
+        <select name="year" required>
+          <option value="">연도 선택</option>
+          <option value="2024">2024</option>
+          <option value="2025">2025</option>
         </select>
-        <input name="title"     placeholder="제목"          required />
+
+        <!-- 학기: 1학기 / 2학기 -->
+        <select name="semester" required>
+          <option value="">학기 선택</option>
+          <option value="1학기">1학기</option>
+          <option value="2학기">2학기</option>
+        </select>
+
+        <!-- 구분: 중간 / 기말 -->
+        <select name="exam_type" required>
+          <option value="">구분 선택</option>
+          <option value="중간">중간</option>
+          <option value="기말">기말</option>
+        </select>
+
+        <!-- 자료 제목 -->
+        <input name="title" placeholder="자료 제목" required />
         <div style="font-size:.9rem;margin:4px 0 2px;">파일 교체(선택)</div>
         <div class="file-upload-area" id="fileDropArea">
           <input type="file" id="fileInput" name="files" multiple hidden />
@@ -819,18 +1192,62 @@
       </form>
     </div>
   </div>
-
-  <div class="preview-bg" id="preview-bg">
-    <div class="preview-content" id="preview-content">
-      <button onclick="closePreview()" style="float:right;font-size:1.1rem;background:none;border:none;color:#f45a6a;">✕</button>
-      <div id="preview-body"></div>
-    </div>
-  </div>
-
   <script>
     let fileListOrigin = [];
     let editTargetId   = null;
-    let selectedFileId = null;
+
+    // ===== 과목 필터용 목록 (중등 / 고등) =====
+    const SUBJECTS_MIDDLE = [
+      '중등 1-1 (2022 개정)',
+      '중등 1-2 (2022 개정)',
+      '중등 2-1 (2022 개정)',
+      '중등 2-2 (2022 개정)',
+      '중등 3-1 (2022 개정)',
+      '중등 1-1',
+      '중등 1-2',
+      '중등 2-1',
+      '중등 2-2',
+      '중등 3-1',
+      '중등 3-2'
+    ];
+
+    const SUBJECTS_HIGH = [
+      '공통수학1 (2022 개정)',
+      '공통수학2 (2022 개정)',
+      '미적분1 (2022 개정)',
+      '확률과 통계 (2022 개정)',
+      '대수 (2022 개정)',
+      '기출과정 (2022 개정)',
+      '수학(상)',
+      '수학(하)',
+      '수학1',
+      '수학2',
+      '미적분',
+      '확률과 통계',
+      '기하'
+    ];
+
+    // 관(중등/고등) 선택에 따라 과목 셀렉트 옵션 갱신
+    function updateSubjectOptions() {
+      const levelSel   = document.getElementById('file-level');
+      const subjectSel = document.getElementById('file-subject');
+      if (!subjectSel) return;
+
+      const level = levelSel?.value || '';
+      let items = [];
+
+      if (level === '중등') {
+        items = SUBJECTS_MIDDLE;
+      } else if (level === '고등') {
+        items = SUBJECTS_HIGH;
+      } else {
+        items = []; // 관 전체일 때는 과목 목록 비움
+      }
+
+      subjectSel.innerHTML =
+        '<option value=\"\">과목 전체</option>' +
+        items.map(s => `<option value="${s}">${s}</option>`).join('');
+    }
 
     const covState = {
       level: '고등',
@@ -839,7 +1256,8 @@
       semester: '',     // '1' | '2'
       examType: '',     // 'mid' | 'final'
       sort: 'pct-desc',
-      selectedCity: ''
+      selectedCity: '',
+      view: 'city'      // 'city' = 시/도 카드, 'district' = 구/군 카드
     };
     let covSummaryData = [];
 
@@ -849,20 +1267,22 @@
       return m ? m[0] : '';
     }
     function shortCityName(name){
-      return String(name || '').replace(/(특별자치도|특별자치시|광역시|특별시|자치도|도)$/,'');
-    }
+          // 광역시 / 특별시 / 특별자치시 의 "시"만 제거하고,
+          // '도' 계열은 그대로 두어서 강원도, 경기도처럼 보이게 한다.
+          return String(name || '').replace(/(특별자치시|광역시|특별시)$/,'');
+        }
 
-    function shortCityName(name){
-      return String(name || '').replace(/(특별자치도|특별자치시|광역시|특별시|자치도|도)$/,'');
-    }
-
-    // 학기/중간·기말 텍스트 조합
-    function formatSemesterCell(r){
-      const sem  = (r.semester || '').trim();   // 예: '1학기'
-      const exam = (r.exam_type || '').trim();  // 예: '중간', '기말'
-      if (sem && exam) return `${sem} ${exam}`;
-      return sem || exam || '';
-    }
+        function shortCityName(name){
+          // 위와 동일 – 혹시 중복 정의된 부분까지 모두 동일하게 교체
+          return String(name || '').replace(/(특별자치시|광역시|특별시)$/,'');
+        }
+        // 학기/중간·기말 텍스트 조합
+        function formatSemesterCell(r){
+          const sem  = (r.semester || '').trim();   // 예: '1학기'
+          const exam = (r.exam_type || '').trim();  // 예: '중간', '기말'
+          if (sem && exam) return `${sem} ${exam}`;
+          return sem || exam || '';
+        }
 
     // ===== 파일 목록 불러오기 =====
     async function fetchFiles(){
@@ -874,38 +1294,41 @@
       fileListOrigin = list || [];
     }
 
-    function renderTable(list){
-      const tbody = document.getElementById('file-list');
-      if(!tbody) return;
+function renderTable(list){
+  const tbody = document.getElementById('file-list');
+  if(!tbody) return;
 
-      if(!list.length){
-        tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;color:#bbb;">자료가 없습니다</td></tr>`;
-        updateDetailPanel(null);
-        return;
-      }
+  if(!list.length){
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:#bbb;">자료가 없습니다</td></tr>`;
+    return;
+  }
 
-      tbody.innerHTML = list.map(r=>{
-        const isSel   = (selectedFileId === r.id);
-        const semText = formatSemesterCell(r);
-        return `
-        <tr class="${isSel ? 'row-selected' : ''}" onclick="onRowClick(event, ${r.id})">
-          <td>${r.id}</td>
-          <td>${r.level || '-'}</td>
-          <td>${r.region || ''}</td>
+  tbody.innerHTML = list.map(r=>{
+    const semesterText = r.semester || '';      // 예: '1학기'
+    const examText     = r.exam_type || '';     // 예: '중간', '기말'
+
+    return `
+        <tr onclick="selectFileDetail(${r.id})">
+          <td>${r.region   || ''}</td>
           <td>${r.district || ''}</td>
-          <td>${r.school || ''}</td>
-          <td>${r.grade || ''}</td>
-          <td>${r.year || ''}</td>
-          <td>${semText}</td>
-          <td>${r.title || ''}</td>
+          <td>${r.school   || ''}</td>
+          <td>${r.grade    || ''}</td>
+          <td>${r.year     || ''}</td>
+          <td>${semesterText}</td>
+          <td>${examText}</td>
+          <td>${r.subject  || ''}</td>   <!-- 제목 대신 과목 -->
           <td>
             ${r.files && r.files.hwp ? `
-              <a href="/api/download/${r.id}?type=hwp" class="download-btn" target="_blank">다운로드</a>
+              <a href="/api/download/${r.id}?type=hwp" class="download-btn" target="_blank">
+                <img src="image_download/hwp_download.png" alt="HWP 다운로드 아이콘">
+              </a>
             ` : '-'}
           </td>
           <td>
             ${r.files && r.files.pdf ? `
-              <a href="/api/download/${r.id}?type=pdf" class="download-btn" target="_blank">다운로드</a>
+              <a href="/api/download/${r.id}?type=pdf" class="download-btn" target="_blank">
+                <img src="image_download/pdf_download.png" alt="PDF 다운로드 아이콘">
+              </a>
             ` : '-'}
           </td>
           <td>
@@ -913,150 +1336,69 @@
             <button class="delete-btn" onclick="deleteFile(${r.id},this);event.stopPropagation();">삭제</button>
           </td>
         </tr>`;
-      }).join('');
+  }).join('');
+}
 
-      // 선택된 파일이 현재 리스트에 없으면 상세 패널 리셋
-      const selected = list.find(r => r.id === selectedFileId);
-      updateDetailPanel(selected || null);
-    }
+// ✅ 수정후
+function applyFiltersAndRender(){
+  const level    = document.getElementById('file-level')?.value || '';
+  const region   = document.getElementById('file-region')?.value || '';
+  const district = document.getElementById('file-district')?.value || '';
+  const grade    = document.getElementById('file-grade')?.value || '';
+  const year     = document.getElementById('file-year')?.value.trim() || '';
+  const semester = document.getElementById('file-semester')?.value || '';
+  const exam     = document.getElementById('file-exam')?.value || '';
+  const subject  = document.getElementById('file-subject')?.value.trim() || '';
+  const schoolTxt = document.getElementById('search-school')?.value.trim() || '';
+  const titleTxt  = document.getElementById('search-title')?.value.trim() || '';
 
-    // 행 클릭 시 선택 처리
-    function onRowClick(ev, id){
-      // 버튼/링크 클릭은 무시
-      if (ev.target.closest('button') || ev.target.closest('a')) return;
-      selectFile(id);
-    }
-    function selectFile(id){
-      selectedFileId = id;
-      applyFiltersAndRender();  // 다시 그리면서 선택 행 강조
-    }
+  const filtered = fileListOrigin.filter(r => {
 
-    // 텍스트 검색 + 상단 필터 종합 적용
-    // 텍스트 검색 + 파일 전용 필터 적용 (커버리지 필터와 분리)
-    function applyFiltersAndRender(){
-      const schoolTxt = document.getElementById('search-school')?.value.trim() || '';
-      const titleTxt  = document.getElementById('search-title')?.value.trim() || '';
-      const semFilter  = document.getElementById('file-semester')?.value.trim() || '';
-      const examFilter = document.getElementById('file-exam-type')?.value.trim() || '';
+    if (level   && r.level   !== level) return false;
+    if (region  && r.region  !== region) return false;
+    if (district && (!r.district || r.district !== district)) return false;
+    if (grade   && r.grade   !== grade) return false;
 
-      const filtered = fileListOrigin.filter(r=>{
-        // 학교명 / 제목 검색
-        if (schoolTxt && (!r.school || !String(r.school).includes(schoolTxt))) return false;
-        if (titleTxt && (!r.title || !String(r.title).includes(titleTxt))) return false;
+    if (year && String(r.year) !== year) return false;
+    if (semester && r.semester !== semester) return false;
+    if (exam && r.exam_type !== exam) return false;
 
-        // 학기(1학기 / 2학기) 필터 - '1학기중간' 같은 옛 데이터도 대응
-        if (semFilter) {
-          const semField = (r.semester || '').trim();
-          if (!(semField === semFilter || semField.startsWith(semFilter))) return false;
-        }
+    if (subject && (!r.subject || !String(r.subject).includes(subject))) return false;
 
-        // 구분(중간 / 기말) 필터 - exam_type 분리 + 예전 문자열까지 처리
-        if (examFilter) {
-          const examType = (r.exam_type || '').trim();
-          const semField = (r.semester || '').trim();
-          if (examType) {
-            if (examType !== examFilter) return false;
-          } else {
-            if (!semField.includes(examFilter)) return false;
-          }
-        }
+    if (schoolTxt && (!r.school || !String(r.school).includes(schoolTxt))) return false;
+    if (titleTxt  && (!r.title  || !String(r.title).includes(titleTxt))) return false;
 
-        return true;
-      });
+    return true;
+  });
 
-      renderTable(filtered);
-    }
-
+  renderTable(filtered);
+}
 
     function doSearch(){
       applyFiltersAndRender();
     }
-    function resetSearch(){
-      const school = document.getElementById('search-school');
-      const title  = document.getElementById('search-title');
-      const semSel  = document.getElementById('file-semester');
-      const examSel = document.getElementById('file-exam-type');
+function resetSearch(){
+  const school = document.getElementById('search-school');
+  const title  = document.getElementById('search-title');
+  const semSel  = document.getElementById('file-semester');
+  const examSel = document.getElementById('file-exam');
 
-      if (school) school.value = '';
-      if (title)  title.value  = '';
-      if (semSel) semSel.value = '';
-      if (examSel) examSel.value = '';
+  if (school) school.value = '';
+  if (title)  title.value  = '';
+  if (semSel) semSel.value = '';
+  if (examSel) examSel.value = '';
 
-      // 커버리지 필터는 그대로 두고, 파일 리스트만 초기화
-      applyFiltersAndRender();
-    }
-
-    // ===== 상세 패널 업데이트 =====
-    function updateDetailPanel(file){
-      const emptyBox = document.getElementById('detail-empty');
-      const bodyBox  = document.getElementById('detail-body');
-      if (!emptyBox || !bodyBox) return;
-
-      if (!file) {
-        emptyBox.style.display = 'block';
-        bodyBox.style.display  = 'none';
-        return;
-      }
-      emptyBox.style.display = 'none';
-      bodyBox.style.display  = 'block';
-
-      document.getElementById('detail-title').textContent = file.title || '제목 없음';
-      document.getElementById('detail-sub').textContent =
-        `${file.school || '-'} · ${file.region || '-'} ${file.district || ''}`.trim();
-
-      const gradeText = file.grade || '';
-      const yearText  = file.year ? `${file.year}년` : '';
-      const sem       = file.semester || '';
-      const examType  = file.exam_type || '';
-      const subject   = file.subject || '';
-      const level     = file.level || '';
-
-      const tags = [];
-      if (level)   tags.push(level);
-      if (gradeText) tags.push(gradeText);
-      if (subject) tags.push(subject);
-      if (yearText) tags.push(yearText);
-      if (sem) tags.push(sem);
-      if (examType) tags.push(examType);
-
-      const tagsBox = document.getElementById('detail-tags');
-      tagsBox.innerHTML = tags.map(t => `<span class="detail-tag">${t}</span>`).join('');
-
-      document.getElementById('detail-meta-school').textContent = file.school || '-';
-      document.getElementById('detail-meta-region').textContent =
-        `${file.region || '-'} ${file.district || ''}`.trim();
-      document.getElementById('detail-meta-grade').textContent = gradeText || '-';
-      document.getElementById('detail-meta-year').textContent =
-        [yearText, sem || '', examType || ''].filter(Boolean).join(' / ') || '-';
-      document.getElementById('detail-meta-memo').textContent = file.memo || '-';
-
-      const hwpLink = document.getElementById('detail-download-hwp');
-      const pdfLink = document.getElementById('detail-download-pdf');
-      if (hwpLink) {
-        if (file.files && file.files.hwp) {
-          hwpLink.style.display = 'inline-flex';
-          hwpLink.href = `/api/download/${file.id}?type=hwp`;
-        } else {
-          hwpLink.style.display = 'none';
-        }
-      }
-      if (pdfLink) {
-        if (file.files && file.files.pdf) {
-          pdfLink.style.display = 'inline-flex';
-          pdfLink.href = `/api/download/${file.id}?type=pdf`;
-        } else {
-          pdfLink.style.display = 'none';
-        }
-      }
-    }
+  // 커버리지 필터는 그대로 두고, 파일 리스트만 초기화
+  applyFiltersAndRender();
+}
 
     async function initCoverageFilters(){
       const levelSel = document.getElementById('cov-level');
       const gradeSel = document.getElementById('cov-grade');
       const yearSel  = document.getElementById('cov-year');
+      const sortSel  = document.getElementById('cov-sort');
       const semSel   = document.getElementById('cov-semester');
       const examSel  = document.getElementById('cov-exam');
-      const sortSel  = document.getElementById('cov-sort');
 
       if (levelSel) covState.level    = levelSel.value || '고등';
       if (gradeSel) covState.grade    = gradeSel.value || '';
@@ -1065,28 +1407,69 @@
       if (examSel)  covState.examType = examSel.value  || '';
       if (sortSel)  covState.sort     = sortSel.value  || 'pct-desc';
 
-      // 연도 목록 불러오기 ...
-      // (중략, 기존 그대로 유지)
+      // 🔽 연도 목록 불러오기 (/api/coverage/years 결과 사용)
+      try {
+        const res  = await fetch('/api/coverage/years');
+        const data = await res.json().catch(() => null);
+
+        let years = [];
+        if (data && Array.isArray(data.years) && data.years.length) {
+          // 예: [2024, 2025]
+          years = data.years;
+        } else {
+          // 혹시라도 API가 비어 있으면 현재 기준 최근 2년 사용
+          const cur = new Date().getFullYear();
+          years = [cur - 1, cur];
+        }
+
+        if (yearSel) {
+          yearSel.innerHTML = years
+            .map(y => `<option value="${y}">${y}년</option>`)
+            .join('');
+
+          const last = years[years.length - 1]; // 가장 최근 연도 (예: 2025)
+          covState.year = String(last);
+          yearSel.value = String(last);
+        }
+      } catch (e) {
+        console.error('[cov-year] load error', e);
+        const cur = new Date().getFullYear();
+        if (yearSel) {
+          yearSel.innerHTML = `<option value="${cur}">${cur}년</option>`;
+          yearSel.value = String(cur);
+        }
+        covState.year = String(cur);
+      }
 
       levelSel?.addEventListener('change', ()=>{
         covState.level = levelSel.value;
         covState.selectedCity = '';
+        covState.view = 'city';          // 지역 모드로 리셋
         refreshCoverageSummary();
+        loadFileFilterRegions();         // 파일 검색용 지역 드롭다운도 같이 갱신
       });
       gradeSel?.addEventListener('change', ()=>{
         covState.grade = gradeSel.value;
+        covState.selectedCity = '';
+        covState.view = 'city';
         refreshCoverageSummary();
       });
       yearSel?.addEventListener('change', ()=>{
         covState.year = yearSel.value;
+        covState.selectedCity = '';
+        covState.view = 'city';
         refreshCoverageSummary();
       });
       semSel?.addEventListener('change', ()=>{
         covState.semester = semSel.value;
+        covState.selectedCity = '';
+        covState.view = 'city';
         refreshCoverageSummary();
       });
       examSel?.addEventListener('change', ()=>{
         covState.examType = examSel.value;
+        covState.selectedCity = '';
+        covState.view = 'city';
         refreshCoverageSummary();
       });
       sortSel?.addEventListener('change', ()=>{
@@ -1097,12 +1480,147 @@
     }
 
 
+  async function loadFileFilterRegions() {
+    const regionSel = document.getElementById('file-region');
+    if (!regionSel) return;
+
+    try {
+      // coverage 지역 목록 불러오기
+      const res = await fetch(`/api/coverage/cities?level=${encodeURIComponent(covState.level)}`);
+      const regions = await res.json();
+
+      regionSel.innerHTML = `<option value="">지역 전체</option>` +
+        regions.map(r => `<option value="${r}">${r}</option>`).join('');
+    } catch (e) {
+      console.error("지역 불러오기 오류:", e);
+    }
+  }
+
+  async function loadFileFilterDistricts(region) {
+    const distSel = document.getElementById('file-district');
+    if (!distSel) return;
+
+    if (!region) {
+      distSel.innerHTML = `<option value="">구/군 전체</option>`;
+      return;
+    }
+
+    try {
+      // coverage.js 에 맞게 level + city 로 전달
+      const params = new URLSearchParams();
+      if (covState.level) params.append('level', covState.level);
+      params.append('city', region);
+
+      const res = await fetch(`/api/coverage/districts?${params.toString()}`);
+      let districts = await res.json();
+
+      // 서버가 { districts:[...] } 형태이거나, [{district:'수지구'}] 형태일 수도 있으니 보정
+      if (districts && Array.isArray(districts.districts)) {
+        districts = districts.districts;
+      }
+      if (!Array.isArray(districts)) {
+        districts = [];
+      }
+
+      distSel.innerHTML =
+        `<option value="">구/군 전체</option>` +
+        districts.map(d => {
+          const name =
+            typeof d === 'string'
+              ? d
+              : (d.district || d.name || d.district_name || '');
+          return name
+            ? `<option value="${name}">${name}</option>`
+            : '';
+        }).join('');
+    } catch (e) {
+      console.error("구군 불러오기 오류:", e);
+      distSel.innerHTML = `<option value="">구/군 전체</option>`;
+    }
+  }
+
+    // ==== 수정 모달용 지역 / 구군 드롭다운 ====
+  async function loadEditRegions() {
+    const form = document.getElementById('edit-form');
+    if (!form) return;
+
+    const regionSel = form.querySelector('select[name="region"]');
+    const levelSel  = form.querySelector('select[name="level"]');
+    if (!regionSel) return;
+
+    const level = (levelSel?.value || covState.level || '').trim();
+
+    try {
+      const qLevel = encodeURIComponent(level || '');
+      const res = await fetch(`/api/coverage/cities?level=${qLevel}`);
+      const regions = await res.json().catch(() => []);
+
+      regionSel.innerHTML =
+        '<option value="">지역 선택</option>' +
+        (Array.isArray(regions)
+          ? regions.map(r => `<option value="${r}">${r}</option>`).join('')
+          : '');
+    } catch (e) {
+      console.error('edit-region load error:', e);
+      regionSel.innerHTML = '<option value="">지역 선택</option>';
+    }
+  }
+
+  async function loadEditDistricts(region) {
+    const form = document.getElementById('edit-form');
+    if (!form) return;
+
+    const districtSel = form.querySelector('select[name="district"]');
+    const levelSel    = form.querySelector('select[name="level"]');
+    if (!districtSel) return;
+
+    if (!region) {
+      districtSel.innerHTML = '<option value="">구/군 선택</option>';
+      return;
+    }
+
+    try {
+      const params = new URLSearchParams();
+      const level = (levelSel?.value || covState.level || '').trim();
+      if (level) params.append('level', level);
+      params.append('city', region);
+
+      const res = await fetch(`/api/coverage/districts?${params.toString()}`);
+      let districts = await res.json().catch(() => []);
+
+      if (districts && Array.isArray(districts.districts)) {
+        districts = districts.districts;
+      }
+      if (!Array.isArray(districts)) districts = [];
+
+      districtSel.innerHTML =
+        '<option value="">구/군 선택</option>' +
+        districts.map(d => {
+          const name =
+            typeof d === 'string'
+              ? d
+              : (d.district || d.name || d.district_name || '');
+          return name ? `<option value="${name}">${name}</option>` : '';
+        }).join('');
+    } catch (e) {
+      console.error('edit-district load error:', e);
+      districtSel.innerHTML = '<option value="">구/군 선택</option>';
+    }
+  }
+
+
     function sortCoverageSummary(){
       const mode = covState.sort || 'pct-desc';
       covSummaryData.sort((a,b)=>{
         if (mode === 'pct-asc')   return a.pct - b.pct;
         if (mode === 'filled-desc') return b.filled - a.filled;
-        if (mode === 'name')      return (a.city || '').localeCompare(b.city || '', 'ko');
+        if (mode === 'name') {
+          // 시/도 모드 = city 기준, 구/군 모드 = district 기준
+          if (covState.view === 'district') {
+            return (a.district || '').localeCompare(b.district || '', 'ko');
+          }
+          return (a.city || '').localeCompare(b.city || '', 'ko');
+        }
         return b.pct - a.pct; // pct-desc
       });
     }
@@ -1113,37 +1631,101 @@
       box.innerHTML = `<div class="cov-loading">지역별 커버리지를 불러오는 중...</div>`;
 
       try {
-        const qLevel = encodeURIComponent(covState.level || '');
-        const resCities = await fetch(`/api/coverage/cities?level=${qLevel}`);
-        if (!resCities.ok) throw new Error('지역 목록 오류');
-        const cities = await resCities.json().catch(()=>[]);
-        if (!Array.isArray(cities) || !cities.length){
-          covSummaryData = [];
-          box.innerHTML = `<div class="cov-empty">학교 데이터가 없습니다.</div>`;
-          return;
+        // 구/군 모드인데 선택된 지역이 없으면 강제로 시/도 모드로
+        if (covState.view === 'district' && !covState.selectedCity) {
+          covState.view = 'city';
         }
 
-        const statsPromises = cities.map(async city => {
-          const params = new URLSearchParams();
-          if (covState.level)    params.append('level', covState.level);
-          if (covState.year)     params.append('year',  covState.year);
-          if (covState.grade)    params.append('grade', covState.grade);
-          if (covState.semester) params.append('semester', covState.semester);   // '1' | '2'
-          if (covState.examType) params.append('exam_type', covState.examType);  // 'mid' | 'final'
-          params.append('city', city);
+        if (covState.view === 'district') {
+          // ===== 구/군 카드 모드 =====
+          const paramsForList = new URLSearchParams();
+          if (covState.level) paramsForList.append('level', covState.level);
+          paramsForList.append('city', covState.selectedCity);
 
-          const r = await fetch(`/api/coverage/stats?${params.toString()}`);
-          if (!r.ok) return { city, total:0, filled:0, pct:0 };
-          const j = await r.json().catch(()=>({}));
-          return {
-            city,
-            total: Number(j.total)  || 0,
-            filled: Number(j.filled) || 0,
-            pct: Number(j.pct) || 0
-          };
-        });
+          const resDist = await fetch(`/api/coverage/districts?${paramsForList.toString()}`);
+          let districts = await resDist.json().catch(()=>[]);
 
-        covSummaryData = await Promise.all(statsPromises);
+          // 서버가 { districts:[...] } 형태로 줄 수도 있어서 보정
+          if (districts && Array.isArray(districts.districts)) {
+            districts = districts.districts;
+          }
+          if (!Array.isArray(districts) || !districts.length) {
+            covSummaryData = [];
+            box.innerHTML = `<div class="cov-empty">${shortCityName(covState.selectedCity) || '선택한 지역'}의 구/군 데이터가 없습니다.</div>`;
+            return;
+          }
+
+          const statsPromises = districts.map(async d => {
+            const name =
+              typeof d === 'string'
+                ? d
+                : (d.district || d.name || d.district_name || '');
+
+            const params = new URLSearchParams();
+            if (covState.level)    params.append('level', covState.level);
+            if (covState.year)     params.append('year',  covState.year);
+            if (covState.grade)    params.append('grade', covState.grade);
+            if (covState.semester) params.append('semester', covState.semester);
+            if (covState.examType) params.append('exam_type', covState.examType);
+            params.append('city', covState.selectedCity);
+            if (name) params.append('district', name);
+
+            const r = await fetch(`/api/coverage/stats?${params.toString()}`);
+            if (!r.ok) {
+              return {
+                city: covState.selectedCity,
+                district: name,
+                total: 0,
+                filled: 0,
+                pct: 0
+              };
+            }
+            const j = await r.json().catch(()=>({}));
+            return {
+              city: covState.selectedCity,
+              district: name,
+              total: Number(j.total)  || 0,
+              filled: Number(j.filled) || 0,
+              pct: Number(j.pct) || 0
+            };
+          });
+
+          covSummaryData = await Promise.all(statsPromises);
+        } else {
+          // ===== 시/도 카드 모드 (원래 로직) =====
+          const qLevel = encodeURIComponent(covState.level || '');
+          const resCities = await fetch(`/api/coverage/cities?level=${qLevel}`);
+          if (!resCities.ok) throw new Error('지역 목록 오류');
+          const cities = await resCities.json().catch(()=>[]);
+          if (!Array.isArray(cities) || !cities.length){
+            covSummaryData = [];
+            box.innerHTML = `<div class="cov-empty">학교 데이터가 없습니다.</div>`;
+            return;
+          }
+
+          const statsPromises = cities.map(async city => {
+            const params = new URLSearchParams();
+            if (covState.level)    params.append('level', covState.level);
+            if (covState.year)     params.append('year',  covState.year);
+            if (covState.grade)    params.append('grade', covState.grade);
+            if (covState.semester) params.append('semester', covState.semester);   // '1' | '2'
+            if (covState.examType) params.append('exam_type', covState.examType);  // 'mid' | 'final'
+            params.append('city', city);
+
+            const r = await fetch(`/api/coverage/stats?${params.toString()}`);
+            if (!r.ok) return { city, total:0, filled:0, pct:0 };
+            const j = await r.json().catch(()=>({}));
+            return {
+              city,
+              total: Number(j.total)  || 0,
+              filled: Number(j.filled) || 0,
+              pct: Number(j.pct) || 0
+            };
+          });
+
+          covSummaryData = await Promise.all(statsPromises);
+        }
+
         sortCoverageSummary();
         renderCoverageCards();
       } catch(e) {
@@ -1161,30 +1743,106 @@
         return;
       }
 
-      box.innerHTML = covSummaryData.map(r=>{
-        const pct = Math.max(0, Math.min(100, isFinite(r.pct) ? r.pct : 0));
-        const filled = r.filled || 0;
-        const total  = r.total  || 0;
-        const selected = (covState.selectedCity === r.city) ? 'cov-card-selected' : '';
-        return `
-          <div class="cov-card ${selected}" data-city="${r.city}">
+      const isDistrictView = (covState.view === 'district');
+      const parts = [];
+
+      // 구/군 모드일 때는 "전체 지역으로" 돌아가는 카드 하나 추가
+      if (isDistrictView) {
+        parts.push(`
+          <div class="cov-card" data-back="1">
             <div class="cov-card-top">
-              <div class="cov-city">${shortCityName(r.city) || '지역 미지정'}</div>
-              <div class="cov-pct">${pct}%</div>
+              <div class="cov-city">← ${shortCityName(covState.selectedCity) || '전체 지역'}</div>
+              <div class="cov-pct">목록</div>
             </div>
             <div class="cov-bar">
-              <div class="cov-bar-inner" style="width:${pct}%;"></div>
+              <div class="cov-bar-inner" style="width:100%;"></div>
             </div>
-            <div class="cov-count">${filled} / ${total} 개</div>
+            <div class="cov-count">지역 목록으로 돌아가기</div>
           </div>
-        `;
-      }).join('');
+        `);
+      }
+
+      parts.push(
+        covSummaryData.map(r=>{
+          const pct = Math.max(0, Math.min(100, isFinite(r.pct) ? r.pct : 0));
+          const filled = r.filled || 0;
+          const total  = r.total  || 0;
+          const isSelectedCity = (covState.selectedCity === r.city);
+
+          // 시/도 모드에서만 선택 강조
+          const selected = (!isDistrictView && isSelectedCity) ? 'cov-card-selected' : '';
+
+          // 카드에 찍힐 이름: 시/도 vs 구/군
+          const label = isDistrictView
+            ? (r.district || r.city || '구/군 미지정')
+            : (shortCityName(r.city) || '지역 미지정');
+
+          return `
+            <div class="cov-card ${selected}"
+                data-city="${r.city || ''}"
+                data-district="${r.district || ''}">
+              <div class="cov-card-top">
+                <div class="cov-city">${label}</div>
+                <div class="cov-pct">${pct}%</div>
+              </div>
+              <div class="cov-bar">
+                <div class="cov-bar-inner" style="width:${pct}%;"></div>
+              </div>
+              <div class="cov-count">${filled} / ${total} 개</div>
+            </div>
+          `;
+        }).join('')
+      );
+
+      box.innerHTML = parts.join('');
 
       box.querySelectorAll('.cov-card').forEach(card=>{
         card.addEventListener('click', ()=>{
-          const city = card.getAttribute('data-city') || '';
-          covState.selectedCity = (covState.selectedCity === city ? '' : city);
-          renderCoverageCards();   // 선택 스타일만 갱신 (파일 리스트는 별도 필터)
+          const isBack   = card.getAttribute('data-back');
+          const city     = card.getAttribute('data-city') || '';
+          const district = card.getAttribute('data-district') || '';
+
+          // ← 전체 지역으로 돌아가기 카드
+          if (isBack) {
+            covState.view = 'city';
+            covState.selectedCity = '';
+            refreshCoverageSummary();
+
+            // 파일 검색 필터도 초기화
+            const regionSel   = document.getElementById('file-region');
+            const districtSel = document.getElementById('file-district');
+            if (regionSel) {
+              regionSel.value = '';
+              regionSel.dispatchEvent(new Event('change'));
+            } else if (districtSel) {
+              districtSel.value = '';
+              districtSel.dispatchEvent(new Event('change'));
+            }
+            return;
+          }
+
+          // 시/도 카드 클릭 → 해당 지역의 구/군 카드들로 전환
+          if (!isDistrictView) {
+            if (!city) return;
+            covState.selectedCity = city;
+            covState.view = 'district';
+            refreshCoverageSummary();
+
+            // 아래 파일 검색 필터의 "지역" select도 맞춰주기
+            const regionSel = document.getElementById('file-region');
+            if (regionSel) {
+              regionSel.value = city;
+              regionSel.dispatchEvent(new Event('change'));
+            }
+          } else {
+            // 구/군 카드 클릭 → 파일 검색 필터의 구/군 값으로 반영
+            if (!district) return;
+            const districtSel = document.getElementById('file-district');
+            if (districtSel) {
+              districtSel.value = district;
+              districtSel.dispatchEvent(new Event('change'));
+            }
+          }
         });
       });
     }
@@ -1231,22 +1889,98 @@
       }
     }
 
-    function editFile(id){
+    async function editFile(id){
       editTargetId = id;
-      const row    = fileListOrigin.find(r=>r.id===id);
+      const row    = fileListOrigin.find(r=>r.id === id);
       const form   = document.getElementById('edit-form');
       if (!row || !form) return;
-      form.level.value    = row.level || '';
-      form.region.value   = row.region || '';
-      form.district.value = row.district || '';
-      form.school.value   = row.school || '';
-      form.grade.value    = row.grade || '';
-      form.year.value     = row.year || '';
-      form.semester.value = row.semester || '';
-      form.title.value    = row.title || '';
-      form.files.value    = '';
-      document.getElementById('edit-bg').style.display='flex';
+
+      // 기본 값 세팅
+      form.level.value  = row.level  || '';
+      form.school.value = row.school || '';
+      form.title.value  = row.title  || '';
+
+      // 🔹 학년: DB에 숫자/1학년/중1/고1 등 어떻게 들어있어도
+      //    드롭다운(중1~고3)에 맞춰서 자동 선택되게 변환
+      (function applyGrade(){
+        const levelVal = row.level || form.level.value || '';   // 중등 / 고등
+        const rawGrade = (row.grade || '').toString().trim();   // DB에서 온 값
+
+        // 이미 '중1','중2','고3' 형식이면 그대로 사용
+        if (['중1','중2','중3','고1','고2','고3'].includes(rawGrade)) {
+          form.grade.value = rawGrade;
+          return;
+        }
+
+        // '1', '2', '3' 또는 '1학년', '2학년', '3학년' 같은 형식 처리
+        let num = '';
+        if (/^[1-3]$/.test(rawGrade)) {
+          num = rawGrade;
+        } else {
+          const m = rawGrade.match(/([1-3])\s*학년?/);
+          if (m) num = m[1];
+        }
+
+        if (!num) {
+          // 매칭 안 되면 그냥 비워두기
+          form.grade.value = '';
+          return;
+        }
+
+        // 관에 따라 중/고 붙이기
+        const prefix = (levelVal === '중등') ? '중' : '고';
+        form.grade.value = `${prefix}${num}`;
+      })();
+
+      // 연도는 선택값 (2024 / 2025)
+      if (form.year) {
+        form.year.value = row.year ? String(row.year) : '';
+      }
+
+      // 학기/구분 분리
+      let semVal  = '';
+      let examVal = '';
+
+      // 새 구조(semester='1학기', exam_type='중간') 우선
+      if (row.semester && (row.semester === '1학기' || row.semester === '2학기')) {
+        semVal = row.semester;
+      }
+      if (row.exam_type && (row.exam_type === '중간' || row.exam_type === '기말')) {
+        examVal = row.exam_type;
+      }
+
+      // 혹시 예전처럼 '1학기중간' 같이 합쳐져 있으면 분해
+      if (!semVal && row.semester) {
+        const s = String(row.semester);
+        if (s.includes('1학기')) semVal = '1학기';
+        else if (s.includes('2학기')) semVal = '2학기';
+
+        if (s.includes('중간')) examVal = '중간';
+        else if (s.includes('기말')) examVal = '기말';
+      }
+
+      if (form.semester)  form.semester.value  = semVal || '';
+      if (form.exam_type) form.exam_type.value = examVal || '';
+
+      // 관/지역/구군은 커버리지에서 받아와서 세팅
+      await loadEditRegions();
+
+      if (form.region && row.region) {
+        form.region.value = row.region;
+      }
+      await loadEditDistricts(row.region || '');
+
+      if (form.district && row.district) {
+        form.district.value = row.district;
+      }
+
+      // 파일 입력 초기화
+      if (form.files) form.files.value = '';
+
+      // 모달 표시
+      document.getElementById('edit-bg').style.display = 'flex';
     }
+
     function closeEdit(){
       document.getElementById('edit-bg').style.display='none';
       document.getElementById('edit-form').reset();
@@ -1285,6 +2019,251 @@
         applyFiltersAndRender();
       }
     };
+    
+    // 메모를 /api/my/memos/:fileId 에서 별도로 불러오도록 변경
+    async function selectFileDetail(id){
+      const row = fileListOrigin.find(r => r.id === id);
+      if (!row) return;
+
+      const emptyEl = document.getElementById('file-detail-empty');
+      const bodyEl  = document.getElementById('file-detail-body');
+      if (emptyEl) emptyEl.style.display = 'none';
+      if (bodyEl)  bodyEl.style.display  = 'block';
+
+      // 상단 큰 아이콘 + 아래 작은 아이콘 둘 다 변경
+      const iconMain  = document.getElementById('detail-file-icon-main');
+      const iconSmall = document.getElementById('detail-file-icon-small');
+
+      let src = 'image_download/pdf_download.png';
+      let alt = '파일 아이콘';
+
+      if (row.files && row.files.pdf) {
+        src = 'image_download/pdf_download.png';
+        alt = 'PDF 파일';
+      } else if (row.files && row.files.hwp) {
+        src = 'image_download/hwp_download.png';
+        alt = 'HWP 파일';
+      }
+
+      if (iconMain)  { iconMain.src  = src; iconMain.alt  = alt; }
+      if (iconSmall) { iconSmall.src = src; iconSmall.alt = alt; }
+
+      // 🔽 파일명 아래 PDF/HWP 다운로드 버튼 링크 & 표시 제어
+      const pdfBtn = document.getElementById('detail-download-pdf');
+      const hwpBtn = document.getElementById('detail-download-hwp');
+
+      if (pdfBtn) {
+        if (row.files && row.files.pdf) {
+          pdfBtn.href = `/api/download/${row.id}?type=pdf`;
+          pdfBtn.style.display = 'inline-flex';
+        } else {
+          pdfBtn.style.display = 'none';
+        }
+      }
+
+      if (hwpBtn) {
+        if (row.files && row.files.hwp) {
+          hwpBtn.href = `/api/download/${row.id}?type=hwp`;
+          hwpBtn.style.display = 'inline-flex';
+        } else {
+          hwpBtn.style.display = 'none';
+        }
+      }
+
+      // 상단 파일명 (제목 기준)
+      const nameEl = document.getElementById('detail-file-name');
+      if (nameEl) {
+        nameEl.textContent = row.title || '(제목 없음)';
+      }
+
+      // 아래 정보들
+      const schoolEl = document.getElementById('detail-school');
+      if (schoolEl) {
+        const schoolText = [row.region, row.district, row.school]
+          .filter(Boolean)
+          .join(' ');
+        schoolEl.textContent = schoolText || '-';
+      }
+
+      const metaEl = document.getElementById('detail-meta-year');
+      if (metaEl) {
+        // 연도 / 학년 / 학기 / 구분 → 2024년 2학년 1학기 기말
+        const yearText  = row.year     ? `${row.year}년` : '';
+        const gradeText = row.grade    ? `${row.grade}학년` : '';
+
+        let semesterText = '';
+        if (row.semester) {
+          const semNum = String(row.semester).replace(/학기/g, '');
+          semesterText = `${semNum}학기`;
+        }
+
+        const examText = row.exam_type || '';
+
+        const parts = [yearText, gradeText, semesterText, examText]
+          .filter(Boolean);
+
+        metaEl.textContent = parts.length ? parts.join(' ') : '-';
+      }
+
+      const subjEl  = document.getElementById('detail-subject');
+      if (subjEl)   subjEl.textContent  = row.subject || '-';
+
+      // PDF 업로드일
+      const pdfDateEl = document.getElementById('detail-pdf-date');
+      if (pdfDateEl) {
+        pdfDateEl.textContent = row.pdf_uploaded_at || '-';
+      }
+
+      // HWP 업로드일
+      const hwpDateEl = document.getElementById('detail-hwp-date');
+      if (hwpDateEl) {
+        hwpDateEl.textContent = row.hwp_uploaded_at || '-';
+      }
+
+      // ✅ 메모 리스트 렌더링 (API에서 직접 가져오기)
+      const memoListEl = document.getElementById('detail-memo-list');
+      if (!memoListEl) return;
+
+      // 먼저 "불러오는 중" 표시
+      memoListEl.innerHTML = '<p class="memo-empty">메모를 불러오는 중...</p>';
+
+      let memos = [];
+      try {
+        const res = await fetch(`/api/my/memos/${encodeURIComponent(id)}`, {
+          credentials: 'include'
+        });
+
+        if (res.ok) {
+          const data = await res.json().catch(() => null);
+
+          if (Array.isArray(data)) {
+            memos = data;
+          } else if (data && Array.isArray(data.memos)) {
+            memos = data.memos;
+          } else if (data && (data.memo || data.content)) {
+            memos = [data];
+          }
+        } else if (res.status === 401) {
+          memoListEl.innerHTML =
+            '<p class="memo-empty">로그인 후 메모를 볼 수 있습니다.</p>';
+          return;
+        } else {
+          memoListEl.innerHTML =
+            '<p class="memo-empty">메모를 불러오지 못했습니다.</p>';
+          return;
+        }
+      } catch (e) {
+        console.error('memo load error', e);
+        memoListEl.innerHTML =
+          '<p class="memo-empty">메모를 불러오지 못했습니다.</p>';
+        return;
+      }
+
+      memoListEl.innerHTML = '';
+
+      // 아무 메모도 없으면, 기존 row.memo 사용 or 기본 문구
+      if (!memos.length) {
+        const empty = document.createElement('p');
+        empty.className = 'memo-empty';
+        const memoText = (row.memo && String(row.memo).trim()) || '';
+        empty.textContent = memoText || '메모가 없습니다.';
+        memoListEl.appendChild(empty);
+        return;
+      }
+
+      // 최신순 정렬
+      memos.sort((a, b) => {
+        const da = new Date(a.updated_at || a.created_at || a.createdAt || 0);
+        const db = new Date(b.updated_at || b.created_at || b.createdAt || 0);
+        return db - da;
+      });
+
+      memos.forEach(m => {
+        const item = document.createElement('div');
+        item.className = 'memo-item';
+
+        // 상단 작성자 / 이메일 / 날짜
+        const meta = document.createElement('div');
+        meta.className = 'memo-meta';
+
+        const authorWrap = document.createElement('div');
+        authorWrap.className = 'memo-author-wrap';
+
+        const authorLine = document.createElement('div');
+        authorLine.className = 'memo-author';
+
+        // 🔹 백엔드가 어떤 구조로 보내도 웬만하면 다 잡도록 키를 넓게 처리
+        const userObj = m.user || m.owner || m.author || {};
+
+        const userId =
+          m.user_id ||
+          m.userId ||
+          m.writer_id ||
+          m.writerId ||
+          userObj.user_id ||
+          userObj.userId ||
+          userObj.id ||
+          '';
+
+        const userName =
+          m.name ||
+          m.user_name ||
+          m.username ||
+          m.writer_name ||
+          m.writerName ||
+          userObj.name ||
+          userObj.username ||
+          userObj.display_name ||
+          '';
+
+        const userEmail =
+          m.email ||
+          m.user_email ||
+          m.writer_email ||
+          userObj.email ||
+          userObj.user_email ||
+          '';
+
+        if (userId && userName) {
+          authorLine.textContent = `${userId} (${userName})`;
+        } else if (userId) {
+          authorLine.textContent = userId;
+        } else if (userName) {
+          authorLine.textContent = userName;
+        } else {
+          authorLine.textContent = '알 수 없는 사용자';
+        }
+
+        const emailLine = document.createElement('div');
+        emailLine.className = 'memo-email';
+        emailLine.textContent = userEmail || '';
+
+        authorWrap.appendChild(authorLine);
+        authorWrap.appendChild(emailLine);
+
+        const dateLine = document.createElement('div');
+        dateLine.className = 'memo-date';
+        const rawDate =
+          m.updated_at || m.created_at || m.createdAt || '';
+        if (rawDate) {
+          dateLine.textContent = String(rawDate).replace('T', ' ').slice(0, 16);
+        } else {
+          dateLine.textContent = '';
+        }
+
+        meta.appendChild(authorWrap);
+        meta.appendChild(dateLine);
+
+        const content = document.createElement('div');
+        content.className = 'memo-content';
+        content.textContent = m.memo || m.content || '';
+
+        item.appendChild(meta);
+        item.appendChild(content);
+
+        memoListEl.appendChild(item);
+      });
+    }
 
     // 파일 드래그앤드롭 + 커스텀 업로드 버튼 (기존 그대로)
     const dropArea   = document.getElementById('fileDropArea');
@@ -1321,27 +2300,38 @@
       const filename = firstFile.name.replace(/\.[^/.]+$/, "");
       const parts = filename.split(' ');
 
+      // 예: "2025 검단고 2학년 1학기 기말 수학1"
       if (parts.length >= 6) {
-        const [year, school, grade, semester, exam, ...subjectParts] = parts;
-        const subject = subjectParts.join(' ');
-
+        const [year, school, grade, semester, exam, ...rest] = parts;
         const form = document.getElementById('edit-form');
 
         if (form) {
-          form.year.value = parseInt(year, 10) || '';
+          // 연도
+          if (form.year) {
+            form.year.value = parseInt(year, 10) ? String(parseInt(year, 10)) : '';
+          }
+
+          // 학교명 / 제목
           form.school.value = school || '';
-          form.title.value = filename;
+          form.title.value  = filename;
 
+          // 학년: 파일명에서 "1학년" / "2학년" / "3학년" 이라고 들어왔을 때
           const level = form.level.value;
-          if (grade === '1학년') form.grade.value = (level === '고등') ? '고1' : '중1';
-          else if (grade === '2학년') form.grade.value = (level === '고등') ? '고2' : '중2';
-          else if (grade === '3학년') form.grade.value = (level === '고등') ? '고3' : '중3';
+          if (grade === '1학년') {
+            form.grade.value = (level === '고등') ? '고1' : '중1';
+          } else if (grade === '2학년') {
+            form.grade.value = (level === '고등') ? '고2' : '중2';
+          } else if (grade === '3학년') {
+            form.grade.value = (level === '고등') ? '고3' : '중3';
+          }
 
-          const term = `${semester} ${exam}`;
-          if (term === '1학기 중간') form.semester.value = '1학기중간';
-          else if (term === '1학기 기말') form.semester.value = '1학기기말';
-          else if (term === '2학기 중간') form.semester.value = '2학기중간';
-          else if (term === '2학기 기말') form.semester.value = '2학기기말';
+          // 학기 / 구분 분리
+          if (form.semester && (semester === '1학기' || semester === '2학기')) {
+            form.semester.value = semester;
+          }
+          if (form.exam_type && (exam === '중간' || exam === '기말')) {
+            form.exam_type.value = exam;
+          }
         }
       }
 
@@ -1354,6 +2344,7 @@
       fileTextEl.textContent = '선택된 파일:';
     }
 
+
     function previewFile(filename){
       // 이 함수는 더 이상 호출되지 않으나 기존 구조 유지
     }
@@ -1362,23 +2353,65 @@
       document.getElementById('preview-body').innerHTML='';
     }
 
-        // 파일 리스트 전용 필터는 셀렉트 변경 시 바로 반영
+    // 파일 리스트 전용 필터는 셀렉트 변경 시 바로 반영
+    const levelFilter = document.getElementById('file-level');
+    if (levelFilter) {
+      levelFilter.addEventListener('change', () => {
+        updateSubjectOptions();       // 관 바뀌면 과목 목록도 변경
+        applyFiltersAndRender();
+      });
+    }
     document.getElementById('file-semester')?.addEventListener('change', applyFiltersAndRender);
-    document.getElementById('file-exam-type')?.addEventListener('change', applyFiltersAndRender);
+    document.getElementById('file-exam')?.addEventListener('change', applyFiltersAndRender);
+    document.getElementById('file-subject')?.addEventListener('change', applyFiltersAndRender);
+
 
     // 초기 실행
     (async function init(){
       await fetchFiles();
       await initCoverageFilters();
       await refreshCoverageSummary();
-      applyFiltersAndRender();
-    })();
 
-    // 초기 실행
-    (async function init(){
-      await fetchFiles();
-      await initCoverageFilters();
-      await refreshCoverageSummary();
+      // 파일 리스트용 지역/구군 필터 초기화
+      await loadFileFilterRegions();   // 지역 드롭다운 채우기
+
+      const regionSel   = document.getElementById('file-region');
+      const districtSel = document.getElementById('file-district');
+
+      if (regionSel) {
+        regionSel.addEventListener('change', (e) => {
+          loadFileFilterDistricts(e.target.value);
+          applyFiltersAndRender();
+        });
+      }
+      if (districtSel) {
+        districtSel.addEventListener('change', applyFiltersAndRender);
+      }
+
+            // 수정 모달 관/지역 변경 시 커버리지 기반 드롭다운 연동
+      const editForm = document.getElementById('edit-form');
+      if (editForm) {
+        const editLevelSel  = editForm.querySelector('select[name="level"]');
+        const editRegionSel = editForm.querySelector('select[name="region"]');
+
+        if (editLevelSel) {
+          editLevelSel.addEventListener('change', async () => {
+            await loadEditRegions();
+            const regionVal =
+              editForm.querySelector('select[name="region"]')?.value || '';
+            await loadEditDistricts(regionVal);
+          });
+        }
+
+        if (editRegionSel) {
+          editRegionSel.addEventListener('change', (e) => {
+            loadEditDistricts(e.target.value);
+          });
+        }
+      }
+
+      // 페이지 진입 시 관 설정에 맞게 과목 옵션 먼저 채움
+      updateSubjectOptions();
       applyFiltersAndRender();
     })();
   </script>

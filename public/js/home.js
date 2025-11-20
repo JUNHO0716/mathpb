@@ -5,10 +5,34 @@ window.initializeHomePage = function(user) {
   
   // ⬇⬇⬇ 이미지 없이 색 카드 정보만 넘김 (img 제거)
   const ad = window.initAdBanner('#AdBannerRoot', [
-    { id: 'card1', url: 'promo1.html', title: '프로모션 1' },
-    { id: 'card2', url: 'promo2.html', title: '프로모션 2' },
-    { id: 'card3', url: 'promo3.html', title: '프로모션 3' },
-    { id: 'card4', url: 'promo4.html', title: '프로모션 4' }
+  {
+    id: 'ins1',
+    url: '#',   // 배너 누르면 이동할 주소 (없으면 #)
+    tag: '수학 선생님 전용 시험지 플랫폼',          // 위 작은 글
+    title: '전국 기출·내신으로<br>맞춤 시험지 완성', // 가운데 큰 글
+    desc: '학교·학년·단원 필터로 골라담고<br>한 번에 HWP/PDF로 다운로드' // 아래 설명
+  },
+  {
+    id: 'sub1',
+    url: '#',
+    tag: '지금이 가장 싸게 구독할 수 있는 시기',
+    title: '첫 구독 시<br>최대 30% 할인',
+    desc: '연간 구독 선택 시 추가 할인 적용<br>Basic · Standard · Pro 전 요금제 공통'
+  },
+  {
+    id: 'bot1',
+    url: '#',
+    tag: '수학 선생님을 위한 전용 AI 비서',
+    title: '시험지·문항·상담까지<br>채팅 한 번으로 해결',
+    desc: '문제 추천, 난이도 조정, 해설 요청을<br>24시간 챗봇에게 맡기세요'
+  },
+  {
+    id: 'edit1',
+    url: '#',
+    tag: '출처 정리부터 도형 편집까지 한 번에',
+    title: '매쓰비 도형 에디터로<br>그래프·도형 깔끔하게',
+    desc: '기출·모의고사 출처는 자동으로 정리하고<br>도형은 에디터에서 바로 수정·재사용'
+  }
   ], { delay: 4500 });
   // ⬆⬆⬆ 여기까지만 교체
 

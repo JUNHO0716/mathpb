@@ -188,7 +188,9 @@ if (process.env.NODE_ENV === 'production') {
       const res = await fetch(`${process.env.BASE_URL || 'https://mathpb.com'}/api/admin/neis/sync`, {
         method: 'POST', credentials: 'include'
       });
-      console.log('[NEIS weekly sync]', await res.text());
+
+      const text = await res.text().catch(() => '');
+      console.log('[NEIS weekly sync] status =', res.status);
     } catch (e) { console.error('[NEIS weekly sync] failed', e); }
   };
   setTimeout(kickoff, 30_000);           // 서버 기동 30초 후 1회

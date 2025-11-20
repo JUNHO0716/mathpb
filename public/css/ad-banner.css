@@ -146,7 +146,7 @@
 #AdBannerRoot .ad-stack {
   position: relative;
   height: 100%;
-  left: -72px;            /* 전체 스택 이동량 (예: -60 ~ -90px 사이 조정) */
+  left: -55px;            /* 전체 스택 이동량 (예: -60 ~ -90px 사이 조정) */
 }
 
 /* =========================
@@ -325,33 +325,120 @@
 /* ===== 색 카드 내부 레이아웃 / 타이포 ===== */
 
 .ad-card-content{
-  max-width: 75%;
+  max-width: 80%;
 }
 
+/* 위 작은 문구 (예: 나에게 꼭 맞는 다이렉트 자동차보험) */
 .ad-card-tag{
+  display:block;
+  padding:0;
+  border-radius:0;
+  font-size:0.9rem;
+  font-weight:600;
+  letter-spacing:-0.02em;
+  background:transparent;
+  backdrop-filter:none;
+  margin-bottom:14px;
+}
+
+/* 큰 제목 (인터넷가입 평균 19.0% 저렴) */
+.ad-card-title{
+  font-size:1.6rem;
+  font-weight:800;
+  line-height:1.35;
+  letter-spacing:-0.02em;
+  margin-bottom:16px;
+}
+
+/* 아래 작은 설명 (자사 오프라인 대비 ...) */
+.ad-card-desc{
+  font-size:0.95rem;
+  line-height:1.5;
+  opacity:0.95;
+}
+
+/* 큰 제목 (인터넷가입 평균 19.0% 저렴) */
+.ad-card-title{
+  font-size:1.6rem;
+  font-weight:800;
+  line-height:1.35;
+  letter-spacing:-0.02em;
+  margin-bottom:16px;
+}
+
+/* 두 번째 줄(아이콘 + 텍스트) 레이아웃 */
+.ad-card-title-line2{
+  display:flex;
+  align-items:center;
+  gap:0;
+  margin-top:4px;
+}
+
+/* 아이콘: 처음엔 접힌 상태(폭 0, 안 보임) → 펼쳐지듯이 */
+.ad-card-icon{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  padding:4px 10px;
+  width:0;            /* 처음엔 0 → 애니메이션으로 32px */
+  height:32px;        /* 🔸아이콘 박스 높이 ↑ */
   border-radius:999px;
-  font-size:0.7rem;
-  font-weight:600;
-  letter-spacing:0.02em;
-  background:rgba(0,0,0,0.16);
-  backdrop-filter:blur(6px);
-  margin-bottom:8px;
+  background:#ffffff;
+  flex-shrink:0;
+  overflow:hidden;
+  opacity:0;
+  transform-origin:left center;
 }
 
-.ad-card-title{
-  font-size:1.3rem;
-  font-weight:800;
-  letter-spacing:-0.02em;
-  margin-bottom:6px;
+/* 두 번째 줄 텍스트: 처음엔 제자리 → 아이콘이 나오면서 오른쪽으로 살짝 밀려남 */
+.ad-card-title-line2-text{
+  display:inline-block;
 }
 
+/* SVG 크기 */
+.ad-card-icon-svg{
+  width:24px;         /* 🔸SVG 자체 크기 키움 */
+  height:24px;
+  display:block;
+}
+
+/* 활성 카드에서만 애니메이션 실행 */
+#AdBannerRoot .ad-card.is-active .ad-card-icon{
+  /* 🔸시간 0.55s → 0.9s 로 느리게, 딜레이 살짝 늘림 */
+  animation: adIconUnfold .9s .35s forwards cubic-bezier(.25,1,.4,1);
+}
+#AdBannerRoot .ad-card.is-active .ad-card-title-line2-text{
+  animation: adTitleShift .9s .35s forwards cubic-bezier(.25,1,.4,1);
+}
+
+/* 아이콘이 접힌 상태에서 펼쳐지는 느낌 */
+@keyframes adIconUnfold{
+  0%{
+    width:0;
+    opacity:0;
+    transform:scale(.7);
+  }
+  100%{
+    width:32px;       /* 🔸최종 너비도 32px로 맞춤 */
+    opacity:1;
+    transform:scale(1);
+  }
+}
+
+/* 텍스트가 오른쪽으로 자연스럽게 밀리는 느낌 */
+@keyframes adTitleShift{
+  0%{
+    transform:translateX(0);
+  }
+  100%{
+    transform:translateX(10px);  /* 🔸아이콘 커진 만큼 약간 더 밀어줌 */
+  }
+}
+
+/* 아래 작은 설명 (자사 오프라인 대비 ...) */
 .ad-card-desc{
-  font-size:0.9rem;
-  opacity:0.9;
+  font-size:0.95rem;
+  line-height:1.5;
+  opacity:0.95;
 }
 
 /* ===== 카드별 배경 색 (1~4번) ===== */
@@ -370,4 +457,12 @@
 
 #AdBannerRoot .ad-card-4{
   background: radial-gradient(circle at 0% 0%, #a18cd1 0%, #fbc2eb 45%, #f48fb1 100%);
+}
+
+#AdBannerRoot a,
+#AdBannerRoot a:hover,
+#AdBannerRoot a:focus,
+#AdBannerRoot .ad-card,
+#AdBannerRoot .ad-card * {
+  text-decoration: none !important;
 }

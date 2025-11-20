@@ -38,14 +38,16 @@
       return file;
     },
 
+    // 내 메모 저장 (per-user)
     saveMemo: async (id, memo) => {
-      const res = await fetch(`/api/files/${encodeURIComponent(id)}/memo`, {
+      const res = await fetch(`/api/my/memos/${encodeURIComponent(id)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ memo })
       });
       if (!res.ok) throw new Error('메모 저장 실패');
-      return true;
+      // { ok: true, memo: '...' } 형식 응답
+      return await res.json().catch(() => ({}));
     },
 
     // 렌더 템플릿(기본)
@@ -152,7 +154,32 @@ function init(options) {
 
   // ▼ 메모 저장 핸들러: 한 번만 붙이도록 정리
   if (onContentClick) content.removeEventListener('click', onContentClick);
-  onContentClick = async (e) => { /* 기존 그대로 */ };
+  onContentClick = async (e) => {
+    const btn = e.target.closest('#details-memo-save-btn');
+    if (!btn) return;
+
+    const id = btn.dataset.id;
+    const textarea = content.querySelector('#details-memo-textarea');
+    if (!id || !textarea) return;
+
+    const memo = textarea.value.trim();
+
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '저장 중...';
+
+    try {
+      await cfg.saveMemo(id, memo);
+      // 내용 있으면 "메모 수정", 없으면 "메모 저장" 으로 표시
+      btn.textContent = memo ? '메모 수정' : '메모 저장';
+    } catch (err) {
+      console.error(err);
+      alert('메모 저장에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      btn.textContent = originalText;
+    } finally {
+      btn.disabled = false;
+    }
+  };
   content.addEventListener('click', onContentClick);
 
   attachClick(); // 기존: #file-list 클릭 전용
@@ -161,6 +188,7 @@ function init(options) {
   document.removeEventListener('coverage:fileClick', onCoverageFileClick, { passive: true });
   document.addEventListener('coverage:fileClick', onCoverageFileClick, { passive: true });
 }
+
 
 // 새로 추가
 async function onCoverageFileClick(e) {

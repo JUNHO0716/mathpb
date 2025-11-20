@@ -251,8 +251,12 @@ window.initializeHighPage = function(user) {
     });
   }
 
-  window.downloadFile = (id, type) => {
-    event.stopPropagation();
+  // high.js 하단 부분
+  window.downloadFile = async (id, type) => {
+    if (event && typeof event.stopPropagation === 'function') {
+      event.stopPropagation();
+    }
+
     const plan = (user?.plan || '').toLowerCase();
     const allow = user && (user.role === 'admin' || ['basic','standard','pro'].includes(plan));
     if (!allow) {
@@ -264,9 +268,25 @@ window.initializeHighPage = function(user) {
       });
       return;
     }
+
+    // ✅ 1) 다운로드 로그 먼저 남기기 (실패해도 그냥 무시하고 다운로드는 진행)
+    try {
+      await fetch('/api/download-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ fileId: id, type })
+      });
+    } catch (e) {
+      console.error('다운로드 로그 저장 실패(프론트):', e);
+      // 여기서는 사용자에게는 알리지 않고 패스
+    }
+
+    // ✅ 2) 실제 파일 다운로드
     const url = `/api/download/${id}?type=${encodeURIComponent(type)}`;
     window.location.href = url;
   };
+
 
   function formatDate(dateString) {
     return dateString ? new Date(dateString).toLocaleDateString() : '-';

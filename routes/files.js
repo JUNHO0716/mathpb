@@ -184,6 +184,23 @@ router.get('/api/downloads/recent', isLoggedIn, verifyOrigin, async (req, res) =
   }
 });
 
+// 🔹 관리자용 일별 다운로드 통계 (최근 90일)
+router.get('/api/admin/downloads/daily', ensureAdmin, async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT DATE(downloaded_at) AS date, COUNT(*) AS count
+      FROM downloads_log
+      GROUP BY DATE(downloaded_at)
+      ORDER BY DATE(downloaded_at) DESC
+      LIMIT 90
+    `);
+    res.json(rows);
+  } catch (e) {
+    console.error('관리자 다운로드 일별 통계 오류:', e);
+    res.status(500).json({ error: '다운로드 통계 조회 실패' });
+  }
+});
+
 // 최근 업로드 (id 포함)
 router.get('/api/uploads/recent', isLoggedIn, verifyOrigin, async (req, res) => {
   try {
@@ -198,6 +215,7 @@ router.get('/api/uploads/recent', isLoggedIn, verifyOrigin, async (req, res) => 
     res.status(500).json({ message: '업로드 목록 오류', error: e.message });
   }
 });
+
 
 // 파일 상세 조회 (공개)
 router.get('/api/files/:id', verifyOrigin, async (req, res) => {
@@ -464,6 +482,59 @@ router.post('/api/admin/exam-upload',
     } catch (e) {
       console.error('POST /api/admin/exam-upload error:', e);
       return res.status(500).json({ success:false, message:'업로드 실패' });
+    }
+  }
+);
+
+// ★★★ 여기부터 수정: 관리자 업로드 삭제 API (uploads 테이블 기준) ★★★
+// admin_upload_review.html 에서 DELETE 날릴 주소:  /api/admin/uploads/:id
+router.delete(
+  '/api/admin/uploads/:id',
+  isLoggedIn,
+  ensureAdmin,
+  verifyOrigin,
+  numericIdParam,
+  async (req, res) => {
+    const id = req.params.id;
+
+    try {
+      // 1) uploads 테이블에서 해당 업로드 정보 가져오기
+      const [[row]] = await db.query(
+        'SELECT s3_key FROM uploads WHERE id = ? LIMIT 1',
+        [id]
+      );
+
+      if (!row) {
+        return res.status(404).json({
+          success: false,
+          message: '이미 삭제되었거나 존재하지 않는 업로드입니다.'
+        });
+      }
+
+      const key = row.s3_key;
+
+      // 2) S3에서 실제 파일 삭제 (있으면)
+      if (key) {
+        try {
+          await s3.deleteObject({
+            Bucket: process.env.AWS_S3_BUCKET,
+            Key: key
+          }).promise();
+        } catch (err) {
+          console.warn('S3 파일 삭제 실패(무시):', key, err.message);
+        }
+      }
+
+      // 3) uploads 테이블에서 row 삭제
+      await db.query('DELETE FROM uploads WHERE id = ?', [id]);
+
+      return res.json({ success: true });
+    } catch (e) {
+      console.error('DELETE /api/admin/uploads/:id error:', e);
+      return res.status(500).json({
+        success: false,
+        message: '삭제 중 서버 오류가 발생했습니다.'
+      });
     }
   }
 );

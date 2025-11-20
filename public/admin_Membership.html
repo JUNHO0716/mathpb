@@ -128,7 +128,8 @@
       margin-top: 6px;
       height: 240px;
     }
-    #userChart {
+    #userChart,
+    #fileChart {
       width: 100%;
       height: 100%;
     }
@@ -655,7 +656,7 @@
       <div class="kpi-sub" id="kpiTodayDownloadsSub">로그 연동 후 표시</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">오늘 시험지 업로드 수</div>
+      <div class="kpi-label">오늘 시험지 요청 수</div>
       <div class="kpi-value" id="kpiTodayUploads">-</div>
       <div class="kpi-sub" id="kpiTodayUploadsSub">로그 연동 후 표시</div>
     </div>
@@ -665,10 +666,10 @@
   <div class="main-layout">
     <!-- 왼쪽: 그래프 + 탭 -->
     <div class="main-left">
-      <!-- 그래프 카드 -->
+      <!-- 그래프 카드 (방문자 / 가입 막대그래프) -->
       <div class="card chart-card">
         <div class="chart-header">
-          <div class="chart-title">일별 지표 추이</div>
+          <div class="chart-title">일별 방문자 / 가입 추이</div>
           <div class="chart-filters">
             <div class="chart-series">
               <label>
@@ -679,18 +680,11 @@
                 <input type="checkbox" class="series-toggle" data-series="signups" checked>
                 가입
               </label>
-              <label>
-                <input type="checkbox" class="series-toggle" data-series="downloads" checked>
-                다운로드
-              </label>
-              <label>
-                <input type="checkbox" class="series-toggle" data-series="uploads" checked>
-                업로드
-              </label>
             </div>
             <select id="chartRange" class="chart-range-select">
               <option value="7">최근 7일</option>
-              <option value="30" selected>최근 30일</option>
+              <option value="15" selected>최근 15일</option>
+              <option value="30">최근 30일</option>
               <option value="90">최근 90일</option>
             </select>
           </div>
@@ -699,6 +693,35 @@
           <canvas id="userChart"></canvas>
         </div>
       </div>
+
+      <!-- ▼▼ 새 그래프 카드: 다운로드 / 업로드 전용 -->
+      <div class="card chart-card">
+        <div class="chart-header">
+          <div class="chart-title">일별 다운로드 / 업로드 추이</div>
+          <div class="chart-filters">
+            <div class="chart-series">
+              <label>
+                <input type="checkbox" class="file-series-toggle" data-series="downloads" checked>
+                다운로드
+              </label>
+              <label>
+                <input type="checkbox" class="file-series-toggle" data-series="uploads" checked>
+                업로드
+              </label>
+            </div>
+            <select id="fileChartRange" class="chart-range-select">
+              <option value="7">최근 7일</option>
+              <option value="15" selected>최근 15일</option>
+              <option value="30">최근 30일</option>
+              <option value="90">최근 90일</option>
+            </select>
+          </div>
+        </div>
+        <div class="chart-body">
+          <canvas id="fileChart"></canvas>
+        </div>
+      </div>
+
 
       <!-- 아래 탭 카드 -->
       <div class="card tabs-card">
@@ -734,15 +757,14 @@
                 </select>
               </div>
 
-              <label class="search-admin-toggle">
-                <input
-                  type="checkbox"
-                  id="showAdminCheckbox"
-                  checked
-                  onchange="filterTable()"
-                >
-                <span>관리자 보기</span>
-              </label>
+            <label class="search-admin-toggle">
+              <input
+                type="checkbox"
+                id="showAdminCheckbox"
+                onchange="filterTable()"
+              >
+              <span>관리자 보기</span>
+            </label>
             </div>
 
             <!-- 회원 목록 로딩 중에만 보이는 영역 -->
@@ -880,16 +902,35 @@
     // 대시보드 상태
     const dashboardState = {
       users: [],
-      userMap: new Map(),   // 🔹 id → user 객체 매핑
+      userMap: new Map(),
       chart: null,
-      range: 30, // 기본 30일
+      range: 15, // 🔹 기본 15일
       seriesEnabled: {
         visitors: true,
-        signups: true,
+        signups: true
+      }
+    };
+
+    // ▼ 파일(다운로드 / 업로드) 전용 그래프 상태
+    const fileChartState = {
+      chart: null,
+      range: 15,  // 🔹 기본 15일
+      seriesEnabled: {
         downloads: true,
         uploads: true
       }
     };
+
+    // ▼ 업로드 일자별 개수 저장 (파일 그래프에서 사용)
+    const uploadStatsForChart = {
+      byDate: {}   // { '2025-11-17': 3, ... }
+    };
+
+    // ▼ 다운로드 일자별 개수 저장 (파일 그래프에서 사용)
+    const downloadStatsForChart = {
+      byDate: {}   // { '2025-11-17': 5, ... }
+    };
+
 
     // ===== 회원 목록 로드 (대시보드 연동 + 카드형 렌더) =====
     async function loadUsers() {
@@ -1035,8 +1076,8 @@
         // 대시보드, 사이드바, 그래프 갱신
         updateKpiFromUsers(users);
         updateSidebarFromUsers(users);
-        rebuildChart();
-
+        rebuildChart();      // 방문자 / 가입 막대그래프
+        rebuildFileChart();  // 다운로드 / 업로드 그래프
         // 더보기 드롭다운 이벤트 (최초 1회만 바인딩)
         bindMoreMenuEvents();
 
@@ -1057,6 +1098,7 @@
       let todaySignups   = 0;
       let subscribers    = 0;
       let activeUsers30d = 0;
+      let todayVisitors  = 0;  // ⭐ 오늘 방문자(오늘 로그인한 회원 수)
 
       // 플랜별 카운트
       let basicCount    = 0;
@@ -1094,8 +1136,15 @@
           hasLastLoginField = true;
           const d = new Date(lastLoginRaw);
           if (!isNaN(d)) {
+            // ⭐ 최근 30일 로그인 → 활성회원수
             if (nowMs - d.getTime() <= THIRTY_DAYS) {
               activeUsers30d++;
+            }
+
+            // ⭐ 오늘 로그인 → 오늘 방문자수
+            const lastKey = d.toISOString().slice(0,10); // YYYY-MM-DD
+            if (lastKey === todayKey) {
+              todayVisitors++;
             }
           }
         }
@@ -1129,11 +1178,16 @@
         if (elActiveSub) elActiveSub.textContent = 'last_login 로그 연동 후 표시';
       }
 
-      // 방문자 / 다운로드 / 업로드는 일단 서버 로그 연동 전이라 그대로 둠
+      // ⭐ 오늘 방문자수: 오늘 로그인한 회원 수
       const elVisitors    = document.getElementById('kpiTodayVisitors');
       const elVisitorsSub = document.getElementById('kpiTodayVisitorsSub');
-      if (elVisitors)    elVisitors.textContent = '-';
-      if (elVisitorsSub) elVisitorsSub.textContent = '로그 연동 후 표시';
+      if (hasLastLoginField) {
+        if (elVisitors)    elVisitors.textContent = todayVisitors + '명';
+        if (elVisitorsSub) elVisitorsSub.textContent = '오늘 로그인한 회원 수';
+      } else {
+        if (elVisitors)    elVisitors.textContent = '-';
+        if (elVisitorsSub) elVisitorsSub.textContent = 'last_login 로그 연동 후 표시';
+      }
 
       const elDown    = document.getElementById('kpiTodayDownloads');
       const elDownSub = document.getElementById('kpiTodayDownloadsSub');
@@ -1295,7 +1349,6 @@
       }
     }
 
-        // ===== 업로드 요약 패널 (확인 요청 / 제작 진행) =====
     async function loadUploadPanels() {
       const pendingList  = document.getElementById('uploadPendingList');
       const progressList = document.getElementById('uploadInProgressList');
@@ -1310,7 +1363,12 @@
         const res  = await fetch('/api/admin/uploads', { credentials: 'include' });
         const data = await res.json().catch(() => []);
         if (!Array.isArray(data)) throw new Error('업로드 목록 형식 오류');
+
+        // 리스트 카드 갱신
         updateUploadPanels(data);
+        // 🔹 그래프용 업로드 통계도 갱신 + 그래프 다시 그림
+        updateUploadStatsForChart(data);
+        rebuildFileChart();
       } catch (e) {
         console.error('업로드 요약 패널 로드 실패:', e);
         if (pendingList) {
@@ -1485,6 +1543,97 @@ const formatUploadUser = (u) => {
       }
     }
 
+// 로컬(KST) 기준 YYYY-MM-DD 키 만들기 (UTC 보정 없이 그대로 사용)
+function getLocalYmdKey(value) {
+  let d = value instanceof Date ? value : new Date(value);
+  if (isNaN(d)) return null;
+
+  const y   = d.getFullYear();
+  const m   = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+// 업로드 한 건의 "기준 날짜" (요청일/업로드일 등) 뽑기
+function getUploadDateForChart(u) {
+  const keys = [
+    'requested_at', 'request_at', 'request_date',
+    'created_at', 'createdAt',
+    'uploaded_at', 'uploadedAt'
+  ];
+  for (const k of keys) {
+    const v = u[k];
+    if (!v) continue;
+    const d = new Date(v);
+    if (!isNaN(d)) {
+      // 로컬 날짜만 쓰면 되므로 0시로 맞출 필요 없음
+      return d;
+    }
+  }
+  return null;
+}
+
+// 업로드 배열 → 날짜별 업로드 개수 집계 + 오늘 업로드 KPI 반영
+function updateUploadStatsForChart(uploads) {
+  const byDate = {};
+  (uploads || []).forEach(u => {
+    const d = getUploadDateForChart(u);
+    if (!d) return;
+
+    const key = getLocalYmdKey(d); // YYYY-MM-DD (로컬)
+    if (!key) return;
+
+    byDate[key] = (byDate[key] || 0) + 1;
+  });
+  uploadStatsForChart.byDate = byDate;
+
+  // 👉 오늘 업로드 수 KPI 업데이트
+  const todayKey = getLocalYmdKey(new Date());
+  const todayCnt = byDate[todayKey] || 0;
+
+  const elUp    = document.getElementById('kpiTodayUploads');
+  const elUpSub = document.getElementById('kpiTodayUploadsSub');
+  if (elUp)    elUp.textContent = todayCnt + '건';
+  if (elUpSub) elUpSub.textContent = '오늘 등록된 시험지 업로드 수';
+}
+
+// ✅ 다운로드 일자별 통계 불러오기 + 오늘 다운로드 KPI 반영
+async function loadDownloadStatsForChart() {
+  try {
+    // 서버에서 최근 90일 정도 일자별 다운로드 수를 돌려주는 API라고 가정
+    // (예: [{ date: '2025-11-01', count: 3 }, ... ])
+    const res  = await fetch('/api/admin/downloads/daily', { credentials: 'include' });
+    const rows = await res.json().catch(() => []);
+    if (!Array.isArray(rows)) return;
+
+    const byDate = {};
+    rows.forEach(r => {
+      const d = r.date || r.d || r.day;
+      const c = Number(r.count || r.cnt || 0);
+      if (!d || isNaN(c)) return;
+
+      const key = String(d).slice(0, 10); // YYYY-MM-DD
+      byDate[key] = (byDate[key] || 0) + c;
+    });
+
+    downloadStatsForChart.byDate = byDate;
+
+    // 👉 오늘 다운로드 수 KPI 업데이트
+    const todayKey = getLocalYmdKey(new Date());
+    const todayCnt = byDate[todayKey] || 0;
+
+    const elDown    = document.getElementById('kpiTodayDownloads');
+    const elDownSub = document.getElementById('kpiTodayDownloadsSub');
+    if (elDown)    elDown.textContent = todayCnt + '회';
+    if (elDownSub) elDownSub.textContent = '오늘 발생한 다운로드 수';
+
+    // 그래프 다시 그림
+    rebuildFileChart();
+  } catch (e) {
+    console.error('다운로드 통계 로딩 실패:', e);
+  }
+}
+
     function getDisplayId(u) {
       if (!u) return '';
 
@@ -1523,16 +1672,20 @@ const formatUploadUser = (u) => {
 
     function formatDateYMD(value) {
       if (!value) return '-';
+
+      // 이미 위에 정의해둔 getLocalYmdKey() 재사용
       if (value instanceof Date) {
         if (isNaN(value)) return '-';
-        return value.toISOString().slice(0, 10);
+        return getLocalYmdKey(value) || '-';
       }
+
       try {
         const d = new Date(value);
         if (!isNaN(d)) {
-          return d.toISOString().slice(0, 10);
+          return getLocalYmdKey(d) || '-';
         }
       } catch (e) {}
+
       const s = String(value);
       return s.length >= 10 ? s.slice(0, 10) : s;
     }
@@ -1601,7 +1754,6 @@ const formatUploadUser = (u) => {
       });
     }
 
-    // ===== 그래프 (Chart.js) 재구성 =====
     function rebuildChart() {
       const canvas = document.getElementById('userChart');
       if (!canvas || typeof Chart === 'undefined') return;
@@ -1614,6 +1766,7 @@ const formatUploadUser = (u) => {
 
       const signupCountByDate = {};
 
+      // 가입수 날짜별 집계
       users.forEach(u => {
         const created = u.created_at || u.createdAt || null;
         if (!created) return;
@@ -1624,53 +1777,43 @@ const formatUploadUser = (u) => {
       });
 
       const labels = [];
-      const visitorsData = [];
+      const visitorsData = []; // 아직은 로그 없어서 전부 0
       const signupsData  = [];
-      const downloadsData = [];
-      const uploadsData   = [];
 
       for (let i = range - 1; i >= 0; i--) {
         const dt = new Date(today);
         dt.setDate(today.getDate() - i);
         const key = dt.toISOString().slice(0,10);
-        labels.push((dt.getMonth() + 1) + '/' + dt.getDate());
 
+        labels.push((dt.getMonth() + 1) + '/' + dt.getDate());
+        visitorsData.push(0); // TODO: 방문자 로그 연동
         signupsData.push(signupCountByDate[key] || 0);
-        visitorsData.push(0);  // 방문자수는 추후 로그 연동
-        downloadsData.push(0); // 다운로드수 추후 로그 연동
-        uploadsData.push(0);   // 업로드수 추후 로그 연동
       }
 
       if (!dashboardState.chart) {
         const ctx = canvas.getContext('2d');
         dashboardState.chart = new Chart(ctx, {
-          type: 'line',
+          type: 'bar',
           data: {
             labels,
             datasets: [
               {
                 label: '방문자',
                 data: visitorsData,
-                borderWidth: 2,
-                tension: 0.3
+                backgroundColor: 'rgba(148,163,184,0.35)', // 연한 회색/민트 느낌
+                borderRadius: 8,
+                borderSkipped: false,
+                barPercentage: 0.55,
+                categoryPercentage: 0.7
               },
               {
                 label: '가입 수',
                 data: signupsData,
-                borderWidth: 2,
-                tension: 0.3
-              },
-              {
-                label: '다운로드 수',
-                data: downloadsData,
-                borderWidth: 2,
-                tension: 0.3
-              },
-              {
-                label: '업로드 수',
-                data: uploadsData,
-                borderWidth: 2,
-                tension: 0.3
+                backgroundColor: 'rgba(16,185,129,0.9)',  // 진한 초록
+                borderRadius: 8,
+                borderSkipped: false,
+                barPercentage: 0.55,
+                categoryPercentage: 0.7
               }
             ]
           },
@@ -1679,24 +1822,56 @@ const formatUploadUser = (u) => {
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
             plugins: {
-              legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } }
+              legend: {
+                position: 'bottom',
+                labels: { boxWidth: 10, font: { size: 11 } }
+              }
+            },
+            // 🔹 막대가 항상 "아래 → 위"로 올라오도록
+            animations: {
+              y: {
+                duration: 600,
+                easing: 'easeOutCubic',
+                from: (ctx) => {
+                  const scale = ctx.chart.scales.y;
+                  return scale.getPixelForValue(0); // 축의 0 위치에서 시작
+                }
+              }
+            },
+            // 🔹 숨길 때(체크 해제/범위 변경 등) 빠르게 아래로 사라지도록
+            transitions: {
+              hide: {
+                animations: {
+                  y: {
+                    duration: 200,
+                    easing: 'easeInCubic',
+                    to: (ctx) => {
+                      const scale = ctx.chart.scales.y;
+                      return scale.getPixelForValue(0);
+                    }
+                  }
+                }
+              }
             },
             scales: {
-              x: { ticks: { font: { size: 11 } } },
+              x: {
+                grid: { display: false },
+                ticks: { font: { size: 11 } }
+              },
               y: {
                 beginAtZero: true,
-                ticks: { stepSize: 1, font: { size: 11 } }
+                ticks: { stepSize: 1, font: { size: 11 } },
+                grid: { color: 'rgba(229,231,235,0.7)' }
               }
             }
           }
+
         });
       } else {
         const chart = dashboardState.chart;
         chart.data.labels = labels;
         chart.data.datasets[0].data = visitorsData;
         chart.data.datasets[1].data = signupsData;
-        chart.data.datasets[2].data = downloadsData;
-        chart.data.datasets[3].data = uploadsData;
         chart.update();
       }
 
@@ -1711,9 +1886,7 @@ const formatUploadUser = (u) => {
 
       const map = {
         visitors: 0,
-        signups: 1,
-        downloads: 2,
-        uploads: 3
+        signups: 1
       };
 
       Object.keys(map).forEach(key => {
@@ -1726,6 +1899,116 @@ const formatUploadUser = (u) => {
 
       chart.update();
     }
+
+    // ===== 다운로드 / 업로드 전용 그래프 =====
+    function rebuildFileChart() {
+      const canvas = document.getElementById('fileChart');
+      if (!canvas || typeof Chart === 'undefined') return;
+
+      const range = fileChartState.range || 30;
+
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      const labels = [];
+      const downloadsData = [];
+      const uploadsData   = [];
+
+      // 👉 업로드 / 다운로드 둘 다 일자별 집계 사용
+      const uploadByDate   = uploadStatsForChart.byDate   || {};
+      const downloadByDate = downloadStatsForChart.byDate || {};
+
+      for (let i = range - 1; i >= 0; i--) {
+        const dt = new Date(today);
+        dt.setDate(today.getDate() - i);
+
+        const key = getLocalYmdKey(dt); // YYYY-MM-DD (로컬 기준)
+
+        labels.push((dt.getMonth() + 1) + '/' + dt.getDate());
+
+        downloadsData.push(downloadByDate[key] || 0);
+        uploadsData.push(uploadByDate[key]   || 0);
+      }
+
+      if (!fileChartState.chart) {
+        const ctx = canvas.getContext('2d');
+        fileChartState.chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: '다운로드',
+                data: downloadsData,
+                borderWidth: 2,
+                tension: 0.3,
+                pointRadius: 2,
+                pointHoverRadius: 4,
+                pointHitRadius: 6
+              },
+              {
+                label: '업로드',
+                data: uploadsData,
+                borderWidth: 2,
+                tension: 0.3,
+                pointRadius: 2,
+                pointHoverRadius: 4,
+                pointHitRadius: 6
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { boxWidth: 10, font: { size: 11 } }
+              }
+            },
+            scales: {
+              x: { ticks: { font: { size: 11 } } },
+              y: {
+                beginAtZero: true,
+                ticks: { stepSize: 1, font: { size: 11 } }
+              }
+            }
+          }
+        });
+      } else {
+        const chart = fileChartState.chart;
+        chart.data.labels = labels;
+        chart.data.datasets[0].data = downloadsData;
+        chart.data.datasets[1].data = uploadsData;
+        chart.update();
+      }
+
+      applyFileSeriesToggleToChart();
+    }
+
+
+    function applyFileSeriesToggleToChart() {
+      const chart = fileChartState.chart;
+      if (!chart) return;
+
+      const map = {
+        downloads: 0,
+        uploads: 1
+      };
+
+      Object.keys(map).forEach(key => {
+        const idx = map[key];
+        const enabled = fileChartState.seriesEnabled[key];
+        if (chart.data.datasets[idx]) {
+          chart.data.datasets[idx].hidden = !enabled;
+        }
+      });
+
+      chart.update();
+    }
+
+
 
     // ===== 탭 초기화 =====
     function initTabs() {
@@ -1747,6 +2030,7 @@ const formatUploadUser = (u) => {
 
     // ===== 차트 필터(체크박스, 기간) 이벤트 =====
     function initChartControls() {
+      // 위 그래프(방문자/가입) 기간
       const rangeSelect = document.getElementById('chartRange');
       if (rangeSelect) {
         rangeSelect.addEventListener('change', () => {
@@ -1756,6 +2040,17 @@ const formatUploadUser = (u) => {
         });
       }
 
+      // 파일 그래프(다운로드/업로드) 기간
+      const fileRangeSelect = document.getElementById('fileChartRange');
+      if (fileRangeSelect) {
+        fileRangeSelect.addEventListener('change', () => {
+          const v = parseInt(fileRangeSelect.value, 10);
+          fileChartState.range = isNaN(v) ? 30 : v;
+          rebuildFileChart();
+        });
+      }
+
+      // 위 그래프 시리즈 토글 (방문자 / 가입)
       document.querySelectorAll('.series-toggle').forEach(chk => {
         chk.addEventListener('change', () => {
           const key = chk.getAttribute('data-series');
@@ -1764,7 +2059,18 @@ const formatUploadUser = (u) => {
           applySeriesToggleToChart();
         });
       });
+
+      // 파일 그래프 시리즈 토글 (다운로드 / 업로드)
+      document.querySelectorAll('.file-series-toggle').forEach(chk => {
+        chk.addEventListener('change', () => {
+          const key = chk.getAttribute('data-series');
+          if (!key) return;
+          fileChartState.seriesEnabled[key] = chk.checked;
+          applyFileSeriesToggleToChart();
+        });
+      });
     }
+
 
     // ===== 모달 관련 기존 로직 유지 =====
     function openModal(action, userId) {
@@ -1970,9 +2276,16 @@ async function changePlan(selectEl) {
 
       // 🔹 회원 목록 먼저 불러오고 userMap 만든 다음에
       await loadUsers();        // users + userMap 준비
-      // 🔹 그 다음 업로드 패널 그리기
-      loadUploadPanels();       // 업로드 확인/제작 진행 패널
+
+      // 🔹 첫 화면에서도 "관리자 보기" 체크 상태 반영 (기본: 체크 해제 → 관리자 숨김)
+      filterTable();
+
+      // 🔹 업로드/다운로드 통계 불러와서 KPI + 그래프 갱신
+      loadUploadPanels();          // 업로드 확인/제작 진행 패널 + 업로드 그래프/KPI
+      loadDownloadStatsForChart(); // 다운로드 그래프/KPI
     });
+
+
 
     window.addEventListener('pageshow', resetSearchBox);
   </script>

@@ -3,81 +3,424 @@
 <head>
   <meta name="robots" content="noindex, nofollow">
   <meta charset="UTF-8" />
-  <title>관리자 업로드 관리</title>
+  <title>업로드 관리 & 통계 | 관리자페이지</title>
   <style>
-    body { font-family: 'Noto Sans KR', sans-serif; margin:0; padding:0; }
-    .page-banner { background:#f7f7f7; padding:20px; text-align:center; font-size:1.5rem; border-bottom:1px solid #ddd; }
-    .container { padding:20px; }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 40px;
+      box-sizing: border-box;
+    }
+    h1 {
+      font-size: 24px;
+      margin: 0 0 20px;
+    }
+
+    /* 공통 카드 스타일 (admin_Membership와 통일) */
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 18px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.06);
+    }
+
+    /* KPI 카드 행 (4개씩) */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    .kpi-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 14px 16px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 80px;
+    }
+    .kpi-label {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 4px;
+    }
+    .kpi-sub {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    .kpi-month-caption {
+      font-size: 12px;
+      color: #6b7280;
+      margin: 4px 0 6px;
+    }
+
+    /* 메인 레이아웃 (그래프 + 테이블) */
+    .main-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 8px;
+    }
+
+    /* 그래프 카드 */
+    .chart-card {
+      min-height: 260px;
+    }
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .chart-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #111827;
+    }
+    .chart-body {
+      margin-top: 6px;
+      height: 220px;
+    }
+    #uploadStatusChart {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* 업로드 목록 카드 */
+    .upload-card {
+      margin-top: 0;
+    }
+    .upload-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .upload-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    /* 필터 버튼 (기존 스타일 살리되 살짝 다듬기) */
+    .filter-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
     .filter-buttons button {
-      margin-right: 8px;
       padding: 6px 14px;
       border: none;
-      border-radius: 4px;
-      background: #ddd;
+      border-radius: 9999px;
+      background: #e5e7eb;
       cursor: pointer;
+      font-size: 13px;
+      color: #374151;
     }
     .filter-buttons button.active {
-      background: #333;
+      background: #3b82f6;
       color: #fff;
     }
-    table { width:100%; border-collapse: collapse; margin-top:16px; }
-    th, td { border:1px solid #ddd; padding:8px; text-align:center; }
-    th { background:#f0f0f0; }
-    button { padding:6px 12px; border:none; border-radius:4px; cursor:pointer; }
-    .btn-progress  { background:#28a745; color:#fff; margin-right:4px; }
-    .btn-reject    { background:#dc3545; color:#fff; margin-right:4px; }
-    .btn-complete  { background:#007bff; color:#fff; }
-    .btn-group button { margin: 2px; }
 
-    #reject-modal, #confirm-modal {
-      display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.5); align-items:center; justify-content:center;
-    }
-    .modal-content {
-      background:#fff; padding:20px; border-radius:8px; width:320px;
-    }
-    #reject-modal textarea { width:100%; height:80px; margin-top:8px; }
-    .actions { text-align:right; margin-top:12px; }
-    .actions button { margin-left:8px; }
-
-    /* 1) 테이블 고정 레이아웃 */
+    /* 테이블 */
     #admin-table {
       table-layout: fixed;
       width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 13px;
     }
-
-    /* 2) 셀 텍스트 넘치면 … 처리 */
     #admin-table th,
     #admin-table td {
+      border: 1px solid #e5e7eb;
+      padding: 8px;
+      text-align: center;
+      background: #fff;
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
     }
 
-    /* 3) 3열(파일명)만 40% 폭 지정 */
-    #admin-table th:nth-child(3),
-    #admin-table td:nth-child(3) {
-      width: 40%;
+    /* 업로더(1열), 파일명(2열)은 왼쪽 정렬 */
+    #admin-table td:nth-child(1),
+    #admin-table td:nth-child(2) {
+      text-align: left;
+      padding-left: 10px; /* 살짝 여백 */
     }
 
+    #admin-table th {
+      background: #f9fafb;
+      font-weight: 600;
+    }
+
+    /* 2열(파일명) 폭 줄이기 + 여러 줄 허용 */
+    #admin-table th:nth-child(2),
+    #admin-table td:nth-child(2) {
+      width: 25%;          /* ← 40% → 30% 정도로 축소 */
+    }
+
+    #admin-table td:nth-child(2) {
+      white-space: normal; /* 셀 자체는 줄바꿈 허용 (아래 요청일 한 줄 더 위해) */
+    }
     
+
+    /* 파일명 본문은 한 줄 + ... 처리 */
+    .file-main {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    /* 파일 요청일 표시용 스타일 */
+    .file-sub {
+      font-size: 11px;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    /* 3열(다운로드) 폭 좁게 */
+    #admin-table th:nth-child(3),
+    #admin-table td:nth-child(3) {
+      width: 70px;   /* 필요하면 60~90px 사이로 조절 가능 */
+    }
+
+    /* 4열(상태) 폭 좁게 */
+    #admin-table th:nth-child(4),
+    #admin-table td:nth-child(4) {
+      width: 70px;
+    }
+
+    /* 5열(작업) 폭 넓게 */
+    #admin-table th:nth-child(5),
+    #admin-table td:nth-child(5) {
+      width: 42%;    /* 버튼 여러 개 넉넉히 들어가게 */
+    }
+
+    /* ===== 업로드 상태 텍스트 색 (home.css와 동일) ===== */
+    .status-text-pending {
+      color: #FFC107;   /* statPending */
+      font-weight: 600;
+    }
+
+    .status-text-producing {
+      color: #2FD4B3;   /* statProducing */
+      font-weight: 600;
+    }
+
+    .status-text-completed {
+      color: #2C3D70;   /* statCompleted */
+      font-weight: 600;
+    }
+
+    .status-text-rejected {
+      color: #8A1538;   /* statRejected */
+      font-weight: 700;
+    }
+
+    /* 기본 버튼 (모달 등 공통) */
+    button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    /* 업로드 목록 작업 버튼 공통 (동글 칩 스타일) */
+    .btn-group button {
+      margin: 2px;
+      border-radius: 9999px;           /* 완전 동그란 칩 */
+      padding: 6px 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      border: none;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.15);
+      transition: background-color .15s ease, transform .1s ease,
+                  box-shadow .15s ease, filter .15s ease;
+    }
+
+    /* hover 효과 */
+    .btn-group button:hover {
+      filter: brightness(0.96);
+      transform: translateY(0.5px);
+      box-shadow: 0 2px 4px rgba(15,23,42,0.2);
+    }
+
+    /* 제작 진행 → 제작중 색 (#2FD4B3) */
+    .btn-progress {
+      background:#2FD4B3;
+      color:#ffffff;
+    }
+    .btn-progress::before {
+      content: "▶";           /* 아이콘 */
+      font-size: 11px;
+    }
+
+    /* 반려 → 반려 색 (#8A1538) */
+    .btn-reject {
+      background:#8A1538;
+      color:#ffffff;
+    }
+    .btn-reject::before {
+      content: "✕";
+      font-size: 11px;
+    }
+
+    /* 작업 완료 → 완료 색 (#2C3D70) */
+    .btn-complete {
+      background:#2C3D70;
+      color:#ffffff;
+    }
+    .btn-complete::before {
+      content: "✓";
+      font-size: 11px;
+    }
+
+    /* 삭제 → 맨 위 회색 칩 스타일 */
+    .btn-delete {
+      background:#6b7280;     /* 필요하면 #9CA3AF 로 더 연하게 조절 가능 */
+      color:#ffffff;
+    }
+    .btn-delete::before {
+      content: "🗑";
+      font-size: 13px;
+    }
+
+    /* 모달 */
+    #reject-modal,
+    #confirm-modal {
+      display:none;
+      position:fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background:rgba(0,0,0,0.5);
+      align-items:center;
+      justify-content:center;
+      z-index: 9999;
+    }
+    .modal-content {
+      background:#fff;
+      padding:20px;
+      border-radius:8px;
+      width:320px;
+      box-shadow: 0 10px 30px rgba(15,23,42,0.3);
+    }
+    #reject-modal textarea {
+      width:100%;
+      height:80px;
+      margin-top:8px;
+      font-size: 13px;
+      resize: vertical;
+    }
+    .actions {
+      text-align:right;
+      margin-top:12px;
+    }
+    .actions button {
+      margin-left:8px;
+    }
   </style>
 </head>
 <body>
-  <div class="page-banner">관리자 업로드 관리</div>
-  <div class="container">
-    <div class="filter-buttons" id="status-filters">
-      <button onclick="filterStatus('all')" class="active">전체</button>
-      <button onclick="filterStatus('확인중')">확인중</button>
-      <button onclick="filterStatus('제작중')">제작중</button>
-      <button onclick="filterStatus('완료')">완료</button>
-      <button onclick="filterStatus('반려')">반려</button>
+  <!-- 페이지 제목 (admin_Membership와 통일) -->
+  <h1>업로드 관리 & 통계</h1>
+
+  <!-- 1줄: 전체 누적 기준 상태별 개수 -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">전체 확인중</div>
+      <div class="kpi-value" id="kpiTotalPending">-</div>
+      <div class="kpi-sub">서비스 시작 ~ 지금까지 확인중 상태 업로드 수</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">전체 제작중</div>
+      <div class="kpi-value" id="kpiTotalInProgress">-</div>
+      <div class="kpi-sub">현재 제작 진행 중인 업로드 수</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">전체 완료</div>
+      <div class="kpi-value" id="kpiTotalCompleted">-</div>
+      <div class="kpi-sub">완료 처리된 업로드 누적 수</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">전체 반려</div>
+      <div class="kpi-value" id="kpiTotalRejected">-</div>
+      <div class="kpi-sub">반려 처리된 업로드 누적 수</div>
+    </div>
+  </div>
+
+  <!-- 2줄: 이번 달(예: 11/1 ~ 11/30) 기준 상태별 개수 -->
+  <div class="kpi-month-caption" id="kpiMonthRangeLabel">
+    <!-- JS에서 "11월 1일 ~ 11월 30일 기준 (이번달 업로드)" 이런 식으로 채워짐 -->
+  </div>
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">이번달 확인중</div>
+      <div class="kpi-value" id="kpiMonthPending">-</div>
+      <div class="kpi-sub">이번 달 등록된 업로드 중 확인중</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">이번달 제작중</div>
+      <div class="kpi-value" id="kpiMonthInProgress">-</div>
+      <div class="kpi-sub">이번 달 등록된 업로드 중 제작중</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">이번달 완료</div>
+      <div class="kpi-value" id="kpiMonthCompleted">-</div>
+      <div class="kpi-sub">이번 달 완료 처리된 업로드 수</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">이번달 반려</div>
+      <div class="kpi-value" id="kpiMonthRejected">-</div>
+      <div class="kpi-sub">이번 달 반려 처리된 업로드 수</div>
+    </div>
+  </div>
+
+  <div class="main-layout">
+    <!-- 꺾은선 그래프: 한달 간격 상태별 추이 -->
+    <div class="card chart-card">
+      <div class="chart-header">
+        <div class="chart-title">월별 업로드 상태 추이 (확인중 / 제작중 / 완료 / 반려)</div>
+      </div>
+      <div class="chart-body">
+        <canvas id="uploadStatusChart"></canvas>
+      </div>
     </div>
 
-    <table id="admin-table">
+    <!-- 업로드 목록 카드 (필터 + 테이블) -->
+    <div class="card upload-card">
+      <div class="upload-header">
+        <div class="upload-title">업로드 목록</div>
+        <div class="filter-buttons" id="status-filters">
+          <button onclick="filterStatus('all')" class="active">전체</button>
+          <button onclick="filterStatus('확인중')">확인중</button>
+          <button onclick="filterStatus('제작중')">제작중</button>
+          <button onclick="filterStatus('완료')">완료</button>
+          <button onclick="filterStatus('반려')">반려</button>
+        </div>
+      </div>
+
+      <table id="admin-table">
       <thead>
         <tr>
-          <th>ID</th>
           <th>업로더</th>
           <th>파일명</th>
           <th>다운로드</th>
@@ -85,8 +428,9 @@
           <th>작업</th>
         </tr>
       </thead>
-      <tbody></tbody>
-    </table>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
 
   <!-- 반려 모달 -->
@@ -112,43 +456,106 @@
     </div>
   </div>
 
+  <!-- Chart.js (그래프용) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
 let uploads = [];
 let currentRejectId = null;
 let confirmCallback = null;
 let currentFilter = 'all';
+let uploadChart = null; // 업로드 상태 꺾은선그래프 인스턴스
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadUploads();
 });
 
+// 회원 ID가 너무 길면 잘라서 표시 (15자 초과 시 ... 붙이기)
+function shortenId(str, maxLen = 15) {
+  if (!str) return '';
+  str = String(str);
+  return str.length > maxLen ? str.slice(0, maxLen) + '...' : str;
+}
+
+/** 업로드 목록 + 통계 + 그래프 로드 */
 async function loadUploads() {
   const res = await fetch('/api/admin/uploads', { credentials:'include' });
   uploads = await res.json();
   renderUploads();
+  updateUploadDashboard();
 }
 
+/** 상태 필터 버튼 */
 function filterStatus(status) {
   currentFilter = status;
   document.querySelectorAll('#status-filters button').forEach(btn => btn.classList.remove('active'));
-  const btn = [...document.querySelectorAll('#status-filters button')].find(b => b.textContent === (status === 'all' ? '전체' : status));
+  const btn = [...document.querySelectorAll('#status-filters button')]
+    .find(b => b.textContent === (status === 'all' ? '전체' : status));
   if (btn) btn.classList.add('active');
   renderUploads();
 }
 
 function renderUploads() {
   const tbody = document.querySelector('#admin-table tbody');
+  if (!tbody) return;
   tbody.innerHTML = '';
 
-  uploads
+  (uploads || [])
     .filter(u => currentFilter === 'all' || u.status === currentFilter)
     .forEach(u => {
       const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${u.id}</td>
-        <td>${u.user_id}</td>
-        <td>${u.filename}</td>
-      `;
+
+      // 백엔드에서 넘어오는 값들:
+      // up.user_id, up.filename, up.status, ...
+      // u.user_pk = users.id, u.name = 회원이름, u.email = 이메일
+      const rawUserId   = u.user_pk || u.user_id || '';
+      const displayId   = shortenId(rawUserId, 15);   // 15자 이상이면 ... 처리
+      const displayName = u.name  || '';
+      const email       = u.email || '';
+
+      // 업로더 셀 (회원ID (회원이름) + 아래 이메일)
+      const tdUploader = document.createElement('td');
+      const topLine = document.createElement('div');
+      topLine.textContent = displayName
+        ? `${displayId} (${displayName})`
+        : displayId || '-';
+
+      const bottomLine = document.createElement('div');
+      bottomLine.style.fontSize = '11px';
+      bottomLine.style.color = '#6b7280';
+      bottomLine.style.marginTop = '2px';
+      bottomLine.textContent = email || '';
+
+      tdUploader.appendChild(topLine);
+      if (email) tdUploader.appendChild(bottomLine);
+
+      // 파일명 셀 (파일명 + 요청일)
+      const tdFilename = document.createElement('td');
+
+      // 파일명 (한 줄 + ... 처리)
+      const fileMain = document.createElement('div');
+      fileMain.className = 'file-main';
+      fileMain.textContent = u.filename || '';
+      fileMain.title = u.filename || ''; // 전체 파일명 툴팁으로 보여주기
+
+      // 요청일 (파일 요청일, 아래 줄)
+      const fileSub = document.createElement('div');
+      fileSub.className = 'file-sub';
+
+      const baseDate = getUploadBaseDate(u); // 이미 아래 통계에서 쓰는 함수 재사용
+      if (baseDate) {
+        const y = baseDate.getFullYear();
+        const m = String(baseDate.getMonth() + 1).padStart(2, '0');
+        const d = String(baseDate.getDate()).padStart(2, '0');
+        fileSub.textContent = `파일 요청일: ${y}-${m}-${d}`;
+      }
+
+      tdFilename.appendChild(fileMain);
+      if (baseDate) tdFilename.appendChild(fileSub);
+
+      tr.appendChild(tdUploader);
+      tr.appendChild(tdFilename);
+
 
       // 다운로드 셀
       const tdDownload = document.createElement('td');
@@ -160,10 +567,24 @@ function renderUploads() {
       tdDownload.appendChild(a);
       tr.appendChild(tdDownload);
 
-      // 상태 셀
+      // 상태 셀 (색상 클래스 적용)
       const tdStatus = document.createElement('td');
-      tdStatus.textContent = u.status;
+      tdStatus.textContent = u.status || '';
+
+      let statusClass = '';
+      if (u.status === '확인중') {
+        statusClass = 'status-text-pending';
+      } else if (u.status === '제작중') {
+        statusClass = 'status-text-producing';
+      } else if (u.status === '완료') {
+        statusClass = 'status-text-completed';
+      } else if (u.status === '반려') {
+        statusClass = 'status-text-rejected';
+      }
+      if (statusClass) tdStatus.classList.add(statusClass);
+
       tr.appendChild(tdStatus);
+
 
       // 작업 버튼 셀
       const tdAct = document.createElement('td');
@@ -185,11 +606,19 @@ function renderUploads() {
           )
         );
       }
-      tr.appendChild(tdAct);
 
+      // 공통 삭제 버튼
+      tdAct.append(
+        createButton('삭제', 'btn-delete', () =>
+          openConfirmModal('정말 이 업로드를 삭제하시겠습니까?', () => handleDelete(u.id))
+        )
+      );
+
+      tr.appendChild(tdAct);
       tbody.appendChild(tr);
     });
 }
+
 
 function createButton(text, className, handler) {
   const btn = document.createElement('button');
@@ -198,6 +627,249 @@ function createButton(text, className, handler) {
   btn.onclick = handler;
   return btn;
 }
+
+/* ===== 날짜 관련 유틸 ===== */
+
+/** Date -> 'YYYY-MM-DD' */
+function formatYMD(d) {
+  if (!(d instanceof Date) || isNaN(d)) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+/** 이번 달 시작/끝 날짜 구하기 */
+function getCurrentMonthRange() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0); // 말일
+  start.setHours(0,0,0,0);
+  end.setHours(23,59,59,999);
+  return { start, end };
+}
+
+/** 업로드 객체에서 날짜 필드 하나 골라오기 (업로드/생성/요청/수정 중 있는 것) */
+function getUploadBaseDate(u) {
+  const keys = [
+    'uploaded_at','uploadedAt',
+    'created_at','createdAt',
+    'requested_at','request_at','request_date',
+    'updated_at','updatedAt'
+  ];
+  for (const k of keys) {
+    const v = u[k];
+    if (!v) continue;
+    const d = new Date(v);
+    if (!isNaN(d)) return d;
+  }
+  return null;
+}
+
+/* ===== 상단 KPI + 그래프 갱신 ===== */
+
+function updateUploadDashboard() {
+  updateKpiCards(uploads || []);
+  rebuildUploadChart(uploads || []);
+}
+
+/** KPI 카드 숫자 채우기 */
+function updateKpiCards(list) {
+  const total = {
+    pending: 0,
+    inProgress: 0,
+    completed: 0,
+    rejected: 0
+  };
+  const monthly = {
+    pending: 0,
+    inProgress: 0,
+    completed: 0,
+    rejected: 0
+  };
+
+  const { start, end } = getCurrentMonthRange();
+
+  (list || []).forEach(u => {
+    const status = u.status || '';
+    const key =
+      status === '확인중' ? 'pending' :
+      status === '제작중' ? 'inProgress' :
+      status === '완료'   ? 'completed' :
+      status === '반려'   ? 'rejected' :
+      null;
+    if (!key) return;
+
+    // 전체 누적
+    total[key]++;
+
+    // 이번 달 기준 (업로드 기준 날짜가 이번 달 안에 있는 경우)
+    const d = getUploadBaseDate(u);
+    if (d && d >= start && d <= end) {
+      monthly[key]++;
+    }
+  });
+
+  // 전체 누적
+  const tPending    = document.getElementById('kpiTotalPending');
+  const tInProgress = document.getElementById('kpiTotalInProgress');
+  const tCompleted  = document.getElementById('kpiTotalCompleted');
+  const tRejected   = document.getElementById('kpiTotalRejected');
+
+  if (tPending)    tPending.textContent    = total.pending    + '개';
+  if (tInProgress) tInProgress.textContent = total.inProgress + '개';
+  if (tCompleted)  tCompleted.textContent  = total.completed  + '개';
+  if (tRejected)   tRejected.textContent   = total.rejected   + '개';
+
+  // 이번 달
+  const mPending    = document.getElementById('kpiMonthPending');
+  const mInProgress = document.getElementById('kpiMonthInProgress');
+  const mCompleted  = document.getElementById('kpiMonthCompleted');
+  const mRejected   = document.getElementById('kpiMonthRejected');
+
+  if (mPending)    mPending.textContent    = monthly.pending    + '개';
+  if (mInProgress) mInProgress.textContent = monthly.inProgress + '개';
+  if (mCompleted)  mCompleted.textContent  = monthly.completed  + '개';
+  if (mRejected)   mRejected.textContent   = monthly.rejected   + '개';
+
+  // "11월 1일 ~ 11월 30일 기준" 텍스트
+  const caption = document.getElementById('kpiMonthRangeLabel');
+  if (caption) {
+    const month = start.getMonth() + 1;
+    const lastDay = end.getDate();
+    caption.textContent =
+      `${month}월 1일 ~ ${month}월 ${lastDay}일 기준 (이번달 업로드)`;
+  }
+}
+
+// 올해 기준 1월~12월 월별 합계로 그리기
+function rebuildUploadChart(list) {
+  const canvas = document.getElementById('uploadStatusChart');
+  if (!canvas || typeof Chart === 'undefined') return;
+
+  const now = new Date();
+  const year = now.getFullYear();
+
+  // 라벨: 1월, 2월, 3월 … 12월
+  const labels = [];
+  for (let m = 0; m < 12; m++) {
+    labels.push((m + 1) + '월');
+  }
+
+  // 월별 데이터 배열 준비
+  const pendingData    = new Array(12).fill(0);
+  const inProgressData = new Array(12).fill(0);
+  const completedData  = new Array(12).fill(0);
+  const rejectedData   = new Array(12).fill(0);
+
+  // 업로드 리스트를 월별로 집계
+  (list || []).forEach(u => {
+    const status = u.status || '';
+    const baseDate = getUploadBaseDate(u);
+    if (!baseDate) return;
+    if (baseDate.getFullYear() !== year) return; // 올해 것만 집계
+
+    const monthIdx = baseDate.getMonth(); // 0=1월, 11=12월
+
+    if (status === '확인중') {
+      pendingData[monthIdx] += 1;
+    } else if (status === '제작중') {
+      inProgressData[monthIdx] += 1;
+    } else if (status === '완료') {
+      completedData[monthIdx] += 1;
+    } else if (status === '반려') {
+      rejectedData[monthIdx] += 1;
+    }
+  });
+
+    const chartData = {
+      labels,
+      datasets: [
+        {
+          label: '확인중',
+          data: pendingData,
+          borderColor: '#FFC107',                // statPending
+          backgroundColor: 'rgba(255,193,7,0.18)',
+          borderWidth: 2,
+          tension: 0.3,
+          pointRadius: 2,
+          pointHoverRadius: 4,
+          pointHitRadius: 6,
+          fill: false
+        },
+        {
+          label: '제작중',
+          data: inProgressData,
+          borderColor: '#2FD4B3',                // statProducing
+          backgroundColor: 'rgba(47,212,179,0.18)',
+          borderWidth: 2,
+          tension: 0.3,
+          pointRadius: 2,
+          pointHoverRadius: 4,
+          pointHitRadius: 6,
+          fill: false
+        },
+        {
+          label: '완료',
+          data: completedData,
+          borderColor: '#2C3D70',                // statCompleted
+          backgroundColor: 'rgba(44,61,112,0.18)',
+          borderWidth: 2,
+          tension: 0.3,
+          pointRadius: 2,
+          pointHoverRadius: 4,
+          pointHitRadius: 6,
+          fill: false
+        },
+        {
+          label: '반려',
+          data: rejectedData,
+          borderColor: '#8A1538',                // statRejected
+          backgroundColor: 'rgba(138,21,56,0.2)',
+          borderWidth: 2,
+          tension: 0.3,
+          pointRadius: 2,
+          pointHoverRadius: 4,
+          pointHitRadius: 6,
+          fill: false
+        }
+      ]
+    };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { boxWidth: 10, font: { size: 11 } }
+      }
+    },
+    scales: {
+      x: { ticks: { font: { size: 11 } } },
+      y: {
+        beginAtZero: true,
+        ticks: { stepSize: 1, font: { size: 11 } }
+      }
+    }
+  };
+
+  if (!uploadChart) {
+    const ctx = canvas.getContext('2d');
+    uploadChart = new Chart(ctx, {
+      type: 'line',
+      data: chartData,
+      options: chartOptions
+    });
+  } else {
+    uploadChart.data = chartData;
+    uploadChart.options = chartOptions;
+    uploadChart.update();
+  }
+}
+
+/* ===== 모달 & 상태 변경 (기존 로직 그대로) ===== */
 
 // 반려 모달
 function openRejectModal(id) {
@@ -247,6 +919,28 @@ async function handleChangeStatus(id, status) {
     body: JSON.stringify({ status })
   });
   await loadUploads();
+}
+
+// 업로드 삭제
+async function handleDelete(id) {
+  try {
+    const res = await fetch(`/api/admin/uploads/${id}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+
+    if (!res.ok) {
+      const txt = await res.text();
+      console.error('삭제 실패:', txt);
+      alert('삭제 중 오류가 발생했습니다.');
+      return;
+    }
+
+    await loadUploads();
+  } catch (err) {
+    console.error('삭제 에러:', err);
+    alert('삭제 중 에러가 발생했습니다.');
+  }
 }
 </script>
 </body>
